@@ -1,6 +1,6 @@
 import importlib.util
 import json
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 import pytest
 
@@ -24,7 +24,7 @@ def files(tmp_path):
         "from_version": "0.1.0",
         "to_version": "0.2.0",
         "baseline_migrations": {
-            str(path.relative_to(project)): upgrade.file_hash(path)
+            path.relative_to(project).as_posix(): upgrade.file_hash(path)
             for path in (project / "migrations/versions").glob("*.py")
         },
         "files": [
@@ -78,3 +78,21 @@ def test_installer_requires_the_original_phase1_migration(tmp_path):
     assert (project / "README.md").read_text() == "Phase 1\n"
     assert not (project / "new.py").exists()
     assert not (project / "upgrade_backups").exists()
+
+
+def test_fixture_manifest_handles_windows_relative_paths(tmp_path, monkeypatch):
+    # Exercise Windows serialization even when this test is running on Linux.
+    native_relative_to = type(tmp_path).relative_to
+
+    def windows_relative_to(path, *args, **kwargs):
+        return PureWindowsPath(native_relative_to(path, *args, **kwargs))
+
+    with monkeypatch.context() as patch:
+        patch.setattr(type(tmp_path), "relative_to", windows_relative_to)
+        bundle, project = files(tmp_path)
+    manifest = json.loads((bundle / "upgrade-manifest.json").read_text(encoding="utf-8"))
+    assert set(manifest["baseline_migrations"]) == {
+        "migrations/versions/0001_phase_0_users_personalities_.py",
+        "migrations/versions/0002_scoped_evidence_and_claims.py",
+    }
+    upgrade.apply_upgrade(bundle, project, check_only=True)
