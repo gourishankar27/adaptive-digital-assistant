@@ -1,42 +1,35 @@
-# ADA — Phase 0
+# ADA — Phase 1
 
-A Python backend for a Windows 11 laptop, shared by multiple authenticated users.
-Ollama runs the language model. Each user can create several private personality
-profiles; a conversation freezes its chosen profile. Everyone shares model
-weights, never conversation history or personality context.
+Python/FastAPI on your Windows laptop, with PostgreSQL and a configurable Ollama
+model. Accounts share model weights. Personality, history and memory remain
+private to each authenticated user.
 
-This is a working server foundation. It includes persistent text chat, an HTTP
-API, a CLI client, PostgreSQL migrations, authentication, request retries, and
-tests. It does not yet include RAG, extracted claims, tools, Android/iOS apps,
-device inference, streaming, or background memory consolidation.
+Already running Phase 0? Start with [the upgrade guide](docs/UPGRADE-PHASE1.md).
+It includes installation into your existing project and the prompt upgrade for
+conversation `11b492c2-2667-44a3-bd9c-9a532f63c00f`.
 
-## Your hardware and model
+## Added in this phase
 
-Target: Windows 11 Pro, i9-14900HX, RTX 4090 **Laptop** GPU, 32 GB system RAM.
-Ollama's model catalogue lists **`qwen3.8:27b`**, not `qwen3.8:28b`.
-The listed model download is 18 GB. NVIDIA lists 16 GB VRAM for the laptop GPU.
-Expect that full GPU residency may not fit, especially with context/KV cache;
-CPU offloading and throughput must be measured on the actual laptop. Download
-size is not a complete memory benchmark. No model weights are bundled here.
+- Private personal/project scopes, usable by several conversations.
+- Immutable evidence versions for user notes and chat events, including old history.
+- Explicit facts, preferences and decisions with exact quoted evidence.
+- Transactional corrections retaining the old claim and its replacement link.
+- Current, historical and full-history memory queries, through the API and CLI.
+- A clearer ADA identity/capability baseline and audited prompt upgrades.
 
-Defaults: 8,192 context tokens, at most 512 output tokens, one in-flight model
-generation. Thinking is disabled in the adapter for predictable Phase 0 chat.
-Change `ADA_OLLAMA_MODEL` in `.env` to any installed compatible chat model.
-Multiple accounts do not imply simultaneous GPU generation: busy requests get
-HTTP 503 with `Retry-After: 3`. No hidden unbounded queue is created.
+Each claim requires one user evidence version in its authorized scope. Its quote
+and hash come from the server. Model output cannot support user assertions. A
+quote establishes provenance; it does not verify truth or semantic entailment.
+The user explicitly supplies the subject/predicate/value annotation.
 
-Sources checked 2026-10-08:
-- https://ollama.com/library/qwen3.8/tags
-- https://www.nvidia.com/en-us/geforce/laptops/40-series/
-- https://docs.ollama.com/api/chat
-- https://docs.ollama.com/faq
+Chat uses its own conversation history. It does not retrieve or extract these
+claims yet. Phase 2 will select memory for chat. Tools, document ingestion,
+consolidation, affect learning, Android/iOS apps and device inference are deferred.
 
-## Windows setup
+## New Windows installation
 
-Prerequisites: Python 3.12 with the `py` launcher, Ollama for Windows, and either
-Docker Desktop configured for Linux containers or a local PostgreSQL installation.
-The Python API and Ollama run natively on Windows. Only PostgreSQL uses the supplied
-Docker Compose file. Run commands from the extracted `ada-phase0` directory.
+Prerequisites: Python 3.12, Ollama, Docker Desktop with Linux containers (or native
+PostgreSQL). From the extracted `ada-phase1` folder:
 
 ```powershell
 .\scripts\setup.ps1
@@ -45,147 +38,95 @@ docker compose up -d --wait db
 ollama pull qwen3.8:27b
 .\.venv\Scripts\ada.exe doctor
 .\.venv\Scripts\ada.exe create-user Gourishankar
-```
-
-The setup script generates a random database password when creating `.env`.
-If script execution is disabled by your PowerShell policy, run these equivalent
-commands manually; do not change your system policy just for this project:
-
-```powershell
-py -3.12 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.lock
-.\.venv\Scripts\python.exe -m pip install --no-deps -e .
-Copy-Item .env.example .env
-# Edit .env: replace the sample password in both places with your own secret.
-```
-
-For native PostgreSQL instead of Docker, create a dedicated `ada` database and
-role, configure `ADA_DATABASE_URL`, then run the same migration command. Avoid
-putting an unescaped password containing URL punctuation into the connection URL.
-
-`create-user` displays one secret bearer token. Copy it into a password manager.
-The database stores only its SHA-256 hash. Tokens have 256 bits of randomness;
-this is not a password-hashing design. There is no public registration endpoint.
-
-Start the API in one PowerShell window:
-
-```powershell
 .\scripts\start.ps1
-# Equivalent:
-# .\.venv\Scripts\python.exe -m uvicorn ada.api:create_app --factory --host 127.0.0.1 --port 8000 --workers 1 --no-access-log
 ```
 
-Start text chat in another window:
+Use an installed compatible model via `ADA_OLLAMA_MODEL` in `.env`. Actual quality,
+GPU/CPU placement and speed need testing on your RTX 4090 Laptop GPU / i9-14900HX /
+32 GB RAM machine. Start with one Uvicorn worker and one in-flight generation.
+The setup script creates the virtual environment, installs the pinned dependencies
+and generates a database password for a new `.env`.
+
+For a new Docker install, `POSTGRES_PORT` controls the host port; use the same port
+in `ADA_DATABASE_URL`. PostgreSQL inside the container stays on 5432. The upgrade
+preserves your existing Compose file and port settings.
+
+The API defaults to `127.0.0.1:8000`. Remote mobile clients need authenticated HTTPS
+or an encrypted private network; PostgreSQL/Ollama remain private to the server.
+
+## Chat
+
+In another PowerShell window:
 
 ```powershell
-$env:ADA_TOKEN = 'paste-the-issued-token'
-.\.venv\Scripts\ada.exe chat
+$env:ADA_TOKEN = 'your-current-token'
+.\.venv\Scripts\ada.exe chat --title 'ADA development'
 ```
 
-Save the conversation UUID printed by the CLI. After restarting the server:
+The CLI prints conversation and scope IDs. Resume with `chat --conversation UUID`.
+`/retry` reuses the last request ID. Completed retries return the saved answer.
+New conversations use `ada-baseline-v2`. Existing conversations retain their old
+baseline until `ada upgrade-prompt CONVERSATION_UUID` explicitly archives and
+replaces it. The personality snapshot and events are preserved.
+
+The prompt distinguishes ADA from the backend model and states this version's
+capabilities. Model compliance needs a real-model check. Prompts do not enforce
+permissions or write memory.
+
+## Try explicit memory
+
+Use the scope ID printed by chat, or create a private project:
 
 ```powershell
-.\.venv\Scripts\ada.exe chat --conversation 'saved-conversation-uuid'
+$scope = .\.venv\Scripts\ada.exe scopes create 'ADA development' | ConvertFrom-Json
+$scopeId = $scope.id
+.\.venv\Scripts\ada.exe chat --scope $scopeId --title 'Architecture discussion'
 ```
 
-The CLI's `/retry` reuses the last request ID. A completed request returns its
-stored answer without another model call. After a connection loss, use that
-same ID or query request status; a new UUID means a new message.
-
-API explorer: http://127.0.0.1:8000/docs (Authorize with the issued bearer token).
-Readiness: http://127.0.0.1:8000/health/ready checks the migrated database, not model
-availability. `ada doctor` separately checks Ollama and the configured model tag.
-
-## Try the server before downloading the model
-
-In the server terminal, set `$env:ADA_PROVIDER = 'fake'` before starting it.
-Responses are explicitly labelled `[FAKE provider]`; no model runs. Remove that
-environment override (`Remove-Item Env:ADA_PROVIDER`) and restart to use Ollama.
-Fake mode exercises the same authentication, database, context, and retry path.
-
-## Multiple users and personalities
+In another terminal, add a dated example decision:
 
 ```powershell
-.\.venv\Scripts\ada.exe create-user SecondUser
+.\.venv\Scripts\ada.exe memory remember --scope $scopeId --subject ADA --predicate database --value SQLite --kind decision --text 'We chose SQLite for ADA.' --valid-from '2026-10-01T00:00:00Z'
 ```
 
-Each person uses their own token. With a token set:
+Save its returned claim ID and correct it:
 
 ```powershell
-$headers = @{Authorization = "Bearer $env:ADA_TOKEN"}
-$profile = Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8000/v1/personalities -Headers $headers -ContentType 'application/json' -Body '{"name":"ADA","style":"direct","warmth":"warm","detail":"detailed"}'
-$body = @{personality_id = $profile.id; title = 'ADA development'} | ConvertTo-Json
-$conversation = Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8000/v1/conversations -Headers $headers -ContentType 'application/json' -Body $body
-.\.venv\Scripts\ada.exe chat --conversation $conversation.id
+$oldClaim = 'the-returned-claim-uuid'
+.\.venv\Scripts\ada.exe memory correct $oldClaim --value PostgreSQL --text 'We now use PostgreSQL for ADA.' --effective-at '2026-10-08T00:00:00Z'
+.\.venv\Scripts\ada.exe memory list --scope $scopeId
+.\.venv\Scripts\ada.exe memory list --scope $scopeId --at '2026-10-05T00:00:00Z'
+.\.venv\Scripts\ada.exe memory list --scope $scopeId --history
+.\.venv\Scripts\ada.exe memory show $oldClaim
 ```
 
-Profiles are immutable through the Phase 0 API. Create a new profile to change
-style. Existing conversations retain their snapshot and prompt version.
-Personality fields cannot set security rules, supply arbitrary system prompts,
-or change ownership. User identity is always derived from the bearer token.
+The historical query returns SQLite, the current query returns PostgreSQL, and
+history retains both. These are examples, not automatically imported facts.
 
-## Mobile boundary
+`memory remember` can cite `--source-version UUID` from a chat event instead of
+`--text`. Use `--quote 'an exact unique passage'` or `--start`/`--end` Unicode code
+point offsets. IDs print before writes. Reuse `--claim-id` and `--source-id` with
+identical input after connection loss. A used ID with different input returns 409.
+A new ID for an identical claim also returns 409; replay with the original ID.
+See [memory semantics and API examples](docs/PHASE1-MEMORY.md).
 
-`contracts/openapi.json` describes the actual server API. Kotlin/Android and later
-Swift/iOS clients will call that same API. They never connect directly to PostgreSQL
-or Ollama. See `docs/MOBILE-CONTRACT.md` for the future device-model contract.
+## API and verification
 
-Phase 0 binds to loopback. Before real phones connect, provide authenticated HTTPS
-through a TLS reverse proxy or an encrypted private network; keep PostgreSQL and
-Ollama private. Do not send bearer tokens over ordinary LAN HTTP. No firewall or
-public exposure is configured by these scripts. `start.ps1 -ListenAddress ...`
-exists for an explicitly configured secure deployment, not as a security setup.
-
-## Failure and restart recovery
-
-- A user event and a `running` request are committed before inference.
-- A successful response, assistant event, and conversation revision commit together.
-- Provider failure marks the request `failed`; retrying it reuses the user event.
-- In-flight requests survive server crashes as `running`. Stop the old server,
-  wait beyond the configured timeout plus 60 seconds, then run:
-
-```powershell
-.\.venv\Scripts\ada.exe recover-stale --older-than-seconds 300
-```
-
-Restart and retry the original ID/content. Recovery fences late responses so an
-older attempt cannot overwrite a newer one. The inference itself may run again;
-the persistent user turn is deduplicated. There are no external side-effect tools.
-A failed old request cannot be retried after a later reply changed the history;
-the API returns `retry_history_changed` so the user can submit a fresh request.
-
-Rotate/revoke a leaked token with `ada rotate-token USERNAME`. Revocation applies
-to subsequent requests; an already-authorized in-flight request may finish.
-
-## Tests
+API explorer: http://127.0.0.1:8000/docs. Authorize with your bearer token.
+`/v1/capabilities` reports implemented features. `contracts/openapi.json` is generated
+from the actual routes, including evidence schemas and 64-bit timestamps.
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q
-.\.venv\Scripts\python.exe -m ruff check src tests migrations
-.\.venv\Scripts\python.exe -m ruff format --check src tests migrations
+.\.venv\Scripts\python.exe -m ruff check src tests migrations scripts
+.\.venv\Scripts\python.exe -m ruff format --check src tests migrations scripts
 ```
 
-The default suite runs migrated SQLite fixtures for fast feedback. PostgreSQL
-cases require a **test** database URL whose role can create/drop schemas:
+Default tests use migrated SQLite databases. PostgreSQL fixtures require a
+disposable test database; see the upgrade guide. [VALIDATION.md](docs/VALIDATION.md)
+records completed checks and remaining Windows/PostgreSQL/model checks.
 
-```powershell
-$env:ADA_TEST_DATABASE_URL = 'postgresql+psycopg://testuser:password@127.0.0.1:5432/ada_test'
-.\.venv\Scripts\python.exe -m pytest -q
-```
-
-Each test creates an isolated random schema and removes it afterward. Never point
-tests at your production database. PostgreSQL row locks and partial unique indexes
-are tested on PostgreSQL, not inferred from SQLite behavior. See `docs/VALIDATION.md`
-for what was actually run while producing this release.
-
-## How the code fits together
-
-- `api.py`: validation, authentication, owner-scoped resources.
-- `service.py`: context selection, request reservation, inference, atomic completion.
-- `models.py` / `migrations/`: persistent records and tenant-aware foreign keys.
-- `providers.py`: replaceable Ollama/fake adapters; no database access.
-- `personality.py`: versioned baseline and constrained style configuration.
-- `cli.py`: local administration and a remote API client.
-
-Read `docs/ARCHITECTURE.md` before adding memory or tools. Phase 0 deliberately
-stores raw conversation evidence without extracting permanent claims.
+Local administration: `ada create-user NAME`, `ada rotate-token NAME`, `ada doctor`,
+`ada recover-stale --older-than-seconds 300`. Tokens are random bearer secrets
+stored as hashes. Read [ARCHITECTURE.md](docs/ARCHITECTURE.md) before changing
+ownership, evidence or retry behavior.

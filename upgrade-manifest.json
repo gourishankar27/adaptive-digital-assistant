@@ -1,0 +1,152 @@
+{
+  "from_version": "0.0.1",
+  "to_version": "0.1.0",
+  "phase0_migration_hash": "60690e8e599b071d5d4f1ec7a0e94d4d4eb7516c77df04ace5c947040197dab7",
+  "files": [
+    {
+      "path": "README.md",
+      "old_hash": "d0204b8393db4186ac4d610241cab91e07ae83cc6206021ecd875d3d9ca336ea",
+      "new_hash": "61ce3d15d37e6e1528acd3a7e37efc77df8469175a6a087bc809d5609ba8b399"
+    },
+    {
+      "path": "contracts/openapi.json",
+      "old_hash": "c76310e7aa52c5676eb5cbadc6240381c3532dfdd6e756748abed7338086c0c2",
+      "new_hash": "66e275b0654dc7cef3f1bf4fefbcecc845e469d9c575c318330e254636fb4269"
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "old_hash": "ca440f0862f75068ff58153458d01861adfe7751c2660b0bdf9f3822abefeae6",
+      "new_hash": "c55ddfec6645278581bc63059ef7a17da7aa590d6d36861b3aa98fc6695a5cda"
+    },
+    {
+      "path": "docs/MOBILE-CONTRACT.md",
+      "old_hash": "1903a5c58820148783dec4131b8c7456058578be25e7231af1c0268101521976",
+      "new_hash": "b2b7c930a1b3f33b83d8255538656f0d8d77bbef9b2597a7f3cda443f19decd3"
+    },
+    {
+      "path": "docs/PHASE1-MEMORY.md",
+      "old_hash": null,
+      "new_hash": "450e6631c02890bb891c57e1c810b90d892490fab9b8bbd6b5fe500643da3516"
+    },
+    {
+      "path": "docs/UPGRADE-PHASE1.md",
+      "old_hash": null,
+      "new_hash": "c66ed99a23c5190bc5952f116a6af8b310b194f06336e336d83cead364d84740"
+    },
+    {
+      "path": "docs/VALIDATION.md",
+      "old_hash": "05bfb3c7994a36e2ab4bf873d92d705bd7606bb63bda3e643ede45cebcadff33",
+      "new_hash": "e5d1835507ae4c8dadbd410ea4c489b218aba655d1d612aafd6faf68be9e3f81"
+    },
+    {
+      "path": "migrations/versions/0002_scoped_evidence_and_claims.py",
+      "old_hash": null,
+      "new_hash": "9b6d2cfbbfabea84f284a3d914a7b310e068faf03da802c391dd5df7e9f590d9"
+    },
+    {
+      "path": "pyproject.toml",
+      "old_hash": "be5f73a36667f74ca62f5c86a84a24fb1fd3a9e907ae538d4edf6d898d9c6cd4",
+      "new_hash": "545ecc08a420a1004a9e9bf6f8776aaa97e6ac398edf16c36d4c4798dcaa7397"
+    },
+    {
+      "path": "scripts/apply_upgrade.py",
+      "old_hash": null,
+      "new_hash": "29f20e823d7a91acbd842c7819131677199fea4b133226298fe492e85d7e22d3"
+    },
+    {
+      "path": "scripts/start.ps1",
+      "old_hash": "b13da09e8e00a2383f526dc5e052bea45423eac87ffc504c6e9d7af8932ce89c",
+      "new_hash": "3e55b1cd4e41100cbb31942e8f6ea77f605d8c0545c839be8ba6f1443dc8c3ae"
+    },
+    {
+      "path": "scripts/test-postgres.ps1",
+      "old_hash": null,
+      "new_hash": "3164c8af8b9790ccedce31712f8f054ea136eb204a2053a6e431166aeac7d39f"
+    },
+    {
+      "path": "scripts/test_postgres.py",
+      "old_hash": null,
+      "new_hash": "134f284bdd0ad3c20d551a81d6a022d335682b62313d1e9634c662c52b4157be"
+    },
+    {
+      "path": "scripts/upgrade.ps1",
+      "old_hash": null,
+      "new_hash": "e531c5c2dd96b5426fb073c6ddd6d1c2681747654dd49ec55138de7d8b8c6050"
+    },
+    {
+      "path": "src/ada/api.py",
+      "old_hash": "008cff7f55b642504572c43198eceb9e06abfedd463f8a606628cf88817129d1",
+      "new_hash": "f1f0b74ae80e462113ac05134a584e9a1d34ff5f2e5b25ae9932ecd34df9fcbf"
+    },
+    {
+      "path": "src/ada/cli.py",
+      "old_hash": "afaf518cab5e07fe4bcf77fcd134fbd99cbd5ba8ff7a16c6f03c5a7f7286552b",
+      "new_hash": "de0223aff7e0c2c5db646e1f65397de994b57d70148d5b643fa86ad2ef4e0da4"
+    },
+    {
+      "path": "src/ada/cli_memory.py",
+      "old_hash": null,
+      "new_hash": "2b09be7e56f734650b1416fcdfe15078dfbaa5d8ce6797540967a5f28b235553"
+    },
+    {
+      "path": "src/ada/evidence.py",
+      "old_hash": null,
+      "new_hash": "4a4b0791a3bcbb807080cd42d44fdf5f7f14fca701c8ee3f12a316db32778fa1"
+    },
+    {
+      "path": "src/ada/memory.py",
+      "old_hash": null,
+      "new_hash": "d89a6621485a3a0997e14610f3f9b7bcf36e835e537826261ed89cccd13cab19"
+    },
+    {
+      "path": "src/ada/models.py",
+      "old_hash": "4ee8a7ac196429eabd76fd0db9b7d0e29715103b4a152274b4c73f5290aa4017",
+      "new_hash": "c0663b9f2b00f514dc19a5b340f82e5c527985f41bec6c13d9dc618521e2b49c"
+    },
+    {
+      "path": "src/ada/personality.py",
+      "old_hash": "a838ae680565fcbb00d29c19dac32e69297aae0a518aa7b54b5e064c99b5c6b7",
+      "new_hash": "024e0c3d5c907a365810c79fa89efa322d77c2bebeb61d281517c409c0ead903"
+    },
+    {
+      "path": "src/ada/providers.py",
+      "old_hash": "200935b7763c114f0524575042b4bda0d3bb803e0d653f18626d8abe8269d13f",
+      "new_hash": "5866f224267637c2915477943abce3d45ee28e39686e59b4c0dea77ef00210e1"
+    },
+    {
+      "path": "src/ada/service.py",
+      "old_hash": "db09cd156aada63d391e463d2b798329b6d884b78787416f0f69fb1d4c68574a",
+      "new_hash": "ac06bdba60f7d4d2a51d43d942e18ac9814ff9bc858ae07186ff2820aed7a2ba"
+    },
+    {
+      "path": "tests/test_foundation.py",
+      "old_hash": "7c20d2b00e20e90d7cff998bf4da7b4ee36c9fbe7a11afdabc9f7b3e9fd2b1c3",
+      "new_hash": "410363a0f806802b40810c1eedde212312e8ac69882c81bb6a7166028111083b"
+    },
+    {
+      "path": "tests/test_memory.py",
+      "old_hash": null,
+      "new_hash": "98e94a425b6f5069c590fc3d581f8102cc48b6624f92c30bb8364666ed9d3309"
+    },
+    {
+      "path": "tests/test_memory_cli.py",
+      "old_hash": null,
+      "new_hash": "d16bf18ba52cccd30df07be0fe71fb0f77660f079a4a5cc525274607af55fd25"
+    },
+    {
+      "path": "tests/test_schema_contract.py",
+      "old_hash": "f807e2e8b76e70f0fbfc08012a696d6b816a55b2e07cfb494443839096ff9059",
+      "new_hash": "5debf4c91be3ad4a1825dd8fb8357e24e2492bb380f7fad8436b71aa38297e3d"
+    },
+    {
+      "path": "tests/test_upgrade.py",
+      "old_hash": null,
+      "new_hash": "4ef87efedc3ea535aeda4176ba64531298ace8a5f1866ec370c68a32b64ef620"
+    },
+    {
+      "path": "tests/test_upgrade_installer.py",
+      "old_hash": null,
+      "new_hash": "a19eff7efbd3e2194ed45f68bb1b2ebdfb0fd94471e7b95907c06f9a1d35378a"
+    }
+  ]
+}

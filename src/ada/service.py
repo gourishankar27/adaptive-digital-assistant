@@ -4,7 +4,9 @@ import threading
 from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 
-from ada.models import Conversation, Event, Request, now_ms
+from ada.evidence import record_chat_event
+from ada.models import Conversation, PromptChange, Request, now_ms
+from ada.personality import PROMPT_VERSION, build_prompt
 from ada.providers import ProviderError
 
 
@@ -118,16 +120,7 @@ class ChatService:
                         )
                         db.add(old)
                         db.flush()
-                        db.add(
-                            Event(
-                                owner_id=owner,
-                                conversation_id=conversation_id,
-                                request_id=request_id,
-                                role="user",
-                                content=content,
-                                trust_class="user_explicit",
-                            )
-                        )
+                        record_chat_event(db, conversation, request_id, "user", content)
                     else:
                         old.status, old.error_code = "running", None
                         old.attempt += 1
@@ -164,19 +157,57 @@ class ChatService:
                     completion.output_tokens,
                 )
                 conversation.revision += 1
-                db.add(
-                    Event(
-                        owner_id=owner,
-                        conversation_id=conversation_id,
-                        request_id=request_id,
-                        role="assistant",
-                        content=completion.text,
-                        trust_class="model_generated",
-                    )
-                )
+                record_chat_event(db, conversation, request_id, "assistant", completion.text)
                 return public_request(row)
         finally:
             self.capacity.release()
+
+    def upgrade_prompt(self, owner, conversation_id):
+        with self.sessions.begin() as db:
+            conversation = db.scalar(
+                select(Conversation)
+                .where(Conversation.id == conversation_id, Conversation.owner_id == owner)
+                .with_for_update()
+            )
+            if conversation is None:
+                raise ServiceError(404, "conversation_not_found")
+            if conversation.prompt_version == PROMPT_VERSION:
+                return {
+                    "id": conversation.id,
+                    "prompt_version": PROMPT_VERSION,
+                    "revision": conversation.revision,
+                }
+            if conversation.prompt_version != "ada-baseline-v1":
+                raise ServiceError(409, "unsupported_prompt_upgrade")
+            active = db.scalar(
+                select(Request.id).where(
+                    Request.owner_id == owner,
+                    Request.conversation_id == conversation_id,
+                    Request.status == "running",
+                )
+            )
+            if active:
+                raise ServiceError(409, "conversation_busy")
+            new_prompt = build_prompt(conversation.personality_snapshot)
+            db.add(
+                PromptChange(
+                    owner_id=owner,
+                    conversation_id=conversation_id,
+                    previous_version=conversation.prompt_version,
+                    new_version=PROMPT_VERSION,
+                    previous_prompt=conversation.system_prompt,
+                    new_prompt=new_prompt,
+                )
+            )
+            conversation.system_prompt, conversation.prompt_version = new_prompt, PROMPT_VERSION
+            # Failed attempts keep their original prompt snapshot. They must not
+            # resume across an explicit change to the conversation's context.
+            conversation.revision += 1
+            return {
+                "id": conversation.id,
+                "prompt_version": PROMPT_VERSION,
+                "revision": conversation.revision,
+            }
 
     @staticmethod
     def _same(row, conversation_id, fingerprint):

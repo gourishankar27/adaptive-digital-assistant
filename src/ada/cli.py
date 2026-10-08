@@ -7,6 +7,7 @@ import httpx
 from sqlalchemy.exc import IntegrityError
 
 from ada.auth import create_user, rotate_token
+from ada.cli_memory import add_arguments, run_remote
 from ada.config import Settings
 from ada.db import connect
 from ada.models import now_ms
@@ -14,7 +15,9 @@ from ada.service import recover_stale
 
 
 def main():
-    parser = argparse.ArgumentParser(description="ADA Phase 0 administration and text client")
+    parser = argparse.ArgumentParser(
+        description="ADA administration, text chat and explicit memory"
+    )
     sub = parser.add_subparsers(dest="command", required=True)
     for name in ("create-user", "rotate-token"):
         p = sub.add_parser(name)
@@ -25,11 +28,28 @@ def main():
     chat.add_argument("--url", default="http://127.0.0.1:8000")
     chat.add_argument("--conversation", help="Resume an existing conversation UUID")
     chat.add_argument("--personality", help="Use an existing personality UUID")
+    chat.add_argument("--scope", help="Create a new conversation inside an existing scope UUID")
+    chat.add_argument("--title", default="New conversation")
     sub.add_parser("doctor")
+    add_arguments(sub)
     args = parser.parse_args()
     settings = Settings()
-    if args.command == "chat":
-        run_chat(args, settings.timeout_seconds)
+    if args.command in ("chat", "memory", "scopes", "upgrade-prompt"):
+        try:
+            if args.command == "chat":
+                if args.conversation and (args.scope or args.personality):
+                    parser.error("--scope/--personality apply only to new conversations")
+                run_chat(args, settings.timeout_seconds)
+            else:
+                run_remote(args, settings.timeout_seconds)
+        except httpx.HTTPStatusError as exc:
+            parser.exit(1, f"API error {exc.response.status_code}: {exc.response.text}\n")
+        except httpx.RequestError:
+            parser.exit(
+                1, "Connection failed. Reuse the printed IDs and identical input on retry.\n"
+            )
+        except ValueError as exc:
+            parser.exit(1, f"{exc}\n")
         return
     engine, sessions = connect(settings.database_url)
     try:
@@ -102,7 +122,13 @@ def run_chat(args, timeout):
         conversation = args.conversation
         if not conversation:
             personality = args.personality or post("/v1/personalities", {})["id"]
-            conversation = post("/v1/conversations", {"personality_id": personality})["id"]
+            body = {"personality_id": personality, "title": args.title}
+            if args.scope:
+                body["scope_id"] = args.scope
+            conversation = post("/v1/conversations", body)["id"]
+        response = client.get(f"/v1/conversations/{conversation}")
+        response.raise_for_status()
+        print("Scope:", response.json()["scope_id"])
         print(f"Conversation: {conversation}\n/quit to leave. /retry resends the last request ID.")
         pending = None
         while True:

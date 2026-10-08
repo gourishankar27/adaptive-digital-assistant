@@ -240,4 +240,5 @@ def test_client_cannot_forge_owner_role_or_claims(harness):
         == 422
     )
     caps = h["client"].get("/v1/capabilities", headers=h["a"]).json()
-    assert caps["edge_inference"] is False and caps["structured_memory"] is False
+    assert caps["edge_inference"] is False and caps["structured_memory"] is True
+    assert caps["memory_in_chat"] is False and caps["automatic_memory_extraction"] is False

@@ -1,6 +1,6 @@
-# Phase 0 architecture decisions
+# Phase 1 architecture decisions
 
-Status: implemented foundation; later features are explicitly listed below.
+Status: persistent chat plus explicit, source-backed memory. Later features are listed below.
 
 ## Deployment
 
@@ -20,10 +20,11 @@ not message history. A conversation snapshots personality fields and the baselin
 prompt version. Personality is expression configuration, never an authorization
 principal. Owner IDs come from authentication, not input JSON.
 
-Every conversation has an explicit personal scope ID; general projects, documents,
-shared scopes and membership grants are deferred. No phase-0 resource is shared
-between users. Later project scope IDs must reference authorized scope/membership
-records rather than trusting arbitrary client identifiers.
+Every conversation references an authorized personal/project scope. Migration 0002
+creates scope records from the original conversation scope IDs. Multiple conversations
+can use an owner's project scope while retaining separate histories and personalities.
+Shared scopes, membership grants and documents remain deferred. Client scope IDs
+are checked against authenticated ownership before a conversation or memory write.
 
 ## Storage
 
@@ -34,11 +35,35 @@ constraints, not PostgreSQL row-level security. The database administrator and s
 operator remain trusted. RLS is a future defense-in-depth decision before a less
 trusted deployment.
 
-Alembic migration 0001 is an immutable snapshot. Add new migrations; never replace
+Alembic migrations 0001/0002 are immutable snapshots. Add new migrations; never replace
 it with `Base.metadata.create_all()` at server startup. Migrations are explicit.
-Events are append-oriented through application code, but Phase 0 does not install
+Events and evidence versions are append-oriented through application code. This release does not install
 database triggers preventing operator edits. Trust labels distinguish user words
-from model output. There is no claim extraction yet.
+from model output. Automatic claim extraction remains deferred.
+
+## Explicit memory
+
+Every chat event is recorded with a source/version in the same transaction. User
+notes can also create evidence without inference. Migration 0002 backfills existing
+events without changing their IDs or turning them into claims. Versions preserve
+exact content, SHA-256 and the inherited user/model trust label.
+
+Claim writes require one exact nonblank user span in the same owner/scope. The
+server computes the quote/hash. Subject/predicate/value are an explicit user
+annotation, not a model-verified fact. A mandatory composite source-version foreign
+key ensures a stored claim has existing evidence. Temporal intervals, replacement
+links and ownership also have database constraints. See PHASE1-MEMORY.md.
+
+All memory writes lock the scope row on PostgreSQL. Idempotent replay uses the same
+ID and canonical write hash. A different ID for an identical claim is a conflict.
+Corrections insert the new claim and close/link the old one atomically. Current and
+historical queries use both validity bounds, including future-dated replacements.
+The explicit writer never calls a language model inside or outside its transaction.
+
+One source version per claim is supported in this milestone. Canonical entities,
+multiple evidence links, sharing, semantic validation and contradiction detection
+remain deferred. The database/server operator is trusted; API immutability and
+hash checks do not prevent an administrator changing the database.
 
 ## Request state machine
 
@@ -71,7 +96,13 @@ must confirm token use and latency. No summary is silently substituted.
 
 The adapter receives only the selected conversation. Ollama has no ADA user state;
 each call sends full selected messages. Clients never supply system roles. The model
-is not a security boundary: actual tools and permanent claim writes are absent.
+is not a security boundary. External tools are absent. Permanent claims are written
+only through authenticated, explicit memory operations; chat has no memory tool.
+
+New conversations freeze baseline v2. An explicit prompt upgrade archives the old
+and new prompts, preserves the personality snapshot, locks the conversation and
+rejects in-flight changes. It increments the conversation revision so failed requests
+with old context cannot be resumed. Completed retries retain their original answer.
 
 ## Security and observability
 
@@ -98,7 +129,8 @@ model/runtime selection awaits the phone's RAM, SoC, Android version, and goals.
 
 ## Next milestone
 
-Source/event and scope foundations precede claims. Add project scope membership,
-explicit source versions, evidence spans, and claim operations with provenance
-tests. Keep static personality. Defer vector search, tools, autonomous work, mood
-simulation, relationship learning, and Android model execution until requested.
+Add retrieval planning and a measured keyword/entity baseline. Scope/time filters
+must apply before evidence enters candidate lists or model context. Use a single
+whole-prompt budget and trace which claim/source IDs were selected. Personality
+continues to control expression only. Defer vectors, tools, autonomous work, affect
+learning and device inference until their milestones.

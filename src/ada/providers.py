@@ -76,8 +76,13 @@ class OllamaProvider:
                     or message.get("tool_calls")
                     or not isinstance(content, str)
                     or not content.strip()
+                    or "\x00" in content
                 ):
                     raise ProviderError("invalid_response")
+                try:
+                    content.encode("utf-8")
+                except UnicodeError:
+                    raise ProviderError("invalid_response") from None
                 return Completion(
                     content.strip(),
                     str(data.get("model", self.model)),
