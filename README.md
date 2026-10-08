@@ -1,35 +1,37 @@
-# ADA — Phase 1
+# ADA — Phase 2
 
 Python/FastAPI on your Windows laptop, with PostgreSQL and a configurable Ollama
 model. Accounts share model weights. Personality, history and memory remain
 private to each authenticated user.
 
-Already running Phase 0? Start with [the upgrade guide](docs/UPGRADE-PHASE1.md).
+Already running Phase 1? Start with [the upgrade guide](docs/UPGRADE-PHASE2.md).
 It includes installation into your existing project and the prompt upgrade for
 conversation `11b492c2-2667-44a3-bd9c-9a532f63c00f`.
 
 ## Added in this phase
 
-- Private personal/project scopes, usable by several conversations.
-- Immutable evidence versions for user notes and chat events, including old history.
-- Explicit facts, preferences and decisions with exact quoted evidence.
-- Transactional corrections retaining the old claim and its replacement link.
-- Current, historical and full-history memory queries, through the API and CLI.
-- A clearer ADA identity/capability baseline and audited prompt upgrades.
+- Scope-bound full-text and subject retrieval over explicitly saved claims.
+- Current and dated lookups, with source hashes and exact quotes checked again at retrieval.
+- A whole-prompt budget covering the baseline, history, memory and current input.
+- Citation labels such as `[M1]`, mapped to the selected source snapshots.
+- Durable request traces, preserved across retries, corrections and server restarts.
+- Baseline v3, plus an explicit, audited upgrade for existing conversations.
+- A reproducible relevance/isolation benchmark and a Phase 1 upgrade installer.
 
 Each claim requires one user evidence version in its authorized scope. Its quote
 and hash come from the server. Model output cannot support user assertions. A
 quote establishes provenance; it does not verify truth or semantic entailment.
 The user explicitly supplies the subject/predicate/value annotation.
 
-Chat uses its own conversation history. It does not retrieve or extract these
-claims yet. Phase 2 will select memory for chat. Tools, document ingestion,
+Chat retrieves relevant saved claims from its conversation's scope. It also uses
+complete recent turns from that conversation. It does not extract or write claims.
+Tools, document ingestion,
 consolidation, affect learning, Android/iOS apps and device inference are deferred.
 
 ## New Windows installation
 
 Prerequisites: Python 3.12, Ollama, Docker Desktop with Linux containers (or native
-PostgreSQL). From the extracted `ada-phase1` folder:
+PostgreSQL). From the extracted `ada-phase2` folder:
 
 ```powershell
 .\scripts\setup.ps1
@@ -65,9 +67,12 @@ $env:ADA_TOKEN = 'your-current-token'
 
 The CLI prints conversation and scope IDs. Resume with `chat --conversation UUID`.
 `/retry` reuses the last request ID. Completed retries return the saved answer.
-New conversations use `ada-baseline-v2`. Existing conversations retain their old
+`/sources` shows evidence actually cited in the last answer; `/trace` shows all
+selected evidence and omission decisions for the last request. New conversations
+use `ada-baseline-v3`. Existing conversations retain their old
 baseline until `ada upgrade-prompt CONVERSATION_UUID` explicitly archives and
 replaces it. The personality snapshot and events are preserved.
+Baseline v1/v2 conversations keep retrieval disabled until explicitly upgraded.
 
 The prompt distinguishes ADA from the backend model and states this version's
 capabilities. Model compliance needs a real-model check. Prompts do not enforce
@@ -103,6 +108,24 @@ $oldClaim = 'the-returned-claim-uuid'
 The historical query returns SQLite, the current query returns PostgreSQL, and
 history retains both. These are examples, not automatically imported facts.
 
+Ask the conversation in this scope, "Which database did we choose for ADA?".
+Then try "Which database did we choose for ADA as of 2026-10-05?".
+The model is instructed to cite supplied evidence with `[M1]` labels. Use `/trace`
+to check what it received and `/sources` to inspect the cited quotes. Source cards
+verify provenance; the model can still misinterpret a quote or omit a citation.
+
+For a retrieval check without inference:
+
+```powershell
+.\.venv\Scripts\ada.exe memory search 'ADA database' --scope $scopeId
+.\.venv\Scripts\ada.exe memory search 'ADA database' --scope $scopeId --at '2026-10-05T00:00:00Z'
+```
+
+`chat --at '2026-10-05T00:00:00Z'` uses a fixed memory time. `chat --no-memory`
+disables fresh retrieval. Relative dates need clarification; natural date parsing
+supports the exact phrase `as of YYYY-MM-DD` at UTC midnight. Use `--at` for a
+precise instant. See [retrieval semantics](docs/PHASE2-RETRIEVAL.md).
+
 `memory remember` can cite `--source-version UUID` from a chat event instead of
 `--text`. Use `--quote 'an exact unique passage'` or `--start`/`--end` Unicode code
 point offsets. IDs print before writes. Reuse `--claim-id` and `--source-id` with
@@ -120,6 +143,7 @@ from the actual routes, including evidence schemas and 64-bit timestamps.
 .\.venv\Scripts\python.exe -m pytest -q
 .\.venv\Scripts\python.exe -m ruff check src tests migrations scripts
 .\.venv\Scripts\python.exe -m ruff format --check src tests migrations scripts
+.\.venv\Scripts\python.exe scripts\evaluate_retrieval.py
 ```
 
 Default tests use migrated SQLite databases. PostgreSQL fixtures require a
@@ -127,6 +151,6 @@ disposable test database; see the upgrade guide. [VALIDATION.md](docs/VALIDATION
 records completed checks and remaining Windows/PostgreSQL/model checks.
 
 Local administration: `ada create-user NAME`, `ada rotate-token NAME`, `ada doctor`,
-`ada recover-stale --older-than-seconds 300`. Tokens are random bearer secrets
+`ada recover-stale --older-than-seconds 300`, `ada rebuild-search`. Tokens are random bearer secrets
 stored as hashes. Read [ARCHITECTURE.md](docs/ARCHITECTURE.md) before changing
 ownership, evidence or retry behavior.

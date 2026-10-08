@@ -1,0 +1,15 @@
+{
+  "status": "passed",
+  "backend": "sqlite",
+  "provider": "fake",
+  "from_schema": "0002",
+  "to_schema": "0003",
+  "checks": [
+    "populated_phase1_migration_preserves_claims_prompt_events_and_replay",
+    "explicit_v3_upgrade_preserves_personality",
+    "retrieval_and_citation_snapshot_saved_over_http",
+    "restart_replay_keeps_old_citations_while_new_search_observes_correction",
+    "private_trace_authentication_and_owner_isolation"
+  ],
+  "real_llm_tested": false
+}

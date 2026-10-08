@@ -1,22 +1,29 @@
 import hashlib
+import json
 import threading
 
 from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 
+from ada.errors import ServiceError as ServiceError
 from ada.evidence import record_chat_event
-from ada.models import Conversation, PromptChange, Request, now_ms
+from ada.memory import time_ms
+from ada.models import Conversation, PromptChange, Request, RetrievalTrace, now_ms
 from ada.personality import PROMPT_VERSION, build_prompt
 from ada.providers import ProviderError
+from ada.retrieval import (
+    iso_time,
+    lock_scope_for_retrieval,
+    memory_message,
+    message_cost,
+    plan_query,
+    response_citations,
+    retrieve,
+)
 
 
-class ServiceError(Exception):
-    def __init__(self, status: int, code: str):
-        self.status, self.code = status, code
-        super().__init__(code)
-
-
-def public_request(row: Request) -> dict:
+def public_request(row: Request, trace=None) -> dict:
+    citations, warnings = response_citations(row.response, trace)
     return {
         "request_id": row.id,
         "conversation_id": row.conversation_id,
@@ -28,7 +35,23 @@ def public_request(row: Request) -> dict:
         "model": row.model,
         "input_tokens": row.input_tokens,
         "output_tokens": row.output_tokens,
+        "citations": citations,
+        "citation_warnings": warnings,
     }
+
+
+def request_fingerprint(content, as_of, use_memory):
+    # Preserve old request IDs for default options across Phase 0/1 upgrades.
+    if as_of is None and use_memory:
+        return hashlib.sha256(content.encode()).hexdigest()
+    canonical = json.dumps(
+        {"content": content, "as_of": time_ms(as_of) if as_of else None, "use_memory": use_memory},
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    # Valid user text cannot contain NUL. Domain separation prevents a default
+    # content string containing this JSON from colliding with an option payload.
+    return hashlib.sha256(b"\0ada-chat-options-v1\0" + canonical.encode()).hexdigest()
 
 
 class ChatService:
@@ -36,16 +59,42 @@ class ChatService:
         self.sessions, self.provider, self.settings = sessions, provider, settings
         self.capacity = threading.BoundedSemaphore(settings.max_parallel)
 
-    def _context(self, db, conversation, content):
+    def _context(self, db, conversation, content, as_of, use_memory):
         system = {"role": "system", "content": conversation.system_prompt}
         newest = {"role": "user", "content": content}
-
-        def cost(m):
-            return len(m["content"].encode("utf-8")) + 64
-
-        remaining = self.settings.prompt_bytes - cost(system) - cost(newest)
+        compatible = conversation.prompt_version == PROMPT_VERSION
+        plan = plan_query(
+            content,
+            as_of,
+            enabled=compatible and use_memory,
+            reason="prompt_upgrade_required"
+            if not compatible
+            else ("disabled" if not use_memory else None),
+        )
+        plan["prompt_version"] = conversation.prompt_version
+        if compatible:
+            at = iso_time(plan["as_of"]) if plan["as_of"] is not None else "date required"
+            policy = (
+                f"\nServer memory context: mode={plan['time_mode']}, as_of={at}, "
+                f"retrieval={'enabled' if plan['enabled'] else 'disabled'}. "
+                "Only labels in the evidence block of this request can be cited. "
+                "Earlier assistant answers and old labels are not retrieved evidence for this request."
+            )
+            system["content"] += policy
+        remaining = self.settings.prompt_bytes - message_cost(system) - message_cost(newest)
         if remaining < 0:
             raise ServiceError(413, "message_exceeds_context_budget")
+        lock_scope_for_retrieval(db, conversation.owner_id, conversation.scope_id)
+        result = retrieve(
+            db,
+            conversation.owner_id,
+            conversation.scope_id,
+            plan,
+            limit=self.settings.retrieval_limit,
+            budget_bytes=min(remaining, self.settings.memory_bytes),
+        )
+        evidence = memory_message(result["selected"], plan)
+        remaining -= result["budget"]["memory_used_bytes"]
         # Complete pairs only. Failed/in-flight turns remain evidence, not model history.
         rows = db.scalars(
             select(Request)
@@ -60,22 +109,32 @@ class ChatService:
         pairs = []
         for row in rows:
             pair = [row.messages[-1], {"role": "assistant", "content": row.response}]
-            needed = sum(cost(m) for m in pair)
+            needed = sum(message_cost(m) for m in pair)
             if needed > remaining:
-                break
+                continue
             pairs.append(pair)
             remaining -= needed
-        return [system] + [m for pair in reversed(pairs) for m in pair] + [newest]
+        messages = [system] + [m for pair in reversed(pairs) for m in pair]
+        if evidence:
+            messages.append(evidence)
+        messages.append(newest)
+        result["budget"].update(
+            prompt_limit_bytes=self.settings.prompt_bytes,
+            prompt_used_bytes=sum(message_cost(m) for m in messages),
+            history_pairs=len(pairs),
+            history_pairs_omitted=len(rows) - len(pairs),
+        )
+        return messages, result
 
-    def chat(self, owner, conversation_id, request_id, content):
-        fingerprint = hashlib.sha256(content.encode()).hexdigest()
+    def chat(self, owner, conversation_id, request_id, content, *, as_of=None, use_memory=True):
+        fingerprint = request_fingerprint(content, as_of, use_memory)
         # Return completed retries even when GPU capacity is busy.
         with self.sessions() as db:
             old = db.get(Request, (owner, request_id))
             if old:
                 self._same(old, conversation_id, fingerprint)
                 if old.status == "completed":
-                    return public_request(old)
+                    return public_request(old, db.get(RetrievalTrace, (owner, request_id)))
         if not self.capacity.acquire(blocking=False):
             raise ServiceError(503, "generation_capacity_busy")
         try:
@@ -92,7 +151,7 @@ class ChatService:
                     if old:
                         self._same(old, conversation_id, fingerprint)
                         if old.status == "completed":
-                            return public_request(old)
+                            return public_request(old, db.get(RetrievalTrace, (owner, request_id)))
                         if old.status == "running":
                             raise ServiceError(409, "request_in_progress")
                         if old.base_revision != conversation.revision:
@@ -107,6 +166,9 @@ class ChatService:
                     if active:
                         raise ServiceError(409, "conversation_busy")
                     if old is None:
+                        context, retrieval = self._context(
+                            db, conversation, content, as_of, use_memory
+                        )
                         old = Request(
                             owner_id=owner,
                             id=request_id,
@@ -114,12 +176,20 @@ class ChatService:
                             content_hash=fingerprint,
                             status="running",
                             base_revision=conversation.revision,
-                            messages=self._context(db, conversation, content),
+                            messages=context,
                             provider=self.provider.id,
                             model=self.provider.model,
                         )
                         db.add(old)
                         db.flush()
+                        db.add(
+                            RetrievalTrace(
+                                owner_id=owner,
+                                request_id=request_id,
+                                conversation_id=conversation_id,
+                                **{key: value for key, value in retrieval.items()},
+                            )
+                        )
                         record_chat_event(db, conversation, request_id, "user", content)
                     else:
                         old.status, old.error_code = "running", None
@@ -158,7 +228,7 @@ class ChatService:
                 )
                 conversation.revision += 1
                 record_chat_event(db, conversation, request_id, "assistant", completion.text)
-                return public_request(row)
+                return public_request(row, db.get(RetrievalTrace, (owner, request_id)))
         finally:
             self.capacity.release()
 
@@ -177,7 +247,7 @@ class ChatService:
                     "prompt_version": PROMPT_VERSION,
                     "revision": conversation.revision,
                 }
-            if conversation.prompt_version != "ada-baseline-v1":
+            if conversation.prompt_version not in ("ada-baseline-v1", "ada-baseline-v2"):
                 raise ServiceError(409, "unsupported_prompt_upgrade")
             active = db.scalar(
                 select(Request.id).where(

@@ -1,4 +1,8 @@
-# Upgrade your existing Phase 0 project
+# Archived: upgrade your existing Phase 0 project
+
+This guide belongs to the original Phase 1 bundle. The current Phase 2 installer
+targets an already upgraded Phase 1 project. Use [UPGRADE-PHASE2.md](UPGRADE-PHASE2.md)
+for the current upgrade.
 
 Extract the ZIP's `ada-phase1` folder separately from your repository. Stop the
 running API with Ctrl+C; leave PostgreSQL running. The updater preserves `.env`,

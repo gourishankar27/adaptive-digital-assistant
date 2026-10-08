@@ -1,0 +1,260 @@
+{
+  "fixture_version": "retrieval-fixtures-v1",
+  "retrieval_version": "lexical-subject-v1",
+  "backend": "sqlite",
+  "claims": 11,
+  "positive_queries": 15,
+  "negative_queries": 5,
+  "k": 5,
+  "budget_bytes": 6000,
+  "metrics": {
+    "recall_at_5": 0.8667,
+    "mrr_at_5": 0.8333,
+    "exact_evidence_coverage": 1.0,
+    "scope_violations": 0,
+    "negative_query_failures": 0,
+    "median_latency_ms": 4.268,
+    "p95_latency_ms": 9.437
+  },
+  "limitations": [
+    "Small synthetic fixtures, not production relevance or latency measurements.",
+    "Two semantic paraphrases deliberately have no lexical overlap and may be missed.",
+    "No LLM was run; this does not measure answer correctness or citation entailment.",
+    "The retrieval diagnostic budget is 6000 bytes; default chat memory is 2200 bytes."
+  ],
+  "cases": [
+    {
+      "case": "current_preference",
+      "query": "What programming language do I prefer?",
+      "expected": [
+        "language_now"
+      ],
+      "retrieved": [
+        "language_now",
+        "beverage"
+      ],
+      "time_mode": "as_of",
+      "latency_ms": 14.504
+    },
+    {
+      "case": "predicate_match",
+      "query": "preferred language",
+      "expected": [
+        "language_now"
+      ],
+      "retrieved": [
+        "language_now",
+        "beverage"
+      ],
+      "time_mode": "as_of",
+      "latency_ms": 7.043
+    },
+    {
+      "case": "historical_preference",
+      "query": "preferred language",
+      "expected": [
+        "language_old"
+      ],
+      "retrieved": [
+        "language_old",
+        "beverage"
+      ],
+      "time_mode": "as_of",
+      "latency_ms": 4.185
+    },
+    {
+      "case": "natural_date",
+      "query": "What language did I prefer as of 2025-05-01?",
+      "expected": [
+        "language_old"
+      ],
+      "retrieved": [
+        "language_old",
+        "beverage"
+      ],
+      "time_mode": "as_of",
+      "latency_ms": 9.251
+    },
+    {
+      "case": "subject_database",
+      "query": "ADA database",
+      "expected": [
+        "database"
+      ],
+      "retrieved": [
+        "database",
+        "runtime",
+        "os"
+      ],
+      "time_mode": "as_of",
+      "latency_ms": 9.437
+    },
+    {
+      "case": "database_alias",
+      "query": "ADA db",
+      "expected": [
+        "database"
+      ],
+      "retrieved": [
+        "database",
+        "runtime",
+        "os"
+      ],
+      "time_mode": "as_of",
+      "latency_ms": 7.895
+    },
+    {
+      "case": "postgres_alias",
+      "query": "postgres",
+      "expected": [
+        "database"
+      ],
+      "retrieved": [
+        "database"
+      ],
+      "time_mode": "as_of",
+      "latency_ms": 3.083
+    },
+    {
+      "case": "operating_system",
+      "query": "ADA operating system",
+      "expected": [
+        "os"
+      ],
+      "retrieved": [
+        "os",
+        "runtime",
+        "database"
+      ],
+      "time_mode": "as_of",
+      "latency_ms": 5.644
+    },
+    {
+      "case": "beverage",
+      "query": "Which beverage do I prefer?",
+      "expected": [
+        "beverage"
+      ],
+      "retrieved": [
+        "language_now",
+        "beverage"
+      ],
+      "time_mode": "as_of",
+      "latency_ms": 4.35
+    },
+    {
+      "case": "timezone",
+      "query": "My timezone",
+      "expected": [
+        "timezone"
+      ],
+      "retrieved": [
+        "timezone"
+      ],
+      "time_mode": "as_of",
+      "latency_ms": 6.019
+    },
+    {
+      "case": "model_runtime",
+      "query": "ADA model runtime",
+      "expected": [
+        "runtime"
+      ],
+      "retrieved": [
+        "runtime",
+        "os",
+        "database"
+      ],
+      "time_mode": "as_of",
+      "latency_ms": 5.11
+    },
+    {
+      "case": "hobby",
+      "query": "What is my hobby?",
+      "expected": [
+        "hobby"
+      ],
+      "retrieved": [
+        "hobby"
+      ],
+      "time_mode": "as_of",
+      "latency_ms": 3.415
+    },
+    {
+      "case": "overview",
+      "query": "What do you remember about me?",
+      "expected": [
+        "language_now"
+      ],
+      "retrieved": [
+        "language_now",
+        "timezone",
+        "runtime",
+        "os",
+        "hobby"
+      ],
+      "time_mode": "as_of",
+      "latency_ms": 8.735
+    },
+    {
+      "case": "semantic_runtime_miss",
+      "query": "Where do I host my brain?",
+      "expected": [
+        "runtime"
+      ],
+      "retrieved": [],
+      "time_mode": "as_of",
+      "latency_ms": 3.988
+    },
+    {
+      "case": "semantic_beverage_miss",
+      "query": "What do I like sipping?",
+      "expected": [
+        "beverage"
+      ],
+      "retrieved": [],
+      "time_mode": "as_of",
+      "latency_ms": 2.018
+    },
+    {
+      "case": "no_match",
+      "query": "telescope optics",
+      "expected": [],
+      "retrieved": [],
+      "time_mode": "as_of",
+      "latency_ms": 2.041
+    },
+    {
+      "case": "scope_isolation",
+      "query": "SQLite",
+      "expected": [],
+      "retrieved": [],
+      "time_mode": "as_of",
+      "latency_ms": 3.026
+    },
+    {
+      "case": "owner_isolation",
+      "query": "hushsecretbob",
+      "expected": [],
+      "retrieved": [],
+      "time_mode": "as_of",
+      "latency_ms": 2.485
+    },
+    {
+      "case": "future_isolation",
+      "query": "CockroachDB",
+      "expected": [],
+      "retrieved": [],
+      "time_mode": "as_of",
+      "latency_ms": 3.413
+    },
+    {
+      "case": "ambiguous_history",
+      "query": "What was my timezone last year?",
+      "expected": [],
+      "retrieved": [],
+      "time_mode": "needs_date",
+      "latency_ms": 0.694
+    }
+  ]
+}

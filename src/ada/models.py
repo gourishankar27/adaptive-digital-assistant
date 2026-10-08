@@ -262,3 +262,48 @@ class PromptChange(Base):
     previous_prompt: Mapped[str] = mapped_column(Text)
     new_prompt: Mapped[str] = mapped_column(Text)
     created_at: Mapped[int] = mapped_column(BigInteger, default=now_ms)
+
+
+class ClaimSearch(Base):
+    """Rebuildable search projection. Claims and source versions remain authoritative."""
+
+    __tablename__ = "claim_search"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["owner_id", "scope_id", "claim_id"],
+            ["claims.owner_id", "claims.scope_id", "claims.id"],
+            ondelete="CASCADE",
+        ),
+        Index("claim_search_subject", "owner_id", "scope_id", "subject_key", "predicate_key"),
+    )
+    claim_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    owner_id: Mapped[str] = mapped_column(String(36))
+    scope_id: Mapped[str] = mapped_column(String(36))
+    subject_key: Mapped[str] = mapped_column(String(640))
+    predicate_key: Mapped[str] = mapped_column(String(640))
+    search_text: Mapped[str] = mapped_column(Text)
+
+
+class RetrievalTrace(Base):
+    __tablename__ = "retrieval_traces"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["owner_id", "request_id", "conversation_id"],
+            ["requests.owner_id", "requests.id", "requests.conversation_id"],
+        ),
+        ForeignKeyConstraint(
+            ["owner_id", "conversation_id", "scope_id"],
+            ["conversations.owner_id", "conversations.id", "conversations.scope_id"],
+        ),
+    )
+    owner_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    request_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    conversation_id: Mapped[str] = mapped_column(String(36))
+    scope_id: Mapped[str] = mapped_column(String(36))
+    version: Mapped[str] = mapped_column(String(40))
+    plan: Mapped[dict] = mapped_column(JSON)
+    candidates: Mapped[list] = mapped_column(JSON)
+    selected: Mapped[list] = mapped_column(JSON)
+    budget: Mapped[dict] = mapped_column(JSON)
+    retrieval_ms: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[int] = mapped_column(BigInteger, default=now_ms)

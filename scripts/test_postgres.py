@@ -11,7 +11,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from ada.config import Settings
 
-TEST_DATABASE = "ada_phase1_test"
+TEST_DATABASE = "ada_phase2_test"
 
 
 def main():
@@ -31,11 +31,11 @@ def main():
                 text("SELECT 1 FROM pg_database WHERE datname = :name"), {"name": TEST_DATABASE}
             )
             if not exists:
-                connection.exec_driver_sql('CREATE DATABASE "ada_phase1_test"')
+                connection.exec_driver_sql('CREATE DATABASE "ada_phase2_test"')
     except SQLAlchemyError:
         raise SystemExit(
             "Could not prepare the test database. Check PostgreSQL connectivity and CREATEDB "
-            "permission, or create ada_phase1_test with Docker and set ADA_TEST_DATABASE_URL manually."
+            "permission, or create ada_phase2_test with Docker and set ADA_TEST_DATABASE_URL manually."
         ) from None
     finally:
         engine.dispose()
@@ -43,7 +43,7 @@ def main():
     environment["ADA_TEST_DATABASE_URL"] = url.set(database=TEST_DATABASE).render_as_string(
         hide_password=False
     )
-    print("Running tests with dedicated PostgreSQL database ada_phase1_test.", flush=True)
+    print("Running tests with dedicated PostgreSQL database ada_phase2_test.", flush=True)
     raise SystemExit(
         subprocess.call([sys.executable, "-m", "pytest", "-q"], cwd=root, env=environment)
     )

@@ -66,4 +66,10 @@ def test_cli_memory_roundtrip_and_historical_query(harness, monkeypatch, capsys)
         == "PostgreSQL"
     )
     assert len(run("memory", "list", "--scope", scope["id"], "--history")) == 2
+    historical = run(
+        "memory", "search", "database", "--scope", scope["id"], "--at", "2026-01-15T00:00:00Z"
+    )
+    assert historical["selected"][0]["claim_id"] == old["id"]
+    current = run("memory", "search", "database", "--scope", scope["id"])
+    assert current["selected"][0]["claim_id"] == new["id"]
     assert h["provider"].calls == []

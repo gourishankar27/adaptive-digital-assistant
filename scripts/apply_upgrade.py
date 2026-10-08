@@ -1,4 +1,4 @@
-"""Install reviewed Phase 1 files into an existing Phase 0 checkout."""
+"""Install reviewed Phase 2 files into an existing Phase 1 checkout."""
 
 import argparse
 import hashlib
@@ -17,11 +17,23 @@ def apply_upgrade(bundle: Path, project: Path, *, check_only=False):
     if bundle == project:
         raise ValueError("Extract the upgrade separately from the existing project.")
     manifest = json.loads((bundle / "upgrade-manifest.json").read_text(encoding="utf-8"))
-    baseline = project / "migrations/versions/0001_phase_0_users_personalities_.py"
-    if not baseline.is_file() or file_hash(baseline) != manifest["phase0_migration_hash"]:
-        raise ValueError(
-            "Project does not match the original Phase 0 migration. No files were changed."
-        )
+    if manifest.get("from_version") != "0.1.0" or manifest.get("to_version") != "0.2.0":
+        raise ValueError("This installer requires a Phase 1 to Phase 2 manifest.")
+    expected = {
+        "migrations/versions/0001_phase_0_users_personalities_.py",
+        "migrations/versions/0002_scoped_evidence_and_claims.py",
+    }
+    baselines = manifest.get("baseline_migrations", {})
+    if set(baselines) != expected:
+        raise ValueError("Manifest must pin both original migrations.")
+    for relative, digest in baselines.items():
+        for root in (project, bundle):
+            baseline = root / relative
+            if not baseline.is_file() or file_hash(baseline) != digest:
+                raise ValueError(
+                    "Project or bundle does not match the original Phase 1 migrations. "
+                    "No files were changed."
+                )
     pending, conflicts = [], []
     protected = {".env", "compose.yaml", "requirements.lock", "upgrade-manifest.json"}
     for item in manifest["files"]:
@@ -59,10 +71,10 @@ def apply_upgrade(bundle: Path, project: Path, *, check_only=False):
         print(f"Preflight passed: {len(pending)} files would be updated.")
         return
     if not pending:
-        print("Phase 1 source files are already installed.")
+        print("Phase 2 source files are already installed.")
         return
     backup = (
-        project / "upgrade_backups" / ("phase1-" + datetime.now(UTC).strftime("%Y%m%dT%H%M%S%fZ"))
+        project / "upgrade_backups" / ("phase2-" + datetime.now(UTC).strftime("%Y%m%dT%H%M%S%fZ"))
     )
     backup.mkdir(parents=True)
     # Back up all existing destinations before any overwrite. Partially copied

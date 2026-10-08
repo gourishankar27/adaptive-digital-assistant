@@ -72,6 +72,17 @@ def add_arguments(sub):
     remote(show)
     show.add_argument("claim", type=UUID)
 
+    search = commands.add_parser("search", help="Retrieve scoped claims without calling the model")
+    remote(search)
+    search.add_argument("query")
+    search.add_argument("--scope", required=True, type=UUID)
+    search.add_argument("--at", help="ISO 8601 time with timezone; default now")
+    search.add_argument("--limit", type=int, default=8)
+    search.add_argument("--budget-bytes", type=int, default=2200)
+    trace = commands.add_parser("trace", help="Inspect the evidence snapshot of a chat request")
+    remote(trace)
+    trace.add_argument("request_id", type=UUID)
+
     upgrade = sub.add_parser(
         "upgrade-prompt", help="Explicitly update an existing conversation baseline"
     )
@@ -106,6 +117,13 @@ def run_remote(args, timeout):
             result = request("POST", f"/v1/conversations/{args.conversation}/prompt-upgrade")
         elif args.memory_action == "show":
             result = request("GET", f"/v1/claims/{args.claim}")
+        elif args.memory_action == "trace":
+            result = request("GET", f"/v1/requests/{args.request_id}/retrieval")
+        elif args.memory_action == "search":
+            body = {"query": args.query, "limit": args.limit, "budget_bytes": args.budget_bytes}
+            if args.at is not None:
+                body["as_of"] = args.at
+            result = request("POST", f"/v1/scopes/{args.scope}/retrieve", json=body)
         elif args.memory_action == "list":
             params = {"history": args.history, "limit": args.limit, "offset": args.offset}
             for key, value in (

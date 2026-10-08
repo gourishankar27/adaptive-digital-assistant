@@ -1,0 +1,39 @@
+{
+  "version": "retrieval-fixtures-v1",
+  "as_of": "2026-01-01T00:00:00Z",
+  "claims": [
+    {"key": "language_old", "subject": "user", "predicate": "preferred_language", "value": "Python", "kind": "preference", "quote": "I prefer Python."},
+    {"key": "language_now", "supersedes": "language_old", "value": "Java", "quote": "I now prefer Java.", "valid_from": "2025-06-01T00:00:00Z"},
+    {"key": "database", "subject": "ADA", "predicate": "database", "value": "PostgreSQL", "kind": "decision", "quote": "ADA will use PostgreSQL for its database."},
+    {"key": "os", "subject": "ADA", "predicate": "operating_system", "value": "Windows", "quote": "ADA runs on Windows."},
+    {"key": "beverage", "subject": "user", "predicate": "preferred_beverage", "value": "Tea", "kind": "preference", "quote": "My preferred beverage is tea."},
+    {"key": "timezone", "subject": "user", "predicate": "timezone", "value": "Asia/Kolkata", "quote": "My timezone is Asia/Kolkata."},
+    {"key": "runtime", "subject": "ADA", "predicate": "model_runtime", "value": "Ollama", "kind": "decision", "quote": "ADA uses Ollama as the model runtime."},
+    {"key": "hobby", "subject": "user", "predicate": "hobby", "value": "Chess", "quote": "My hobby is chess."},
+    {"key": "future_database", "subject": "ADA", "predicate": "database", "value": "CockroachDB", "quote": "In the future ADA will use CockroachDB.", "valid_from": "2030-01-01T00:00:00Z"},
+    {"key": "other_project", "scope": "other", "subject": "ADA", "predicate": "database", "value": "SQLite", "quote": "The other project uses SQLite."},
+    {"key": "other_user", "scope": "bob", "subject": "user", "predicate": "private_code", "value": "hushsecretbob", "quote": "My private code is hushsecretbob."}
+  ],
+  "queries": [
+    {"key": "current_preference", "query": "What programming language do I prefer?", "expected": ["language_now"]},
+    {"key": "predicate_match", "query": "preferred language", "expected": ["language_now"]},
+    {"key": "historical_preference", "query": "preferred language", "as_of": "2025-05-01T00:00:00Z", "expected": ["language_old"]},
+    {"key": "natural_date", "query": "What language did I prefer as of 2025-05-01?", "natural_time": true, "expected": ["language_old"]},
+    {"key": "subject_database", "query": "ADA database", "expected": ["database"]},
+    {"key": "database_alias", "query": "ADA db", "expected": ["database"]},
+    {"key": "postgres_alias", "query": "postgres", "expected": ["database"]},
+    {"key": "operating_system", "query": "ADA operating system", "expected": ["os"]},
+    {"key": "beverage", "query": "Which beverage do I prefer?", "expected": ["beverage"]},
+    {"key": "timezone", "query": "My timezone", "expected": ["timezone"]},
+    {"key": "model_runtime", "query": "ADA model runtime", "expected": ["runtime"]},
+    {"key": "hobby", "query": "What is my hobby?", "expected": ["hobby"]},
+    {"key": "overview", "query": "What do you remember about me?", "expected": ["language_now"]},
+    {"key": "semantic_runtime_miss", "query": "Where do I host my brain?", "expected": ["runtime"]},
+    {"key": "semantic_beverage_miss", "query": "What do I like sipping?", "expected": ["beverage"]},
+    {"key": "no_match", "query": "telescope optics", "expected": []},
+    {"key": "scope_isolation", "query": "SQLite", "expected": []},
+    {"key": "owner_isolation", "query": "hushsecretbob", "expected": []},
+    {"key": "future_isolation", "query": "CockroachDB", "expected": []},
+    {"key": "ambiguous_history", "query": "What was my timezone last year?", "natural_time": true, "expected": [], "time_mode": "needs_date"}
+  ]
+}

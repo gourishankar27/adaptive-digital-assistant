@@ -1,54 +1,96 @@
-# Phase 1 validation — 2026-10-08
+# Phase 2 validation — 2026-10-08
 
 Environment: Linux, Python 3.12.14, the included pinned dependencies. This is not
-the target Windows/GPU machine.
+the target Windows/GPU machine. Source version 0.2.0; schema 0003.
 
 ## Completed
 
-- `pytest -q`: **44 passed, 34 skipped**, one dependency deprecation warning.
-  Skips: 33 PostgreSQL fixture variants (no test server available), plus the
-  SQLite copy of a race test that specifically requires PostgreSQL row locks.
+- `pytest -q`: **60 passed, 50 skipped**, one dependency deprecation warning.
+  Skips: 48 PostgreSQL fixture variants because no test server is available,
+  plus two SQLite copies of PostgreSQL row-lock tests.
 - Ruff lint and formatting passed for `src`, `tests`, `migrations` and `scripts`.
-- Package 0.1.0 installs; CLI help exposes the implemented memory/scope commands.
-- Fresh SQLite migration to 0002, repeat application at head and `alembic check` pass.
-- A populated Phase 0 database upgrades with existing scope/event/request IDs,
-  content, personality/prompt snapshots and successful request replay preserved.
-- Original event-role constraints survive SQLite table rebuilds. Composite foreign
-  keys reject cross-owner/cross-scope evidence and missing mandatory sources.
-- Exact nonblank spans, Unicode code point offsets, hashes and source trust are
-  checked. Missing evidence, model output, forged metadata, invalid timestamps,
-  NUL and malformed Unicode fail at the boundary.
-- Same-ID writes replay; changed payloads and duplicate assertions conflict.
-- Corrections retain old evidence, have half-open validity boundaries, include
-  future/expired behavior, and roll back completely on interrupted transactions.
-- CLI add/correct/current/historical queries work without a model call.
-- Prompt upgrades are authenticated, explicit, audited and rejected during inference.
-  They preserve frozen styles and fence retries with obsolete context.
-- The installer checks all files before copying, preserves local configuration,
-  accepts CRLF, backs up originals, rejects local edits and safely replays.
-- OpenAPI is regenerated from the API and describes UUIDs, evidence and int64 times.
-- PostgreSQL migration SQL compiles with the composite constraints and built-in
-  SHA-256 backfill. SQL compilation is not a PostgreSQL execution check.
-- Real Uvicorn/HTTP process smoke passed with SQLite and the fake provider:
-  start Phase 0, save a turn, stop, migrate to Phase 1, replay the old reply,
-  read backfilled evidence, upgrade the prompt, add/correct memory, stop/restart,
-  then recover current/historical values and replay the correction without duplicates.
-- Original authentication, isolation, inference failure, admission control, context
-  budgeting and interrupted-request recovery checks still pass.
+- Package 0.2.0 installs without new dependencies. The CLI exposes scoped search,
+  request traces, fixed-time chat, retrieval bypass, source cards and index rebuild.
+- Fresh SQLite migrations to 0003 and `alembic check` pass. Populated Phase 0/1
+  upgrades preserve history, scope/source/claim IDs, prompt/style snapshots and
+  completed request replay. Both original migration files are byte-identical.
+- Migration 0003 backfills existing claims into the native search projection.
+  SQLite FTS5 indexing, atomic claim/index writes, rebuild and rollback checks pass.
+- Retrieval checks owner/scope, both valid-time bounds, user evidence trust,
+  recomputed source hash, exact span/quote and derived projection consistency.
+  Missing/changed evidence and future/out-of-scope records never enter context.
+- Current/historical lookups, exact correction boundaries, future replacements,
+  limited natural-date parsing and ambiguous-date behavior pass. Explicit memory
+  times with equivalent timezone representations replay identically.
+- Potential conflicting slot values are kept together or omitted. Oversized
+  evidence is skipped without truncating quotes; smaller entries can fit. Whole
+  prompt accounting includes baseline, runtime policy, complete history, evidence
+  framing and the current input. Existing context-budget checks still pass.
+- Requests bind content/time/retrieval options with domain-separated hashes while
+  preserving default-option Phase 0/1 fingerprints. Changed options return 409.
+- Failed retries preserve original messages/traces after correction. Completed
+  retries preserve original responses/citations. Unknown labels receive warnings
+  and no card. Authenticated request/trace reads enforce owner isolation.
+- v1/v2 prompts retain their original context with retrieval disabled until an
+  explicit, audited v3 upgrade. Style/history remain frozen; old failed retries
+  are fenced by the revision change. In-flight prompt upgrades are rejected.
+- Untrusted source content is passed as evidence data. Chat has no memory write
+  tool; sources and model output cannot grant application permissions. These
+  checks do not establish a real model's resistance to misleading source text.
+- The installer validates both original migrations and all update destinations,
+  accepts CRLF, backs up originals, preserves local configuration, rejects local
+  edits/corrupt files, and replays safely. The complete generated manifest is
+  checked against the original Phase 1 source bundle before packaging.
+- OpenAPI is generated from actual routes, including citations, request/trace UUIDs
+  and epoch-millisecond int64 fields. PostgreSQL migration and retrieval SQL
+  compile, including GIN full-text search and composite foreign keys. Compilation
+  is not a PostgreSQL runtime check.
+- Real Uvicorn/HTTP process smoke passed with disposable SQLite and the fake
+  provider: create Phase 1 history/memory, stop, migrate, replay old requests,
+  explicitly upgrade v2 to v3, retrieve/cite evidence, correct a memory, restart,
+  replay the frozen old citation snapshot, query current/historical values and
+  reject another user's trace reads. `evaluations/http-upgrade-smoke.json` records
+  the checks. The fake model echoes a test label; this verifies source mapping,
+  not generated answer correctness.
+- Original authentication, inference failure, admission control, source trust,
+  temporal corrections and interrupted-request recovery checks still pass.
+
+## Retrieval baseline
+
+The included synthetic evaluation contains 11 claims and 20 queries, with
+15 positive and 5 negative cases. At K=5 and a 6000-byte diagnostic memory budget:
+
+| Metric | Result |
+|---|---:|
+| Recall@5 | 0.8667 |
+| MRR@5 | 0.8333 |
+| Exact evidence coverage | 1.0000 |
+| Scope violations | 0 |
+| Negative-query failures | 0 |
+
+Two positive paraphrases have no lexical overlap and are missed. Latencies and
+individual cases are in `evaluations/sqlite-baseline.json`. This small dataset
+measures retrieval behavior, not production performance or answer quality. It
+uses a larger diagnostic memory budget than default chat's 2200 bytes. No real
+LLM was run, so citation entailment and model adherence remain unmeasured.
+
+Reproduce with `python scripts/evaluate_retrieval.py`. `--postgres` uses temporary
+schemas in an explicitly configured dedicated `ADA_TEST_DATABASE_URL`.
+The HTTP smoke can be repeated with `python scripts/smoke_upgrade.py --phase1-root
+PATH_TO_ORIGINAL_PHASE1_BUNDLE`.
 
 ## Remaining target-environment checks
 
-- PostgreSQL runtime and row-lock races. This environment prevents switching to
-  the database's required OS user, so a local PostgreSQL test server could not be
-  prepared. Run `scripts/test-postgres.ps1` on your laptop. It creates/reuses the
-  separate `ada_phase1_test` database and runs fixtures in isolated schemas.
+- PostgreSQL runtime, native full-text ranking consistency and row-lock races.
+  The host environment prevents switching to the database's required OS user,
+  so a local PostgreSQL server could not be prepared. Run
+  `scripts/test-postgres.ps1` on your laptop. It creates/reuses the separate
+  `ada_phase2_test` database and uses disposable schemas.
 - Native Windows PowerShell execution and Docker port handling.
-- Actual Ollama inference, GPU/CPU placement, latency and adherence to the updated
-  ADA identity/capability prompt. No real model was called during verification.
+- Real Ollama inference, model citation use/interpretation, identity prompt
+  adherence, context/token use, GPU/CPU placement and latency on your hardware.
 
-The existing Starlette/httpx test-client deprecation warning remains. It does not
-fail the suite. Dependencies remain pinned to the Phase 0 versions.
-
-Phase 1 does not implement retrieval in chat, automatic extraction, shared scopes,
-tools, document ingestion, consolidation or mobile/edge inference. Capabilities
-and the prompt state these boundaries explicitly.
+The existing Starlette/httpx test-client deprecation warning does not fail the
+suite. Dependencies remain pinned to the prior bundle versions. Phase 2 does not
+implement automatic extraction, embeddings, shared scopes, tools, document
+ingestion, consolidation, affect learning or mobile/edge inference.

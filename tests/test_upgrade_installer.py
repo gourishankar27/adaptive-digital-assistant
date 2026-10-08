@@ -15,14 +15,18 @@ def files(tmp_path):
     for root in (bundle, project):
         (root / "migrations/versions").mkdir(parents=True)
         (root / "migrations/versions/0001_phase_0_users_personalities_.py").write_text("baseline\n")
+        (root / "migrations/versions/0002_scoped_evidence_and_claims.py").write_text("phase1\n")
     old = project / "README.md"
-    old.write_bytes(b"Phase 0\r\n")
-    (bundle / "README.md").write_text("Phase 1\n")
+    old.write_bytes(b"Phase 1\r\n")
+    (bundle / "README.md").write_text("Phase 2\n")
     (bundle / "new.py").write_text("new module\n")
     manifest = {
-        "phase0_migration_hash": upgrade.file_hash(
-            project / "migrations/versions/0001_phase_0_users_personalities_.py"
-        ),
+        "from_version": "0.1.0",
+        "to_version": "0.2.0",
+        "baseline_migrations": {
+            str(path.relative_to(project)): upgrade.file_hash(path)
+            for path in (project / "migrations/versions").glob("*.py")
+        },
         "files": [
             {
                 "path": "README.md",
@@ -41,14 +45,14 @@ def files(tmp_path):
 def test_installer_preserves_configuration_backs_up_and_replays(tmp_path):
     bundle, project = files(tmp_path)
     upgrade.apply_upgrade(bundle, project, check_only=True)
-    assert (project / "README.md").read_bytes() == b"Phase 0\r\n"
+    assert (project / "README.md").read_bytes() == b"Phase 1\r\n"
     assert not (project / "new.py").exists()
     upgrade.apply_upgrade(bundle, project)
-    assert (project / "README.md").read_text() == "Phase 1\n"
+    assert (project / "README.md").read_text() == "Phase 2\n"
     assert (project / ".env").read_text() == "local configuration\n"
     assert (project / "compose.yaml").read_text() == "custom port configuration\n"
     backups = list((project / "upgrade_backups").glob("*/README.md"))
-    assert len(backups) == 1 and backups[0].read_bytes() == b"Phase 0\r\n"
+    assert len(backups) == 1 and backups[0].read_bytes() == b"Phase 1\r\n"
     upgrade.apply_upgrade(bundle, project)
     assert len(list((project / "upgrade_backups").iterdir())) == 1
 
@@ -64,3 +68,13 @@ def test_local_edits_or_corrupt_bundle_stop_all_writes(tmp_path):
     with pytest.raises(ValueError, match="failed validation"):
         upgrade.apply_upgrade(bundle, project)
     assert (project / "README.md").read_text() == "local edit"
+
+
+def test_installer_requires_the_original_phase1_migration(tmp_path):
+    bundle, project = files(tmp_path)
+    (project / "migrations/versions/0002_scoped_evidence_and_claims.py").write_text("modified\n")
+    with pytest.raises(ValueError, match="original Phase 1 migrations"):
+        upgrade.apply_upgrade(bundle, project)
+    assert (project / "README.md").read_text() == "Phase 1\n"
+    assert not (project / "new.py").exists()
+    assert not (project / "upgrade_backups").exists()

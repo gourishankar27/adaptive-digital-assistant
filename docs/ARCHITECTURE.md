@@ -1,6 +1,6 @@
-# Phase 1 architecture decisions
+# Phase 2 architecture decisions
 
-Status: persistent chat plus explicit, source-backed memory. Later features are listed below.
+Status: persistent chat, explicit source-backed memory, scoped retrieval and citation traces.
 
 ## Deployment
 
@@ -35,8 +35,8 @@ constraints, not PostgreSQL row-level security. The database administrator and s
 operator remain trusted. RLS is a future defense-in-depth decision before a less
 trusted deployment.
 
-Alembic migrations 0001/0002 are immutable snapshots. Add new migrations; never replace
-it with `Base.metadata.create_all()` at server startup. Migrations are explicit.
+Alembic migrations 0001/0002/0003 are immutable snapshots. Add new migrations; never
+replace them with `Base.metadata.create_all()` at server startup. Migrations are explicit.
 Events and evidence versions are append-oriented through application code. This release does not install
 database triggers preventing operator edits. Trust labels distinguish user words
 from model output. Automatic claim extraction remains deferred.
@@ -61,18 +61,22 @@ historical queries use both validity bounds, including future-dated replacements
 The explicit writer never calls a language model inside or outside its transaction.
 
 One source version per claim is supported in this milestone. Canonical entities,
-multiple evidence links, sharing, semantic validation and contradiction detection
-remain deferred. The database/server operator is trusted; API immutability and
+multiple evidence links, sharing, semantic validation and general contradiction
+resolution remain deferred. Retrieval conservatively groups different valid values
+in the same normalized subject/predicate slot. The database/server operator is trusted; API immutability and
 hash checks do not prevent an administrator changing the database.
 
 ## Request state machine
 
 New -> running -> completed or failed. A failed request may become running with an
 incremented attempt. A client UUID is unique within its owner. Reusing it with other
-content or another conversation returns 409. Completed retries return the saved
-response. Provider failure is an explicit 502 with a sanitized code.
+content, time/retrieval options or another conversation returns 409. Completed
+retries return the saved response and citation cards. Provider failure is an explicit
+502 with a sanitized code.
 
 The reservation transaction locks the conversation and checks its active request.
+A shared lock on the owned scope protects retrieval/conflict checks from concurrent
+memory writes. Request, input messages, user event and retrieval trace commit together.
 A partial unique index permits only one running request per conversation. Model
 inference happens outside a database transaction. Completion locks conversation,
 then request; validates the attempt; writes response, assistant event, and revision
@@ -87,22 +91,36 @@ intent/authorization/receipt protocol before tools are enabled.
 
 ## Context
 
-System baseline + frozen personality + most recent complete user/assistant pairs +
-current input. Failed requests remain inspectable evidence but do not become dangling
-model history. Older pairs fall out when the conservative UTF-8 byte budget is full.
+System baseline + frozen personality + runtime memory/time policy + selected complete
+user/assistant pairs + selected untrusted memory JSON + current input. Failed requests
+remain inspectable evidence but do not become dangling model history. Evidence is
+reserved within the whole UTF-8 byte budget before complete history pairs. Oversized
+groups/pairs are skipped; smaller entries may fit. Exact quotes are never truncated.
 This is a conservative bound, not provider-tokenizer precision or long-term memory.
 The adapter sets an explicit Ollama context window/output limit. A real model test
 must confirm token use and latency. No summary is silently substituted.
 
-The adapter receives only the selected conversation. Ollama has no ADA user state;
+The adapter receives only the selected conversation and its authorized scoped evidence.
+Ollama has no ADA user state;
 each call sends full selected messages. Clients never supply system roles. The model
 is not a security boundary. External tools are absent. Permanent claims are written
 only through authenticated, explicit memory operations; chat has no memory tool.
 
-New conversations freeze baseline v2. An explicit prompt upgrade archives the old
+Migration 0003 backfills the rebuildable search projection and adds PostgreSQL GIN /
+SQLite FTS5 indexes. Lexical and normalized subject channels apply owner/scope/time
+filters before returning candidates. Source hashes, trust and spans are checked
+again before context selection. Current and historical retrieval share Phase 1's
+valid-time semantics. See PHASE2-RETRIEVAL.md for ranking, caps and conflict rules.
+
+New conversations freeze baseline v3. An explicit v1/v2 prompt upgrade archives the old
 and new prompts, preserves the personality snapshot, locks the conversation and
 rejects in-flight changes. It increments the conversation revision so failed requests
 with old context cannot be resumed. Completed retries retain their original answer.
+Unupgraded v1/v2 conversations continue with their original prompt and no retrieval.
+Failed retries retain the original messages and selected evidence, even after a
+memory correction. New requests retrieve again. Response labels map only to the
+current request's selected source snapshots. Labels cannot authorize a source, and
+source mapping does not verify the model's generated claim.
 
 ## Security and observability
 
@@ -112,9 +130,12 @@ are implemented. Use HTTPS/encrypted transport for remote clients. Keep Ollama a
 the database inaccessible to clients. CORS is not enabled. No secrets or request
 bodies are intentionally logged; start script disables HTTP access logs.
 
-Durable traces include request ID, model/provider, input snapshot, prompt version
-(on the conversation), attempts, start/finish times, error category, and token counts
-when supplied. These contain private conversation data: protect database/backups.
+Durable request state includes model/provider, input messages, attempts, timestamps,
+error category and token counts. Retrieval traces snapshot the planner, prompt version,
+authorized candidates, selected claim/source/span/hash/quotes, budget and duration.
+The authenticated request/trace routes expose only their owner's records. Legacy
+requests have no reconstructed retrieval trace. These contain private conversation
+data: protect database/backups.
 Snapshots and rejected/failed requests currently have no automated retention policy.
 There is no public deployment, security certification, or high-availability claim.
 
@@ -129,8 +150,8 @@ model/runtime selection awaits the phone's RAM, SoC, Android version, and goals.
 
 ## Next milestone
 
-Add retrieval planning and a measured keyword/entity baseline. Scope/time filters
-must apply before evidence enters candidate lists or model context. Use a single
-whole-prompt budget and trace which claim/source IDs were selected. Personality
-continues to control expression only. Defer vectors, tools, autonomous work, affect
-learning and device inference until their milestones.
+Phase 2 establishes a measured lexical/subject baseline. Subsequent milestones can
+evaluate canonical entities, embeddings, document ingestion and consolidation
+against it while preserving the scope/time boundary and exact evidence provenance.
+Tools need explicit intent/authorization/receipt contracts before execution. Automatic
+extraction, autonomous work, affect learning and device inference remain deferred.

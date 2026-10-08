@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ada-server"
-version = "0.1.0"
-description = "ADA Phase 1: scoped, evidence-backed memory on a Python/Ollama server"
+version = "0.2.0"
+description = "ADA Phase 2: scoped memory retrieval and cited chat on a Python/Ollama server"
 requires-python = ">=3.12"
 dependencies = [
   "fastapi>=0.115,<1", "uvicorn[standard]>=0.30,<1",

@@ -4,7 +4,7 @@ $bundle = Split-Path -Parent $PSScriptRoot
 $target = (Resolve-Path -LiteralPath $ProjectPath).Path
 $python = Join-Path $target '.venv\Scripts\python.exe'
 if (-not (Test-Path -LiteralPath $python)) {
-    throw 'The target must be your existing Phase 0 project with its Python virtual environment.'
+    throw 'The target must be your existing Phase 1 project with its Python virtual environment.'
 }
 function Check-Exit {
     if ($LASTEXITCODE -ne 0) { throw "Upgrade command exited with code $LASTEXITCODE" }
@@ -24,4 +24,4 @@ try {
     Check-Exit
 }
 finally { Pop-Location }
-Write-Host 'Phase 1 is installed and migrated. Start the API with scripts\start.ps1.'
+Write-Host 'Phase 2 is installed and migrated. Start the API with scripts\start.ps1.'

@@ -30,7 +30,10 @@ def main():
     chat.add_argument("--personality", help="Use an existing personality UUID")
     chat.add_argument("--scope", help="Create a new conversation inside an existing scope UUID")
     chat.add_argument("--title", default="New conversation")
+    chat.add_argument("--at", help="Use a fixed ISO 8601 memory time with timezone")
+    chat.add_argument("--no-memory", action="store_true", help="Disable fresh memory retrieval")
     sub.add_parser("doctor")
+    sub.add_parser("rebuild-search", help="Rebuild the derived full-text projection locally")
     add_arguments(sub)
     args = parser.parse_args()
     settings = Settings()
@@ -72,6 +75,10 @@ def main():
                 parser.error("recovery age must exceed ADA_TIMEOUT_SECONDS by at least 60 seconds")
             n = recover_stale(sessions, now_ms() - args.older_than_seconds * 1000)
             print(f"Marked {n} interrupted requests retryable.")
+        elif args.command == "rebuild-search":
+            from ada.search import rebuild_search
+
+            print(f"Reindexed {rebuild_search(sessions)} source-backed claims.")
         else:
             from sqlalchemy import text
 
@@ -129,8 +136,17 @@ def run_chat(args, timeout):
         response = client.get(f"/v1/conversations/{conversation}")
         response.raise_for_status()
         print("Scope:", response.json()["scope_id"])
-        print(f"Conversation: {conversation}\n/quit to leave. /retry resends the last request ID.")
+        from ada.personality import PROMPT_VERSION
+
+        if response.json()["prompt_version"] != PROMPT_VERSION:
+            print("Saved prompt needs an explicit upgrade for memory retrieval:")
+            print(f"ada upgrade-prompt {conversation}")
+        print(
+            f"Conversation: {conversation}\n/quit to leave. /retry resends the last request ID. "
+            "/sources shows cited evidence. /trace shows retrieval decisions."
+        )
         pending = None
+        last_out = None
         while True:
             try:
                 line = input("You: ").strip()
@@ -140,14 +156,40 @@ def run_chat(args, timeout):
                 break
             if not line:
                 continue
+            if line == "/sources":
+                print(
+                    json.dumps((last_out or {}).get("citations", []), ensure_ascii=False, indent=2)
+                )
+                continue
+            if line == "/trace":
+                if pending is None:
+                    print("Send a message first.")
+                    continue
+                try:
+                    r = client.get(f"/v1/requests/{pending['request_id']}/retrieval")
+                    r.raise_for_status()
+                    print(json.dumps(r.json(), ensure_ascii=False, indent=2))
+                except httpx.HTTPStatusError as exc:
+                    print("Trace unavailable:", exc.response.status_code, exc.response.text)
+                except httpx.RequestError:
+                    print("Connection failed. Try /trace again.")
+                continue
             if line != "/retry":
                 pending = {"request_id": str(uuid4()), "content": line}
+                last_out = None
+                if args.at:
+                    pending["as_of"] = args.at
+                if args.no_memory:
+                    pending["use_memory"] = False
             if pending is None:
                 continue
             print("Request:", pending["request_id"])
             try:
                 out = post(f"/v1/conversations/{conversation}/messages", pending)
+                last_out = out
                 print("ADA:", out["response"])
+                if out.get("citation_warnings"):
+                    print("Citation warnings:", ", ".join(out["citation_warnings"]))
             except httpx.HTTPStatusError as exc:
                 print("Request failed:", exc.response.status_code, exc.response.text)
             except httpx.RequestError:

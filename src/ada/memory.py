@@ -14,9 +14,10 @@ from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, field_validato
 from sqlalchemy import or_, select
 from sqlalchemy.exc import IntegrityError
 
+from ada.errors import ServiceError
 from ada.evidence import content_hash, public_source_version, record_source, validate_text
 from ada.models import Claim, Scope, Source, SourceVersion, now_ms
-from ada.service import ServiceError
+from ada.search import index_claim
 
 
 def time_ms(value: datetime) -> int:
@@ -310,6 +311,7 @@ class MemoryService:
                 row = Claim(id=str(body.claim_id), write_hash=fingerprint, **fields)
                 db.add(row)
                 db.flush()
+                index_claim(db, row)
                 return public_claim(row), True
         except IntegrityError as exc:
             raise ServiceError(409, "claim_conflict") from exc
@@ -351,6 +353,7 @@ class MemoryService:
                 replacement = Claim(id=str(body.claim_id), write_hash=fingerprint, **fields)
                 db.add(replacement)
                 db.flush()
+                index_claim(db, replacement)
                 old.valid_to, old.superseded_by, old.status = start, replacement.id, "superseded"
                 db.flush()
                 return public_claim(replacement), True

@@ -27,9 +27,28 @@ from ada.memory import (
     public_claim,
     time_ms,
 )
-from ada.models import Claim, Conversation, Event, Personality, Request, Scope, SourceVersion, User
+from ada.models import (
+    Claim,
+    Conversation,
+    Event,
+    Personality,
+    Request,
+    RetrievalTrace,
+    Scope,
+    SourceVersion,
+    User,
+)
 from ada.personality import PROMPT_VERSION, build_prompt
 from ada.providers import FakeProvider, OllamaProvider
+from ada.retrieval import (
+    CitationOutput,
+    RetrievalOutput,
+    RetrieveInput,
+    lock_scope_for_retrieval,
+    plan_query,
+    public_trace,
+    retrieve,
+)
 from ada.service import ChatService, ServiceError, public_request
 
 
@@ -87,6 +106,15 @@ def public_scope(row):
 class ChatInput(StrictInput):
     request_id: UUID
     content: str = Field(min_length=1, max_length=4000)
+    as_of: AwareDatetime | None = None
+    use_memory: bool = Field(default=True, strict=True)
+
+    @field_validator("as_of")
+    @classmethod
+    def millisecond_time(cls, value):
+        if value is not None:
+            time_ms(value)
+        return value
 
     @field_validator("content")
     @classmethod
@@ -97,8 +125,8 @@ class ChatInput(StrictInput):
 
 
 class RequestOutput(BaseModel):
-    request_id: str
-    conversation_id: str
+    request_id: UUID
+    conversation_id: UUID
     status: Literal["running", "completed", "failed"]
     response: str | None
     error_code: str | None
@@ -107,6 +135,14 @@ class RequestOutput(BaseModel):
     model: str
     input_tokens: int | None
     output_tokens: int | None
+    citations: list[CitationOutput]
+    citation_warnings: list[str]
+
+
+class TraceOutput(RetrievalOutput):
+    request_id: UUID
+    conversation_id: UUID
+    created_at: Timestamp
 
 
 def create_app(settings=None, provider=None, sessions=None):
@@ -128,9 +164,9 @@ def create_app(settings=None, provider=None, sessions=None):
 
     app = FastAPI(
         title="ADA",
-        version="0.1.0",
+        version="0.2.0",
         lifespan=lifespan,
-        description="Phase 1. Explicit source-backed memory; local administrator-issued tokens.",
+        description="Phase 2. Scoped memory retrieval, cited chat, and durable evidence traces.",
     )
     app.state.sessions, app.state.chat, app.state.memory = sessions, service, memory
 
@@ -186,7 +222,7 @@ def create_app(settings=None, provider=None, sessions=None):
         try:
             with sessions() as db:
                 version = db.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
-                if version != "0002":
+                if version != "0003":
                     raise RuntimeError("schema mismatch")
         except Exception:
             raise HTTPException(503, "database_not_ready") from None
@@ -207,7 +243,11 @@ def create_app(settings=None, provider=None, sessions=None):
             "tools": False,
             "structured_memory": True,
             "memory_writes": "explicit_user_assertions",
-            "memory_in_chat": False,
+            "memory_in_chat": True,
+            "memory_retrieval": "full_text_and_subject",
+            "memory_citations": True,
+            "retrieval_traces": True,
+            "chat_prompt_version": PROMPT_VERSION,
             "automatic_memory_extraction": False,
             "historical_memory_queries": True,
             "private_project_scopes": True,
@@ -343,7 +383,14 @@ def create_app(settings=None, provider=None, sessions=None):
 
     @app.post("/v1/conversations/{conversation_id}/messages", response_model=RequestOutput)
     def chat(conversation_id: UUID, body: ChatInput, owner: str = Depends(current_user)):
-        return service.chat(owner, str(conversation_id), str(body.request_id), body.content)
+        return service.chat(
+            owner,
+            str(conversation_id),
+            str(body.request_id),
+            body.content,
+            as_of=body.as_of,
+            use_memory=body.use_memory,
+        )
 
     @app.get("/v1/requests/{request_id}", response_model=RequestOutput)
     def request_status(request_id: UUID, owner: str = Depends(current_user)):
@@ -351,7 +398,18 @@ def create_app(settings=None, provider=None, sessions=None):
             row = db.get(Request, (owner, str(request_id)))
             if row is None:
                 raise HTTPException(404, "request_not_found")
-            return public_request(row)
+            return public_request(row, db.get(RetrievalTrace, (owner, str(request_id))))
+
+    @app.get("/v1/requests/{request_id}/retrieval", response_model=TraceOutput)
+    def request_retrieval(request_id: UUID, owner: str = Depends(current_user)):
+        with sessions() as db:
+            row = db.get(Request, (owner, str(request_id)))
+            if row is None:
+                raise HTTPException(404, "request_not_found")
+            trace = db.get(RetrievalTrace, (owner, str(request_id)))
+            if trace is None:
+                raise HTTPException(404, "retrieval_trace_unavailable")
+            return public_trace(trace)
 
     @app.post("/v1/scopes", status_code=201, response_model=ScopeOutput)
     def create_scope(body: ScopeInput, owner: str = Depends(current_user)):
@@ -381,6 +439,19 @@ def create_app(settings=None, provider=None, sessions=None):
     def scope(scope_id: UUID, owner: str = Depends(current_user)):
         with sessions() as db:
             return public_scope(owned_scope(db, owner, str(scope_id)))
+
+    @app.post("/v1/scopes/{scope_id}/retrieve", response_model=RetrievalOutput)
+    def retrieve_memory(scope_id: UUID, body: RetrieveInput, owner: str = Depends(current_user)):
+        with sessions.begin() as db:
+            lock_scope_for_retrieval(db, owner, str(scope_id))
+            return retrieve(
+                db,
+                owner,
+                str(scope_id),
+                plan_query(body.query, body.as_of),
+                limit=body.limit,
+                budget_bytes=body.budget_bytes,
+            )
 
     @app.post(
         "/v1/scopes/{scope_id}/notes",

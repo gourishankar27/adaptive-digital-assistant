@@ -347,7 +347,7 @@ def test_prompt_upgrade_is_explicit_audited_and_fences_old_retries(harness):
     assert send(h, c, "retry", request_id).status_code == 502
     upgraded = h["client"].post(url, headers=h["a"])
     assert upgraded.status_code == 200
-    assert upgraded.json()["prompt_version"] == "ada-baseline-v2"
+    assert upgraded.json()["prompt_version"] == "ada-baseline-v3"
     assert h["client"].post(url, headers=h["a"]).json() == upgraded.json()
     h["provider"].error = None
     assert send(h, c, "retry", request_id).status_code == 409
@@ -380,7 +380,7 @@ def test_correction_rolls_back_if_commit_path_is_interrupted(harness, monkeypatc
         assert db.scalar(select(func.count()).select_from(Claim)) == 1
 
 
-def test_explicit_memory_is_not_implicitly_injected_into_chat(harness):
+def test_unrelated_greeting_does_not_retrieve_saved_memory(harness):
     h = harness
     s = scope(h)
     n = note(h, s, "The secret project code is blue-heron.")

@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     timeout_seconds: int = Field(default=180, ge=1, le=900)
     max_parallel: int = Field(default=1, ge=1, le=4)
     prompt_bytes: int = Field(default=6000, ge=1200, le=24000)
+    memory_bytes: int = Field(default=2200, ge=0, le=12000)
+    retrieval_limit: int = Field(default=8, ge=1, le=16)
 
     @model_validator(mode="after")
     def fits_context(self):

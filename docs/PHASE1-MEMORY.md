@@ -1,5 +1,8 @@
 # Phase 1 memory contract
 
+The explicit write contract remains in Phase 2. Chat retrieval and snapshot
+citations are described in [PHASE2-RETRIEVAL.md](PHASE2-RETRIEVAL.md).
+
 The authenticated user explicitly supplies and endorses an assertion. The server
 validates its evidence and ownership without calling a model. Extraction jobs
 and model memory-write tools are deferred.
@@ -52,8 +55,9 @@ excluding all superseded rows.
 
 Backdated assertions are allowed. Historical queries reflect what is considered
 valid then using today's stored state. They do not reconstruct “what ADA knew
-then.” `created_at` records storage time; transaction-time queries, contradiction
-detection and automatic reconciliation are deferred.
+then.” `created_at` records storage time; transaction-time queries and automatic
+reconciliation are deferred. Phase 2 checks potentially conflicting valid values
+in the same normalized subject/predicate slot during retrieval.
 
 ## Spans, retry and integrity
 
