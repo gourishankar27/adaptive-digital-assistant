@@ -1,0 +1,21 @@
+{
+  "id": "00000000-0000-0000-0000-000000000006",
+  "scope_id": "00000000-0000-0000-0000-000000000003",
+  "subject": "ADA",
+  "predicate": "language",
+  "value": "Python",
+  "kind": "decision",
+  "status": "active",
+  "valid_from": 1735689600000,
+  "valid_to": null,
+  "superseded_by": null,
+  "created_at": 1791417600000,
+  "origin": "user_asserted",
+  "evidence": {
+    "source_version_id": "00000000-0000-0000-0000-000000000005",
+    "span_start": 2,
+    "span_end": 19,
+    "quote": "We choose Python.",
+    "content_hash": "870e132535260d9699b07231148b7b07b119915dffc599074d279c00b52724bd"
+  }
+}

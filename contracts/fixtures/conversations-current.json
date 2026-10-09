@@ -1,0 +1,17 @@
+[
+  {
+    "id": "00000000-0000-0000-0000-000000000004",
+    "title": "Synthetic contract example",
+    "scope_id": "00000000-0000-0000-0000-000000000003",
+    "scope_kind": "project",
+    "personality": {
+      "name": "ADA",
+      "style": "conversational",
+      "warmth": "warm",
+      "detail": "balanced"
+    },
+    "prompt_version": "ada-baseline-v3",
+    "revision": 0,
+    "created_at": 1791417600000
+  }
+]

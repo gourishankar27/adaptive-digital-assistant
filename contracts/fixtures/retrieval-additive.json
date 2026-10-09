@@ -1,0 +1,103 @@
+{
+  "version": "lexical-subject-v1",
+  "scope_id": "00000000-0000-0000-0000-000000000003",
+  "plan": {
+    "enabled": true,
+    "reason": "ready",
+    "time_mode": "current",
+    "as_of": 1791417600000,
+    "query_terms": [
+      "python"
+    ],
+    "expanded_terms": [
+      "python"
+    ],
+    "subject_keys": [
+      "python"
+    ],
+    "overview": false,
+    "prompt_version": "ada-baseline-v3"
+  },
+  "candidates": [
+    {
+      "claim_id": "00000000-0000-0000-0000-000000000006",
+      "channels": [
+        "lexical"
+      ],
+      "decision": "selected",
+      "score": 0.01639344,
+      "term_coverage": 1,
+      "snapshot_extension": "retained"
+    },
+    {
+      "claim_id": "00000000-0000-0000-0000-000000000008",
+      "channels": [
+        "slot_check"
+      ],
+      "decision": "selected",
+      "snapshot_extension": "retained"
+    }
+  ],
+  "selected": [
+    {
+      "label": "M1",
+      "claim_id": "00000000-0000-0000-0000-000000000006",
+      "scope_id": "00000000-0000-0000-0000-000000000003",
+      "subject": "ADA",
+      "predicate": "language",
+      "value": "Python",
+      "kind": "decision",
+      "valid_from": 1735689600000,
+      "valid_to": null,
+      "origin": "user_asserted",
+      "evidence": {
+        "source_version_id": "00000000-0000-0000-0000-000000000005",
+        "span_start": 2,
+        "span_end": 19,
+        "quote": "We choose Python.",
+        "content_hash": "870e132535260d9699b07231148b7b07b119915dffc599074d279c00b52724bd"
+      },
+      "source_id": "00000000-0000-0000-0000-000000000005",
+      "source_version": 1,
+      "conflict": true
+    },
+    {
+      "label": "M2",
+      "claim_id": "00000000-0000-0000-0000-000000000008",
+      "scope_id": "00000000-0000-0000-0000-000000000003",
+      "subject": "ADA",
+      "predicate": "language",
+      "value": "Rust",
+      "kind": "decision",
+      "valid_from": 1735689600000,
+      "valid_to": null,
+      "origin": "user_asserted",
+      "evidence": {
+        "source_version_id": "00000000-0000-0000-0000-000000000007",
+        "span_start": 0,
+        "span_end": 15,
+        "quote": "We choose Rust.",
+        "content_hash": "eccea3930cfa8aa86991a165e1c87ded648725da58557a5ca3df8f86f1f5dc5c"
+      },
+      "source_id": "00000000-0000-0000-0000-000000000007",
+      "source_version": 1,
+      "conflict": true
+    }
+  ],
+  "budget": {
+    "memory_limit_bytes": 2200,
+    "memory_used_bytes": 528,
+    "selected_limit": 8,
+    "candidate_limit_per_channel": 64,
+    "candidate_pool_truncated": false,
+    "prompt_limit_bytes": 6000,
+    "prompt_used_bytes": 3319,
+    "history_pairs": 0,
+    "history_pairs_omitted": 0,
+    "snapshot_extension": 7
+  },
+  "retrieval_ms": 0,
+  "request_id": "00000000-0000-0000-0000-000000000009",
+  "conversation_id": "00000000-0000-0000-0000-000000000004",
+  "created_at": 1791417600000
+}

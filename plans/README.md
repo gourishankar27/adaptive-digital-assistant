@@ -4,8 +4,12 @@ These plans continue the implemented Phase 0–2 server. Phase numbers in the ea
 architecture prompt were suggestions; this directory uses the actual release
 history and puts usable interfaces before larger backend additions.
 
-This update writes plans and fixes a Windows test fixture. It does not implement
-an Android app, admin API, admin website or any later backend phase.
+Phase 03 implements typed existing contracts and Android/web connection and UI
+foundations. Phase 04 adds authenticated Android conversations, chat, encrypted
+request recovery and original source cards. Physical-phone and release checks
+remain distinct from local verification. There is no admin API/dashboard or
+later backend implementation. The Windows/PostgreSQL rerun closes the 02A fixture gate;
+see STATUS/WORKLOG for preserved historical and current evidence.
 
 ## Start here
 
@@ -42,9 +46,9 @@ are designs until implemented and exported in OpenAPI. The existing
 | 18 | [phase-18-security-and-operations.md](phase-18-security-and-operations.md) | Device credentials, deletion/retention, recovery and shared capacity | 05, 06; whichever feature phases exist |
 | 19 | [phase-19-edge-and-external-integrations.md](phase-19-edge-and-external-integrations.md) | Optional local mobile models and selected integrations | 12, 18; measured device requirements |
 
-Recommended next work: close 02A on Windows, implement 03, then 04. Implement
-05–06 for admin monitoring and 07 for user memory management. Later backend
-phases can then be chosen independently according to their prerequisites.
+Phase 04 stops at chat and source inspection. A separately selected Phase 07 can
+add user memory management; Phases 05–06 can add admin authorization/monitoring.
+Later backend phases can be chosen independently according to their prerequisites.
 Streaming can be brought forward after 04; voice can follow streaming without
 waiting for all memory phases. Phase numbers identify documents, not a requirement
 to build every earlier numbered feature. Dependencies are the actual gates.

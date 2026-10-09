@@ -1,0 +1,39 @@
+{
+  "request_id": "00000000-0000-0000-0000-000000000009",
+  "conversation_id": "00000000-0000-0000-0000-000000000004",
+  "status": "completed",
+  "response": "Synthetic answer [M1], unavailable [M99].",
+  "error_code": null,
+  "attempt": 1,
+  "provider": "recording",
+  "model": "test-v1",
+  "input_tokens": 10,
+  "output_tokens": 5,
+  "citations": [
+    {
+      "label": "M1",
+      "claim_id": "00000000-0000-0000-0000-000000000006",
+      "scope_id": "00000000-0000-0000-0000-000000000003",
+      "subject": "ADA",
+      "predicate": "language",
+      "value": "Python",
+      "kind": "decision",
+      "valid_from": 1735689600000,
+      "valid_to": null,
+      "origin": "user_asserted",
+      "evidence": {
+        "source_version_id": "00000000-0000-0000-0000-000000000005",
+        "span_start": 2,
+        "span_end": 19,
+        "quote": "We choose Python.",
+        "content_hash": "870e132535260d9699b07231148b7b07b119915dffc599074d279c00b52724bd"
+      },
+      "source_id": "00000000-0000-0000-0000-000000000005",
+      "source_version": 1,
+      "conflict": true
+    }
+  ],
+  "citation_warnings": [
+    "unknown_label:M99"
+  ]
+}

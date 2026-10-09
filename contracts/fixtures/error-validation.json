@@ -1,0 +1,12 @@
+{
+  "detail": [
+    {
+      "type": "bool_type",
+      "loc": [
+        "body",
+        "use_memory"
+      ],
+      "msg": "Input should be a valid boolean"
+    }
+  ]
+}

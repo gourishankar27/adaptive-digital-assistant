@@ -144,11 +144,11 @@ Run migration commands against a disposable validation database first. A normal
 upgrade of the user's configured database belongs to the requested installation
 scope, after validation; do not migrate an unrelated database from a test session.
 
-## Proposed client checks
+## Client foundation checks
 
-These commands become real after Phase 03 writes the applications and scripts.
-Codex must choose compatible tools, create the named script tasks, verify them and
-record exact versions. Do not claim they ran against today's absent apps.
+Phase 03 supplies these applications and script tasks. Use their pinned tools and
+READMEs for setup, contract generation and test server details. Record exact
+versions and results; available commands are not evidence that a check ran.
 
 ```powershell
 Push-Location apps\android

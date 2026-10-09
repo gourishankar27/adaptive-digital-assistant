@@ -34,11 +34,12 @@ the semantic correctness of the model's sentence.
 `GET /v1/conversations/{id}/events` returns event text, request ID/status and
 source-version ID. Source cards are recovered from the matching request response;
 they must not be reconstructed from today's claim list. Conversation/event reads
-currently include some untyped response shapes that Phase 03 should formalize.
+and the other client endpoints now have explicit output schemas exported to
+OpenAPI, including sanitized errors and retrieval details.
 
 Chat returns a complete response. There is no streaming, cancellation endpoint,
 automatic memory extraction, document upload, embedding search, tool executor,
-admin API, mobile app, voice interface or local mobile model. Static warmth/style
+admin API, voice interface or local mobile model. Static warmth/style
 configuration exists; dynamic affect and learned relationship preferences do not.
 
 ## Verification evidence
@@ -55,7 +56,10 @@ Ruff lint and format checks passed across src, tests, migrations and scripts.
 The additional passing test is the portable Windows-path regression. No
 disposable PostgreSQL was configured for this local run.
 
-Do not record a clean Windows suite until the user or CI reruns it after this fix.
+The Phase 03 session reran the fixed suite on this Windows host: baseline pytest
+61 passed/50 skipped; dedicated PostgreSQL suite 109 passed/2 expected SQLite
+row-lock skips; Ruff lint and format passed. This closes the 02A target gate.
+These local results supplement the earlier user and Linux evidence above.
 The two SQLite copies of PostgreSQL-specific row-lock tests are expected to skip
 when the PostgreSQL fixtures also run. The existing Starlette/httpx test-client
 deprecation warning is separate from the failures; do not change pinned packages
@@ -73,6 +77,24 @@ call in an open database transaction; server-controlled authorization; private
 scope filtering before evidence is sent to a model; shared weights without shared
 private memory; personality as expression configuration.
 
-The phone's OS/RAM/SoC, the final remote connection method, admin credential
-enrollment and a release distribution target still need implementation-time
-decisions. The roadmap selects defaults without claiming these are already known.
+## Phase 03 foundations
+
+`apps/android/` and `apps/admin-web/` contain development connection screens,
+typed injected HTTP transports, explicit failure/screen state models, semantic
+design tokens and reproducible build/test configurations. The Android app uses
+Kotlin/Compose; the web app uses React/TypeScript/Vite. Test transports and
+`scripts/client_test_server.py` are explicit test-only adapters; the latter uses
+loopback, migrated disposable SQLite and a fake model.
+
+The web foundation has no dashboard workflow or admin authority; its credential
+remains in memory. Android Phase 04 adds owned conversation/history/chat/source
+screens, manually issued credential enrollment, Keystore-encrypted pending
+requests, identity-verified restart checks and explicit exact-payload retries.
+Source/retry DTOs preserve the existing server contract. No schema migration is needed.
+See STATUS/WORKLOG for actual checks and unresolved target verification.
+
+The user confirmed a Samsung S24 FE running Android 16. Minimum SDK 26 is
+compatible with that reported OS. Phase 04 physical-phone accessibility/connection,
+real-model and release HTTPS checks remain pending target verification. A remote
+connection/distribution setup and admin credential enrollment require later selected
+work; phone inference is not implemented.

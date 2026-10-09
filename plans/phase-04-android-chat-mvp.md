@@ -1,6 +1,9 @@
 # Phase 04 — Android authenticated chat MVP
 
-Status: planned. Prerequisite: Phase 03.
+Status: checkpoints A–D implemented; local verification passed (2026-10-09 UTC).
+Prerequisite: Phase 03 verified against current source, OpenAPI and test baseline.
+Physical S24 FE/Android 16, release HTTPS, manual accessibility/IME and real-Ollama
+checks remain pending target verification; this is not a completed release.
 Apply UI-SPEC, STANDARDS and CODEX-WORKFLOW. This phase builds a real mobile client
 for existing ADA chat. Memory editing, streaming, voice and tools remain later.
 

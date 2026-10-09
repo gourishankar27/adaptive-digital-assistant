@@ -1,6 +1,8 @@
 # Phase 03 — contracts, app scaffolds and UI foundations
 
-Status: planned. Prerequisite: Phase 02A target closure.
+Status: checkpoints A–C implemented and locally verified on Windows; physical
+phone/manual accessibility and release HTTPS verification remain in STATUS.
+Prerequisite: Phase 02A target closure, verified by the Windows PostgreSQL rerun.
 Read UI-SPEC, STANDARDS, CODEX-WORKFLOW and current OpenAPI. Implement this phase
 only; Android chat and admin monitoring are separate phases.
 

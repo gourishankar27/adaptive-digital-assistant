@@ -15,6 +15,7 @@ from uuid import UUID
 from pydantic import AwareDatetime, BaseModel, Field, field_validator
 from sqlalchemy import case, func, literal, literal_column, or_, select, text
 
+from ada.contracts import RetrievalBudgetOutput, RetrievalCandidateOutput
 from ada.evidence import content_hash
 from ada.memory import EvidenceOutput, MemoryInput, Timestamp, time_ms
 from ada.models import Claim, ClaimSearch, Scope, SourceVersion, now_ms
@@ -95,9 +96,9 @@ class RetrievalOutput(BaseModel):
     version: str
     scope_id: UUID
     plan: RetrievalPlanOutput
-    candidates: list[dict]
+    candidates: list[RetrievalCandidateOutput]
     selected: list[CitationOutput]
-    budget: dict
+    budget: RetrievalBudgetOutput
     retrieval_ms: int
 
 

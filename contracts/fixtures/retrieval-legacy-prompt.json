@@ -1,0 +1,38 @@
+{
+  "version": "lexical-subject-v1",
+  "scope_id": "00000000-0000-0000-0000-000000000003",
+  "plan": {
+    "enabled": false,
+    "reason": "prompt_upgrade_required",
+    "time_mode": "current",
+    "as_of": 1791417600000,
+    "query_terms": [
+      "python"
+    ],
+    "expanded_terms": [
+      "python"
+    ],
+    "subject_keys": [
+      "python"
+    ],
+    "overview": false,
+    "prompt_version": "ada-baseline-v2"
+  },
+  "candidates": [],
+  "selected": [],
+  "budget": {
+    "memory_limit_bytes": 2200,
+    "memory_used_bytes": 0,
+    "selected_limit": 8,
+    "candidate_limit_per_channel": 64,
+    "candidate_pool_truncated": false,
+    "prompt_limit_bytes": 6000,
+    "prompt_used_bytes": 338,
+    "history_pairs": 1,
+    "history_pairs_omitted": 0
+  },
+  "retrieval_ms": 0,
+  "request_id": "00000000-0000-0000-0000-00000000000e",
+  "conversation_id": "00000000-0000-0000-0000-000000000004",
+  "created_at": 1791417600000
+}

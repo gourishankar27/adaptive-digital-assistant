@@ -1,0 +1,21 @@
+{
+  "id": "00000000-0000-0000-0000-00000000000d",
+  "scope_id": "00000000-0000-0000-0000-000000000003",
+  "subject": "ADA",
+  "predicate": "language",
+  "value": "Java",
+  "kind": "decision",
+  "status": "active",
+  "valid_from": 1748736000000,
+  "valid_to": null,
+  "superseded_by": null,
+  "created_at": 1791417600000,
+  "origin": "user_asserted",
+  "evidence": {
+    "source_version_id": "00000000-0000-0000-0000-00000000000c",
+    "span_start": 0,
+    "span_end": 15,
+    "quote": "We choose Java.",
+    "content_hash": "f902542ad669cc44c5676caad6f7561a930e23023b0b4f1d6d9c0e44cedcbce3"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "request_id": "00000000-0000-0000-0000-00000000000e",
+  "conversation_id": "00000000-0000-0000-0000-000000000004",
+  "status": "completed",
+  "response": "Synthetic answer [M1], unavailable [M99].",
+  "error_code": null,
+  "attempt": 1,
+  "provider": "recording",
+  "model": "test-v1",
+  "input_tokens": 10,
+  "output_tokens": 5,
+  "citations": [],
+  "citation_warnings": [
+    "unknown_label:M1",
+    "unknown_label:M99"
+  ]
+}

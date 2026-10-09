@@ -1,6 +1,7 @@
 # UI specification
 
-Design target, recorded 2026-10-08. The clients below are not implemented yet.
+Design target, recorded 2026-10-08. Phase 03 implements the connection, transport,
+state and design foundations; the feature screens below remain phase-gated.
 Read each phase's dependency and verification gates before enabling a feature.
 
 ## Products and stack

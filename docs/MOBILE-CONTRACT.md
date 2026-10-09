@@ -70,5 +70,13 @@ revocation must be implemented before enabling this endpoint. A local model can
 help with UI intent classification or draft summarization; it cannot grant tools
 permissions or become an authoritative memory database.
 
-Kotlin and Swift implementations are not included in Phase 2. This keeps the
-server contract testable before committing to an Android inference runtime.
+Phase 03 includes a Kotlin/Compose foundation and typed transport in
+`apps/android/`. Phase 04 adds authenticated conversation/history/chat/source UI
+and Keystore-encrypted credential/journal recovery for manually issued tokens.
+It introduces no server enrollment route or changed chat contract. Creation POSTs
+without idempotency keys are reconciled through list refresh after ambiguous loss,
+and retries retain the original message UUID and options. There is no Swift client
+or Android inference runtime.
+The web foundation in `apps/admin-web/` also uses this HTTP contract and cannot
+grant admin access. See `contracts/README.md` for response/error schemas and the
+apps' READMEs for local development connections.

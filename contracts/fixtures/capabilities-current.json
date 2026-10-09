@@ -1,0 +1,22 @@
+{
+  "api_version": "v1",
+  "chat": true,
+  "streaming": false,
+  "tools": false,
+  "structured_memory": true,
+  "memory_writes": "explicit_user_assertions",
+  "memory_in_chat": true,
+  "memory_retrieval": "full_text_and_subject",
+  "memory_citations": true,
+  "retrieval_traces": true,
+  "chat_prompt_version": "ada-baseline-v3",
+  "automatic_memory_extraction": false,
+  "historical_memory_queries": true,
+  "private_project_scopes": true,
+  "shared_scopes": false,
+  "edge_inference": false,
+  "personality_isolation": true,
+  "authority": "server",
+  "provider": "recording",
+  "model": "test-v1"
+}

@@ -25,8 +25,10 @@ The user explicitly supplies the subject/predicate/value annotation.
 
 Chat retrieves relevant saved claims from its conversation's scope. It also uses
 complete recent turns from that conversation. It does not extract or write claims.
-Tools, document ingestion,
-consolidation, affect learning, Android/iOS apps and device inference are deferred.
+Tools, document ingestion, consolidation, affect learning, iOS and device
+inference are deferred. Phase 03 adds Android/web foundations; Phase 04 adds an
+Android authenticated chat client for these existing server APIs. Admin
+monitoring and Android memory editing remain later selected work.
 
 ## New Windows installation
 
@@ -154,3 +156,34 @@ Local administration: `ada create-user NAME`, `ada rotate-token NAME`, `ada doct
 `ada recover-stale --older-than-seconds 300`, `ada rebuild-search`. Tokens are random bearer secrets
 stored as hashes. Read [ARCHITECTURE.md](docs/ARCHITECTURE.md) before changing
 ownership, evidence or retry behavior.
+
+## Phase 03 client foundations
+
+[Android](apps/android/README.md) and [admin web](apps/admin-web/README.md) contain
+the pinned toolchains, Windows build commands, authenticated connection adapters,
+test setup and explicit deferred screen maps. Both connect through ADA HTTP APIs.
+The web token is held in memory. Android Phase 04 encrypts its verified account
+credential and pending-message journal with an Android Keystore key.
+
+[The client contract](contracts/README.md) documents typed responses, sanitized
+errors, UTC milliseconds, evidence offsets, legacy traces and retry compatibility.
+No database migration, prompt upgrade or server configuration change is required
+for these foundations. Keep the API on loopback with one worker; use the web
+development proxy or the documented emulator/USB connection for local development.
+See [phase status](plans/STATUS.md) for checks actually run and remaining device
+verification. The web scaffold is not an admin dashboard.
+
+## Android chat MVP (Phase 04)
+
+The [Android app](apps/android/README.md) connects with an issued token, loads owned
+styles/scopes/conversations, creates or resumes a conversation, sends complete
+replies and displays the original request's source cards. It preserves an exact
+encrypted request reservation before sending, checks that ID after interruption,
+and offers explicit same-payload retry instead of silently sending a new turn.
+Conversation prompt upgrades remain explicit. Oxford Blue is the default palette;
+Dark Red and Olive Green are available in Settings, each with light/dark colors.
+
+No backend migration, prompt upgrade or changed API contract is required to install
+the client. Physical S24 FE/Android 16, release HTTPS and manual real-Ollama/source
+checks remain target verification. No release signing, distribution or deployment
+is performed by this phase.

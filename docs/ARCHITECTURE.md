@@ -141,9 +141,32 @@ There is no public deployment, security certification, or high-availability clai
 
 ## Mobile compute split (future)
 
-Android Kotlin: UI, secure token storage, microphone, optional local model, local
-intent suggestions, draft summaries and offline drafts. iOS Swift later uses the
-same HTTP contract. Server: authoritative memory, heavy model calls, retrieval,
+Phase 03 adds typed OpenAPI output/error contracts and independent Android/web
+connection foundations in `apps/`. Their injected transports call authenticated
+ADA HTTP endpoints. No admin authorization, mobile chat, enrollment service,
+streaming, cancellation or persistent client token storage is added in this phase.
+The Android secure-storage interface is a boundary for Phase 04; the web bearer
+credential remains in memory. See `contracts/README.md` and each app's README for
+transport/state limits and reproducible local checks. Existing service transactions,
+request fingerprints, prompt snapshots and migrations remain unchanged.
+
+Phase 04 implements Android chat over those existing routes. A Keystore AES-GCM
+key encrypts a bounded atomic record under noBackupFilesDir containing the verified
+normalized server/owner credential and at most one exact pending request. The
+client commits this reservation before POST and never automatically repeats a
+creation POST or changes a retry's UUID/content/options. Restart re-authenticates
+the saved identity and queries the original request ID. Key loss/corruption
+requires reconnect; logout/account switching clears private recovery and caches.
+Drafts and loaded history/source cards otherwise stay in ViewModel memory.
+Source cards and retrieval details come from the same owned request snapshot;
+they are not reconstructed from current claims. Polling is bounded, 401 stops
+recovery, and there is no cancellation, streaming, Android memory writer or
+device inference. Existing server authority and released schema remain intact.
+
+Future client work may add Android microphone input, an optional local model,
+intent suggestions, draft summaries and offline drafts. These are not implemented
+by Phase 04. An iOS Swift client could later use the same HTTP contract.
+Server: authoritative memory, heavy model calls, retrieval,
 authorization, synchronization, and tool effects. Local models submit proposals,
 not trusted claims or actions. See MOBILE-CONTRACT.md. Hardware-dependent Android
 model/runtime selection awaits the phone's RAM, SoC, Android version, and goals.

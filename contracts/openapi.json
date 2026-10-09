@@ -15,7 +15,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/LiveOutput"
+                }
               }
             }
           }
@@ -31,7 +33,19 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/ReadyOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
               }
             }
           }
@@ -47,7 +61,19 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/UserOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
               }
             }
           }
@@ -68,7 +94,19 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/CapabilitiesOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
               }
             }
           }
@@ -104,16 +142,28 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/PersonalityOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
               }
             }
           },
           "422": {
-            "description": "Validation Error",
+            "description": "Sanitized validation issues or error code; input is omitted",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
                 }
               }
             }
@@ -158,16 +208,32 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PersonalityOutput"
+                  },
+                  "title": "Response Personalities V1 Personalities Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
               }
             }
           },
           "422": {
-            "description": "Validation Error",
+            "description": "Sanitized validation issues or error code; input is omitted",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
                 }
               }
             }
@@ -199,16 +265,38 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
               }
             }
           },
           "422": {
-            "description": "Validation Error",
+            "description": "Sanitized validation issues or error code; input is omitted",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
                 }
               }
             }
@@ -253,16 +341,32 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ConversationOutput"
+                  },
+                  "title": "Response Conversations V1 Conversations Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
               }
             }
           },
           "422": {
-            "description": "Validation Error",
+            "description": "Sanitized validation issues or error code; input is omitted",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
                 }
               }
             }
@@ -296,16 +400,38 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
               }
             }
           },
           "422": {
-            "description": "Validation Error",
+            "description": "Sanitized validation issues or error code; input is omitted",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
                 }
               }
             }
@@ -339,16 +465,48 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/PromptUpgradeOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
               }
             }
           },
           "422": {
-            "description": "Validation Error",
+            "description": "Sanitized validation issues or error code; input is omitted",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
                 }
               }
             }
@@ -405,16 +563,42 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EventOutput"
+                  },
+                  "title": "Response Events V1 Conversations  Conversation Id  Events Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
               }
             }
           },
           "422": {
-            "description": "Validation Error",
+            "description": "Sanitized validation issues or error code; input is omitted",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
                 }
               }
             }
@@ -464,12 +648,72 @@
               }
             }
           },
-          "422": {
-            "description": "Validation Error",
+          "401": {
+            "description": "Sanitized error code",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
                 }
               }
             }
@@ -509,12 +753,32 @@
               }
             }
           },
-          "422": {
-            "description": "Validation Error",
+          "401": {
+            "description": "Sanitized error code",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
                 }
               }
             }
@@ -554,12 +818,32 @@
               }
             }
           },
-          "422": {
-            "description": "Validation Error",
+          "401": {
+            "description": "Sanitized error code",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
                 }
               }
             }
@@ -597,12 +881,22 @@
               }
             }
           },
-          "422": {
-            "description": "Validation Error",
+          "401": {
+            "description": "Sanitized error code",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
                 }
               }
             }
@@ -657,12 +951,22 @@
               }
             }
           },
-          "422": {
-            "description": "Validation Error",
+          "401": {
+            "description": "Sanitized error code",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
                 }
               }
             }
@@ -702,12 +1006,32 @@
               }
             }
           },
-          "422": {
-            "description": "Validation Error",
+          "401": {
+            "description": "Sanitized error code",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
                 }
               }
             }
@@ -757,12 +1081,32 @@
               }
             }
           },
-          "422": {
-            "description": "Validation Error",
+          "401": {
+            "description": "Sanitized error code",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
                 }
               }
             }
@@ -822,12 +1166,42 @@
               }
             }
           },
-          "422": {
-            "description": "Validation Error",
+          "401": {
+            "description": "Sanitized error code",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
                 }
               }
             }
@@ -894,12 +1268,32 @@
               }
             }
           },
-          "422": {
-            "description": "Validation Error",
+          "401": {
+            "description": "Sanitized error code",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
                 }
               }
             }
@@ -939,12 +1333,32 @@
               }
             }
           },
-          "422": {
-            "description": "Validation Error",
+          "401": {
+            "description": "Sanitized error code",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
                 }
               }
             }
@@ -1004,12 +1418,42 @@
               }
             }
           },
-          "422": {
-            "description": "Validation Error",
+          "401": {
+            "description": "Sanitized error code",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
                 }
               }
             }
@@ -1137,12 +1581,32 @@
               }
             }
           },
-          "422": {
-            "description": "Validation Error",
+          "401": {
+            "description": "Sanitized error code",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
                 }
               }
             }
@@ -1182,12 +1646,32 @@
               }
             }
           },
-          "422": {
-            "description": "Validation Error",
+          "401": {
+            "description": "Sanitized error code",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
                 }
               }
             }
@@ -1247,12 +1731,42 @@
               }
             }
           },
-          "422": {
-            "description": "Validation Error",
+          "401": {
+            "description": "Sanitized error code",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
                 }
               }
             }
@@ -1263,6 +1777,114 @@
   },
   "components": {
     "schemas": {
+      "CapabilitiesOutput": {
+        "properties": {
+          "api_version": {
+            "type": "string",
+            "title": "Api Version"
+          },
+          "chat": {
+            "type": "boolean",
+            "title": "Chat"
+          },
+          "streaming": {
+            "type": "boolean",
+            "title": "Streaming"
+          },
+          "tools": {
+            "type": "boolean",
+            "title": "Tools"
+          },
+          "structured_memory": {
+            "type": "boolean",
+            "title": "Structured Memory"
+          },
+          "memory_writes": {
+            "type": "string",
+            "title": "Memory Writes"
+          },
+          "memory_in_chat": {
+            "type": "boolean",
+            "title": "Memory In Chat"
+          },
+          "memory_retrieval": {
+            "type": "string",
+            "title": "Memory Retrieval"
+          },
+          "memory_citations": {
+            "type": "boolean",
+            "title": "Memory Citations"
+          },
+          "retrieval_traces": {
+            "type": "boolean",
+            "title": "Retrieval Traces"
+          },
+          "chat_prompt_version": {
+            "type": "string",
+            "title": "Chat Prompt Version"
+          },
+          "automatic_memory_extraction": {
+            "type": "boolean",
+            "title": "Automatic Memory Extraction"
+          },
+          "historical_memory_queries": {
+            "type": "boolean",
+            "title": "Historical Memory Queries"
+          },
+          "private_project_scopes": {
+            "type": "boolean",
+            "title": "Private Project Scopes"
+          },
+          "shared_scopes": {
+            "type": "boolean",
+            "title": "Shared Scopes"
+          },
+          "edge_inference": {
+            "type": "boolean",
+            "title": "Edge Inference"
+          },
+          "personality_isolation": {
+            "type": "boolean",
+            "title": "Personality Isolation"
+          },
+          "authority": {
+            "type": "string",
+            "title": "Authority"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          }
+        },
+        "type": "object",
+        "required": [
+          "api_version",
+          "chat",
+          "streaming",
+          "tools",
+          "structured_memory",
+          "memory_writes",
+          "memory_in_chat",
+          "memory_retrieval",
+          "memory_citations",
+          "retrieval_traces",
+          "chat_prompt_version",
+          "automatic_memory_extraction",
+          "historical_memory_queries",
+          "private_project_scopes",
+          "shared_scopes",
+          "edge_inference",
+          "personality_isolation",
+          "authority",
+          "provider",
+          "model"
+        ],
+        "title": "CapabilitiesOutput"
+      },
       "ChatInput": {
         "properties": {
           "request_id": {
@@ -1623,6 +2245,139 @@
         ],
         "title": "ConversationInput"
       },
+      "ConversationOutput": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "scope_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Scope Id"
+          },
+          "scope_kind": {
+            "type": "string",
+            "enum": [
+              "personal",
+              "project"
+            ],
+            "title": "Scope Kind"
+          },
+          "personality": {
+            "$ref": "#/components/schemas/PersonalitySnapshotOutput"
+          },
+          "prompt_version": {
+            "type": "string",
+            "title": "Prompt Version"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "created_at": {
+            "type": "integer",
+            "format": "int64",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "scope_id",
+          "scope_kind",
+          "personality",
+          "prompt_version",
+          "revision",
+          "created_at"
+        ],
+        "title": "ConversationOutput"
+      },
+      "ErrorOutput": {
+        "properties": {
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "detail"
+        ],
+        "title": "ErrorOutput"
+      },
+      "EventOutput": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "assistant"
+            ],
+            "title": "Role"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          },
+          "trust_class": {
+            "type": "string",
+            "enum": [
+              "user_explicit",
+              "model_generated"
+            ],
+            "title": "Trust Class"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Request Id"
+          },
+          "request_status": {
+            "type": "string",
+            "enum": [
+              "running",
+              "completed",
+              "failed"
+            ],
+            "title": "Request Status"
+          },
+          "created_at": {
+            "type": "integer",
+            "format": "int64",
+            "title": "Created At"
+          },
+          "source_version_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Source Version Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "role",
+          "content",
+          "trust_class",
+          "request_id",
+          "request_status",
+          "created_at",
+          "source_version_id"
+        ],
+        "title": "EventOutput"
+      },
       "EvidenceOutput": {
         "properties": {
           "source_version_id": {
@@ -1657,18 +2412,19 @@
         ],
         "title": "EvidenceOutput"
       },
-      "HTTPValidationError": {
+      "LiveOutput": {
         "properties": {
-          "detail": {
-            "items": {
-              "$ref": "#/components/schemas/ValidationError"
-            },
-            "type": "array",
-            "title": "Detail"
+          "status": {
+            "type": "string",
+            "const": "ok",
+            "title": "Status"
           }
         },
         "type": "object",
-        "title": "HTTPValidationError"
+        "required": [
+          "status"
+        ],
+        "title": "LiveOutput"
       },
       "NoteInput": {
         "properties": {
@@ -1735,6 +2491,113 @@
         "additionalProperties": false,
         "type": "object",
         "title": "PersonalityInput"
+      },
+      "PersonalityOutput": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "style": {
+            "type": "string",
+            "title": "Style"
+          },
+          "warmth": {
+            "type": "string",
+            "title": "Warmth"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "name",
+          "style",
+          "warmth",
+          "detail",
+          "id"
+        ],
+        "title": "PersonalityOutput"
+      },
+      "PersonalitySnapshotOutput": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "style": {
+            "type": "string",
+            "title": "Style"
+          },
+          "warmth": {
+            "type": "string",
+            "title": "Warmth"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "name",
+          "style",
+          "warmth",
+          "detail"
+        ],
+        "title": "PersonalitySnapshotOutput"
+      },
+      "PromptUpgradeOutput": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "prompt_version": {
+            "type": "string",
+            "title": "Prompt Version"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "prompt_version",
+          "revision"
+        ],
+        "title": "PromptUpgradeOutput"
+      },
+      "ReadyOutput": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "ready",
+            "title": "Status"
+          },
+          "schema": {
+            "type": "string",
+            "title": "Schema"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "schema"
+        ],
+        "title": "ReadyOutput"
       },
       "RequestOutput": {
         "properties": {
@@ -1845,6 +2708,92 @@
         ],
         "title": "RequestOutput"
       },
+      "RetrievalBudgetOutput": {
+        "properties": {
+          "memory_limit_bytes": {
+            "type": "integer",
+            "title": "Memory Limit Bytes"
+          },
+          "memory_used_bytes": {
+            "type": "integer",
+            "title": "Memory Used Bytes"
+          },
+          "selected_limit": {
+            "type": "integer",
+            "title": "Selected Limit"
+          },
+          "candidate_limit_per_channel": {
+            "type": "integer",
+            "title": "Candidate Limit Per Channel"
+          },
+          "candidate_pool_truncated": {
+            "type": "boolean",
+            "title": "Candidate Pool Truncated"
+          },
+          "prompt_limit_bytes": {
+            "type": "integer",
+            "title": "Prompt Limit Bytes"
+          },
+          "prompt_used_bytes": {
+            "type": "integer",
+            "title": "Prompt Used Bytes"
+          },
+          "history_pairs": {
+            "type": "integer",
+            "title": "History Pairs"
+          },
+          "history_pairs_omitted": {
+            "type": "integer",
+            "title": "History Pairs Omitted"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "memory_limit_bytes",
+          "memory_used_bytes",
+          "selected_limit",
+          "candidate_limit_per_channel",
+          "candidate_pool_truncated"
+        ],
+        "title": "RetrievalBudgetOutput"
+      },
+      "RetrievalCandidateOutput": {
+        "properties": {
+          "claim_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Claim Id"
+          },
+          "channels": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Channels"
+          },
+          "decision": {
+            "type": "string",
+            "title": "Decision"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score"
+          },
+          "term_coverage": {
+            "type": "integer",
+            "title": "Term Coverage"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "claim_id",
+          "channels",
+          "decision"
+        ],
+        "title": "RetrievalCandidateOutput"
+      },
       "RetrievalOutput": {
         "properties": {
           "version": {
@@ -1861,8 +2810,7 @@
           },
           "candidates": {
             "items": {
-              "additionalProperties": true,
-              "type": "object"
+              "$ref": "#/components/schemas/RetrievalCandidateOutput"
             },
             "type": "array",
             "title": "Candidates"
@@ -1875,9 +2823,7 @@
             "title": "Selected"
           },
           "budget": {
-            "additionalProperties": true,
-            "type": "object",
-            "title": "Budget"
+            "$ref": "#/components/schemas/RetrievalBudgetOutput"
           },
           "retrieval_ms": {
             "type": "integer",
@@ -2220,8 +3166,7 @@
           },
           "candidates": {
             "items": {
-              "additionalProperties": true,
-              "type": "object"
+              "$ref": "#/components/schemas/RetrievalCandidateOutput"
             },
             "type": "array",
             "title": "Candidates"
@@ -2234,9 +3179,7 @@
             "title": "Selected"
           },
           "budget": {
-            "additionalProperties": true,
-            "type": "object",
-            "title": "Budget"
+            "$ref": "#/components/schemas/RetrievalBudgetOutput"
           },
           "retrieval_ms": {
             "type": "integer",
@@ -2273,8 +3216,55 @@
         ],
         "title": "TraceOutput"
       },
-      "ValidationError": {
+      "UserOutput": {
         "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "UserOutput"
+      },
+      "ValidationErrorOutput": {
+        "properties": {
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ValidationIssueOutput"
+                },
+                "type": "array"
+              }
+            ],
+            "title": "Detail"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "detail"
+        ],
+        "title": "ValidationErrorOutput"
+      },
+      "ValidationIssueOutput": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
           "loc": {
             "items": {
               "anyOf": [
@@ -2287,31 +3277,21 @@
               ]
             },
             "type": "array",
-            "title": "Location"
+            "title": "Loc"
           },
           "msg": {
             "type": "string",
-            "title": "Message"
-          },
-          "type": {
-            "type": "string",
-            "title": "Error Type"
-          },
-          "input": {
-            "title": "Input"
-          },
-          "ctx": {
-            "type": "object",
-            "title": "Context"
+            "title": "Msg"
           }
         },
+        "additionalProperties": false,
         "type": "object",
         "required": [
+          "type",
           "loc",
-          "msg",
-          "type"
+          "msg"
         ],
-        "title": "ValidationError"
+        "title": "ValidationIssueOutput"
       }
     },
     "securitySchemes": {

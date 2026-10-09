@@ -13,6 +13,18 @@ from sqlalchemy import case, select, text
 
 from ada.auth import token_hash
 from ada.config import Settings
+from ada.contracts import (
+    CapabilitiesOutput,
+    ConversationOutput,
+    ErrorOutput,
+    EventOutput,
+    LiveOutput,
+    PersonalityOutput,
+    PromptUpgradeOutput,
+    ReadyOutput,
+    UserOutput,
+    ValidationErrorOutput,
+)
 from ada.db import connect
 from ada.evidence import public_source_version, validate_text
 from ada.memory import (
@@ -145,6 +157,19 @@ class TraceOutput(RetrievalOutput):
     created_at: Timestamp
 
 
+def error_responses(*statuses):
+    """Describe implemented failures without changing exception handlers."""
+    return {
+        status: {
+            "model": ValidationErrorOutput if status == 422 else ErrorOutput,
+            "description": "Sanitized validation issues or error code; input is omitted"
+            if status == 422
+            else "Sanitized error code",
+        }
+        for status in statuses
+    }
+
+
 def create_app(settings=None, provider=None, sessions=None):
     settings = settings or Settings()
     engine = None
@@ -213,11 +238,11 @@ def create_app(settings=None, provider=None, sessions=None):
             raise HTTPException(404, "conversation_not_found")
         return row
 
-    @app.get("/health/live")
+    @app.get("/health/live", response_model=LiveOutput)
     def live():
         return {"status": "ok"}
 
-    @app.get("/health/ready")
+    @app.get("/health/ready", response_model=ReadyOutput, responses={503: {"model": ErrorOutput}})
     def ready():
         try:
             with sessions() as db:
@@ -228,13 +253,13 @@ def create_app(settings=None, provider=None, sessions=None):
             raise HTTPException(503, "database_not_ready") from None
         return {"status": "ready", "schema": version}
 
-    @app.get("/v1/me")
+    @app.get("/v1/me", response_model=UserOutput, responses=error_responses(401))
     def me(owner: str = Depends(current_user)):
         with sessions() as db:
             row = db.get(User, owner)
             return {"id": row.id, "name": row.name}
 
-    @app.get("/v1/capabilities")
+    @app.get("/v1/capabilities", response_model=CapabilitiesOutput, responses=error_responses(401))
     def capabilities(owner: str = Depends(current_user)):
         return {
             "api_version": "v1",
@@ -259,7 +284,12 @@ def create_app(settings=None, provider=None, sessions=None):
             "model": provider.model,
         }
 
-    @app.post("/v1/personalities", status_code=201)
+    @app.post(
+        "/v1/personalities",
+        status_code=201,
+        response_model=PersonalityOutput,
+        responses=error_responses(401, 422),
+    )
     def create_personality(body: PersonalityInput, owner: str = Depends(current_user)):
         with sessions.begin() as db:
             row = Personality(owner_id=owner, **body.model_dump())
@@ -267,7 +297,11 @@ def create_app(settings=None, provider=None, sessions=None):
             db.flush()
             return {"id": row.id, **body.model_dump()}
 
-    @app.get("/v1/personalities")
+    @app.get(
+        "/v1/personalities",
+        response_model=list[PersonalityOutput],
+        responses=error_responses(401, 422),
+    )
     def personalities(
         owner: str = Depends(current_user),
         limit: int = Query(50, ge=1, le=100),
@@ -292,7 +326,12 @@ def create_app(settings=None, provider=None, sessions=None):
                 for p in rows
             ]
 
-    @app.post("/v1/conversations", status_code=201)
+    @app.post(
+        "/v1/conversations",
+        status_code=201,
+        response_model=ConversationOutput,
+        responses=error_responses(401, 404, 422),
+    )
     def create_conversation(body: ConversationInput, owner: str = Depends(current_user)):
         with sessions.begin() as db:
             personality = db.scalar(
@@ -323,7 +362,11 @@ def create_app(settings=None, provider=None, sessions=None):
             db.flush()
             return public_conversation(row)
 
-    @app.get("/v1/conversations")
+    @app.get(
+        "/v1/conversations",
+        response_model=list[ConversationOutput],
+        responses=error_responses(401, 422),
+    )
     def conversations(
         owner: str = Depends(current_user),
         limit: int = Query(50, ge=1, le=100),
@@ -339,16 +382,28 @@ def create_app(settings=None, provider=None, sessions=None):
             )
             return [public_conversation(c) for c in rows]
 
-    @app.get("/v1/conversations/{conversation_id}")
+    @app.get(
+        "/v1/conversations/{conversation_id}",
+        response_model=ConversationOutput,
+        responses=error_responses(401, 404, 422),
+    )
     def conversation(conversation_id: UUID, owner: str = Depends(current_user)):
         with sessions() as db:
             return public_conversation(owned_conversation(db, owner, conversation_id))
 
-    @app.post("/v1/conversations/{conversation_id}/prompt-upgrade")
+    @app.post(
+        "/v1/conversations/{conversation_id}/prompt-upgrade",
+        response_model=PromptUpgradeOutput,
+        responses=error_responses(401, 404, 409, 422),
+    )
     def upgrade_prompt(conversation_id: UUID, owner: str = Depends(current_user)):
         return service.upgrade_prompt(owner, str(conversation_id))
 
-    @app.get("/v1/conversations/{conversation_id}/events")
+    @app.get(
+        "/v1/conversations/{conversation_id}/events",
+        response_model=list[EventOutput],
+        responses=error_responses(401, 404, 422),
+    )
     def events(
         conversation_id: UUID,
         owner: str = Depends(current_user),
@@ -381,7 +436,11 @@ def create_app(settings=None, provider=None, sessions=None):
                 for e, status in rows
             ]
 
-    @app.post("/v1/conversations/{conversation_id}/messages", response_model=RequestOutput)
+    @app.post(
+        "/v1/conversations/{conversation_id}/messages",
+        response_model=RequestOutput,
+        responses=error_responses(401, 404, 409, 413, 422, 502, 503),
+    )
     def chat(conversation_id: UUID, body: ChatInput, owner: str = Depends(current_user)):
         return service.chat(
             owner,
@@ -392,7 +451,11 @@ def create_app(settings=None, provider=None, sessions=None):
             use_memory=body.use_memory,
         )
 
-    @app.get("/v1/requests/{request_id}", response_model=RequestOutput)
+    @app.get(
+        "/v1/requests/{request_id}",
+        response_model=RequestOutput,
+        responses=error_responses(401, 404, 422),
+    )
     def request_status(request_id: UUID, owner: str = Depends(current_user)):
         with sessions() as db:
             row = db.get(Request, (owner, str(request_id)))
@@ -400,7 +463,11 @@ def create_app(settings=None, provider=None, sessions=None):
                 raise HTTPException(404, "request_not_found")
             return public_request(row, db.get(RetrievalTrace, (owner, str(request_id))))
 
-    @app.get("/v1/requests/{request_id}/retrieval", response_model=TraceOutput)
+    @app.get(
+        "/v1/requests/{request_id}/retrieval",
+        response_model=TraceOutput,
+        responses=error_responses(401, 404, 422),
+    )
     def request_retrieval(request_id: UUID, owner: str = Depends(current_user)):
         with sessions() as db:
             row = db.get(Request, (owner, str(request_id)))
@@ -411,7 +478,12 @@ def create_app(settings=None, provider=None, sessions=None):
                 raise HTTPException(404, "retrieval_trace_unavailable")
             return public_trace(trace)
 
-    @app.post("/v1/scopes", status_code=201, response_model=ScopeOutput)
+    @app.post(
+        "/v1/scopes",
+        status_code=201,
+        response_model=ScopeOutput,
+        responses=error_responses(401, 422),
+    )
     def create_scope(body: ScopeInput, owner: str = Depends(current_user)):
         with sessions.begin() as db:
             row = Scope(owner_id=owner, **body.model_dump())
@@ -419,7 +491,7 @@ def create_app(settings=None, provider=None, sessions=None):
             db.flush()
             return public_scope(row)
 
-    @app.get("/v1/scopes", response_model=list[ScopeOutput])
+    @app.get("/v1/scopes", response_model=list[ScopeOutput], responses=error_responses(401, 422))
     def scopes(
         owner: str = Depends(current_user),
         limit: int = Query(50, ge=1, le=100),
@@ -435,12 +507,20 @@ def create_app(settings=None, provider=None, sessions=None):
             )
             return [public_scope(row) for row in rows]
 
-    @app.get("/v1/scopes/{scope_id}", response_model=ScopeOutput)
+    @app.get(
+        "/v1/scopes/{scope_id}",
+        response_model=ScopeOutput,
+        responses=error_responses(401, 404, 422),
+    )
     def scope(scope_id: UUID, owner: str = Depends(current_user)):
         with sessions() as db:
             return public_scope(owned_scope(db, owner, str(scope_id)))
 
-    @app.post("/v1/scopes/{scope_id}/retrieve", response_model=RetrievalOutput)
+    @app.post(
+        "/v1/scopes/{scope_id}/retrieve",
+        response_model=RetrievalOutput,
+        responses=error_responses(401, 404, 422),
+    )
     def retrieve_memory(scope_id: UUID, body: RetrieveInput, owner: str = Depends(current_user)):
         with sessions.begin() as db:
             lock_scope_for_retrieval(db, owner, str(scope_id))
@@ -457,7 +537,10 @@ def create_app(settings=None, provider=None, sessions=None):
         "/v1/scopes/{scope_id}/notes",
         status_code=201,
         response_model=SourceVersionOutput,
-        responses={200: {"model": SourceVersionOutput, "description": "Same-ID replay"}},
+        responses={
+            200: {"model": SourceVersionOutput, "description": "Same-ID replay"},
+            **error_responses(401, 404, 409, 422),
+        },
     )
     def create_note(
         scope_id: UUID, body: NoteInput, response: Response, owner: str = Depends(current_user)
@@ -466,7 +549,11 @@ def create_app(settings=None, provider=None, sessions=None):
         response.status_code = 201 if created else 200
         return result
 
-    @app.get("/v1/scopes/{scope_id}/source-versions", response_model=list[SourceVersionOutput])
+    @app.get(
+        "/v1/scopes/{scope_id}/source-versions",
+        response_model=list[SourceVersionOutput],
+        responses=error_responses(401, 404, 422),
+    )
     def source_versions(
         scope_id: UUID,
         owner: str = Depends(current_user),
@@ -484,7 +571,11 @@ def create_app(settings=None, provider=None, sessions=None):
             )
             return [public_source_version(row) for row in rows]
 
-    @app.get("/v1/source-versions/{source_version_id}", response_model=SourceVersionOutput)
+    @app.get(
+        "/v1/source-versions/{source_version_id}",
+        response_model=SourceVersionOutput,
+        responses=error_responses(401, 404, 422),
+    )
     def source_version(source_version_id: UUID, owner: str = Depends(current_user)):
         with sessions() as db:
             row = db.scalar(
@@ -500,7 +591,10 @@ def create_app(settings=None, provider=None, sessions=None):
         "/v1/scopes/{scope_id}/claims",
         status_code=201,
         response_model=ClaimOutput,
-        responses={200: {"model": ClaimOutput, "description": "Same-ID replay"}},
+        responses={
+            200: {"model": ClaimOutput, "description": "Same-ID replay"},
+            **error_responses(401, 404, 409, 422),
+        },
     )
     def create_claim(
         scope_id: UUID, body: ClaimInput, response: Response, owner: str = Depends(current_user)
@@ -509,7 +603,11 @@ def create_app(settings=None, provider=None, sessions=None):
         response.status_code = 201 if created else 200
         return result
 
-    @app.get("/v1/scopes/{scope_id}/claims", response_model=list[ClaimOutput])
+    @app.get(
+        "/v1/scopes/{scope_id}/claims",
+        response_model=list[ClaimOutput],
+        responses=error_responses(401, 404, 422),
+    )
     def claims(
         scope_id: UUID,
         owner: str = Depends(current_user),
@@ -538,7 +636,11 @@ def create_app(settings=None, provider=None, sessions=None):
             offset=offset,
         )
 
-    @app.get("/v1/claims/{claim_id}", response_model=ClaimOutput)
+    @app.get(
+        "/v1/claims/{claim_id}",
+        response_model=ClaimOutput,
+        responses=error_responses(401, 404, 422),
+    )
     def claim(claim_id: UUID, owner: str = Depends(current_user)):
         with sessions() as db:
             row = db.scalar(select(Claim).where(Claim.owner_id == owner, Claim.id == str(claim_id)))
@@ -550,7 +652,10 @@ def create_app(settings=None, provider=None, sessions=None):
         "/v1/claims/{claim_id}/supersede",
         status_code=201,
         response_model=ClaimOutput,
-        responses={200: {"model": ClaimOutput, "description": "Same-ID replay"}},
+        responses={
+            200: {"model": ClaimOutput, "description": "Same-ID replay"},
+            **error_responses(401, 404, 409, 422),
+        },
     )
     def supersede_claim(
         claim_id: UUID, body: SupersedeInput, response: Response, owner: str = Depends(current_user)

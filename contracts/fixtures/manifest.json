@@ -1,0 +1,295 @@
+{
+  "format": "ada-contract-fixtures-v1",
+  "provenance": {
+    "generator": "tests/test_client_contract.py::test_actual_responses_match_export",
+    "environment": "FastAPI TestClient, migrated disposable SQLite, synthetic accounts",
+    "provider": "test-only deterministic completion; no network inference",
+    "sanitization": "UUIDs replaced consistently; created/current timestamps and elapsed retrieval normalized",
+    "legacy": "Synthetic baseline-v2 snapshot and completed request with its trace removed",
+    "content": "Invented public examples, never private chats or user source quotes"
+  },
+  "fixtures": [
+    {
+      "file": "health-live.json",
+      "path": "/health/live",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "health-ready.json",
+      "path": "/health/ready",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "user-current.json",
+      "path": "/v1/me",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "capabilities-current.json",
+      "path": "/v1/capabilities",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "personality-current.json",
+      "path": "/v1/personalities",
+      "method": "post",
+      "status": 201
+    },
+    {
+      "file": "personalities-current.json",
+      "path": "/v1/personalities",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "scope-current.json",
+      "path": "/v1/scopes",
+      "method": "post",
+      "status": 201
+    },
+    {
+      "file": "scopes-current.json",
+      "path": "/v1/scopes",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "scope-detail.json",
+      "path": "/v1/scopes/{scope_id}",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "conversation-current.json",
+      "path": "/v1/conversations",
+      "method": "post",
+      "status": 201
+    },
+    {
+      "file": "conversations-current.json",
+      "path": "/v1/conversations",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "conversation-detail.json",
+      "path": "/v1/conversations/{conversation_id}",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "source-current.json",
+      "path": "/v1/scopes/{scope_id}/notes",
+      "method": "post",
+      "status": 201
+    },
+    {
+      "file": "source-replay.json",
+      "path": "/v1/scopes/{scope_id}/notes",
+      "method": "post",
+      "status": 200
+    },
+    {
+      "file": "sources-current.json",
+      "path": "/v1/scopes/{scope_id}/source-versions",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "source-detail.json",
+      "path": "/v1/source-versions/{source_version_id}",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "claim-current.json",
+      "path": "/v1/scopes/{scope_id}/claims",
+      "method": "post",
+      "status": 201
+    },
+    {
+      "file": "claim-replay.json",
+      "path": "/v1/scopes/{scope_id}/claims",
+      "method": "post",
+      "status": 200
+    },
+    {
+      "file": "source-conflict.json",
+      "path": "/v1/scopes/{scope_id}/notes",
+      "method": "post",
+      "status": 201
+    },
+    {
+      "file": "claim-conflict.json",
+      "path": "/v1/scopes/{scope_id}/claims",
+      "method": "post",
+      "status": 201
+    },
+    {
+      "file": "retrieval-direct.json",
+      "path": "/v1/scopes/{scope_id}/retrieve",
+      "method": "post",
+      "status": 200
+    },
+    {
+      "file": "request-current.json",
+      "path": "/v1/conversations/{conversation_id}/messages",
+      "method": "post",
+      "status": 200
+    },
+    {
+      "file": "request-status.json",
+      "path": "/v1/requests/{request_id}",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "retrieval-current.json",
+      "path": "/v1/requests/{request_id}/retrieval",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "events-current.json",
+      "path": "/v1/conversations/{conversation_id}/events",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "events-page.json",
+      "path": "/v1/conversations/{conversation_id}/events",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "source-correction.json",
+      "path": "/v1/scopes/{scope_id}/notes",
+      "method": "post",
+      "status": 201
+    },
+    {
+      "file": "claim-correction.json",
+      "path": "/v1/claims/{claim_id}/supersede",
+      "method": "post",
+      "status": 201
+    },
+    {
+      "file": "correction-replay.json",
+      "path": "/v1/claims/{claim_id}/supersede",
+      "method": "post",
+      "status": 200
+    },
+    {
+      "file": "claim-superseded.json",
+      "path": "/v1/claims/{claim_id}",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "claims-history.json",
+      "path": "/v1/scopes/{scope_id}/claims",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "request-replay.json",
+      "path": "/v1/conversations/{conversation_id}/messages",
+      "method": "post",
+      "status": 200
+    },
+    {
+      "file": "conversation-legacy.json",
+      "path": "/v1/conversations/{conversation_id}",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "request-legacy-prompt.json",
+      "path": "/v1/conversations/{conversation_id}/messages",
+      "method": "post",
+      "status": 200
+    },
+    {
+      "file": "retrieval-legacy-prompt.json",
+      "path": "/v1/requests/{request_id}/retrieval",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "request-legacy.json",
+      "path": "/v1/requests/{request_id}",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "error-missing-trace.json",
+      "path": "/v1/requests/{request_id}/retrieval",
+      "method": "get",
+      "status": 404
+    },
+    {
+      "file": "prompt-upgrade.json",
+      "path": "/v1/conversations/{conversation_id}/prompt-upgrade",
+      "method": "post",
+      "status": 200
+    },
+    {
+      "file": "error-provider.json",
+      "path": "/v1/conversations/{conversation_id}/messages",
+      "method": "post",
+      "status": 502
+    },
+    {
+      "file": "request-failed.json",
+      "path": "/v1/requests/{request_id}",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "error-conflict.json",
+      "path": "/v1/conversations/{conversation_id}/messages",
+      "method": "post",
+      "status": 409
+    },
+    {
+      "file": "error-size.json",
+      "path": "/v1/conversations/{conversation_id}/messages",
+      "method": "post",
+      "status": 413
+    },
+    {
+      "file": "error-validation.json",
+      "path": "/v1/conversations/{conversation_id}/messages",
+      "method": "post",
+      "status": 422
+    },
+    {
+      "file": "error-query.json",
+      "path": "/v1/scopes/{scope_id}/claims",
+      "method": "get",
+      "status": 422
+    },
+    {
+      "file": "error-capacity.json",
+      "path": "/v1/conversations/{conversation_id}/messages",
+      "method": "post",
+      "status": 503
+    },
+    {
+      "file": "error-auth.json",
+      "path": "/v1/me",
+      "method": "get",
+      "status": 401
+    },
+    {
+      "file": "retrieval-additive.json",
+      "path": "/v1/requests/{request_id}/retrieval",
+      "method": "get",
+      "status": 200
+    }
+  ]
+}

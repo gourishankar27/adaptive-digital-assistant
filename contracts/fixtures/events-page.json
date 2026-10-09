@@ -1,0 +1,12 @@
+[
+  {
+    "id": "00000000-0000-0000-0000-00000000000b",
+    "role": "assistant",
+    "content": "Synthetic answer [M1], unavailable [M99].",
+    "trust_class": "model_generated",
+    "request_id": "00000000-0000-0000-0000-000000000009",
+    "request_status": "completed",
+    "created_at": 1791417600000,
+    "source_version_id": "00000000-0000-0000-0000-00000000000b"
+  }
+]
