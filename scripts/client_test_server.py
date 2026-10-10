@@ -7,6 +7,7 @@ It is not an enrollment service or a production server entry point.
 
 import argparse
 import os
+import re
 import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
@@ -31,6 +32,10 @@ class AndroidChatProvider(FakeProvider):
     """Explicit deterministic UI fixture, never used by the production app."""
 
     def complete(self, messages):
+        if any(
+            re.search(r'"label"\s*:\s*"D1"', message.get("content", "")) for message in messages
+        ):
+            return Completion("[FAKE provider] Synthetic imported document reply [D1].", self.model)
         return Completion("[FAKE provider] Synthetic test reply [M1].", self.model)
 
 

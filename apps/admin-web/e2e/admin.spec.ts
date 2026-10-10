@@ -47,6 +47,18 @@ test('ordinary token denied, local revocation clears detail, logout and account/
   await signIn(page, process.env.ADA_WEB_TEST_SECOND_TOKEN); await expect(page.getByText(/Operator 00000000-0000-0000-0000-000000000202/)).toBeVisible();
   await page.getByRole('button', { name: 'Sign out', exact: true }).click(); await expect(page.getByText('Identity & outcome')).toHaveCount(0); await page.getByLabel('Browser server origin').fill('http://another-host:8000'); await page.getByLabel('Bearer token').fill('synthetic-invalid'); await page.getByRole('button', { name: 'Sign in', exact: true }).click(); await expect(page.getByRole('alert')).toContainText('current browser origin'); await expect(page.getByText(/000000000202/)).toHaveCount(0);
 });
+test('explicit synthetic database-not-ready sign-in explains migration needs and clears the credential', async ({ page }) => {
+  // This interception checks failure wording only; subsequent sign-in uses real PostgreSQL/HTTP.
+  let attempts = 0;
+  await page.route('**/v1/admin/me', route => { attempts++; return route.fulfill({ status: 503, headers: { 'Retry-After': '3' }, json: { detail: 'database_not_ready', private_diagnostic: 'SYNTHETIC_PRIVATE_DIAGNOSTIC' } }); });
+  await page.goto('/admin/overview'); await signIn(page);
+  const feedback = page.getByRole('alert'), submit = page.getByRole('button', { name: 'Sign in', exact: true });
+  await expect(feedback).toContainText('The backend database is not ready.'); await expect(feedback).toContainText('apply the required migrations'); await expect(feedback).toBeFocused();
+  await expect(page.getByText('SYNTHETIC_PRIVATE_DIAGNOSTIC')).toHaveCount(0); await expect(page.getByLabel('Bearer token')).toHaveValue(''); await expect(page.getByRole('table')).toHaveCount(0); await expect(submit).toBeDisabled();
+  expect(await page.evaluate(() => ({ local: localStorage.length, session: sessionStorage.length }))).toEqual({ local: 0, session: 0 });
+  await expect(submit).toBeEnabled({ timeout: 5000 }); expect(attempts).toBe(1);
+  await page.unroute('**/v1/admin/me'); await signIn(page); await expect(page.getByText('Responding', { exact: true })).toBeVisible();
+});
 test('failed refresh stays stale, rate limits wait, direct missing detail and expired access', async ({ page }) => {
   await page.goto('/admin/overview'); await signIn(page); await expect(page.getByText('Responding', { exact: true })).toBeVisible();
   await page.route('**/v1/admin/overview?*', route => route.fulfill({ status: 503, json: { detail: '<script>private-error</script>' } }));

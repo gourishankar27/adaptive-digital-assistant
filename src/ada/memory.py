@@ -64,6 +64,7 @@ class ClaimOutput(BaseModel):
     id: UUID
     scope_id: UUID
     subject: str
+    subject_entity_id: UUID | None = None
     predicate: str
     value: str
     kind: Literal["fact", "preference", "decision"]
@@ -94,6 +95,7 @@ class EvidenceInput(MemoryInput):
     span_start: int = Field(ge=0, strict=True)
     span_end: int = Field(gt=0, strict=True)
     valid_to: AwareDatetime | None = None
+    subject_entity_id: UUID | None = None
 
     @field_validator("valid_to")
     @classmethod
@@ -149,6 +151,7 @@ def public_claim(row):
         "id": row.id,
         "scope_id": row.scope_id,
         "subject": row.subject,
+        "subject_entity_id": row.subject_entity_id,
         "predicate": row.predicate,
         "value": row.value,
         "kind": row.kind,
@@ -241,11 +244,11 @@ class MemoryService:
         return source, quote
 
     @staticmethod
-    def _fields(owner, scope_id, body, source, quote, *, subject, predicate, kind, start):
+    def _fields(db, owner, scope_id, body, source, quote, *, subject, predicate, kind, start):
         end = time_ms(body.valid_to) if body.valid_to is not None else None
         if end is not None and end <= start:
             raise ServiceError(422, "invalid_validity_interval")
-        return {
+        fields = {
             "owner_id": owner,
             "scope_id": scope_id,
             "subject": subject,
@@ -260,6 +263,12 @@ class MemoryService:
             "valid_from": start,
             "valid_to": end,
         }
+        if body.subject_entity_id is not None:
+            from ada.entities import owned_entity
+
+            owned_entity(db, owner, scope_id, str(body.subject_entity_id))
+            fields["subject_entity_id"] = str(body.subject_entity_id)
+        return fields
 
     @staticmethod
     def _write_hash(fields, supersedes=None):
@@ -294,6 +303,7 @@ class MemoryService:
                 source, quote = self._evidence(db, owner, scope_id, body)
                 start = time_ms(body.valid_from) if body.valid_from else source.created_at
                 fields = self._fields(
+                    db,
                     owner,
                     scope_id,
                     body,
@@ -311,6 +321,20 @@ class MemoryService:
                 row = Claim(id=str(body.claim_id), write_hash=fingerprint, **fields)
                 db.add(row)
                 db.flush()
+                if body.subject_entity_id is not None:
+                    from uuid import NAMESPACE_URL, uuid5
+
+                    from ada.entities import link_claim
+
+                    link_claim(
+                        db,
+                        owner,
+                        scope_id,
+                        row,
+                        str(body.subject_entity_id),
+                        str(uuid5(NAMESPACE_URL, row.id + "/initial-entity")),
+                        row.created_at,
+                    )
                 index_claim(db, row)
                 return public_claim(row), True
         except IntegrityError as exc:
@@ -332,6 +356,7 @@ class MemoryService:
                 source, quote = self._evidence(db, owner, scope_id, body)
                 start = time_ms(body.effective_at) if body.effective_at else source.created_at
                 fields = self._fields(
+                    db,
                     owner,
                     scope_id,
                     body,
@@ -353,6 +378,20 @@ class MemoryService:
                 replacement = Claim(id=str(body.claim_id), write_hash=fingerprint, **fields)
                 db.add(replacement)
                 db.flush()
+                if body.subject_entity_id is not None:
+                    from uuid import NAMESPACE_URL, uuid5
+
+                    from ada.entities import link_claim
+
+                    link_claim(
+                        db,
+                        owner,
+                        scope_id,
+                        replacement,
+                        str(body.subject_entity_id),
+                        str(uuid5(NAMESPACE_URL, replacement.id + "/initial-entity")),
+                        replacement.created_at,
+                    )
                 index_claim(db, replacement)
                 old.valid_to, old.superseded_by, old.status = start, replacement.id, "superseded"
                 db.flush()

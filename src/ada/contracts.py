@@ -23,7 +23,15 @@ class UserOutput(BaseModel):
 
 
 class CapabilitiesOutput(BaseModel):
+    scoped_entities: bool = False
+    entity_resolution: str = "unsupported"
+    entity_writes: bool = False
     admin_monitoring: bool = False
+    document_ingestion: str = "unsupported"
+    document_uploads: bool = False
+    document_retrieval: bool = False
+    document_citations: bool = False
+    document_max_bytes: int = 0
     api_version: str
     chat: bool
     streaming: bool

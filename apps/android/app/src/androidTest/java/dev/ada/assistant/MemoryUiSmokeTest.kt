@@ -146,6 +146,8 @@ class MemoryUiSmokeTest {
         compose.onNodeWithTag("memory-preview").performScrollTo().performClick()
         compose.waitUntil(10_000) { vm.memory.state.value.preview != null }
         assertEquals(old.id, vm.memory.state.value.preview?.reservation?.corrects?.id)
+        closeSoftKeyboard()
+        compose.waitForIdle()
         compose.onNodeWithText("Previous value").performScrollTo()
         assertEquals(0, api.corrections.size)
         compose.onNodeWithTag("memory-save").performScrollTo().performClick()

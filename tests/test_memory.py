@@ -347,7 +347,9 @@ def test_prompt_upgrade_is_explicit_audited_and_fences_old_retries(harness):
     assert send(h, c, "retry", request_id).status_code == 502
     upgraded = h["client"].post(url, headers=h["a"])
     assert upgraded.status_code == 200
-    assert upgraded.json()["prompt_version"] == "ada-baseline-v3"
+    from ada.personality import PROMPT_VERSION
+
+    assert upgraded.json()["prompt_version"] == PROMPT_VERSION
     assert h["client"].post(url, headers=h["a"]).json() == upgraded.json()
     h["provider"].error = None
     assert send(h, c, "retry", request_id).status_code == 409

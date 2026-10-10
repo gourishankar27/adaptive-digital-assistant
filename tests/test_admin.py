@@ -21,6 +21,7 @@ from ada.config import Settings
 from ada.models import AdminAudit, AdminGrant, Conversation, Request, RetrievalTrace, User, now_ms
 from ada.monitoring import ProviderProbe, request_columns
 from ada.providers import OllamaProvider
+from ada.schema import SCHEMA_HEAD
 
 
 def test_provider_probe_is_cached_generation_free_bounded_and_sanitized(harness, caplog):
@@ -448,8 +449,8 @@ def test_populated_0003_upgrade_defaults_no_grants_and_preserves_snapshots(harne
             "request_admin_owner",
             "request_admin_provider",
         } <= indexes
-        assert db.scalar(text("SELECT version_num FROM alembic_version")) == "0004"
-    assert h["client"].get("/health/ready").json()["schema"] == "0004"
+        assert db.scalar(text("SELECT version_num FROM alembic_version")) == SCHEMA_HEAD
+    assert h["client"].get("/health/ready").json()["schema"] == SCHEMA_HEAD
     assert send(h, conv, "Synthetic saved replay", rid).json() == saved
     assert len(h["provider"].calls) == 1
 

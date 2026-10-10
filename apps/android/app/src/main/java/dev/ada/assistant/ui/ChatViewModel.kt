@@ -24,6 +24,8 @@ class ChatViewModel(
     private val mutableState = MutableStateFlow(ChatState())
     val state = mutableState.asStateFlow()
     val memory = MemoryController(api, store, viewModelScope) { expire() }
+    val documents = DocumentController(api, store, viewModelScope, { expire() })
+    val entities = EntityController(api, store, viewModelScope, { expire() })
     private var credential: ConnectionCredential? = null
     private var identity: SessionIdentity? = null
     private var generation = 0L
@@ -36,7 +38,7 @@ class ChatViewModel(
     private var selection = 0L
     private var sourceSelection = 0L
     private var retryNotBefore = 0L
-    private data class Draft(val text: String = "", val memory: Boolean = true, val at: String = "")
+    private data class Draft(val text: String = "", val memory: Boolean = true, val at: String = "", val documents: Boolean = false)
 
     init { require(pollDelaysMs.isNotEmpty() && pollDelaysMs.size <= 12 && pollDelaysMs.all { it in 0..60_000 }) }
     private fun update(block: (ChatState) -> ChatState) { mutableState.value = block(mutableState.value) }
@@ -58,6 +60,8 @@ class ChatViewModel(
     private fun current(epoch: Long) = epoch == generation
     private fun resetMemory() {
         memory.reset()
+        documents.reset()
+        entities.reset()
         generation++; selection++; sourceSelection++
         jobs.toList().forEach { it.cancel() }; jobs.clear(); pollJob = null
         credential = null; identity = null; drafts.clear(); retryNotBefore = 0
@@ -170,6 +174,8 @@ class ChatViewModel(
         if (!current(epoch)) return
         credential = connection; identity = verified
         memory.setVerifiedSession(connection, verified, features)
+        documents.setVerifiedSession(connection, verified, features)
+        entities.setVerifiedSession(connection, verified, features)
         update { it.copy(connecting = false, account = AccountSummary(normalized, user.id, user.name, features.provider, features.model),
             capabilities = features, destination = ChatDestination.Conversations,
             fault = null, notice = null,
@@ -206,12 +212,22 @@ class ChatViewModel(
             if (mutableState.value.capabilities?.structured_memory != true) return
             memory.activate()
         }
+        if (destination == ChatDestination.Documents) {
+            if (mutableState.value.capabilities?.let { it.document_uploads && it.document_ingestion == "text_markdown_v1" } != true) return
+            documents.activate()
+        }
+        if (destination == ChatDestination.Entities) {
+            if (mutableState.value.capabilities?.let { it.scoped_entities && it.entity_writes && it.entity_resolution == "explicit_aliases_v1" } != true) return
+            entities.activate()
+        }
         update { it.copy(destination = destination, fault = null) }
     }
     fun back() {
         if (mutableState.value.destination == ChatDestination.Memory && memory.back()) return
+        if (mutableState.value.destination == ChatDestination.Documents && documents.back()) return
         navigate(when (mutableState.value.destination) {
         ChatDestination.Retrieval -> ChatDestination.Sources
+        ChatDestination.Entities -> ChatDestination.Memory
         ChatDestination.Sources -> if (mutableState.value.conversation == null) ChatDestination.Conversations else ChatDestination.Chat
         else -> ChatDestination.Conversations
         })
@@ -271,7 +287,7 @@ class ChatViewModel(
         val version = ++selection
         val draft = drafts[id] ?: Draft(memory = mutableState.value.capabilities?.memory_in_chat == true)
         update { it.copy(conversation = null, events = ChatPage(loading = true), destination = ChatDestination.Chat,
-            draft = draft.text, useMemory = draft.memory, asOf = draft.at, fault = null, notice = null) }
+            draft = draft.text, useMemory = draft.memory, asOf = draft.at, useDocuments = draft.documents, fault = null, notice = null) }
         sessionWork { connection, epoch ->
             val result = api.conversation(connection, id)
             if (!current(epoch) || version != selection) return@sessionWork
@@ -400,10 +416,15 @@ class ChatViewModel(
     }
 
     private fun saveDraft() {
-        mutableState.value.conversation?.id?.let { drafts[it] = Draft(mutableState.value.draft, mutableState.value.useMemory, mutableState.value.asOf) }
+        mutableState.value.conversation?.id?.let { drafts[it] = Draft(mutableState.value.draft, mutableState.value.useMemory, mutableState.value.asOf, mutableState.value.useDocuments) }
     }
     fun updateDraft(text: String) { update { it.copy(draft = text, fault = null) }; saveDraft() }
-    fun updateMemory(enabled: Boolean) { update { it.copy(useMemory = enabled && it.capabilities?.memory_in_chat == true) }; saveDraft() }
+    fun updateMemory(enabled: Boolean) { update { it.copy(useMemory = enabled && it.capabilities?.memory_in_chat == true,
+        useDocuments = it.useDocuments && enabled) }; saveDraft() }
+    fun updateDocuments(enabled: Boolean) {
+        update { it.copy(useDocuments = enabled && it.useMemory && it.capabilities?.document_retrieval == true &&
+            it.capabilities.document_citations && it.conversation?.prompt_version == "ada-baseline-v4") }; saveDraft()
+    }
     fun updateAsOf(instant: String) { update { it.copy(asOf = instant) }; saveDraft() }
     private fun normalizedTime(value: String): String? {
         if (value.isBlank()) return null
@@ -420,12 +441,13 @@ class ChatViewModel(
         if (current.pending != null || current.capabilities?.chat != true) return
         val content = current.draft
         if ((current.useMemory && current.capabilities?.memory_in_chat != true) ||
+            (current.useDocuments && (!current.useMemory || current.capabilities?.document_retrieval != true || !current.capabilities.document_citations || row.prompt_version != "ada-baseline-v4")) ||
             (current.asOf.isNotBlank() && current.capabilities?.historical_memory_queries != true)) { invalidDraft(); return }
         val at = try { normalizedTime(current.asOf) } catch (_: DateTimeParseException) { invalidDraft(); return }
             catch (_: IllegalArgumentException) { invalidDraft(); return }
         if (content.isBlank() || content.codePointCount(0, content.length) > 4000 || content.contains('\u0000') ||
             !validUnicode(content)) { invalidDraft(); return }
-        val message = PendingMessage(verified, row.id, ChatInputDto(UUID.randomUUID(), content, at, current.useMemory))
+        val message = PendingMessage(verified, row.id, ChatInputDto(UUID.randomUUID(), content, at, current.useMemory, current.useDocuments))
         // Reserve synchronously before starting a coroutine so a second tap cannot race persistence.
         update { it.copy(pending = PendingState(message, PendingPhase.Journaling), fault = null, notice = null) }
         val epoch = generation
@@ -437,8 +459,8 @@ class ChatViewModel(
                 return@launchWork
             }
             if (!current(epoch)) return@launchWork
-            if (drafts[row.id] == Draft(current.draft, current.useMemory, current.asOf)) {
-                drafts[row.id] = Draft("", current.useMemory, current.asOf)
+            if (drafts[row.id] == Draft(current.draft, current.useMemory, current.asOf, current.useDocuments)) {
+                drafts[row.id] = Draft("", current.useMemory, current.asOf, current.useDocuments)
                 if (mutableState.value.conversation?.id == row.id && mutableState.value.draft == content) update { it.copy(draft = "") }
             }
             update { it.copy(submittedMessages = it.submittedMessages + (message.body.request_id to message)) }

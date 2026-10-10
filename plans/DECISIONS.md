@@ -126,3 +126,64 @@ Ollama verification; there is no deployment or release distribution.
 
 These choices implement Phase 05, not Phase 06 or later authentication/operations
 features. See docs/ADMIN-MONITORING.md and STATUS/WORKLOG for limits and actual runs.
+
+## 2026-10-10 UTC — Phase 08 decisions
+
+- Keep bounded raw files in owner-bound private database BYTEA/BLOB storage rather
+  than introducing a filesystem/object-store service. This preserves exact bytes
+  without filename paths or cross-account deduplication; backup size and retained
+  failed receipts count toward documented storage limits. No deletion/retention
+  service is added in this phase.
+- Use strict UTF-8 identity parsing and exact code-point chunks with inclusive
+  first/last-character line anchors. Raw and parsed hashes are equal; only the
+  separate lexical projection is normalized. Native PostgreSQL/SQLite full-text
+  indexes remain rebuildable derived state. PDF needs its own extraction/page
+  contract and is explicitly deferred, along with OCR and compressed formats.
+- Reserve immutable input in a short transaction, parse outside it, then publish
+  the complete version/chunks/projection atomically. Thirty-second leases and three
+  fenced attempts support explicit same-ID retry; no background worker or automatic
+  write is introduced. Availability never makes a version known before publication.
+- Preserve original claim-card arrays and add separate typed D document evidence,
+  with honest imported/untrusted origin and no fabricated claim IDs. Memory is the
+  master evidence switch; `use_documents` defaults false. v4 adds document context,
+  while exact v3 prompts and claim retrieval remain supported. Explicit audited
+  upgrades preserve old snapshots; default request fingerprints and completed
+  replay remain unchanged.
+- Keep the Android upload limit at 64 KiB, below the server's 256 KiB, so an exact
+  upload and the existing chat/memory reservations fit a bounded encrypted v3
+  record. Old v1/v2 records remain readable; identity verification precedes
+  recovery, and restoration never automatically POSTs. No new dependency or device
+  permission is required.
+- Treat the separately requested login repair as explicit authorization for a
+  verified backup, application migration 0004 and an exact existing-account grant.
+  Keep Phase 08 migration 0005 as a separate unperformed installation step under
+  the user's no-deployment instruction. The current source requires 0005.
+
+See STATUS/WORKLOG for actual Windows/PostgreSQL/browser/emulator evidence and
+remaining target checks. These decisions authorize no later phase or deployment.
+
+## Phase 09: explicit scoped identity lineage
+
+The selected identity milestone uses exact NFKC/case/whitespace aliases and
+user-confirmed mappings. Canonical labels/types are knowledge annotations, never
+accounts or role grants. Collisions remain valid across distinct entities; absent
+explicit self binding, pronouns and `User` do not establish a canonical person.
+
+Nullable claim references and append-only link/alias/merge intervals preserve raw
+assertions and as-known-at interpretation. Backfill is intentionally null rather
+than inferred. Corrections accept a new reference explicitly; omission retains
+legacy fingerprints and leaves the replacement unlinked. Merge is a preview-bound
+redirect with audit and undo, rather than a rewrite of old claims or traces.
+
+Scope row locks make operation UUID replay and preview checking atomic on
+PostgreSQL. Histories count against retained quotas. Alias matching expands
+candidates inside the current budgets; ambiguity excludes linked assertions before
+ranking. Truncated choices fail closed, and request-frozen alternatives remain
+visible in Android retrieval details. Overlapping ambiguous names are treated
+conservatively; explicit distinct aliases can clarify them. No new prompt version
+or inference transaction is introduced.
+
+The existing Android Memory entry hosts the editor instead of adding an unrelated
+application. Exact entity operation recovery extends the same Keystore record to
+v4; old chat/memory/document records remain readable. See
+[identity policy](../docs/ENTITIES-AND-ALIASES.md) and [STATUS](STATUS.md).

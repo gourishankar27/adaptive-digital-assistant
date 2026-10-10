@@ -11,6 +11,7 @@ import pytest
 from sqlalchemy import delete
 
 from ada.models import Conversation, RetrievalTrace
+from ada.personality import PROMPT_VERSION
 from ada.providers import Completion, ProviderError
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -382,7 +383,7 @@ def test_actual_responses_match_export(harness):
         actual=f"/v1/conversations/{cid}/prompt-upgrade",
     )
     assert (
-        upgraded["prompt_version"] == "ada-baseline-v3"
+        upgraded["prompt_version"] == PROMPT_VERSION
         # One completed legacy chat plus the explicit prompt upgrade.
         and upgraded["revision"] == legacy["revision"] + 2
     )

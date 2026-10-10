@@ -9,7 +9,12 @@ from ada.errors import ServiceError as ServiceError
 from ada.evidence import record_chat_event
 from ada.memory import time_ms
 from ada.models import Conversation, PromptChange, Request, RetrievalTrace, now_ms
-from ada.personality import PROMPT_VERSION, build_prompt
+from ada.personality import (
+    DOCUMENT_PROMPT_VERSION,
+    PROMPT_VERSION,
+    RETRIEVAL_PROMPT_VERSIONS,
+    build_prompt,
+)
 from ada.providers import ProviderError
 from ada.retrieval import (
     iso_time,
@@ -18,12 +23,14 @@ from ada.retrieval import (
     message_cost,
     plan_query,
     response_citations,
+    response_document_citations,
     retrieve,
 )
 
 
 def public_request(row: Request, trace=None) -> dict:
     citations, warnings = response_citations(row.response, trace)
+    document_citations, document_warnings = response_document_citations(row.response, trace)
     return {
         "request_id": row.id,
         "conversation_id": row.conversation_id,
@@ -36,11 +43,24 @@ def public_request(row: Request, trace=None) -> dict:
         "input_tokens": row.input_tokens,
         "output_tokens": row.output_tokens,
         "citations": citations,
-        "citation_warnings": warnings,
+        "document_citations": document_citations,
+        "citation_warnings": warnings + document_warnings,
     }
 
 
-def request_fingerprint(content, as_of, use_memory):
+def request_fingerprint(content, as_of, use_memory, use_documents=False):
+    if use_documents:
+        canonical = json.dumps(
+            {
+                "content": content,
+                "as_of": time_ms(as_of) if as_of else None,
+                "use_memory": use_memory,
+                "use_documents": True,
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        return hashlib.sha256(b"\0ada-chat-options-v2\0" + canonical.encode()).hexdigest()
     # Preserve old request IDs for default options across Phase 0/1 upgrades.
     if as_of is None and use_memory:
         return hashlib.sha256(content.encode()).hexdigest()
@@ -59,10 +79,11 @@ class ChatService:
         self.sessions, self.provider, self.settings = sessions, provider, settings
         self.capacity = threading.BoundedSemaphore(settings.max_parallel)
 
-    def _context(self, db, conversation, content, as_of, use_memory):
+    def _context(self, db, conversation, content, as_of, use_memory, use_documents=False):
         system = {"role": "system", "content": conversation.system_prompt}
         newest = {"role": "user", "content": content}
-        compatible = conversation.prompt_version == PROMPT_VERSION
+        compatible = conversation.prompt_version in RETRIEVAL_PROMPT_VERSIONS
+        document_compatible = conversation.prompt_version == DOCUMENT_PROMPT_VERSION
         plan = plan_query(
             content,
             as_of,
@@ -72,6 +93,17 @@ class ChatService:
             else ("disabled" if not use_memory else None),
         )
         plan["prompt_version"] = conversation.prompt_version
+        document_enabled = document_compatible and use_memory and use_documents
+        plan["documents_enabled"] = document_enabled and plan["time_mode"] != "needs_date"
+        plan["document_reason"] = (
+            "prompt_upgrade_required"
+            if use_documents and use_memory and not document_compatible
+            else (
+                "disabled"
+                if not document_enabled
+                else ("date_required" if plan["time_mode"] == "needs_date" else "ready")
+            )
+        )
         if compatible:
             at = iso_time(plan["as_of"]) if plan["as_of"] is not None else "date required"
             policy = (
@@ -80,6 +112,11 @@ class ChatService:
                 "Only labels in the evidence block of this request can be cited. "
                 "Earlier assistant answers and old labels are not retrieved evidence for this request."
             )
+            if document_compatible:
+                policy += (
+                    f" Imported document retrieval={'enabled' if plan['documents_enabled'] else 'disabled'}."
+                    " D labels identify imported_untrusted excerpts, never user-endorsed assertions."
+                )
             system["content"] += policy
         remaining = self.settings.prompt_bytes - message_cost(system) - message_cost(newest)
         if remaining < 0:
@@ -92,8 +129,9 @@ class ChatService:
             plan,
             limit=self.settings.retrieval_limit,
             budget_bytes=min(remaining, self.settings.memory_bytes),
+            use_documents=document_enabled,
         )
-        evidence = memory_message(result["selected"], plan)
+        evidence = memory_message(result["selected"], result["plan"], result["document_selected"])
         remaining -= result["budget"]["memory_used_bytes"]
         # Complete pairs only. Failed/in-flight turns remain evidence, not model history.
         rows = db.scalars(
@@ -126,8 +164,18 @@ class ChatService:
         )
         return messages, result
 
-    def chat(self, owner, conversation_id, request_id, content, *, as_of=None, use_memory=True):
-        fingerprint = request_fingerprint(content, as_of, use_memory)
+    def chat(
+        self,
+        owner,
+        conversation_id,
+        request_id,
+        content,
+        *,
+        as_of=None,
+        use_memory=True,
+        use_documents=False,
+    ):
+        fingerprint = request_fingerprint(content, as_of, use_memory, use_documents)
         # Return completed retries even when GPU capacity is busy.
         with self.sessions() as db:
             old = db.get(Request, (owner, request_id))
@@ -167,7 +215,7 @@ class ChatService:
                         raise ServiceError(409, "conversation_busy")
                     if old is None:
                         context, retrieval = self._context(
-                            db, conversation, content, as_of, use_memory
+                            db, conversation, content, as_of, use_memory, use_documents
                         )
                         old = Request(
                             owner_id=owner,
@@ -247,7 +295,11 @@ class ChatService:
                     "prompt_version": PROMPT_VERSION,
                     "revision": conversation.revision,
                 }
-            if conversation.prompt_version not in ("ada-baseline-v1", "ada-baseline-v2"):
+            if conversation.prompt_version not in (
+                "ada-baseline-v1",
+                "ada-baseline-v2",
+                "ada-baseline-v3",
+            ):
                 raise ServiceError(409, "unsupported_prompt_upgrade")
             active = db.scalar(
                 select(Request.id).where(

@@ -136,7 +136,9 @@ def test_legacy_prompt_requires_explicit_upgrade_and_unknown_labels_get_no_sourc
     assert trace["plan"]["reason"] == "prompt_upgrade_required"
     assert h["provider"].calls[-1][0]["content"] == "original saved prompt"
     upgraded = h["client"].post(f"/v1/conversations/{c}/prompt-upgrade", headers=h["a"])
-    assert upgraded.json()["prompt_version"] == "ada-baseline-v3"
+    from ada.personality import PROMPT_VERSION
+
+    assert upgraded.json()["prompt_version"] == PROMPT_VERSION
     h["provider"].complete = lambda m: Completion("Python [M1], extra [M99].", "test", 10, 5)
     out = chat(h, c, "What language do I prefer?").json()
     assert [x["label"] for x in out["citations"]] == ["M1"]

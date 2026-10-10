@@ -12,6 +12,7 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.encodeToJsonElement
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
@@ -58,6 +59,12 @@ sealed interface ApiFailure {
 
 /** Every method is an existing ADA route; no enrollment/admin/cancellation API is invented. */
 interface AdaApi {
+    suspend fun entities(connection: ConnectionCredential, scope: UUID, limit: Int = 50, offset: Int = 0): ApiResult<List<EntityDto>> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun entityAliases(connection: ConnectionCredential, id: UUID): ApiResult<List<EntityAliasDto>> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun resolveEntity(connection: ConnectionCredential, scope: UUID, body: EntityResolveInputDto): ApiResult<EntityResolutionDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun entityMergePreview(connection: ConnectionCredential, source: UUID, target: UUID): ApiResult<EntityMergePreviewDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun entityOperation(connection: ConnectionCredential, id: UUID): ApiResult<EntityOperationDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun writeEntity(connection: ConnectionCredential, pending: PendingEntity): ApiResult<EntityOperationDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
     suspend fun me(connection: ConnectionCredential): ApiResult<MeDto>
     suspend fun capabilities(connection: ConnectionCredential): ApiResult<CapabilitiesDto>
     suspend fun personalities(connection: ConnectionCredential, limit: Int = 50, offset: Int = 0): ApiResult<List<PersonalityDto>>
@@ -81,9 +88,25 @@ interface AdaApi {
     suspend fun createClaim(connection: ConnectionCredential, scope: UUID, body: ClaimInputDto): ApiResult<ClaimDto>
     suspend fun supersede(connection: ConnectionCredential, id: UUID, body: SupersedeInputDto): ApiResult<ClaimDto>
     suspend fun retrieve(connection: ConnectionCredential, scope: UUID, body: RetrieveInputDto): ApiResult<RetrievalDto>
+    suspend fun uploadDocument(connection: ConnectionCredential, pending: PendingDocument): ApiResult<DocumentUploadDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun documentUpload(connection: ConnectionCredential, id: UUID): ApiResult<DocumentUploadDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun documentUploads(connection: ConnectionCredential, scope: UUID, limit: Int = 50, offset: Int = 0): ApiResult<List<DocumentUploadDto>> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun documentVersions(connection: ConnectionCredential, source: UUID, limit: Int = 50, offset: Int = 0): ApiResult<List<DocumentUploadDto>> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun documentVersion(connection: ConnectionCredential, id: UUID): ApiResult<DocumentVersionDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun documentChunks(connection: ConnectionCredential, id: UUID, limit: Int = 50, offset: Int = 0): ApiResult<List<DocumentChunkDto>> = ApiResult.Failure(ApiFailure.IncompatibleContract)
 }
 
 class HttpAdaApi(callTimeoutMillis: Long = 65_000) : AdaApi {
+    override suspend fun entities(connection: ConnectionCredential, scope: UUID, limit: Int, offset: Int) = call<List<EntityDto>>(connection, "scopes/$scope/entities", query = page(limit, offset))
+    override suspend fun entityAliases(connection: ConnectionCredential, id: UUID) = call<List<EntityAliasDto>>(connection, "entities/$id/aliases")
+    override suspend fun resolveEntity(connection: ConnectionCredential, scope: UUID, body: EntityResolveInputDto) = call<EntityResolutionDto>(connection, "scopes/$scope/entities/resolve", adaJson.encodeToString(body))
+    override suspend fun entityMergePreview(connection: ConnectionCredential, source: UUID, target: UUID) = call<EntityMergePreviewDto>(connection, "entities/$source/merge-preview", query = mapOf("target_id" to target.toString()))
+    override suspend fun entityOperation(connection: ConnectionCredential, id: UUID) = call<EntityOperationDto>(connection, "entity-operations/$id")
+    override suspend fun writeEntity(connection: ConnectionCredential, pending: PendingEntity): ApiResult<EntityOperationDto> {
+        try { validateEntityPending(pending) } catch (_: Exception) { return ApiResult.Failure(ApiFailure.Validation) }
+        if (pending.identity.server != connection.server.toString()) return ApiResult.Failure(ApiFailure.Validation)
+        return call(connection, pending.path, pending.body)
+    }
     // No automatic retry of an ambiguous POST and no credential-bearing redirects.
     private val client = OkHttpClient.Builder()
         .connectTimeout(10, TimeUnit.SECONDS).readTimeout(60, TimeUnit.SECONDS)
@@ -91,7 +114,10 @@ class HttpAdaApi(callTimeoutMillis: Long = 65_000) : AdaApi {
         .retryOnConnectionFailure(false).build()
 
     private fun oneShotJsonBody(body: String): RequestBody {
-        val buffered = body.toRequestBody("application/json; charset=utf-8".toMediaType())
+        return oneShotBody(body.toByteArray(Charsets.UTF_8), "application/json; charset=utf-8")
+    }
+    private fun oneShotBody(bytes: ByteArray, mediaType: String): RequestBody {
+        val buffered = bytes.toRequestBody(mediaType.toMediaType())
         return object : RequestBody() {
             override fun contentType() = buffered.contentType()
             override fun contentLength() = buffered.contentLength()
@@ -105,12 +131,14 @@ class HttpAdaApi(callTimeoutMillis: Long = 65_000) : AdaApi {
     private suspend inline fun <reified T> call(
         connection: ConnectionCredential, path: String, body: String? = null,
         query: Map<String, String?> = emptyMap(),
+        raw: ByteArray? = null, mediaType: String = "application/octet-stream",
     ): ApiResult<T> = withContext(Dispatchers.IO) {
         val url = connection.server.newBuilder().addPathSegments("v1/$path")
         query.forEach { (key, value) -> if (value != null) url.addQueryParameter(key, value) }
         val builder = Request.Builder().url(url.build()).header("Authorization", "Bearer ${connection.token}")
             .header("Accept", "application/json")
         if (body != null) builder.post(oneShotJsonBody(body))
+        if (raw != null) builder.post(oneShotBody(raw, mediaType))
         try {
             client.newCall(builder.build()).execute().use { response ->
                 if (!response.isSuccessful) return@withContext sanitizedFailure(response)
@@ -158,6 +186,13 @@ class HttpAdaApi(callTimeoutMillis: Long = 65_000) : AdaApi {
         "claim_already_superseded", "evidence_content_changed", "source_not_user_evidence",
         "invalid_evidence_span", "empty_evidence_span", "invalid_validity_interval",
         "correction_outside_validity_interval", "history_and_as_of_conflict", "invalid_query_value",
+        "document_upload_id_reused", "document_conflict", "document_source_id_reused", "document_size_limit",
+        "document_file_quota", "document_storage_quota", "document_version_quota",
+        "document_unsupported_format", "document_unsupported_type", "document_invalid_filename", "document_invalid_encoding",
+        "document_invalid_text", "document_empty_text", "document_invalid_availability", "document_content_changed",
+        "document_invalid_projection", "document_processing_failed", "document_chunk_limit", "document_parse_time_limit",
+        "document_processing_interrupted",
+        "documents_require_prompt_upgrade",
     )
     private fun page(limit: Int, offset: Int) = mapOf("limit" to limit.toString(), "offset" to offset.toString())
     override suspend fun me(connection: ConnectionCredential) = call<MeDto>(connection, "me")
@@ -177,12 +212,29 @@ class HttpAdaApi(callTimeoutMillis: Long = 65_000) : AdaApi {
     override suspend fun createPersonality(connection: ConnectionCredential, body: PersonalityInputDto) = call<PersonalityDto>(connection, "personalities", adaJson.encodeToString(body))
     override suspend fun createConversation(connection: ConnectionCredential, body: ConversationInputDto) = call<ConversationDto>(connection, "conversations", adaJson.encodeToString(body))
     override suspend fun upgradePrompt(connection: ConnectionCredential, id: UUID) = call<PromptUpgradeDto>(connection, "conversations/$id/prompt-upgrade", "{}")
-    override suspend fun send(connection: ConnectionCredential, conversation: UUID, body: ChatInputDto) = call<RequestDto>(connection, "conversations/$conversation/messages", adaJson.encodeToString(body))
+    override suspend fun send(connection: ConnectionCredential, conversation: UUID, body: ChatInputDto): ApiResult<RequestDto> {
+        // Keep the legacy claim-only wire shape when document use is off, including restored older journals.
+        val encoded = adaJson.encodeToJsonElement(body) as JsonObject
+        val compatible = if (body.use_documents) encoded else JsonObject(encoded.filterKeys { it != "use_documents" })
+        return call(connection, "conversations/$conversation/messages", compatible.toString())
+    }
     override suspend fun createScope(connection: ConnectionCredential, body: ScopeInputDto) = call<ScopeDto>(connection, "scopes", adaJson.encodeToString(body))
     override suspend fun createNote(connection: ConnectionCredential, scope: UUID, body: NoteInputDto) = call<SourceVersionDto>(connection, "scopes/$scope/notes", adaJson.encodeToString(body))
     override suspend fun createClaim(connection: ConnectionCredential, scope: UUID, body: ClaimInputDto) = call<ClaimDto>(connection, "scopes/$scope/claims", adaJson.encodeToString(body))
     override suspend fun supersede(connection: ConnectionCredential, id: UUID, body: SupersedeInputDto) = call<ClaimDto>(connection, "claims/$id/supersede", adaJson.encodeToString(body))
     override suspend fun retrieve(connection: ConnectionCredential, scope: UUID, body: RetrieveInputDto) = call<RetrievalDto>(connection, "scopes/$scope/retrieve", adaJson.encodeToString(body))
+    override suspend fun uploadDocument(connection: ConnectionCredential, pending: PendingDocument): ApiResult<DocumentUploadDto> {
+        try { validateDocument(pending) } catch (_: SessionStorageException) { return ApiResult.Failure(ApiFailure.Validation) }
+        return call(connection, "scopes/${pending.scopeId}/documents/uploads/${pending.uploadId}",
+            query = mapOf("source_id" to pending.sourceId.toString(), "filename" to pending.filename,
+                "available_from" to pending.availableFrom, "available_to" to pending.availableTo),
+            raw = pending.rawBytes(), mediaType = pending.mediaType)
+    }
+    override suspend fun documentUpload(connection: ConnectionCredential, id: UUID) = call<DocumentUploadDto>(connection, "document-uploads/$id")
+    override suspend fun documentUploads(connection: ConnectionCredential, scope: UUID, limit: Int, offset: Int) = call<List<DocumentUploadDto>>(connection, "scopes/$scope/document-uploads", query = page(limit, offset))
+    override suspend fun documentVersions(connection: ConnectionCredential, source: UUID, limit: Int, offset: Int) = call<List<DocumentUploadDto>>(connection, "documents/$source/versions", query = page(limit, offset))
+    override suspend fun documentVersion(connection: ConnectionCredential, id: UUID) = call<DocumentVersionDto>(connection, "document-versions/$id")
+    override suspend fun documentChunks(connection: ConnectionCredential, id: UUID, limit: Int, offset: Int) = call<List<DocumentChunkDto>>(connection, "document-versions/$id/chunks", query = page(limit, offset))
 }
 
 /** Phase 04 supplies Keystore-managed encryption; Phase 03 never persists a token. */

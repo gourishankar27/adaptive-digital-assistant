@@ -11,7 +11,7 @@ Implemented flow:
 1. GET /v1/me and /v1/capabilities.
 2. POST /v1/personalities or select an existing private profile.
 3. POST /v1/conversations with personality_id and an optional owned scope_id.
-4. POST /v1/conversations/{id}/messages with request_id and content; optional as_of and use_memory.
+4. POST /v1/conversations/{id}/messages with request_id and content; optional as_of, use_memory and use_documents.
 5. GET conversation events to inspect persisted evidence or resume the UI.
 
 The chat endpoint accepts user text. It rejects unknown fields such as
@@ -36,9 +36,18 @@ but uncited evidence is available in the trace. Cards establish provenance, not
 semantic correctness. See PHASE2-RETRIEVAL.md for the complete retrieval contract.
 
 Existing v1/v2 conversations need an explicit prompt upgrade for retrieval. New
-conversations use v3. `use_memory=false` disables fresh retrieval while retaining
+conversations use v4. v3 continues claim retrieval; document retrieval requires
+an explicit v4 upgrade. `use_memory=false` disables fresh retrieval while retaining
 eligible conversation history. An explicit as_of instant uses the same valid-time
 semantics as memory queries. It is part of the idempotent request input.
+`use_documents` defaults false and is bound to the request when true. Imported
+document cards use separate D labels and `document_citations` / trace document
+arrays; they have imported origin/trust, exact versions, spans and locations.
+Keep original claim M cards and legacy encrypted journals intact. Source-version
+routes keep their original user/model trust contract; use document-version routes
+for imported text. Upload recovery commits exact bounded bytes/UUIDs/metadata to
+the encrypted verified-owner/server journal before POST and never automatically
+replays on restore. See [DOCUMENT-INGESTION.md](DOCUMENT-INGESTION.md).
 
 All new memory timestamps are UTC epoch milliseconds with OpenAPI `int64` fields;
 use 64-bit integers. Evidence offsets count Unicode code points, not UTF-16 units.
@@ -80,3 +89,20 @@ or Android inference runtime.
 The web foundation in `apps/admin-web/` also uses this HTTP contract and cannot
 grant admin access. See `contracts/README.md` for response/error schemas and the
 apps' READMEs for local development connections.
+
+## Phase 09 identity extension
+
+The implemented scoped identity routes are documented in
+[ENTITIES-AND-ALIASES.md](ENTITIES-AND-ALIASES.md). Capabilities add
+`scoped_entities`, `entity_writes` and `entity_resolution=explicit_aliases_v1`, with
+false/unsupported defaults for legacy servers. Claims/cards optionally carry an
+original `subject_entity_id`; selected cards freeze a historical canonical choice.
+Recorded retrieval plans retain ambiguous alternatives. Existing subjects, exact
+quotes, request IDs and prompt upgrade rules remain unchanged.
+
+Android's reviewed entity writes reserve an exact owner/server/scope/operation/body
+in Keystore record v4/256 KiB alongside chat, memory and document recovery.
+v1–v3 records survive upgrade. Restore never POSTs; receipt check or identical retry
+is explicit. A local discard changes no server identity history. Foreign references,
+changed previews and permission fields are enforced by the server. No direct
+provider/database client or account inference is introduced.

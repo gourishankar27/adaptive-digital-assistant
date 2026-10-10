@@ -5,20 +5,35 @@ using only the authenticated conversation's scope. This is lexical retrieval,
 not semantic inference, entity resolution, or automatic fact verification.
 """
 
+import hashlib
 import json
 import re
 import time
 from datetime import UTC, datetime, timedelta
-from typing import Literal
+from typing import Literal, NotRequired, TypedDict
 from uuid import UUID
 
-from pydantic import AwareDatetime, BaseModel, Field, field_validator
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, field_validator, with_config
 from sqlalchemy import case, func, literal, literal_column, or_, select, text
+from sqlalchemy.orm import aliased
 
 from ada.contracts import RetrievalBudgetOutput, RetrievalCandidateOutput
+from ada.entities import IdentityView, entity_query_keys
+from ada.entity_contracts import EntityChoice, EntityResolutionOutput
+from ada.entity_models import ClaimEntityLink
 from ada.evidence import content_hash
 from ada.memory import EvidenceOutput, MemoryInput, Timestamp, time_ms
-from ada.models import Claim, ClaimSearch, Scope, SourceVersion, now_ms
+from ada.models import (
+    Claim,
+    ClaimSearch,
+    DocumentChunk,
+    DocumentSearch,
+    DocumentUpload,
+    Scope,
+    Source,
+    SourceVersion,
+    now_ms,
+)
 from ada.search import SEARCH_VERSION, normalize, search_fields
 
 CANDIDATE_LIMIT = 64
@@ -47,6 +62,7 @@ class RetrieveInput(MemoryInput):
     as_of: AwareDatetime | None = None
     limit: int = Field(default=8, ge=1, le=16, strict=True)
     budget_bytes: int = Field(default=2200, ge=0, le=12000, strict=True)
+    use_documents: bool = Field(default=False, strict=True)
 
     @field_validator("query")
     @classmethod
@@ -78,9 +94,46 @@ class CitationOutput(BaseModel):
     source_id: UUID
     source_version: int = Field(ge=1)
     conflict: bool
+    subject_entity_id: UUID | None = None
+    entity: EntityChoice | None = None
+
+
+class DocumentCitationOutput(BaseModel):
+    label: str = Field(pattern=r"^D[1-9][0-9]*$")
+    origin: Literal["imported_document"]
+    trust_class: Literal["imported_untrusted"]
+    scope_id: UUID
+    source_id: UUID
+    source_version_id: UUID
+    source_version: int = Field(ge=1)
+    upload_id: UUID
+    chunk_id: UUID
+    filename: str
+    media_type: Literal["text/plain", "text/markdown"]
+    raw_hash: str
+    available_from: Timestamp
+    available_to: Timestamp | None
+    published_at: Timestamp
+    line_start: int = Field(ge=1)
+    line_end: int = Field(ge=1)
+    evidence: EvidenceOutput
+
+
+@with_config(ConfigDict(extra="allow"))
+class DocumentCandidateOutput(TypedDict):
+    chunk_id: UUID
+    source_version_id: UUID
+    channels: list[str]
+    decision: str
+    score: NotRequired[float]
+    term_coverage: NotRequired[int]
 
 
 class RetrievalPlanOutput(BaseModel):
+    entity_keys: list[str] = Field(default_factory=list)
+    entity_resolution: list[EntityResolutionOutput] = Field(default_factory=list)
+    entity_ambiguity_in_context: bool = False
+    entity_resolution_truncated: bool = False
     enabled: bool
     reason: Literal["ready", "date_required", "disabled", "prompt_upgrade_required"]
     time_mode: Literal["current", "as_of", "needs_date"]
@@ -90,6 +143,10 @@ class RetrievalPlanOutput(BaseModel):
     subject_keys: list[str]
     overview: bool
     prompt_version: str | None = None
+    documents_enabled: bool = False
+    document_reason: Literal["ready", "date_required", "disabled", "prompt_upgrade_required"] = (
+        "disabled"
+    )
 
 
 class RetrievalOutput(BaseModel):
@@ -98,6 +155,8 @@ class RetrievalOutput(BaseModel):
     plan: RetrievalPlanOutput
     candidates: list[RetrievalCandidateOutput]
     selected: list[CitationOutput]
+    document_candidates: list[DocumentCandidateOutput] = Field(default_factory=list)
+    document_selected: list[DocumentCitationOutput] = Field(default_factory=list)
     budget: RetrievalBudgetOutput
     retrieval_ms: int
 
@@ -148,6 +207,7 @@ def plan_query(query, as_of=None, *, enabled=True, reason=None):
         "expanded_terms": expanded,
         "subject_keys": sorted(keys)[:200],
         "overview": overview,
+        "entity_keys": entity_query_keys(query),
     }
 
 
@@ -156,8 +216,13 @@ def message_cost(message):
     return len(message["content"].encode("utf-8")) + 64
 
 
-def memory_message(selected, plan):
-    if not selected:
+def memory_message(selected, plan, document_selected=()):
+    ambiguities = (
+        [r for r in plan.get("entity_resolution", []) if r["state"] == "ambiguous"]
+        if plan.get("entity_ambiguity_in_context")
+        else []
+    )
+    if not selected and not document_selected and not ambiguities:
         return None
     items = [
         {
@@ -173,10 +238,44 @@ def memory_message(selected, plan):
         }
         for item in selected
     ]
+    items += [
+        {
+            "label": item["label"],
+            "origin": item["origin"],
+            "trust_class": item["trust_class"],
+            "source_id": item["source_id"],
+            "source_version": item["source_version"],
+            "filename": item["filename"],
+            "media_type": item["media_type"],
+            "available_from": iso_time(item["available_from"]),
+            "available_to": iso_time(item["available_to"])
+            if item["available_to"] is not None
+            else None,
+            "published_at": iso_time(item["published_at"]),
+            "line_start": item["line_start"],
+            "line_end": item["line_end"],
+            "quote": item["evidence"]["quote"],
+        }
+        for item in document_selected
+    ]
+    for item, original in zip(items, selected):
+        if original.get("entity"):
+            item["entity"] = original["entity"]
+    payload = {"type": "ada_memory_evidence", "as_of": iso_time(plan["as_of"]), "items": items}
+    if ambiguities:
+        ambiguous = ambiguities[0]
+        payload["entity_ambiguity"] = {
+            "name": ambiguous["name"],
+            "alternatives": ambiguous["candidates"][:2],
+            "more": len(ambiguous["candidates"]) > 2
+            or ambiguous["truncated"]
+            or len(ambiguities) > 1,
+            "instruction": "Ask which explicit scoped entity is intended. Do not choose an ambiguous identity.",
+        }
     return {
         "role": "user",
         "content": json.dumps(
-            {"type": "ada_memory_evidence", "as_of": iso_time(plan["as_of"]), "items": items},
+            payload,
             ensure_ascii=False,
             separators=(",", ":"),
         ),
@@ -259,15 +358,187 @@ def _citation(claim, source, *, conflict):
     }
 
 
-def retrieve(db, owner, scope_id, plan, *, limit=8, budget_bytes=2200):
+def _document_base_query(owner, scope_id, at):
+    # Select a source's latest available published version BEFORE checking expiry.
+    # An expired replacement cannot silently reveal an older version again.
+    newer = aliased(DocumentUpload)
+    replaced = (
+        select(newer.id)
+        .where(
+            newer.owner_id == DocumentUpload.owner_id,
+            newer.scope_id == DocumentUpload.scope_id,
+            newer.source_id == DocumentUpload.source_id,
+            newer.state == "ready",
+            newer.published_at <= at,
+            newer.available_from <= at,
+            newer.version > DocumentUpload.version,
+        )
+        .exists()
+    )
+    return (
+        select(DocumentChunk, SourceVersion, DocumentUpload, DocumentSearch)
+        .join(
+            DocumentUpload,
+            (DocumentUpload.id == DocumentChunk.upload_id)
+            & (DocumentUpload.owner_id == DocumentChunk.owner_id)
+            & (DocumentUpload.scope_id == DocumentChunk.scope_id)
+            & (DocumentUpload.source_id == DocumentChunk.source_id)
+            & (DocumentUpload.source_version_id == DocumentChunk.source_version_id),
+        )
+        .join(
+            SourceVersion,
+            (SourceVersion.id == DocumentChunk.source_version_id)
+            & (SourceVersion.owner_id == DocumentChunk.owner_id)
+            & (SourceVersion.scope_id == DocumentChunk.scope_id)
+            & (SourceVersion.source_id == DocumentChunk.source_id),
+        )
+        .join(
+            Source,
+            (Source.id == SourceVersion.source_id)
+            & (Source.owner_id == SourceVersion.owner_id)
+            & (Source.scope_id == SourceVersion.scope_id),
+        )
+        .join(
+            DocumentSearch,
+            (DocumentSearch.chunk_id == DocumentChunk.id)
+            & (DocumentSearch.owner_id == DocumentChunk.owner_id)
+            & (DocumentSearch.scope_id == DocumentChunk.scope_id),
+        )
+        .where(
+            DocumentChunk.owner_id == owner,
+            DocumentChunk.scope_id == scope_id,
+            DocumentUpload.state == "ready",
+            DocumentUpload.published_at <= at,
+            DocumentUpload.available_from <= at,
+            or_(DocumentUpload.available_to.is_(None), DocumentUpload.available_to > at),
+            ~replaced,
+            Source.kind == "imported_document",
+            SourceVersion.trust_class == "imported_untrusted",
+            SourceVersion.version == DocumentUpload.version,
+        )
+    )
+
+
+def _document_fts_condition(db, terms):
+    if db.bind.dialect.name == "postgresql":
+        config = literal_column("'simple'::regconfig")
+        match = " | ".join("'" + word + "'" for word in terms)
+        return func.to_tsvector(config, DocumentSearch.search_text).op("@@")(
+            func.to_tsquery(config, match)
+        )
+    match = " OR ".join('"' + word + '"' for word in terms)
+    ids = (
+        select(literal_column("rowid"))
+        .select_from(text("document_fts"))
+        .where(text("document_fts MATCH :document_fts_query"))
+    )
+    return literal_column("document_search.rowid").in_(ids).params(document_fts_query=match)
+
+
+def _valid_document(chunk, source, upload, projection):
+    if not (0 <= chunk.span_start < chunk.span_end <= len(source.content)):
+        return False
+    return (
+        source.content_hash == chunk.content_hash == upload.raw_hash == content_hash(source.content)
+        and upload.raw_hash == hashlib.sha256(upload.raw_bytes).hexdigest()
+        and upload.raw_size == len(upload.raw_bytes)
+        and source.content[chunk.span_start : chunk.span_end] == chunk.quote
+        and chunk.quote_hash == content_hash(chunk.quote)
+        and bool(chunk.quote.strip())
+        and projection.search_text == normalize(chunk.quote)
+        and chunk.line_start == source.content.count("\n", 0, chunk.span_start) + 1
+        and chunk.line_end == source.content.count("\n", 0, chunk.span_end - 1) + 1
+    )
+
+
+def _document_citation(chunk, source, upload):
+    return {
+        "origin": "imported_document",
+        "trust_class": "imported_untrusted",
+        "scope_id": chunk.scope_id,
+        "source_id": source.source_id,
+        "source_version_id": source.id,
+        "source_version": source.version,
+        "upload_id": upload.id,
+        "chunk_id": chunk.id,
+        "filename": upload.filename,
+        "media_type": upload.media_type,
+        "raw_hash": upload.raw_hash,
+        "available_from": upload.available_from,
+        "available_to": upload.available_to,
+        "published_at": upload.published_at,
+        "line_start": chunk.line_start,
+        "line_end": chunk.line_end,
+        "evidence": {
+            "source_version_id": source.id,
+            "span_start": chunk.span_start,
+            "span_end": chunk.span_end,
+            "quote": chunk.quote,
+            "content_hash": source.content_hash,
+        },
+    }
+
+
+def _retrieve_documents(db, owner, scope_id, plan, result, *, limit, budget_bytes):
+    terms = plan["expanded_terms"]
+    if not terms:
+        return
+    padded = literal(" ") + DocumentSearch.search_text + literal(" ")
+    coverage = sum(
+        (case((padded.contains(" " + t + " ", autoescape=True), 1), else_=0) for t in terms),
+        literal(0),
+    )
+    hits = db.execute(
+        _document_base_query(owner, scope_id, plan["as_of"])
+        .where(_document_fts_condition(db, terms))
+        .order_by(coverage.desc(), DocumentChunk.id)
+        .limit(CANDIDATE_LIMIT + 1)
+    ).all()
+    result["budget"]["candidate_pool_truncated"] |= len(hits) > CANDIDATE_LIMIT
+    for rank, row in enumerate(hits[:CANDIDATE_LIMIT], 1):
+        chunk, source, upload, projection = row
+        candidate = {
+            "chunk_id": chunk.id,
+            "source_version_id": source.id,
+            "channels": ["document_lexical"],
+            "score": round(1 / (60 + rank), 8),
+            "term_coverage": len(set(terms) & set(projection.search_text.split())),
+            "decision": "invalid_evidence",
+        }
+        result["document_candidates"].append(candidate)
+        if not _valid_document(*row):
+            continue
+        selected = result["document_selected"]
+        tentative = selected + [
+            _document_citation(chunk, source, upload) | {"label": f"D{len(selected) + 1}"}
+        ]
+        needed = message_cost(memory_message(result["selected"], plan, tentative))
+        if len(result["selected"]) + len(tentative) > limit or needed > budget_bytes:
+            candidate["decision"] = "context_budget"
+            continue
+        result["document_selected"] = tentative
+        result["budget"]["memory_used_bytes"] = needed
+        candidate["decision"] = "selected"
+
+
+def retrieve(db, owner, scope_id, plan, *, limit=8, budget_bytes=2200, use_documents=False):
     """Caller must hold the owned scope's shared lock for a consistent snapshot."""
     started = time.perf_counter_ns()
+    plan = dict(plan)
+    documents_enabled = use_documents and plan["enabled"] and plan["time_mode"] != "needs_date"
+    plan["documents_enabled"] = documents_enabled
+    plan.setdefault(
+        "document_reason",
+        "ready" if documents_enabled else ("date_required" if use_documents else "disabled"),
+    )
     result = {
-        "version": SEARCH_VERSION,
+        "version": "lexical-documents-v1" if documents_enabled else SEARCH_VERSION,
         "scope_id": scope_id,
         "plan": plan,
         "candidates": [],
         "selected": [],
+        "document_candidates": [],
+        "document_selected": [],
         "budget": {
             "memory_limit_bytes": budget_bytes,
             "memory_used_bytes": 0,
@@ -280,6 +551,47 @@ def retrieve(db, owner, scope_id, plan, *, limit=8, budget_bytes=2200):
     if not plan["enabled"] or plan["time_mode"] == "needs_date":
         return result
     base = _base_query(owner, scope_id, plan["as_of"])
+    view = IdentityView(db, owner, scope_id, plan["as_of"])
+    links = {
+        r.claim_id: r.entity_id
+        for r in db.scalars(
+            select(ClaimEntityLink).where(
+                ClaimEntityLink.owner_id == owner,
+                ClaimEntityLink.scope_id == scope_id,
+                ClaimEntityLink.created_at <= plan["as_of"],
+                or_(ClaimEntityLink.valid_to.is_(None), ClaimEntityLink.valid_to > plan["as_of"]),
+            )
+        )
+        if r.entity_id is not None
+    }
+    roots = {cid: view.root(eid) for cid, eid in links.items()}
+    resolutions = [view.resolve(key) for key in plan.get("entity_keys", [])]
+    matches = [r for r in resolutions if r["state"] != "absent"]
+    # Exclude every ambiguous identity before truncating the display snapshot.
+    # A truncated alias result cannot prove which linked claims are safe.
+    ambiguous_roots = {
+        str(c["id"]) for r in matches if r["state"] == "ambiguous" for c in r["candidates"]
+    }
+    if any(r["truncated"] for r in matches):
+        ambiguous_roots.update(roots.values())
+    matches.sort(key=lambda r: r["state"] != "ambiguous")
+    resolutions = matches[:16]
+    plan["entity_resolution_truncated"] = len(matches) > 16
+    if "user" in plan["subject_keys"] and view.self_id:
+        resolutions.append(view.resolve(self_reference=True))
+    plan["entity_resolution"] = resolutions
+    plan["entity_ambiguity_in_context"] = any(r["state"] == "ambiguous" for r in resolutions)
+    clarification = memory_message([], plan)
+    if clarification and message_cost(clarification) > budget_bytes:
+        plan["entity_ambiguity_in_context"] = False
+    elif clarification:
+        result["budget"]["memory_used_bytes"] = message_cost(clarification)
+    resolved_roots = {
+        str(r["entity_id"]) for r in resolutions if r["state"] == "resolved"
+    } - ambiguous_roots
+    forbidden = [cid for cid, root in roots.items() if root in ambiguous_roots]
+    if forbidden:
+        base = base.where(Claim.id.not_in(forbidden))
     terms = plan["expanded_terms"]
     padded = literal(" ") + ClaimSearch.search_text + literal(" ")
     coverage = sum(
@@ -288,6 +600,11 @@ def retrieve(db, owner, scope_id, plan, *, limit=8, budget_bytes=2200):
     )
     ordered = base.order_by(coverage.desc(), Claim.id)
     channels = {}
+    entity_claims = [cid for cid, root in roots.items() if root in resolved_roots]
+    if entity_claims:
+        channels["entity_alias"] = db.execute(
+            ordered.where(Claim.id.in_(entity_claims)).limit(CANDIDATE_LIMIT + 1)
+        ).all()
     if plan["overview"]:
         channels["overview"] = db.execute(
             base.order_by(Claim.valid_from.desc(), Claim.id).limit(CANDIDATE_LIMIT + 1)
@@ -329,14 +646,24 @@ def retrieve(db, owner, scope_id, plan, *, limit=8, budget_bytes=2200):
         if not _valid_evidence(claim, source, projection):
             decisions[claim_id]["decision"] = "invalid_evidence"
             continue
-        slot = (projection.subject_key, projection.predicate_key)
+        root = roots.get(claim.id)
+        slot = (
+            "entity" if root else "string",
+            root or projection.subject_key,
+            projection.predicate_key,
+        )
         if slot in seen:
             continue
         seen.add(slot)
         # Fetch other currently valid values in this slot, even when they do
         # not match the query. Never present a convenient conflicting value alone.
+        subject_condition = (
+            Claim.id.in_([cid for cid, rid in roots.items() if rid == root])
+            if root
+            else (ClaimSearch.subject_key == projection.subject_key) & Claim.id.not_in(list(roots))
+        )
         siblings = db.execute(
-            base.where(ClaimSearch.subject_key == slot[0], ClaimSearch.predicate_key == slot[1])
+            base.where(subject_condition, ClaimSearch.predicate_key == projection.predicate_key)
             .order_by(Claim.id)
             .limit(CANDIDATE_LIMIT + 1)
         ).all()
@@ -359,7 +686,13 @@ def retrieve(db, owner, scope_id, plan, *, limit=8, budget_bytes=2200):
                 {"claim_id": sibling.id, "channels": ["slot_check"], "decision": "ranked"},
             )
         conflict = len({key[0] for key in unique}) > 1
-        groups.append([_citation(c, s, conflict=conflict) for c, s in unique.values()])
+        group = []
+        for c, s in unique.values():
+            card = _citation(c, s, conflict=conflict)
+            if c.id in roots:
+                card.update(subject_entity_id=links[c.id], entity=view.choice(roots[c.id]))
+            group.append(card)
+        groups.append(group)
     selected = []
     for group in groups:
         tentative = selected + [
@@ -377,6 +710,10 @@ def retrieve(db, owner, scope_id, plan, *, limit=8, budget_bytes=2200):
     result["candidates"] = list(decisions.values())
     if selected:
         result["budget"]["memory_used_bytes"] = message_cost(memory_message(selected, plan))
+    if documents_enabled:
+        _retrieve_documents(
+            db, owner, scope_id, plan, result, limit=limit, budget_bytes=budget_bytes
+        )
     result["retrieval_ms"] = (time.perf_counter_ns() - started) // 1_000_000
     return result
 
@@ -403,6 +740,8 @@ def public_trace(trace):
         "plan": trace.plan,
         "candidates": trace.candidates,
         "selected": trace.selected,
+        "document_candidates": trace.document_candidates or [],
+        "document_selected": trace.document_selected or [],
         "budget": trace.budget,
         "retrieval_ms": trace.retrieval_ms,
         "created_at": trace.created_at,
@@ -412,6 +751,19 @@ def public_trace(trace):
 def response_citations(response, trace):
     labels = list(dict.fromkeys(re.findall(r"\[(M\d+)\]", response or "")))
     selected = {item["label"]: item for item in trace.selected} if trace else {}
+    return (
+        [selected[label] for label in labels if label in selected],
+        ["unknown_label:" + label for label in labels if label not in selected],
+    )
+
+
+def response_document_citations(response, trace):
+    if trace is None or not (trace.plan.get("documents_enabled") or trace.document_selected):
+        # Old saved answers only defined M labels. Do not reinterpret their
+        # literal D text or alter completed replay warnings during an upgrade.
+        return [], []
+    labels = list(dict.fromkeys(re.findall(r"\[(D\d+)\]", response or "")))
+    selected = {item["label"]: item for item in (trace.document_selected or [])} if trace else {}
     return (
         [selected[label] for label in labels if label in selected],
         ["unknown_label:" + label for label in labels if label not in selected],

@@ -1,6 +1,6 @@
 # Current ADA baseline
 
-Recorded 2026-10-09. Read current source and tests before implementing a phase;
+Recorded 2026-10-10 UTC. Read current source and tests before implementing a phase;
 this file is a planning snapshot, not a permanent claim about the repository.
 
 ## Implemented
@@ -16,8 +16,9 @@ facts/preferences/decisions and transactional valid-time corrections.
 Phase 2 added full-text/subject retrieval, a whole-prompt byte budget, exact
 evidence checks, source labels and durable per-request retrieval snapshots.
 
-Migrations 0001–0003 are released. New work adds migrations. Baseline v3 is current;
-v1/v2 conversations retain their saved prompt until explicitly upgraded.
+Migrations 0001–0004 remain unchanged; Phase 08 adds head 0005. Baseline v4 is
+current for new conversations. v3 retains claim retrieval; earlier conversations
+retain their saved prompt until explicitly upgraded.
 
 ## Current contract
 
@@ -39,9 +40,11 @@ and the other client endpoints now have explicit output schemas exported to
 OpenAPI, including sanitized errors and retrieval details.
 
 Chat returns a complete response. There is no streaming, cancellation endpoint,
-automatic memory extraction, document upload, embedding search, tool executor,
+automatic memory extraction, PDF/OCR, embedding search, tool executor,
 voice interface or local mobile model. Static warmth/style
 configuration exists; dynamic affect and learned relationship preferences do not.
+Phase 08 implements bounded text/Markdown uploads and imported excerpt retrieval,
+with separate document citations, exact versions and explicit request opt-in.
 
 ## Historical verification evidence — Phases 02A/03
 
@@ -156,3 +159,58 @@ v1 chat recovery; logout/switch/401 clear both private journals and caches.
 No server route, OpenAPI, migration, inference behavior or dependency was changed.
 STATUS/WORKLOG distinguish local checks from physical S24 FE/Android 16, HTTPS,
 TalkBack and actual model verification still needed on the target setup.
+
+## Phase 08 text/Markdown documents and admin login repair
+
+Authenticated raw uploads reserve immutable owner/scope/source/upload IDs and
+exact bytes before parsing outside transactions. Atomic publication creates the
+entire version, code-point chunks and rebuildable lexical projection together.
+Ready/processing/failed receipts, exact text/raw/chunk reads and stable-source
+version history use dedicated document routes. Imported/untrusted text cannot
+support the existing explicit user-claim writer. Quotas count retained failed
+receipts; no deletion or automatic cleanup service is implemented.
+
+Opt-in document retrieval preserves original claim arrays and uses separate typed
+D cards and frozen trace arrays. Owner/scope/publication/availability checks run
+before candidates/context; historical requests cannot see later publications.
+Claims and documents share prompt/item budgets. New conversations use v4; v3
+claim retrieval and old completed replay remain supported. Prompt upgrades stay
+explicit and audited. See docs/DOCUMENT-INGESTION.md for limits and compatibility.
+
+Android now offers capability-gated Documents, file/paste preview and explicit
+upload, status/version/chunk inspection and original request document cards.
+Encrypted session format v3 retains v1/v2 recovery and adds an exact account-bound
+document journal; restoration never submits a write automatically. The admin web
+app remains a metadata dashboard.
+
+The reported admin error was reproduced against the configured database at 0003.
+After a verified private backup and the user's explicit account selection, the
+login repair installed 0004 and granted that exact existing account admin access.
+The browser now gives safe migration guidance for known readiness errors. No
+live browser session was verified. Application migration 0005 is deliberately
+uninstalled: running the new Phase 08 source requires its separate installation.
+STATUS/WORKLOG record actual checks and remaining physical-phone/HTTPS/model
+verification. PDF/OCR/embeddings/extraction/promotion and later phases remain
+unimplemented; no Phase 08 deployment was performed.
+
+## Phase 09 explicit scoped entities and aliases
+
+Head 0006 adds owner/scope-constrained entities, historical aliases, optional
+claim references, explicit self bindings, reversible merge lineage and audited
+operation receipts. Existing claims remain unlinked until explicit user action.
+No name, type or model suggestion establishes ownership or permission.
+
+Exact NFKC/case/whitespace resolution exposes absent/resolved/ambiguous states and
+explicit candidate selection. Alias expansion precedes retrieval ranking; ambiguous
+linked assertions are withheld and alternatives remain in frozen request plans.
+Historical canonical choices and original evidence survive rename, correction,
+merge, failure retry and completed replay. Prompts remain v4/current and v3/claims.
+
+Android's Memory screen offers a capability-gated entity editor with scope choice,
+duplicate warning and explicit alias/link/self/rename/merge/undo review. Exact
+operation recovery uses additive Keystore record v4, retaining v1–v3 journals.
+The admin web remains metadata-only. See docs/ENTITIES-AND-ALIASES.md and
+STATUS/WORKLOG for executable contracts, checks and remaining target verification.
+The final read-only application check observed head 0005. Installing 0006 remains
+separate and unperformed by this phase.
+No automatic extraction, embeddings, cross-user graph or later phase is implemented.

@@ -1,6 +1,9 @@
 # Phase 08 — immutable document versions and chunk retrieval
 
-Status: planned. Prerequisites: Phase 03 and the existing Phase 2 server.
+Status: text/Markdown checkpoints 1–4 implemented; local verification is recorded
+in [STATUS](STATUS.md) and [WORKLOG](WORKLOG.md). PDF is explicitly deferred;
+physical-phone, release HTTPS and real-model verification remain target checks.
+Prerequisites: Phase 03 and the existing Phase 2 server.
 Apply STANDARDS and CODEX-WORKFLOW. Phase 07 is required only for its mobile
 memory surfaces; backend ingestion can be implemented independently.
 

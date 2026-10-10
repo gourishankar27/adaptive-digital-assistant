@@ -1,6 +1,6 @@
-# Phase 2 architecture decisions
+# ADA architecture decisions
 
-Status: persistent chat, source-backed memory, retrieval/citations and explicit admin monitoring.
+Status: persistent chat, explicit memory, claim/document retrieval and explicit admin monitoring.
 
 ## Deployment
 
@@ -23,7 +23,7 @@ principal. Owner IDs come from authentication, not input JSON.
 Every conversation references an authorized personal/project scope. Migration 0002
 creates scope records from the original conversation scope IDs. Multiple conversations
 can use an owner's project scope while retaining separate histories and personalities.
-Shared scopes, membership grants and documents remain deferred. Client scope IDs
+Shared scopes and membership grants remain deferred. Client scope IDs
 are checked against authenticated ownership before a conversation or memory write.
 
 ## Storage
@@ -36,7 +36,7 @@ constraints, not PostgreSQL row-level security. The database administrator and s
 operator remain trusted. RLS is a future defense-in-depth decision before a less
 trusted deployment.
 
-Alembic migrations 0001/0002/0003 are immutable snapshots. Add new migrations; never
+Alembic migrations 0001–0004 are immutable snapshots. Add new migrations; never
 replace them with `Base.metadata.create_all()` at server startup. Migrations are explicit.
 Events and evidence versions are append-oriented through application code. This release does not install
 database triggers preventing operator edits. Trust labels distinguish user words
@@ -113,11 +113,12 @@ filters before returning candidates. Source hashes, trust and spans are checked
 again before context selection. Current and historical retrieval share Phase 1's
 valid-time semantics. See PHASE2-RETRIEVAL.md for ranking, caps and conflict rules.
 
-New conversations freeze baseline v3. An explicit v1/v2 prompt upgrade archives the old
+New conversations freeze baseline v4. An explicit v1/v2/v3 prompt upgrade archives the old
 and new prompts, preserves the personality snapshot, locks the conversation and
 rejects in-flight changes. It increments the conversation revision so failed requests
 with old context cannot be resumed. Completed retries retain their original answer.
-Unupgraded v1/v2 conversations continue with their original prompt and no retrieval.
+Unupgraded v1/v2 conversations continue with their original prompt and no retrieval;
+v3 continues claim retrieval. Document retrieval requires v4 and explicit opt-in.
 Failed retries retain the original messages and selected evidence, even after a
 memory correction. New requests retrieve again. Response labels map only to the
 current request's selected source snapshots. Labels cannot authorize a source, and
@@ -151,7 +152,7 @@ Monitoring selects columns/JSON scalar counts rather than private ORM snapshots.
 It preserves composite owner/request identity and unrecorded metrics as null.
 Polling, query windows, pagination and audit rows/age are bounded. Provider model-list
 probes are serialized/cached, response/time bounded and run outside DB transactions;
-they never generate. Readiness validates supported head 0004. Admission shows the
+they never generate. Current readiness validates supported head 0005. Admission shows the
 actual process semaphore, with one worker; GPU/throughput remain unknown. See
 [ADMIN-MONITORING.md](ADMIN-MONITORING.md) for allowlists, failure/audit semantics,
 retention and installation. Phase 05 introduces no account impersonation.
@@ -244,10 +245,57 @@ authorization, synchronization, and tool effects. Local models submit proposals,
 not trusted claims or actions. See MOBILE-CONTRACT.md. Hardware-dependent Android
 model/runtime selection awaits the phone's RAM, SoC, Android version, and goals.
 
+## Phase 08 document ingestion
+
+Migration 0005 extends source origin/trust without changing released migrations
+or old prompt/retrieval snapshots. Owner-bound upload receipts retain raw database
+blobs and immutable input fingerprints. Reservation and publication are short
+transactions; identity parsing/chunking runs between them. Publication validates
+exact hashes/spans and commits the full version, chunks, lexical projection and
+ready receipt atomically. A bounded lease and attempt fence support explicit
+same-ID replay without a background worker. Failed receipts remain private and
+count against quotas. Names are display metadata, never filesystem paths.
+
+Document chunks are imported/untrusted evidence, not claims. Retrieval filters
+owner, scope, publication and version availability before candidates/context,
+then places complete excerpts in remaining shared budgets. D cards and document
+trace arrays are separate from existing M claim cards. Requests freeze selected
+versions and exact evidence across failure retries and completed replay. New
+conversations freeze v4; v3 claim retrieval survives and explicit audited upgrades
+retain old prompts. `use_documents` defaults false and requires memory enabled.
+
+Android capability gates its document UI. The bounded encrypted session record
+is now v3/256 KiB with one chat, one memory and one document journal; v1/v2 records
+remain readable. Raw upload bytes/IDs/options commit before POST, restoration
+checks identity and never automatically writes. Original D cards come from the
+saved request, not current version lists. No provider/database client is added.
+See DOCUMENT-INGESTION.md for exact contracts, limits and the separate 0005
+installation boundary. PDF, OCR, embeddings and automatic promotion are deferred.
+
+## Phase 09 scoped identity
+
+Migration 0006 adds explicit scoped entities, alias/rename history, self bindings,
+claim annotations, reversible merge lineage and exact operation receipts. Every
+reference uses owner/scope constraints. Existing claims remain nullable/unlinked;
+raw subjects, evidence and old write hashes are retained. Scope row locks serialize
+decisions and audit atomically. Names and entity kinds confer no authority.
+
+NFKC/case/whitespace exact aliases expand candidates before ranking. Ambiguous
+roots remain separate and are withheld before context; bounded alternatives and
+historical interpretations freeze in the request trace. Linked conflicts use the
+historical canonical root, and old string-only subjects remain supported. No new
+prompt version, extraction or shared identity graph is introduced.
+
+Android's Memory entry opens the capability-gated entity picker/editor. Reviewed
+alias/link/self/rename/merge/undo changes reserve exact operations in the existing
+Keystore record v4/256 KiB; v1–v3 journals remain readable. Restore is read-only
+until explicit receipt check or identical retry. Current identity decisions never
+replace saved source cards. See ENTITIES-AND-ALIASES.md for policy and installation.
+
 ## Next milestone
 
 Phase 2 establishes a measured lexical/subject baseline. Subsequent milestones can
-evaluate canonical entities, embeddings, document ingestion and consolidation
+evaluate canonical entities, embeddings and consolidation
 against it while preserving the scope/time boundary and exact evidence provenance.
 Tools need explicit intent/authorization/receipt contracts before execution. Automatic
 extraction, autonomous work, affect learning and device inference remain deferred.

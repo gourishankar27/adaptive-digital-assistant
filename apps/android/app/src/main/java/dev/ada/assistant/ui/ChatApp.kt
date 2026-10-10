@@ -106,7 +106,7 @@ fun ChatApp(vm: ChatViewModel, openSettings: () -> Unit) {
         },
         bottomBar = {
             if (state.account != null && !typing) NavigationBar(windowInsets = WindowInsets(0, 0, 0, 0)) {
-                val inChat = state.destination !in setOf(ChatDestination.Settings, ChatDestination.Connect, ChatDestination.Memory)
+                val inChat = state.destination !in setOf(ChatDestination.Settings, ChatDestination.Connect, ChatDestination.Memory, ChatDestination.Documents, ChatDestination.Entities)
                 NavigationBarItem(
                     selected = inChat,
                     onClick = { focus.clearFocus(); vm.navigate(ChatDestination.Conversations) },
@@ -114,9 +114,15 @@ fun ChatApp(vm: ChatViewModel, openSettings: () -> Unit) {
                     modifier = Modifier.testTag("nav-chat"),
                 )
                 NavigationBarItem(
-                    selected = state.destination == ChatDestination.Memory, enabled = state.capabilities?.structured_memory == true,
+                    selected = state.destination in setOf(ChatDestination.Memory, ChatDestination.Entities), enabled = state.capabilities?.structured_memory == true,
                     onClick = { focus.clearFocus(); vm.navigate(ChatDestination.Memory) }, icon = { NavigationGlyph(1) }, label = { Text("Memory") },
                     modifier = Modifier.testTag("nav-memory").semantics { stateDescription = if (state.capabilities?.structured_memory == true) "Owned statements and evidence" else "This server does not offer structured memory" },
+                )
+                NavigationBarItem(
+                    selected = state.destination == ChatDestination.Documents,
+                    enabled = state.capabilities?.let { it.document_uploads && it.document_ingestion == "text_markdown_v1" } == true,
+                    onClick = { focus.clearFocus(); vm.navigate(ChatDestination.Documents) }, icon = { NavigationGlyph(1) }, label = { Text("Documents") },
+                    modifier = Modifier.testTag("nav-documents"),
                 )
                 NavigationBarItem(
                     selected = state.destination == ChatDestination.Settings,
@@ -135,7 +141,12 @@ fun ChatApp(vm: ChatViewModel, openSettings: () -> Unit) {
                 ChatDestination.Chat -> ConversationScreen(state, vm, typing)
                 ChatDestination.Sources -> SourcesScreen(state, vm)
                 ChatDestination.Retrieval -> RetrievalScreen(state, vm)
-                ChatDestination.Memory -> MemoryScreens(vm.memory)
+                ChatDestination.Memory -> {
+                    if (state.capabilities?.let { it.scoped_entities && it.entity_writes && it.entity_resolution == "explicit_aliases_v1" } == true) TextButton({ vm.navigate(ChatDestination.Entities) }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("open-entities")) { Text("People, projects and aliases") }
+                    MemoryScreens(vm.memory)
+                }
+                ChatDestination.Entities -> EntityScreens(vm.entities) { vm.navigate(ChatDestination.Memory) }
+                ChatDestination.Documents -> DocumentScreens(vm.documents)
                 ChatDestination.Settings -> AccountSettingsScreen(state, vm, openSettings)
             }
         }
@@ -405,7 +416,9 @@ private fun ConversationContext(state: ChatState, vm: ChatViewModel, maximumHeig
         Text("Saved style: ${conversation.personality.name} · ${conversation.personality.style} · ${conversation.personality.warmth} · ${conversation.personality.detail}", style = MaterialTheme.typography.bodySmall)
         TextButton(onClick = { contextDetails = !contextDetails }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text(if (contextDetails) "Hide conversation details" else "Conversation details") }
         if (contextDetails) SafeChatText("Saved prompt: ${conversation.prompt_version}\nRevision: ${conversation.revision}\nConversation: ${conversation.id}\nScope: ${conversation.scope_id}", links = false)
-        if (conversation.prompt_version in setOf("ada-baseline-v1", "ada-baseline-v2") && state.capabilities?.chat_prompt_version == "ada-baseline-v3") {
+        if (conversation.prompt_version in setOf("ada-baseline-v1", "ada-baseline-v2", "ada-baseline-v3") &&
+            state.capabilities?.chat_prompt_version in setOf("ada-baseline-v3", "ada-baseline-v4") &&
+            conversation.prompt_version != state.capabilities?.chat_prompt_version) {
             Text("This conversation has an older saved prompt. Updating changes future replies; past answers stay as recorded.", style = MaterialTheme.typography.bodySmall)
             TextButton(onClick = { confirmUpgrade = true }, enabled = state.pending == null && !state.upgrading, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("prompt-upgrade")) { Text(if (state.upgrading) "Updating prompt…" else "Update saved prompt") }
         }
@@ -434,7 +447,7 @@ private fun EventCard(event: EventDto, state: ChatState, vm: ChatViewModel) {
             )
             SafeChatText(event.content)
             if (event.role == "assistant") {
-                val labels = remember(event.content) { Regex("\\[(M[1-9][0-9]*)]").findAll(event.content).map { it.groupValues[1] }.distinct().toList() }
+                val labels = remember(event.content) { Regex("\\[([MD][1-9][0-9]*)]").findAll(event.content).map { it.groupValues[1] }.distinct().toList() }
                 labels.forEach { label ->
                     TextButton(
                         onClick = { vm.openSources(event.request_id, label) },
@@ -443,7 +456,7 @@ private fun EventCard(event: EventDto, state: ChatState, vm: ChatViewModel) {
                 }
                 if (labels.isEmpty()) TextButton(onClick = { vm.openSources(event.request_id) }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Sources for this reply") }
                 val known = state.sources[event.request_id]
-                if (known?.request_id == event.request_id && labels.any { label -> known.citations.none { it.label == label } }) Text("Some source labels are unavailable for this saved reply.", style = MaterialTheme.typography.bodySmall)
+                if (known?.request_id == event.request_id && labels.any { label -> known.citations.none { it.label == label } && known.document_citations.none { it.label == label } }) Text("Some source labels are unavailable for this saved reply.", style = MaterialTheme.typography.bodySmall)
             }
         }
     }
@@ -526,6 +539,15 @@ private fun Composer(state: ChatState, vm: ChatViewModel, maximumHeight: Dp) {
                     Checkbox(state.useMemory, vm::updateMemory, enabled = !reserved, modifier = Modifier.semantics { contentDescription = "Use saved memory in this message" })
                     Text("Use saved memory", style = MaterialTheme.typography.bodyMedium)
                 }
+                if (state.capabilities?.let { it.document_retrieval && it.document_citations } == true) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(state.useDocuments, vm::updateDocuments, enabled = !reserved && state.useMemory && state.conversation?.prompt_version == "ada-baseline-v4",
+                            modifier = Modifier.testTag("use-documents").semantics { contentDescription = "Use imported documents in this message" })
+                        Text("Use imported documents", style = MaterialTheme.typography.bodyMedium)
+                    }
+                    if (state.conversation?.prompt_version != "ada-baseline-v4") Text("Explicitly update this conversation’s saved prompt to use imported documents.", style = MaterialTheme.typography.bodySmall)
+                    else if (!state.useMemory) Text("Turn on saved memory to use scoped evidence, including imported documents.", style = MaterialTheme.typography.bodySmall)
+                }
                 if (state.capabilities?.historical_memory_queries == true) OutlinedTextField(
                     state.asOf, vm::updateAsOf, label = { Text("Historical instant (optional)") },
                     supportingText = { Text("ISO 8601 with a timezone, for example 2026-10-08T12:00:00.000Z. Blank uses current memory.") },
@@ -555,13 +577,15 @@ private fun SourcesScreen(state: ChatState, vm: ChatViewModel) {
     val id = state.sourceRequestId
     val request = id?.let { state.sources[it] }?.takeIf { it.request_id == id }
     val cards = request?.citations.orEmpty().filter { state.sourceLabel == null || it.label == state.sourceLabel }
+    val documents = request?.document_citations.orEmpty().filter { state.sourceLabel == null || it.label == state.sourceLabel }
     LazyColumn(Modifier.fillMaxSize().testTag("sources-list"), contentPadding = androidx.compose.foundation.layout.PaddingValues(AdaSpacing.medium), verticalArrangement = Arrangement.spacedBy(AdaSpacing.medium)) {
         item { BackButton(vm::back); ScreenHeading("Sources", "These cards belong to this saved reply, with the original quotes and source versions."); StateFeedback(state) }
         if (state.sourceLoading) item { BusyIndicator("Loading sources for this reply") }
-        if (!state.sourceLoading && request != null && cards.isEmpty()) item {
+        if (!state.sourceLoading && request != null && cards.isEmpty() && documents.isEmpty()) item {
             StatusCard("Source unavailable", if (state.sourceLabel != null) "This label has no source card for the saved reply. It may refer to an older request without a recorded trace or an unknown label." else "No source cards are attached to this saved reply. Older requests may have no retrieval trace.")
         }
         items(cards, key = { "${it.label}:${it.claim_id}" }) { card -> ChatSourceCard(card, checkNotNull(id)) }
+        items(documents, key = { "${it.label}:${it.chunk_id}" }) { card -> DocumentSourceCard(card, checkNotNull(id)) }
         if (!state.sourceLoading && request == null && id != null) item {
             TextButton(onClick = { vm.openSources(id, state.sourceLabel) }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Try loading sources again") }
         }
@@ -581,10 +605,22 @@ private fun RetrievalScreen(state: ChatState, vm: ChatViewModel) {
         if (state.traceMissing) item { StatusCard("No recorded retrieval details", "This older request has no retrieval trace. Its saved reply remains the original reply; no context is reconstructed.") }
         if (trace != null) {
             item {
-                StatusCard("Recorded context", "Selected sources: ${trace.selected.size}\nCandidates considered: ${trace.candidates.size}\nRetrieval time: ${trace.retrieval_ms} ms\nMemory budget: ${trace.budget.memory_used_bytes} / ${trace.budget.memory_limit_bytes} bytes\nPrompt budget: ${trace.budget.prompt_used_bytes ?: "unknown"} / ${trace.budget.prompt_limit_bytes ?: "unknown"} bytes")
+                StatusCard("Recorded context", "Selected claims: ${trace.selected.size}\nSelected document excerpts: ${trace.document_selected.size}\nCandidates considered: ${trace.candidates.size + trace.document_candidates.size}\nRetrieval time: ${trace.retrieval_ms} ms\nEvidence budget: ${trace.budget.memory_used_bytes} / ${trace.budget.memory_limit_bytes} bytes\nPrompt budget: ${trace.budget.prompt_used_bytes ?: "unknown"} / ${trace.budget.prompt_limit_bytes ?: "unknown"} bytes")
             }
-            if (trace.selected.isEmpty()) item { Text("No evidence was selected for this request.") }
+            if (trace.selected.isEmpty() && trace.document_selected.isEmpty()) item { Text("No evidence was selected for this request.") }
+            items(trace.plan.entity_resolution.filter { it.state == "ambiguous" }, key = { "ambiguity:${it.name}" }) { resolution ->
+                Card(Modifier.fillMaxWidth().testTag("retrieval-entity-ambiguity")) {
+                    Column(Modifier.padding(AdaSpacing.medium), verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
+                        Text("Ambiguous identity: ${resolution.name ?: "self"}", style = MaterialTheme.typography.titleMedium)
+                        Text("This request kept these identities separate. Clarify the intended person or project before using its linked assertions.")
+                        resolution.candidates.forEach { candidate -> SafeChatText("${candidate.label} · ${candidate.kind}\n${candidate.id}", links = false) }
+                        if (resolution.truncated) Text("More matches existed; linked assertions were withheld.")
+                    }
+                }
+            }
+            if (trace.plan.entity_resolution_truncated) item { Text("The recorded identity summary is bounded; additional ambiguous linked assertions were withheld.") }
             items(trace.selected, key = { "${it.label}:${it.claim_id}" }) { card -> ChatSourceCard(card, trace.request_id) }
+            items(trace.document_selected, key = { "${it.label}:${it.chunk_id}" }) { card -> DocumentSourceCard(card, trace.request_id) }
         }
         if (!state.traceLoading && !state.traceMissing && trace == null) item { TextButton(onClick = vm::loadTrace, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Try loading retrieval details again") } }
     }

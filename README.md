@@ -7,14 +7,16 @@ Already running Phase 1? Start with [the upgrade guide](docs/UPGRADE-PHASE2.md).
 It includes installation into your existing project and the prompt upgrade for
 conversation `11b492c2-2667-44a3-bd9c-9a532f63c00f`.
 
-## Added in this phase
+## Implemented server and clients
 
 - Scope-bound full-text and subject retrieval over explicitly saved claims.
 - Current and dated lookups, with source hashes and exact quotes checked again at retrieval.
 - A whole-prompt budget covering the baseline, history, memory and current input.
 - Citation labels such as `[M1]`, mapped to the selected source snapshots.
 - Durable request traces, preserved across retries, corrections and server restarts.
-- Baseline v3, plus an explicit, audited upgrade for existing conversations.
+- Baseline v4 for new conversations, with existing v3 claim retrieval and explicit audited upgrades.
+- Immutable text/Markdown document uploads, exact chunks and separate `[D1]` imported excerpt cards.
+- Explicit scoped entities/aliases, ambiguous choices and audited reversible identity links.
 - A reproducible relevance/isolation benchmark and a Phase 1 upgrade installer.
 
 Each claim requires one user evidence version in its authorized scope. Its quote
@@ -24,12 +26,21 @@ The user explicitly supplies the subject/predicate/value annotation.
 
 Chat retrieves relevant saved claims from its conversation's scope. It also uses
 complete recent turns from that conversation. It does not extract or write claims.
-Tools, document ingestion, consolidation, affect learning, iOS and device
+Tools, PDF/OCR, embeddings, consolidation, affect learning, iOS and device
 inference are deferred. Phase 03 adds Android/web foundations; Phase 04 adds an
 Android authenticated chat client for these existing server APIs. Phase 05 adds
 explicitly granted, audited admin metadata APIs. Phase 06 adds a read-only admin
 dashboard with selectable palettes. Phase 07 adds Android explicit memory,
 exact evidence, valid-time corrections and new static personality profiles.
+Phase 08 adds bounded document ingestion/retrieval and Android upload/version/source
+screens. Imported documents remain untrusted evidence, separate from user claims.
+See [DOCUMENT-INGESTION.md](docs/DOCUMENT-INGESTION.md) for migration 0005,
+capabilities, limits, explicit document opt-in and prompt compatibility.
+Phase 09 adds owned entities/aliases, reviewed Android identity editing and frozen
+canonical interpretations alongside exact original evidence. See
+[ENTITIES-AND-ALIASES.md](docs/ENTITIES-AND-ALIASES.md) for migration **0006**,
+resolution policy, limits and recovery. Installing this source requires head 0006;
+the configured application database has not been upgraded by this implementation.
 
 ## New Windows installation
 
@@ -72,10 +83,12 @@ The CLI prints conversation and scope IDs. Resume with `chat --conversation UUID
 `/retry` reuses the last request ID. Completed retries return the saved answer.
 `/sources` shows evidence actually cited in the last answer; `/trace` shows all
 selected evidence and omission decisions for the last request. New conversations
-use `ada-baseline-v3`. Existing conversations retain their old
+use `ada-baseline-v4`. Existing conversations retain their old
 baseline until `ada upgrade-prompt CONVERSATION_UUID` explicitly archives and
 replaces it. The personality snapshot and events are preserved.
 Baseline v1/v2 conversations keep retrieval disabled until explicitly upgraded.
+Baseline v3 keeps claim retrieval; document retrieval needs the explicit v4 upgrade
+and `use_documents=true` with memory enabled. Completed replay preserves its sources.
 
 The prompt distinguishes ADA from the backend model and states this version's
 capabilities. Model compliance needs a real-model check. Prompts do not enforce

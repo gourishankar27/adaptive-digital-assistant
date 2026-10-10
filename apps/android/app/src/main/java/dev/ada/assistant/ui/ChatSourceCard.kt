@@ -35,6 +35,7 @@ fun ChatSourceCard(source: CitationDto, requestId: UUID, modifier: Modifier = Mo
     ) {
         Column(Modifier.padding(AdaSpacing.medium), verticalArrangement = Arrangement.spacedBy(AdaSpacing.medium)) {
             Text("Source [${source.label}]", style = MaterialTheme.typography.titleMedium)
+            source.entity?.let { SafeChatText("Explicit entity at this request: ${it.label} · ${it.kind}", links = false) }
             Text(
                 when (source.origin) { "user_asserted" -> "User assertion · source version ${source.source_version}"; else -> "Unrecognized origin · source version ${source.source_version}" },
                 style = MaterialTheme.typography.bodyMedium,

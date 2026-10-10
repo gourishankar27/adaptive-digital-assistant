@@ -8,6 +8,16 @@ from ada.api import create_app
 from scripts.client_test_server import AndroidChatProvider, seed_android_chat
 
 
+def test_fake_android_provider_only_cites_documents_from_selected_context():
+    provider = AndroidChatProvider()
+    claim = provider.complete([{"role": "user", "content": "Synthetic input"}])
+    assert claim.text == "[FAKE provider] Synthetic test reply [M1]."
+    imported = provider.complete(
+        [{"role": "system", "content": '{"excerpts":[{"label":"D1","quote":"synthetic"}]}'}]
+    )
+    assert imported.text == "[FAKE provider] Synthetic imported document reply [D1]."
+
+
 def test_helper_seed_has_owned_evidence_and_completed_replay(harness):
     h = harness
     seed_android_chat(h["sessions"], h["a_id"])

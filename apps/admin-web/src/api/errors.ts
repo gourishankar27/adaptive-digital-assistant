@@ -14,8 +14,14 @@ export function retryAfter(value: string | null, now = Date.now()): number | und
   return Number.isFinite(at) ? Math.min(Math.max(at - now, 0), 86400000) : undefined;
 }
 
-// Deliberately ignore error bodies: validator messages/proxy HTML may contain private input.
-export function httpFailure(status: number, after?: number): ApiFailure {
+// Only fixed, recognized service codes affect wording. Never echo a response body.
+export function httpFailure(status: number, after?: number, unavailableCode?: 'database_not_ready' | 'monitoring_unavailable'): ApiFailure {
+  if (status === 503 && unavailableCode) {
+    return {
+      kind: 'server', status, retryAfterMs: after, outcome: 'unavailable',
+      message: `${unavailableCode === 'database_not_ready' ? 'The backend database is not ready.' : 'Admin monitoring is unavailable.'} Ask the local operator to check database connectivity and apply the required migrations before restarting ADA.`,
+    };
+  }
   const map: Record<number, [FailureKind, string]> = {
     401: ['authentication', 'The credential is invalid or expired. Reconnect with a current token.'],
     403: ['forbidden', 'This account cannot access this resource.'],

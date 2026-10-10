@@ -1,8 +1,8 @@
 # Admin monitoring API — Phase 05
 
 The API exposes operational metadata to explicitly granted accounts. It does not
-expose private chat, prompt, response, source or document text. The browser remains
-the Phase 03 foundation; the dashboard is a separately selected Phase 06.
+expose private chat, prompt, response, source or document text. The Phase 06 browser
+dashboard reads these metadata APIs using the existing explicit admin policy.
 
 ## Migration and local operator commands
 
@@ -14,13 +14,24 @@ run the migration from the repository root when installing this change:
 .\.venv\Scripts\python.exe -m alembic check
 ```
 
-The supported head is **0004**. Migration 0004 adds empty `admin_grants`, metadata
-audit/state tables and request-monitoring indexes. It preserves populated users,
+The current supported head is **0006**. Admin monitoring was introduced by
+migration **0004**, which adds empty `admin_grants`, metadata audit/state tables
+and request-monitoring indexes. Phase 08 adds document ingestion in **0005**;
+Phase 09 adds explicit scoped identity in **0006**. Running the current source
+requires 0006 for readiness. It preserves populated users,
 credential hashes, requests, prompts and retrieval snapshots. Released migrations
 0001–0003 stay unchanged. Neither migration nor startup grants an account access.
 `/health/ready` rejects an old/unknown schema with sanitized 503; `/health/live`
 does not access the database or provider. Validation runs use disposable schemas;
 they do not migrate the user's configured application database.
+
+The reported admin login issue was repaired through a separately authorized
+**0004** application-database upgrade and an explicit grant for the user-selected
+account. That repair targets the pre-Phase 08 backend. Phase 08's **0005** migration
+was validated in disposable databases and remains a separate installation step,
+as does Phase 09's **0006**;
+it is not applied by the document implementation or browser tests. Restarting
+the new source against an application database still on 0004 will report not ready.
 
 Use the **account UUID** issued by `create-user` or returned by that account's
 authenticated `/v1/me`, not its display name:

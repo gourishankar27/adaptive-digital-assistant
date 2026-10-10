@@ -2,9 +2,16 @@
 
 `openapi.json` is exported from the implemented FastAPI routes. Phase 03 added
 output schemas. Phase 05 adds explicitly granted, audited monitoring metadata
-and requires migration 0004; no prompt upgrade is needed. Existing CLI/user clients
+and introduced migration 0004; no admin prompt upgrade is needed. Phase 08 adds
+document migration 0005, bounded text/Markdown uploads and separate imported document cards.
+Phase 09 adds head 0006 and typed explicit entities/aliases, resolution, history,
+previewed merge/undo and operation receipts. Optional canonical claim/card fields
+and resolution plans preserve original subjects/evidence and legacy defaults.
+See [ENTITIES-AND-ALIASES.md](../docs/ENTITIES-AND-ALIASES.md).
+Existing CLI/user clients
 use the same field names, statuses and retry fingerprints. Streaming, cancellation,
-uploads, device inference, enrollment and the monitoring dashboard remain absent.
+PDF/OCR, device inference and enrollment remain absent. The monitoring dashboard
+is implemented in Phase 06.
 
 All `/v1/` operations require a bearer credential. Ownership comes from the
 authenticated user, never a supplied owner ID, profile name, source label or
@@ -28,6 +35,7 @@ see [ADMIN-MONITORING.md](../docs/ADMIN-MONITORING.md) for fields and limits.
 | Retrieval | `RetrievalOutput`, `TraceOutput` | Direct retrieval and saved traces retain candidates, selected source snapshots, plan and budgets. |
 | Scopes | `ScopeOutput` | Creation returns 201. Owned personal/project scopes only. |
 | Sources | `SourceVersionOutput` | Explicit note creation returns 201, identical same-ID replay returns 200. Exact text/hash/trust are retained. |
+| Documents | `DocumentUploadOutput`, `DocumentVersionOutput`, `DocumentChunkOutput` | Authenticated raw text/Markdown upload, receipt replay and owned version/excerpt/raw reads. Imported trust is separate from legacy source/claim schemas. |
 | Claims/corrections | `ClaimOutput` | Explicit source-backed creation/correction returns 201, identical same-ID replay returns 200. Valid-time history remains available. |
 
 Owned resource lists use `limit`/`offset` and return arrays, without a fabricated total or cursor.
@@ -61,6 +69,8 @@ generation. Verify the same server/account, then GET the same request UUID.
 Running requests remain pending. Completed requests reconcile the saved answer
 and source cards. Failed requests permit an explicit retry using the same UUID,
 conversation, content, `as_of` and `use_memory`; reserved context remains frozen.
+Document-aware requests also preserve `use_documents`; omission/false retains
+legacy fingerprints, true uses a separate domain-bound option hash.
 A missing request permits a consciously offered submission of the original
 payload. Stop retries and clear private loaded state on 401.
 
@@ -83,10 +93,12 @@ unknown/malformed errors receive generic client wording and never fixture data.
 | 401 | Authentication required/invalid/revoked; stop automatic retries. |
 | 404 | Resource unavailable to this identity; clear its private display. |
 | 409 | Conflicting ID/payload, active conversation/request, changed history or unsupported upgrade; reconcile before retry. |
-| 413 | Message exceeds the whole prompt budget; preserve an editable draft. |
+| 408 | Document receive timed out/interrupted; retain the exact reservation and check its original upload ID. |
+| 413 | Message exceeds the prompt budget, or a document size/retained-data quota is reached; preserve input and inspect the safe reason. |
+| 415 | Unsupported document media type/format; review the exact saved input. |
 | 422 | Input/query validation; show sanitized field issues or code. |
 | 502 | Provider failure; inspect persisted failed request before offering exact retry. |
-| 503 | Admission busy (`Retry-After: 3`) or database not ready on health readiness; bounded backoff. |
+| 503 | Admission busy (`Retry-After: 3`) or schema/monitoring unavailable; bounded backoff and safe operator guidance. |
 
 Admin routes return 403 for known accounts without a current grant and 429 for
 bounded polling, with `Retry-After: 60`. DB/audit failures return sanitized 503.
@@ -98,6 +110,7 @@ Admin lists use bounded envelopes rather than changing existing user list arrays
 |---|---|
 | `ada-baseline-v1` / `ada-baseline-v2` | Original prompt/personality retained; fresh retrieval disabled with `prompt_upgrade_required` until explicit upgrade. |
 | `ada-baseline-v3` | Scoped retrieval enabled when `use_memory` and time policy permit it. |
+| `ada-baseline-v4` | Same claim retrieval, plus imported document excerpts only with `use_documents=true` and memory/time policy enabled. |
 | Other versions | No inferred compatibility or automatic rewrite; the current upgrade operation rejects unsupported versions. |
 
 Prompt upgrade archives the old/new prompts and increments revision. It preserves
@@ -116,6 +129,15 @@ may defensively accept older wire payloads without citation fields, but may not
 reconstruct missing sources from the latest claims. Direct retrieval lacks chat
 prompt/history budget keys; unranked slot siblings lack score/term-coverage keys.
 Typing keeps these absences and any saved additive trace metadata.
+
+Document cards use `D1` labels and separate `document_citations`,
+`document_selected` and `document_candidates` arrays. Old claim schemas, M labels,
+saved arrays and completed replay remain intact. New conversations freeze v4;
+v1/v2/v3 upgrade explicitly with an audit through the existing operation. Legacy
+source-version routes retain their two original trust classes; imported versions
+are read through dedicated document routes. See
+[DOCUMENT-INGESTION.md](../docs/DOCUMENT-INGESTION.md) for availability semantics,
+storage/recovery quotas, raw-upload media types, snapshots and PDF deferral.
 
 ## Synthetic fixtures and verification
 

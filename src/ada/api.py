@@ -27,6 +27,9 @@ from ada.contracts import (
     ValidationErrorOutput,
 )
 from ada.db import connect
+from ada.document_api import document_router
+from ada.documents import MAX_UPLOAD_BYTES
+from ada.entity_api import entity_router
 from ada.evidence import public_source_version, validate_text
 from ada.memory import (
     ClaimInput,
@@ -56,6 +59,7 @@ from ada.personality import PROMPT_VERSION, build_prompt
 from ada.providers import FakeProvider, OllamaProvider
 from ada.retrieval import (
     CitationOutput,
+    DocumentCitationOutput,
     RetrievalOutput,
     RetrieveInput,
     lock_scope_for_retrieval,
@@ -123,6 +127,7 @@ class ChatInput(StrictInput):
     content: str = Field(min_length=1, max_length=4000)
     as_of: AwareDatetime | None = None
     use_memory: bool = Field(default=True, strict=True)
+    use_documents: bool = Field(default=False, strict=True)
 
     @field_validator("as_of")
     @classmethod
@@ -151,6 +156,7 @@ class RequestOutput(BaseModel):
     input_tokens: int | None
     output_tokens: int | None
     citations: list[CitationOutput]
+    document_citations: list[DocumentCitationOutput] = Field(default_factory=list)
     citation_warnings: list[str]
 
 
@@ -201,7 +207,10 @@ def create_app(settings=None, provider=None, sessions=None):
     @app.middleware("http")
     async def monitoring_cache(request: HttpRequest, call_next):
         response = await call_next(request)
-        if request.url.path.startswith("/v1/admin/"):
+        if request.url.path.startswith("/v1/admin/") or (
+            request.url.path.startswith("/v1/")
+            and ("/document-" in request.url.path or "/documents" in request.url.path)
+        ):
             response.headers["Cache-Control"] = "no-store"
         return response
 
@@ -245,6 +254,8 @@ def create_app(settings=None, provider=None, sessions=None):
 
     app.state.admin = Monitoring(sessions, settings, provider, service)
     app.include_router(admin_router(app.state.admin, current_user))
+    app.include_router(document_router(sessions, current_user, error_responses))
+    app.include_router(entity_router(sessions, current_user, error_responses))
 
     def owned_conversation(db, owner, conversation_id):
         row = db.scalar(
@@ -282,6 +293,14 @@ def create_app(settings=None, provider=None, sessions=None):
         return {
             "api_version": "v1",
             "admin_monitoring": True,
+            "document_ingestion": "text_markdown_v1",
+            "document_uploads": True,
+            "document_retrieval": True,
+            "document_citations": True,
+            "document_max_bytes": MAX_UPLOAD_BYTES,
+            "scoped_entities": True,
+            "entity_resolution": "explicit_aliases_v1",
+            "entity_writes": True,
             "chat": True,
             "streaming": False,
             "tools": False,
@@ -468,6 +487,7 @@ def create_app(settings=None, provider=None, sessions=None):
             body.content,
             as_of=body.as_of,
             use_memory=body.use_memory,
+            use_documents=body.use_documents,
         )
 
     @app.get(
@@ -550,6 +570,7 @@ def create_app(settings=None, provider=None, sessions=None):
                 plan_query(body.query, body.as_of),
                 limit=body.limit,
                 budget_bytes=body.budget_bytes,
+                use_documents=body.use_documents,
             )
 
     @app.post(
@@ -583,7 +604,11 @@ def create_app(settings=None, provider=None, sessions=None):
             owned_scope(db, owner, str(scope_id))
             rows = db.scalars(
                 select(SourceVersion)
-                .where(SourceVersion.owner_id == owner, SourceVersion.scope_id == str(scope_id))
+                .where(
+                    SourceVersion.owner_id == owner,
+                    SourceVersion.scope_id == str(scope_id),
+                    SourceVersion.trust_class.in_(("user_explicit", "model_generated")),
+                )
                 .order_by(SourceVersion.created_at, SourceVersion.id)
                 .limit(limit)
                 .offset(offset)
@@ -599,7 +624,9 @@ def create_app(settings=None, provider=None, sessions=None):
         with sessions() as db:
             row = db.scalar(
                 select(SourceVersion).where(
-                    SourceVersion.owner_id == owner, SourceVersion.id == str(source_version_id)
+                    SourceVersion.owner_id == owner,
+                    SourceVersion.id == str(source_version_id),
+                    SourceVersion.trust_class.in_(("user_explicit", "model_generated")),
                 )
             )
             if row is None:

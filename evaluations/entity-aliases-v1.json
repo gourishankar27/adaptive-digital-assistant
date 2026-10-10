@@ -1,0 +1,25 @@
+{
+  "version": "explicit-aliases-v1",
+  "provenance": "Entirely synthetic explicit names, scopes and exact assertions; no fuzzy matching, private data or inference.",
+  "entities": [
+    {"key":"atlas","label":"Research build","kind":"project","aliases":["ＡＤＡ","Straße","Café"],"text":"Synthetic research uses cobalt. 😀 é"},
+    {"key":"alex_one","label":"Alex One","kind":"person","aliases":["Alex","UniquePersonOne"],"text":"Synthetic first person prefers copper."},
+    {"key":"alex_two","label":"Alex Two","kind":"person","aliases":["alex"],"text":"Synthetic second person prefers silver."},
+    {"key":"foreign_scope","label":"Other scope","kind":"project","scope":"other","aliases":["OtherScopeOnly"],"text":"Synthetic other scope uses emerald."},
+    {"key":"foreign_owner","label":"Other owner","kind":"project","scope":"bob","aliases":["OwnerOnly"],"text":"Synthetic other owner uses garnet."},
+    {"key":"self","label":"Explicit person","kind":"person","self":true,"aliases":[],"text":"Synthetic explicit person prefers violet."}
+  ],
+  "queries": [
+    {"query":"ADA","expected":["atlas"],"state":"resolved"},
+    {"query":"ＳＴＲＡＳＳＥ","expected":["atlas"],"state":"resolved"},
+    {"query":"Café","expected":["atlas"],"state":"resolved"},
+    {"query":"Cafe","expected":[],"state":"absent"},
+    {"query":"АDA","expected":[],"state":"absent"},
+    {"query":"Alex","expected":[],"state":"ambiguous"},
+    {"query":"UniquePersonOne","expected":["alex_one"],"state":"resolved"},
+    {"query":"OtherScopeOnly","expected":[],"state":"absent"},
+    {"query":"OwnerOnly","expected":[],"state":"absent"},
+    {"query":"my","expected":["self"],"state":"resolved"},
+    {"query":"ADAA","expected":[],"state":"absent"}
+  ]
+}

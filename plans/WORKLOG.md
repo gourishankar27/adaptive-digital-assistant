@@ -633,3 +633,269 @@ clean, 31 baseline hashes still match and later phase files are unchanged.
 Repository-configured git diff --check passed. A preliminary override disabling
 autocrlf treated existing CRLF endings as trailing whitespace; the correct check
 used the repository's normalization, without rewriting preserved files.
+
+## 2026-10-10 UTC — admin login repair and Phase 08 — base `1ca228a` plus working tree
+
+Scope: fix the reported admin login failure, then implement only Phase 08
+text/Markdown checkpoints 1–4. Required/root/scoped instructions, current source,
+OpenAPI, migration state and test baselines were read before changes. Phase 2 and
+Android Phase 03/04/07 prerequisites existed. No later phase or Phase 08 deployment.
+
+Changed behavior/files: safe fixed admin readiness guidance, without displaying
+raw error bodies; new document service/API/contracts and migration 0005; exact
+chunks and native lexical projection; typed imported document retrieval/cards;
+Android Documents, exact preview, explicit upload/version/excerpt reads and
+encrypted same-ID recovery; OpenAPI/web DTO export and related tests/corpus/docs.
+Server/Android/web dependencies, locks, wrappers and catalog remain unchanged.
+
+Data/API/prompt changes:
+
+- Owner-bound raw blobs and upload fingerprints retain exact UTF-8 content,
+  metadata, availability and stable source/new version identities. Reserve, parse
+  outside transactions, validate then atomically publish all version/chunk/index
+  rows. Failed/processing receipts remain private with no partial searchable text.
+  Quotas count failures; 30-second leases and three attempts fence explicit replay.
+- Migration 0005 follows byte-preserved released 0001–0004. Imported/untrusted
+  evidence cannot support the existing user-claim writer. Dedicated authenticated
+  raw/status/version/chunk routes preserve legacy source DTO trust enums.
+- `use_documents` defaults false and requires memory enabled. Original hashes,
+  claim arrays, exact v3 prompts and completed replay survive. v3 claim retrieval
+  remains supported; v4 document context requires explicit audited upgrade for
+  old conversations. New conversations freeze v4. D cards/snapshots are separate,
+  owner/scope/publication/availability checked before candidates/context, and
+  complete excerpts share existing budgets. Model I/O remains outside transactions.
+- Android `0.8.0-documents`/versionCode 4 uses a stricter 64 KiB upload bound and
+  encrypted record v3/256 KiB. It reads v1/v2, keeps exact pending chat/memory/document
+  IDs/bytes, verifies identity and never automatically writes after restoration.
+  Current capabilities gate controls; old request cards retain original versions.
+- PDF checkpoint explicitly deferred. No OCR, archives, remote fetch, embeddings,
+  extraction/promotion, new dependencies or automatic retention/deletion service.
+
+Admin repair evidence and authorized application change:
+
+- Read-only configured-database diagnosis found head 0003. In-process liveness
+  200/readiness 503 reproduced `database_not_ready`; admin policy requires migration
+  0004 and an explicit existing-account grant. Browser origin is the documented
+  same-origin Vite proxy. No active 8000/5173 listener was available to verify the
+  user's actual browser session.
+- User explicitly selected account `gourishankar`. Unique existing-name lookup
+  resolved its exact UUID; the server grant used that UUID, not name-based authority.
+  A private custom-format pg_dump backup was validated with pg_restore listing
+  before mutation. Native Windows path output attempts failed, with no DB mutation;
+  Python-owned binary streams produced the verified 69,300-byte archive.
+- At 03:51:22 UTC the configured application DB upgraded **0003→0004 only**, with
+  the explicit audited admin grant. Existing table row counts were preserved.
+  No private chat/source read, token rotation or provider generation was performed.
+  The backup stays outside the repository. No secret/DSN is recorded here.
+- **0005 is not installed in that application database.** Running this new source
+  requires a separate backed-up 0005 installation and one-worker restart. The
+  requested login repair and Phase 08 source readiness are distinct. No live
+  user-browser success is claimed. Known web readiness errors now explain the
+  operator action; unknown/private/HTML/malformed bodies remain generic.
+
+Checks actually run and results:
+
+- Initial pytest: **87 passed/69 skipped**, 17.78 seconds; Ruff **48 files** passed.
+  Initial dedicated PostgreSQL suite: **152 passed/4 skipped**, 39.99 seconds.
+  Existing web 45-unit/contract/type/lint baseline passed. Android baseline
+  **98 unit tests**, no failures/skips, lint/debug build passed with all 53 tasks
+  executed; evidence 03:43:30 UTC. Existing warning/notices remain visible.
+- Failure tests preceded expansion: new API had three expected failures plus
+  unconfigured PostgreSQL skips; storage/retrieval initially failed collection
+  before models existed. Two synthetic retrieval fixtures were corrected for
+  max-chunk size/date eligibility. Seven Windows-name tests and a line-end check
+  failed before fixes; a temporarily mismatched evaluator line rule was corrected.
+  Web had two expected readiness failures before implementation. Android journal
+  initially had five expected failures/one rejection pass. Two later Android
+  receipt/content-integrity regressions failed before strengthening validation.
+- An early full ordinary run had **1 failed/122 passed/99 skipped** due to a stale
+  admin head assertion; it was changed to the actual supported-head invariant.
+  Early combined PostgreSQL run: **217 passed/5 skipped** before review additions.
+  Storage focused PostgreSQL/SQLite: **71 passed/2 expected SQLite lock skips**;
+  retrieval/compatibility/evaluation: **50 passed/2 expected SQLite shared-lock
+  skips**. Portable corpus-provenance test: **1 passed**.
+- Final ordinary `pytest -q`: **137 passed/114 skipped**, 33.96 seconds. Final
+  `scripts/test-postgres.ps1`: **244 passed/7 skipped**, 69.46 seconds. Seven skips:
+  five SQLite concurrency variants that require PostgreSQL row/shared locks and
+  two opt-in real-provider health cases. Full PostgreSQL counterparts ran. Ruff
+  lint/format: **58 files passed**. Existing Starlette/httpx warning remains.
+- After the complete run, stronger response OpenAPI validation and actual HTTP
+  upload→D citation→new version→old replay assertions were added; affected API
+  rerun on SQLite and dedicated PostgreSQL: **6 passed**, 3.73 seconds. No backend
+  runtime change followed the complete suite.
+- `scripts/evaluate_documents.py`: nine versions/five positive/six negative
+  queries; public repository README first paragraph at `1ca228a` copied for two
+  synthetic owners plus seven synthetic inputs. SQLite and PostgreSQL recall@5,
+  MRR@5/exact evidence all **1.0**; zero known-excerpt/isolation/negative failures.
+  Existing PostgreSQL claim evaluator recall/MRR **0.8667**, exact **1.0**, zero
+  isolation/negative failures. Small deterministic lexical measurements are not
+  production latency, real inference or answer-entailment evidence.
+- Web fresh `npm ci`: **270 packages**, audit **0 vulnerabilities**, existing
+  whatwgencoding notice. Contract generation/freshness, typecheck/lint, **51 unit
+  tests**, build passed. Dev Chromium initially **5 passed**. Added readiness test
+  then final production-build Chromium **6 passed**, 18.2 seconds, 04:01:58 UTC.
+  Synthetic 503 precedes real authenticated disposable-PostgreSQL sign-in; focus,
+  token cleanup/cooldown/no silent retry and actual grants/revocation are checked.
+  A root export command used the web cwd once and failed to locate `.venv`; the
+  corrected root command exported successfully. No check was counted from that
+  failed invocation. No credentialed screenshot/trace was retained.
+- Final Android unit/lint/debug/unsigned release/test-APK builds: **120 unit tests**,
+  zero failures/skips, lint zero errors/14 existing dependency availability notices.
+  First small-layout emulator run: **21 passed/3 failed**, due to actual safe error
+  code mismatch, an emulator/server clock assumption and preview text semantics.
+  Second: **22 passed/2 failed**, due to a same-owner cross-scope test expecting 404
+  where the declared conflict is 409, and an existing correction UI IME race.
+  Corrected expectations/synchronization preserve contract/assertions. Final
+  complete emulator/process-stop evidence is appended below. A transient adb
+  offline install after daemon restart was retried on the explicit emulator.
+
+Read-only final compatibility review against `1ca228a`: 27 original OpenAPI
+paths/31 operations/43 schemas preserve existing parameters, fields, requirements,
+enums, security and response definitions. Seven schemas add optional fields;
+seven paths are new. Export matches actual routes. Released 0001–0004 have no Git
+diff; retained v3 AST prompt string is byte-identical. Four legacy option/hash
+cases match, including explicit `use_documents=false`. Ownership, historical
+version exclusion, trust rejection, atomic publication and frozen traces were
+reviewed without further runtime edits or a blocking defect.
+
+Windows/PostgreSQL/device/model evidence: Windows host, Python 3.12, pinned JDK21/
+Gradle8.13/SDK36, Node24.12/npm11.6.2. Dedicated disposable PostgreSQL schemas and
+migrated SQLite were used for tests. Emulator is Android17/API37 WHPX, small
+480×320 dp landscape and 1.5× text. Explicit FakeProvider HTTP is real API traffic
+with synthetic owners/content, not real Ollama generation. A physical device
+briefly appeared then disconnected before allowed read-only properties could
+verify identity; no phone install/launch/settings/data action was performed.
+
+Checks skipped/remaining issues: physical S24 FE/Android16 install/connect/upload/
+cited-source/version/recovery/token checks, release trusted HTTPS, TalkBack/manual
+visual/keyboard/IME/file-picker review, API26 behavior and real-model known-source
+verification remain. Live-provider health checks were not opted in. Browser HTTPS,
+manual accessibility/other browsers and operational load/backup-restore exercises
+remain. Application 0005 installation is intentionally unperformed. Raw blobs,
+failed receipts and snapshots are retained within quotas without an automatic
+cleanup/delete service; PDF and later features are explicitly deferred.
+
+Next eligible checkpoint: Phase 09 only if separately selected. Stop at Phase 08;
+do not treat target checks or this implementation as deployment authorization.
+
+### 2026-10-10 UTC — Phase 09 entities and aliases — 1ca228a + preserved Phase 08 tree
+
+Scope: only the separately selected scoped identity milestone. Required planning,
+root/client instructions, current source/OpenAPI/migration/test state and actual
+Phase 03/current Phase 2 prerequisites inspected before implementation. Existing
+uncommitted Phase 08 work was preserved. No later phase or deployment is included.
+
+Changed behavior/files: `entity_models.py`, `entities.py`, typed entity contracts/
+router, additive migration 0006, optional explicit memory reference/link history,
+authorized alias retrieval/conflict grouping and frozen resolution. Existing
+Android Memory hosts EntityController/EntityScreens with duplicate review, aliases,
+rename, explicit self, subject link/clear, preview/confirmed merge and undo. Exact
+operation/body recovery extends the existing Keystore record to v4/256 KiB and
+preserves older journals. Old source cards keep original entity interpretations;
+recorded retrieval shows ambiguous alternatives. OpenAPI/generated web types and
+current docs/capabilities/gates updated. Dependencies/wrappers remain unchanged.
+
+Data/API/prompt changes: no inferred backfill. Owner/scope composite constraints,
+exact NFKC/case/whitespace policy, permitted collisions, explicit candidate/self
+selection, retained historical intervals/lineage/receipts and scope row locks.
+Every write reserves one operation UUID with frozen 200 replay/201 new receipt;
+changed inputs, foreign IDs, stale previews, redirect cycles and quota failures
+cannot produce a partial audit/side effect. Merge does not move original evidence.
+Missing correction references remain null and preserve legacy fingerprints.
+Ambiguous roots are withheld before ranking/context; truncation is conservative.
+v4/current and v3 claim prompts, old traces, hashes and completed replay survive.
+
+Checks actually run and results:
+
+- Fresh backend baseline: ordinary **137 passed/114 skipped**, Ruff 58 files.
+  Initial PostgreSQL preparation failed on refused local connectivity without
+  executing tests. Started the existing compose `db` service and reran against
+  the dedicated test database: **244 passed/7 skips**, 198.07 s. No application
+  migration was run. Android baseline unit/lint/build succeeded; its 121-unit
+  artifact was cached and is recorded as such.
+- Full changed ordinary pytest **150 passed/129 skipped**, 185.74 s; full dedicated
+  PostgreSQL/SQLite **271 passed/8 skips**, 304.92 s. After two new history/truncation
+  tests, the final affected entity/storage/history/corpus/document-upgrade suite
+  was **35 passed/1 SQLite lock skip**, 47.21 s. Actual PostgreSQL foreign-key,
+  opposite-merge row-lock, populated upgrade/check/downgrade and old replay checks
+  passed. Offline PostgreSQL 0005→0006 SQL compiled. Final Ruff lint/format check
+  passed **112 files**. Existing Starlette/httpx deprecation warning remains.
+- Explicit synthetic alias corpus **11/11 on SQLite and PostgreSQL**, zero false
+  resolution, isolation and exact-evidence failures. This is deterministic policy
+  verification rather than production relevance, truth or model quality.
+- Android pinned JDK21/Gradle8.13/SDK36 final unit/lint/debug/unsigned-release/test-
+  APK build passed: **134 unit tests**, zero skips; lint zero errors/14 existing
+  dependency notices. APK metadata: `0.9.0-entities`, code 5, minimum 26/target 36.
+  Actual-emulator script final **25 ordinary passes**, then **2 chat + 2 memory +
+  2 document + 2 entity force-stop stages passed** and successful cold launch.
+  Real HTTP and production Compose/Keystore are exercised against disposable
+  SQLite with explicit synthetic evidence and FakeProvider; no Ollama call.
+- Web generated contract/freshness, typecheck, lint, **51 unit cases**, production
+  build and **6 production-build Chromium cases** passed. Browser integration used
+  disposable PostgreSQL for current grants/denial/revocation and the existing safe
+  readiness flow; synthetic provider failures/health remain clearly labeled.
+  Final pinned `npm ci`: **270 packages, audit zero vulnerabilities**, with the
+  existing whatwg-encoding deprecation notice; post-install contract/type/lint/
+  build checks passed. No web runtime behavior changed in Phase 09 beyond types.
+- Compatibility audit: **34 old paths/all operations and 48 schemas** retained;
+  original fields/required lists/parameters/security/response references unchanged.
+  Optional additions in six schemas and 13 new paths. **76 protected hashes**
+  matched the phase-start capture, including prior 0001–0005, original fixtures,
+  prompts and pinned dependencies/wrappers/later phases. Diff whitespace check
+  passed with Windows autocrlf notices. No old validation evidence was rewritten.
+
+Intermediate failures preserved: missing entity routes and alias expansion were
+red before implementation. An optional-reference DB argument was fixed. Empty
+0006 rollback required a document-upgrade test to restore head after 0005 correctly
+refused data loss. Android journal/interface/UI syntax and test constructor
+compilation errors were fixed before successful reruns. Initial emulator **23/25**
+passed; lazy scrolling and partial-label assertion were corrected, then **25/25**
+passed. Document force-stop resume subsequently reached an off-screen D quote and
+failed (including a run compiled before the final source-scroll fix); the final
+complete run passed all eight stages. Synthetic history tests corrected a route
+and citation-producing provider fixture. Read-only operator-check shell quoting,
+schema column and case assumptions were fixed without any database write.
+
+Carryover evidence: preceding Phase 08's 120-unit result remains historical. Its
+late 121-case artifact compiled, but its last final document resume/emulator work
+was unfinished at the phase boundary. The Phase 09 regression now closes that
+automated recovery check on code 5, including late SAF identity/draft fencing and
+document source cards. Prior 24 ordinary and four chat/memory staged passes plus
+the failed document resume remain recorded separately.
+
+Windows/PostgreSQL/device/model evidence: Windows host/Python3.12, pinned JDK21,
+Gradle8.13/SDK36, Node24.12/npm11.6.2. Task-created Android17/API37 WHPX emulator,
+480×320 dp landscape and 1.5× text. No physical-phone action or actual-model run.
+Final read-only application inspection found schema **0005**, one unambiguous
+case-normalized selected account match and one active grant. This phase performed
+no application migration or grant; current source needs **0006** separately.
+Dedicated test schemas were removed (zero remaining); final cleanup below records
+helper/credential/emulator/database state.
+
+Checks skipped/remaining issues: physical S24 FE/Android16 and API26 install/
+connect/entity/canonical-source/ambiguity/recovery/token/logout behavior; verified
+release HTTPS, TalkBack, hardware keyboard and manual visual/IME accessibility;
+actual server/network interruption and Ollama known-source checks. Opt-in provider
+health cases were not enabled; SQLite cannot prove PostgreSQL scope locking.
+Browser HTTPS/manual accessibility/other browsers, production load and operational
+backup/restore remain unverified. Identity histories count toward retained quotas;
+no automatic deletion/cleanup, inference, cross-user graph or later feature exists.
+
+Next eligible checkpoint: Phase 10 only after a separate request. Stop at Phase 09;
+remaining target verification does not authorize deployment or further milestones.
+
+Final refinement and cleanup, **2026-10-10 10:08:59 UTC**: added a null-character
+negative check before encrypted entity reservation. Final build/unit/lint checks
+again passed all 134 unit cases; focused real-HTTP entity UI passed one case and
+all eight chat/memory/document/entity force-stop stages passed again, with successful
+cold launch. This follows the separate full 25-case emulator pass. Clean web
+install was followed by successful contract/type/lint/build checks. Expanded audit
+matched **85 protected hashes** and verified **57 changed UTF-8/NUL/Markdown-link
+files**. A command-local autocrlf override produced CRLF-only whitespace failures;
+the repository-configured diff check passed and no line-ending rewrite was made.
+
+Final read-only state: application schema 0005 and selected active grant preserved,
+zero disposable PostgreSQL schemas, no helper listener, test credential or encrypted
+journal. Emulator display/font reset; task-launched emulator shut down. Existing
+compose DB restored to its initially stopped state with its volume/grants retained.
+No 0006 application installation or physical-phone/deployment action was performed.

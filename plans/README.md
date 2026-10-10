@@ -10,8 +10,10 @@ request recovery and original source cards. Physical-phone and release checks
 remain distinct from local verification. Phase 05 implements explicit grants,
 audited metadata APIs and bounded provider health. Phase 06 implements the read-only
 admin dashboard with selectable palettes. Phase 07 adds explicit Android memory,
-exact evidence/correction recovery and new static personality profiles. Later
-backend features remain planned.
+exact evidence/correction recovery and new static personality profiles. Phase 08
+adds bounded text/Markdown upload/version/chunk retrieval and Android document UI.
+Phase 09 adds explicit scoped identities, aliases, historical links, reversible
+merge and Android review/recovery. Later backend features remain planned.
 The Windows/PostgreSQL rerun closes the 02A fixture gate;
 see STATUS/WORKLOG for preserved historical and current evidence.
 

@@ -42,6 +42,10 @@ val adaJson = Json { ignoreUnknownKeys = true; explicitNulls = false; encodeDefa
     val historical_memory_queries: Boolean, val private_project_scopes: Boolean,
     val shared_scopes: Boolean, val edge_inference: Boolean, val personality_isolation: Boolean,
     val authority: String, val provider: String, val model: String,
+    val document_ingestion: String = "unsupported", val document_uploads: Boolean = false,
+    val document_retrieval: Boolean = false, val document_citations: Boolean = false,
+    val document_max_bytes: Int = 0,
+    val scoped_entities: Boolean = false, val entity_writes: Boolean = false, val entity_resolution: String = "unsupported",
 )
 @Serializable data class PersonalitySnapshotDto(
     val name: String, val style: String, val warmth: String, val detail: String,
@@ -72,12 +76,14 @@ val adaJson = Json { ignoreUnknownKeys = true; explicitNulls = false; encodeDefa
     val id: UUID, val scope_id: UUID, val subject: String, val predicate: String, val value: String,
     val kind: String, val status: String, val valid_from: Long, val valid_to: Long? = null,
     val superseded_by: UUID? = null, val created_at: Long, val origin: String, val evidence: EvidenceDto,
+    val subject_entity_id: UUID? = null,
 )
 @Serializable data class CitationDto(
     val label: String, val claim_id: UUID, val scope_id: UUID, val subject: String,
     val predicate: String, val value: String, val kind: String, val valid_from: Long,
     val valid_to: Long? = null, val origin: String, val evidence: EvidenceDto,
     val source_id: UUID, val source_version: Int, val conflict: Boolean,
+    val subject_entity_id: UUID? = null, val entity: EntityChoiceDto? = null,
 )
 @Serializable data class RequestDto(
     val request_id: UUID, val conversation_id: UUID, val status: String,
@@ -85,6 +91,7 @@ val adaJson = Json { ignoreUnknownKeys = true; explicitNulls = false; encodeDefa
     val provider: String, val model: String, val input_tokens: Int? = null,
     val output_tokens: Int? = null, val citations: List<CitationDto> = emptyList(),
     val citation_warnings: List<String> = emptyList(),
+    val document_citations: List<DocumentCitationDto> = emptyList(),
 ) {
     val observedState: ObservedRequestState get() = when (status) {
         "running" -> ObservedRequestState.Running
@@ -98,17 +105,21 @@ enum class ObservedRequestState { Running, Completed, Failed, Unknown }
     val enabled: Boolean, val reason: String, val time_mode: String, val as_of: Long? = null,
     val query_terms: List<String>, val expanded_terms: List<String>, val subject_keys: List<String>,
     val overview: Boolean, val prompt_version: String? = null,
+    val entity_resolution: List<EntityResolutionDto> = emptyList(),
+    val entity_resolution_truncated: Boolean = false,
 )
 @Serializable data class RetrievalDto(
     val version: String, val scope_id: UUID, val plan: RetrievalPlanDto,
     val candidates: List<RetrievalCandidateDto>, val selected: List<CitationDto>, val budget: RetrievalBudgetDto,
     val retrieval_ms: Long,
+    val document_selected: List<DocumentCitationDto> = emptyList(), val document_candidates: List<DocumentCandidateDto> = emptyList(),
 )
 @Serializable data class TraceDto(
     val request_id: UUID, val conversation_id: UUID, val created_at: Long,
     val version: String, val scope_id: UUID, val plan: RetrievalPlanDto,
     val candidates: List<RetrievalCandidateDto>, val selected: List<CitationDto>, val budget: RetrievalBudgetDto,
     val retrieval_ms: Long,
+    val document_selected: List<DocumentCitationDto> = emptyList(), val document_candidates: List<DocumentCandidateDto> = emptyList(),
 )
 @Serializable data class PromptUpgradeDto(
     val id: UUID, val prompt_version: String, val revision: Int,
@@ -132,6 +143,7 @@ enum class ObservedRequestState { Running, Completed, Failed, Unknown }
 )
 @Serializable data class ChatInputDto(
     val request_id: UUID, val content: String, val as_of: String? = null, val use_memory: Boolean = true,
+    val use_documents: Boolean = false,
 )
 @Serializable data class ScopeInputDto(val name: String, val kind: String = "project")
 @Serializable data class NoteInputDto(val source_id: UUID, val content: String)

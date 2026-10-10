@@ -10,6 +10,7 @@ from sqlalchemy import (
     ForeignKeyConstraint,
     Index,
     Integer,
+    LargeBinary,
     String,
     Text,
     UniqueConstraint,
@@ -170,7 +171,8 @@ class Source(Base):
         ),
         CheckConstraint(
             "(kind = 'chat_event' AND event_id IS NOT NULL AND conversation_id IS NOT NULL) "
-            "OR (kind = 'user_note' AND event_id IS NULL AND conversation_id IS NULL)",
+            "OR (kind IN ('user_note', 'imported_document') "
+            "AND event_id IS NULL AND conversation_id IS NULL)",
             name="source_origin_allowed",
         ),
     )
@@ -194,7 +196,8 @@ class SourceVersion(Base):
         ),
         CheckConstraint("version >= 1", name="source_version_positive"),
         CheckConstraint(
-            "trust_class IN ('user_explicit', 'model_generated')", name="source_trust_allowed"
+            "trust_class IN ('user_explicit', 'model_generated', 'imported_untrusted')",
+            name="source_trust_allowed",
         ),
     )
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
@@ -214,6 +217,11 @@ class Claim(Base):
         UniqueConstraint("owner_id", "scope_id", "id"),
         UniqueConstraint("owner_id", "scope_id", "write_hash", name="claim_write_unique"),
         ForeignKeyConstraint(["owner_id", "scope_id"], ["scopes.owner_id", "scopes.id"]),
+        ForeignKeyConstraint(
+            ["owner_id", "scope_id", "subject_entity_id"],
+            ["entities.owner_id", "entities.scope_id", "entities.id"],
+            name="claim_subject_entity_scoped",
+        ),
         ForeignKeyConstraint(
             ["owner_id", "scope_id", "source_version_id"],
             ["source_versions.owner_id", "source_versions.scope_id", "source_versions.id"],
@@ -236,6 +244,7 @@ class Claim(Base):
     owner_id: Mapped[str] = mapped_column(String(36))
     scope_id: Mapped[str] = mapped_column(String(36))
     subject: Mapped[str] = mapped_column(String(160))
+    subject_entity_id: Mapped[str | None] = mapped_column(String(36))
     predicate: Mapped[str] = mapped_column(String(160))
     value: Mapped[str] = mapped_column(Text)
     kind: Mapped[str] = mapped_column(String(20))
@@ -309,9 +318,144 @@ class RetrievalTrace(Base):
     plan: Mapped[dict] = mapped_column(JSON)
     candidates: Mapped[list] = mapped_column(JSON)
     selected: Mapped[list] = mapped_column(JSON)
+    document_candidates: Mapped[list] = mapped_column(JSON, default=list, server_default="[]")
+    document_selected: Mapped[list] = mapped_column(JSON, default=list, server_default="[]")
     budget: Mapped[dict] = mapped_column(JSON)
     retrieval_ms: Mapped[int] = mapped_column(Integer)
     created_at: Mapped[int] = mapped_column(BigInteger, default=now_ms)
+
+
+class DocumentUpload(Base):
+    """Private, owner-bound raw blob and immutable ingestion reservation."""
+
+    __tablename__ = "document_uploads"
+    __table_args__ = (
+        UniqueConstraint(
+            "owner_id",
+            "scope_id",
+            "id",
+            "source_version_id",
+            "source_id",
+            name="document_upload_identity",
+        ),
+        UniqueConstraint("source_id", "version", name="document_upload_version"),
+        UniqueConstraint("source_version_id"),
+        ForeignKeyConstraint(
+            ["owner_id", "scope_id", "source_id"],
+            ["sources.owner_id", "sources.scope_id", "sources.id"],
+        ),
+        CheckConstraint("version >= 1 AND attempt >= 1", name="document_version_attempt_positive"),
+        CheckConstraint("raw_size > 0 AND raw_size <= 262144", name="document_raw_size_bounded"),
+        CheckConstraint(
+            "available_to IS NULL OR available_to > available_from",
+            name="document_availability_interval",
+        ),
+        CheckConstraint(
+            "chunk_count >= 0 AND chunk_count <= 512", name="document_chunk_count_bounded"
+        ),
+        CheckConstraint(
+            "(state = 'processing' AND published_at IS NULL AND error_code IS NULL AND chunk_count = 0) OR (state = 'ready' AND published_at IS NOT NULL AND error_code IS NULL AND chunk_count > 0) OR (state = 'failed' AND published_at IS NULL AND error_code IS NOT NULL AND chunk_count = 0)",
+            name="document_state_consistent",
+        ),
+        Index("document_upload_owner_created", "owner_id", "created_at", "id"),
+        Index(
+            "document_upload_source_available",
+            "owner_id",
+            "scope_id",
+            "source_id",
+            "version",
+            "state",
+            "available_from",
+            "published_at",
+        ),
+    )
+    owner_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    scope_id: Mapped[str] = mapped_column(String(36))
+    source_id: Mapped[str] = mapped_column(String(36))
+    # Reserved before publication; it deliberately has no premature evidence FK.
+    source_version_id: Mapped[str] = mapped_column(String(36))
+    version: Mapped[int] = mapped_column(Integer)
+    filename: Mapped[str] = mapped_column(String(120))
+    media_type: Mapped[str] = mapped_column(String(30))
+    input_hash: Mapped[str] = mapped_column(String(64))
+    raw_hash: Mapped[str] = mapped_column(String(64))
+    raw_bytes: Mapped[bytes] = mapped_column(LargeBinary)
+    raw_size: Mapped[int] = mapped_column(Integer)
+    available_from: Mapped[int] = mapped_column(BigInteger)
+    available_to: Mapped[int | None] = mapped_column(BigInteger)
+    state: Mapped[str] = mapped_column(String(20))
+    error_code: Mapped[str | None] = mapped_column(String(40))
+    created_at: Mapped[int] = mapped_column(BigInteger)
+    published_at: Mapped[int | None] = mapped_column(BigInteger)
+    started_at: Mapped[int] = mapped_column(BigInteger)
+    attempt: Mapped[int] = mapped_column(Integer, default=1)
+    chunk_count: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class DocumentChunk(Base):
+    """Exact code-point excerpts; imported content never becomes an assertion."""
+
+    __tablename__ = "document_chunks"
+    __table_args__ = (
+        UniqueConstraint("owner_id", "scope_id", "id"),
+        UniqueConstraint("source_version_id", "ordinal", name="document_chunk_ordinal"),
+        ForeignKeyConstraint(
+            ["owner_id", "scope_id", "upload_id", "source_version_id", "source_id"],
+            [
+                "document_uploads.owner_id",
+                "document_uploads.scope_id",
+                "document_uploads.id",
+                "document_uploads.source_version_id",
+                "document_uploads.source_id",
+            ],
+        ),
+        ForeignKeyConstraint(
+            ["owner_id", "scope_id", "source_version_id"],
+            ["source_versions.owner_id", "source_versions.scope_id", "source_versions.id"],
+        ),
+        CheckConstraint("ordinal >= 1 AND ordinal <= 512", name="document_chunk_ordinal_bounded"),
+        CheckConstraint(
+            "span_start >= 0 AND span_end > span_start AND span_end - span_start <= 1024",
+            name="document_chunk_span_bounded",
+        ),
+        CheckConstraint(
+            "line_start >= 1 AND line_end >= line_start", name="document_chunk_lines_valid"
+        ),
+        Index("document_chunk_version", "owner_id", "scope_id", "source_version_id", "ordinal"),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    owner_id: Mapped[str] = mapped_column(String(36))
+    scope_id: Mapped[str] = mapped_column(String(36))
+    upload_id: Mapped[str] = mapped_column(String(36))
+    source_id: Mapped[str] = mapped_column(String(36))
+    source_version_id: Mapped[str] = mapped_column(String(36))
+    ordinal: Mapped[int] = mapped_column(Integer)
+    span_start: Mapped[int] = mapped_column(Integer)
+    span_end: Mapped[int] = mapped_column(Integer)
+    quote: Mapped[str] = mapped_column(Text)
+    content_hash: Mapped[str] = mapped_column(String(64))
+    quote_hash: Mapped[str] = mapped_column(String(64))
+    line_start: Mapped[int] = mapped_column(Integer)
+    line_end: Mapped[int] = mapped_column(Integer)
+
+
+class DocumentSearch(Base):
+    """Rebuildable lexical projection with exact chunks as its mapping."""
+
+    __tablename__ = "document_search"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["owner_id", "scope_id", "chunk_id"],
+            ["document_chunks.owner_id", "document_chunks.scope_id", "document_chunks.id"],
+            ondelete="CASCADE",
+        ),
+        Index("document_search_owner_scope", "owner_id", "scope_id"),
+    )
+    chunk_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    owner_id: Mapped[str] = mapped_column(String(36))
+    scope_id: Mapped[str] = mapped_column(String(36))
+    search_text: Mapped[str] = mapped_column(Text)
 
 
 class AdminGrant(Base):

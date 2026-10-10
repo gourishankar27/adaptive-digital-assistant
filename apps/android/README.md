@@ -1,4 +1,4 @@
-# ADA Android chat and explicit memory (Phases 04/07)
+# ADA Android chat, memory, documents and identities (Phase 09)
 
 This Compose/Material 3 app verifies an issued ADA bearer credential with real
 `GET /v1/me` and `GET /v1/capabilities`, then provides owned conversation
@@ -8,11 +8,16 @@ remain available. Phase 07 adds owned memory browsing, exact evidence selection,
 explicit Remember/correction previews and encrypted write recovery, plus new
 static personality profiles. Existing profile editing, automatic extraction,
 streaming, voice, tools and device inference remain later selected phases.
+Phase 08 adds owned UTF-8 text/Markdown import, immutable version/status/chunk
+reads, explicit encrypted upload recovery and request-frozen imported source cards.
 
 Production transport is `HttpAdaApi`, injected through `AdaApi` into the
 chat ViewModel. Test-only mocks and canonical server fixtures never enter
 the app's main source set. There is no database, Ollama or provider connection.
-No schema migration or existing API/prompt upgrade is required by this client.
+The document path requires server migration 0005 and advertised document
+capabilities. Existing claim-only chat stays compatible; document retrieval
+requires the explicitly selected v4 saved prompt. This task does not install 0005
+on the application database or deploy the app.
 
 ## Appearance settings
 
@@ -120,7 +125,7 @@ appearance preferences or logs. `AndroidSessionStore` encrypts a bounded atomic
 record with an [Android Keystore](https://developer.android.com/privacy-and-security/keystore)
 AES-256-GCM key under `noBackupFilesDir`; it stores
 the verified normalized server/owner credential and at most one exact pending
-message and one memory write. File and directory commits complete before network submission. There is
+message, memory write and document upload. File and directory commits complete before network submission. There is
 no plaintext fallback. Missing keys, tampering, unknown local formats or reinstall
 discard unusable state and require reconnect. The activity blocks screenshots;
 cloud backup and device transfer explicitly exclude app data, following the
@@ -233,6 +238,9 @@ explicit prompt updates and per-request source reads. Unknown JSON fields are ig
 wire enums remain strings and
 an unknown request status maps to `Unknown`, never `Completed`. Unknown capabilities
 do not enable controls. Legacy responses can omit optional citation collections.
+Document cards have a separate typed collection with D labels and no fabricated
+claim IDs. Document use defaults off, and false is omitted from the chat network
+payload to preserve the older claim-only wire shape.
 
 `utf16ToCodePointOffset` and `codePointToUtf16Offset` explicitly bridge Android
 selection indices and ADA evidence spans. They preserve combining characters,
@@ -248,6 +256,46 @@ Private caches/journals include normalized server and verified owner, plus reque
 and conversation where applicable. Phase 03's state map remains a historical
 foundation; Phase 07 enables the owned Memory destination. UI labels use ordinary words; private text
 is rendered as Compose text and never executed.
+
+## Immutable imported documents (Phase 08)
+
+**Documents** is enabled only for `document_uploads` and
+`document_ingestion=text_markdown_v1` on the verified server. Choose an owned scope,
+then select a `.txt`, `.md` or `.markdown` file with Android's document picker or
+paste exact text. The mobile limit is **64 KiB**, stricter than the server's 256 KiB.
+Reading is bounded and strict UTF-8; CRLF, BOM, combining characters and emoji are
+preserved. The picker reads a content URI and display metadata, never treats the
+filename as a filesystem path, and needs no broad storage permission.
+
+Review the exact text, scope, availability and reserved IDs, then press
+**Upload reviewed document**. Availability is a version's accessibility interval,
+not a truth interval or endorsement of every sentence. The app reads real
+processing/ready/failed receipts; failed or incomplete versions never appear as
+searchable evidence. Details verify parsed-text/raw hashes, chunks and exact
+code-point spans before displaying verified content. **Upload a new version**
+retains the stable source ID and allocates a new upload ID. **All immutable
+versions** reads exact prior versions rather than replacing them with latest text.
+
+Before POST, the exact bounded bytes (base64 within encryption), filename/type,
+availability, upload/source IDs and owner/server/scope binding commit to the
+Keystore-backed journal. The encrypted **v3** record is bounded at **256 KiB** and
+reads prior v1/v2 records with the existing key/file/AAD. All three journals coexist;
+token rotation retains them only after the same owner/server is reverified.
+Logout, account/server changes, tampering and key loss clear or fail closed.
+Restoration offers **Check saved upload** or explicit **Resume with original bytes
+and IDs**, never an automatic upload. Unknown/mismatched or incomplete receipts
+retain recovery; ready-state cleanup failure blocks another upload. Discarding
+local recovery does not delete remote documents, and keeps exact input for review.
+
+In **Message options**, **Use imported documents** is off by default. It needs
+document retrieval/citation capabilities, saved memory enabled and a v4 conversation
+prompt. Existing v1/v2/v3 conversations retain their saved prompt until the explicit
+audited update action is confirmed. `[D1]` source cards show imported/untrusted
+origin, filename, immutable version, line location, availability and exact excerpt.
+They resolve only against the original request's frozen cards, including after
+reupload or history reload. Original `[M1]` claim cards and conflicts stay separate.
+PDF, OCR, archives, embeddings, extraction and statement promotion remain deferred.
+See [document API/storage/limits](../../docs/DOCUMENT-INGESTION.md).
 
 ## Emulator verification
 
@@ -289,6 +337,11 @@ Use the script for a complete HTTP integration run. A physical-phone smoke with
 the actual server/connection method, TalkBack, hardware-keyboard traversal, large
 display settings and long content still needs target verification. The script
 targets the selected `ANDROID_SERIAL` and restores the caller's environment.
+Phase 08 adds two real-HTTP document checks and one production Compose paste,
+preview, explicit upload and detail check. Two further stages commit a real
+upload, simulate delivery loss, force-stop the app, restore through MainActivity
+and explicitly replay identical bytes/IDs. They verify one immutable version and
+real request-frozen imported source cards. All helper replies remain explicitly fake.
 
 ## Historical Phase 03 checks (2026-10-08, Windows 11)
 
@@ -434,3 +487,19 @@ visual/hardware-keyboard checks and actual-server/Ollama/network-loss verificati
 remain pending. No deployment, signing/distribution or later feature was performed.
 See [STATUS](../../plans/STATUS.md) and [WORKLOG](../../plans/WORKLOG.md) for checkpoint
 mapping, actual failures/checks/skips and preserved earlier evidence.
+## Phase 09 scoped entities and aliases
+
+App version `0.9.0-entities`/code 5 adds **People, projects and aliases** from
+Memory. The current server must support scoped identity writes; legacy servers
+keep these controls disabled. Choose an owned scope, check names for collisions,
+review new entities/aliases/renames/self/claim links, preview a same-scope merge and
+confirm it separately. Undo retains the lineage. Names grant no permissions.
+
+The existing encrypted record is v4/256 KiB, with one exact entity operation
+journal alongside chat, memory and document journals. Recovery verifies the
+server/owner, never automatically submits, and supports checking the frozen
+receipt or explicitly resuming identical input. Saved source cards retain their
+request's canonical interpretation; retrieval details show frozen ambiguous choices.
+See [identity policy](../../docs/ENTITIES-AND-ALIASES.md) and
+[STATUS](../../plans/STATUS.md) for executed checks and physical S24 FE/Android 16,
+HTTPS, TalkBack and real-model verification still pending.

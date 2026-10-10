@@ -42,12 +42,16 @@ non-listening loopback socket. No live generation occurs. Fixtures include two
 owners sharing a request UUID, recorded zero tokens and a missing legacy trace.
 Sign-in/grants/revocation/pagination/detail/audit use real PostgreSQL/HTTP.
 Intercepted 401/429/503 and unknown/degraded model metadata are separate UI tests.
+The database-not-ready sign-in regression explicitly intercepts a synthetic 503,
+then removes the interception and signs in through the real PostgreSQL-backed API.
 Browser recording, traces, screenshots and video are disabled.
 
 ## Run with an existing backend
 
-The backend must already have migration 0004 and an explicit monitoring grant for
-your account UUID. See [ADMIN-MONITORING.md](../../docs/ADMIN-MONITORING.md).
+The backend must have the current schema head **0005** and an explicit monitoring
+grant for your account UUID. Admin monitoring was introduced by migration **0004**;
+the Phase 08 source now requires **0005** for readiness. See
+[ADMIN-MONITORING.md](../../docs/ADMIN-MONITORING.md).
 Phase 06 implementation does not migrate the application DB or grant real accounts.
 Start ADA with root `scripts/start.ps1` (loopback :8000, one worker), then:
 
@@ -72,6 +76,36 @@ npm run dev
 The proxy accepts HTTPS or loopback HTTP without userinfo/path/query. The UI
 accepts only its current HTTPS/loopback browser origin, so entered values cannot
 redirect credentials. Database/provider URLs are never browser inputs.
+
+### If sign-in reports that monitoring or the database is unavailable
+
+The browser origin **http://127.0.0.1:5173** is correct for this development setup;
+the proxy connects to ADA on **:8000**. A running API can still have an older
+database schema. Check **http://127.0.0.1:8000/health/ready**: HTTP 503 with
+`database_not_ready` means connectivity or the required migration needs attention.
+The older generic message, “The server is unavailable or busy,” also covered this
+case. Current builds explain the fixed `database_not_ready` and
+`monitoring_unavailable` codes without displaying private error bodies.
+
+After backing up the intended database through your normal operator process,
+stop ADA and run from the repository root:
+
+```powershell
+.\.venv\Scripts\python.exe -m alembic current
+.\.venv\Scripts\python.exe -m alembic upgrade head
+.\.venv\Scripts\python.exe -m alembic check
+.\scripts\start.ps1
+```
+
+Use the current repository's required head **0005**. The reported login failure
+was repaired by separately installing **0004** and granting the user-selected
+account against the pre-Phase 08 backend. That repair does not install Phase 08:
+running the new source requires a separately authorized **0005** installation.
+Restart Vite if its proxy target changed, then sign in again. A subsequent
+**Access denied** means the account needs an explicit local `grant-admin` using its
+UUID as described in [ADMIN-MONITORING.md](../../docs/ADMIN-MONITORING.md). Applying
+migrations does not grant a role, and waiting or changing the browser origin does
+not repair a missing migration. Do not put your token in URLs or diagnostics.
 
 ## Build and same-origin smoke
 

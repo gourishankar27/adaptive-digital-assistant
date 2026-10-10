@@ -69,6 +69,12 @@ interface SessionStore {
     /** Must commit the exact identity/scope-bound reservation before either memory POST. */
     suspend fun saveMemoryPending(pending: PendingMemory) { throw SessionStorageException() }
     suspend fun removeMemoryPending(identity: SessionIdentity, claimId: UUID) { throw SessionStorageException() }
+    suspend fun documentPending(identity: SessionIdentity): PendingDocument? = null
+    suspend fun saveDocumentPending(pending: PendingDocument) { throw SessionStorageException() }
+    suspend fun removeDocumentPending(identity: SessionIdentity, uploadId: UUID) { throw SessionStorageException() }
+    suspend fun entityPending(identity: SessionIdentity): PendingEntity? = null
+    suspend fun saveEntityPending(pending: PendingEntity) { throw SessionStorageException() }
+    suspend fun removeEntityPending(identity: SessionIdentity, operationId: UUID) { throw SessionStorageException() }
 }
 
 enum class SessionStoreFailure { Unavailable, IdentityMismatch, PendingConflict, InvalidPayload }
@@ -103,10 +109,12 @@ class SessionTokenStorageAdapter(private val sessions: SessionStore) : SecureTok
 
 @Serializable
 private data class PersistedSession(
-    val version: Int = 2,
+    val version: Int = 4,
     val credential: StoredCredential,
     val pending: PendingMessage? = null,
     val memoryPending: PendingMemory? = null,
+    val documentPending: PendingDocument? = null,
+    val entityPending: PendingEntity? = null,
 )
 
 internal interface SessionDisk {
@@ -132,7 +140,7 @@ internal class EncryptedSessionStore(
     private val allowDebugHttp: Boolean,
 ) : SessionStore {
     companion object {
-        internal const val MAX_PLAINTEXT_BYTES = 128 * 1024
+        internal const val MAX_PLAINTEXT_BYTES = 256 * 1024
         internal const val MAX_FILE_BYTES = MAX_PLAINTEXT_BYTES + 128
         // AtomicFile itself does not serialize callers. All instances in this app process share this lock.
         private val transactions = Mutex()
@@ -149,6 +157,12 @@ internal class EncryptedSessionStore(
     override suspend fun memoryPending(identity: SessionIdentity): PendingMemory? = transaction {
         read()?.takeIf { it.credential.identity == identity }?.memoryPending?.takeIf { it.reservation.identity == identity }
     }
+    override suspend fun documentPending(identity: SessionIdentity): PendingDocument? = transaction {
+        read()?.takeIf { it.credential.identity == identity }?.documentPending?.takeIf { it.identity == identity }
+    }
+    override suspend fun entityPending(identity: SessionIdentity): PendingEntity? = transaction {
+        read()?.takeIf { it.credential.identity == identity }?.entityPending?.takeIf { it.identity == identity }
+    }
     override suspend fun saveCredential(credential: StoredCredential) = transaction {
         validateCredential(credential)
         val previous = read()
@@ -156,6 +170,8 @@ internal class EncryptedSessionStore(
         write(PersistedSession(credential = credential,
             pending = previous?.pending?.takeIf { sameIdentity && it.identity == credential.identity },
             memoryPending = previous?.memoryPending?.takeIf { sameIdentity && it.reservation.identity == credential.identity },
+            documentPending = previous?.documentPending?.takeIf { sameIdentity && it.identity == credential.identity },
+            entityPending = previous?.entityPending?.takeIf { sameIdentity && it.identity == credential.identity },
         ))
     }
     override suspend fun savePending(message: PendingMessage) = transaction {
@@ -196,6 +212,33 @@ internal class EncryptedSessionStore(
             previous.memoryPending.reservation.claimId == claimId) {
             write(previous.copy(memoryPending = null))
         }
+    }
+    override suspend fun saveDocumentPending(pending: PendingDocument) = transaction {
+        validateDocument(pending)
+        val previous = read()
+        if (previous == null || previous.credential.identity != pending.identity) {
+            throw SessionStorageException(SessionStoreFailure.IdentityMismatch)
+        }
+        if (previous.documentPending != null && previous.documentPending != pending) {
+            throw SessionStorageException(SessionStoreFailure.PendingConflict)
+        }
+        write(previous.copy(documentPending = pending))
+    }
+    override suspend fun removeDocumentPending(identity: SessionIdentity, uploadId: UUID) = transaction {
+        val previous = read() ?: return@transaction
+        if (previous.credential.identity == identity && previous.documentPending?.identity == identity &&
+            previous.documentPending.uploadId == uploadId) write(previous.copy(documentPending = null))
+    }
+    override suspend fun saveEntityPending(pending: PendingEntity) = transaction {
+        validateEntityPending(pending)
+        val previous = read()
+        if (previous == null || previous.credential.identity != pending.identity) throw SessionStorageException(SessionStoreFailure.IdentityMismatch)
+        if (previous.entityPending != null && previous.entityPending != pending) throw SessionStorageException(SessionStoreFailure.PendingConflict)
+        write(previous.copy(entityPending = pending))
+    }
+    override suspend fun removeEntityPending(identity: SessionIdentity, operationId: UUID) = transaction {
+        val previous = read() ?: return@transaction
+        if (previous.credential.identity == identity && previous.entityPending?.identity == identity && previous.entityPending.operationId == operationId) write(previous.copy(entityPending = null))
     }
     override suspend fun clear() = transaction { destroy() }
 
@@ -239,7 +282,8 @@ internal class EncryptedSessionStore(
             plaintext = cipher.decrypt(bytes)
             if (plaintext.size > MAX_PLAINTEXT_BYTES) throw IOException("Invalid session record")
             val snapshot = json.decodeFromString<PersistedSession>(plaintext.toString(Charsets.UTF_8))
-            if (snapshot.version !in 1..2 || (snapshot.version == 1 && snapshot.memoryPending != null)) {
+            if (snapshot.version !in 1..4 || (snapshot.version == 1 && snapshot.memoryPending != null) ||
+                (snapshot.version < 3 && snapshot.documentPending != null) || (snapshot.version < 4 && snapshot.entityPending != null)) {
                 throw IOException("Unsupported session record")
             }
             validateCredential(snapshot.credential)
@@ -250,6 +294,14 @@ internal class EncryptedSessionStore(
             snapshot.memoryPending?.let {
                 if (it.reservation.identity != snapshot.credential.identity) throw IOException("Invalid session binding")
                 validateMemoryPending(it)
+            }
+            snapshot.documentPending?.let {
+                if (it.identity != snapshot.credential.identity) throw IOException("Invalid session binding")
+                validateDocument(it)
+            }
+            snapshot.entityPending?.let {
+                if (it.identity != snapshot.credential.identity) throw IOException("Invalid session binding")
+                validateEntityPending(it)
             }
             return snapshot
         } catch (error: Exception) {
@@ -262,7 +314,7 @@ internal class EncryptedSessionStore(
     private fun write(snapshot: PersistedSession) {
         var plaintext: ByteArray? = null
         try {
-            plaintext = json.encodeToString(snapshot.copy(version = 2)).toByteArray(Charsets.UTF_8)
+            plaintext = json.encodeToString(snapshot.copy(version = 4)).toByteArray(Charsets.UTF_8)
             if (plaintext.size > MAX_PLAINTEXT_BYTES) throw SessionStorageException(SessionStoreFailure.InvalidPayload)
             val ciphertext = cipher.encrypt(plaintext)
             if (ciphertext.size > MAX_FILE_BYTES) throw SessionStorageException(SessionStoreFailure.InvalidPayload)

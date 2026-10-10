@@ -1,6 +1,7 @@
 from alembic import context
 from sqlalchemy import create_engine, pool
 
+from ada import entity_models  # noqa: F401
 from ada.config import Settings
 from ada.models import Base
 
@@ -9,10 +10,12 @@ url = Settings().database_url
 
 
 def include_object(obj, name, type_, reflected, compare_to):
-    # Native indexes and SQLite FTS5 shadow tables belong to migration 0003.
-    if type_ == "table" and (name == "claim_fts" or name.startswith("claim_fts_")):
+    # Native indexes and SQLite FTS5 shadow tables belong to migrations 0003/0005.
+    if type_ == "table" and any(
+        name == root or name.startswith(root + "_") for root in ("claim_fts", "document_fts")
+    ):
         return False
-    if type_ == "index" and name == "claim_search_fts":
+    if type_ == "index" and name in ("claim_search_fts", "document_search_fts"):
         return False
     return True
 

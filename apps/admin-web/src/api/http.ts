@@ -4,6 +4,27 @@ import type { AdaApi } from './types';
 
 export type FetchTransport = (input: string, init: RequestInit) => Promise<Response>;
 
+async function unavailableCode(response: Response): Promise<'database_not_ready' | 'monitoring_unavailable' | undefined> {
+  if (response.status !== 503 || response.headers.get('Content-Type')?.split(';')[0].trim().toLowerCase() !== 'application/json' || !response.body) return;
+  // Inspect at most 1 KiB for two fixed codes; proxy/validator/private text is discarded.
+  const reader = response.body.getReader(), decoder = new TextDecoder('utf-8', { fatal: true });
+  let size = 0, body = '';
+  try {
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > 1024) return;
+      body += decoder.decode(value, { stream: true });
+    }
+    body += decoder.decode();
+    const payload: unknown = JSON.parse(body);
+    if (typeof payload !== 'object' || payload === null || !('detail' in payload)) return;
+    if (payload.detail === 'database_not_ready' || payload.detail === 'monitoring_unavailable') return payload.detail;
+  } catch { /* Unknown or malformed failures retain generic status wording. */ }
+  finally { await reader.cancel().catch(() => undefined); }
+}
+
 export function normalizeServer(value: string): string {
   const url = new URL(value);
   if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password || url.search || url.hash || (url.pathname !== '/' && url.pathname !== '')) throw new ContractError();
@@ -54,7 +75,9 @@ export class HttpAdaApi implements AdaApi {
       if (response.redirected) throw new AdaError({ kind: 'unreachable', message: 'The API redirected the connection. Check the configured server.', outcome: 'unknown' });
       if (!response.ok) {
         if (response.status === 401) this.disconnect();
-        throw new AdaError(httpFailure(response.status, retryAfter(response.headers.get('Retry-After'))));
+        const code = await unavailableCode(response);
+        if (controller.signal.aborted && response.status !== 401) throw new DOMException('Cancelled', 'AbortError');
+        throw new AdaError(httpFailure(response.status, retryAfter(response.headers.get('Retry-After')), code));
       }
       if (!response.headers.get('Content-Type')?.toLowerCase().includes('application/json')) throw new ContractError();
       const result = decode(parseWire(await response.text()));

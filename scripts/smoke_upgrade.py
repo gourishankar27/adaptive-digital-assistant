@@ -160,7 +160,9 @@ def run(phase1, output):
                 stop(process)
                 migrate(ROOT, database)
                 process = start(ROOT, database, port)
-                assert get("/health/ready")["schema"] == "0004"
+                from ada.schema import SCHEMA_HEAD
+
+                assert get("/health/ready")["schema"] == SCHEMA_HEAD
                 assert get(f"/v1/claims/{claim['id']}") == claim
                 assert get(f"/v1/conversations/{c}")["prompt_version"] == "ada-baseline-v2"
                 assert get(f"/v1/conversations/{c}/events") == old_events
@@ -182,10 +184,10 @@ def run(phase1, output):
                 post(f"/v1/conversations/{c}/prompt-upgrade")
                 upgraded = get(f"/v1/conversations/{c}")
                 assert (
-                    upgraded["prompt_version"] == "ada-baseline-v3"
+                    upgraded["prompt_version"] == "ada-baseline-v4"
                     and upgraded["personality"]["style"] == "direct"
                 )
-                checks.append("explicit_v3_upgrade_preserves_personality")
+                checks.append("explicit_v4_upgrade_preserves_personality")
                 # The fake provider echoes the test label. This verifies HTTP
                 # citation mapping, not natural-language answer correctness.
                 body = {"request_id": str(uuid4()), "content": "Which language do I prefer? [M1]"}
@@ -239,7 +241,7 @@ def run(phase1, output):
         "backend": "sqlite",
         "provider": "fake",
         "from_schema": "0002",
-        "to_schema": "0004",
+        "to_schema": "0005",
         "checks": checks,
         "real_llm_tested": False,
     }

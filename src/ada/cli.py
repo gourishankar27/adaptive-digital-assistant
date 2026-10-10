@@ -40,6 +40,9 @@ def main():
     chat.add_argument("--no-memory", action="store_true", help="Disable fresh memory retrieval")
     sub.add_parser("doctor")
     sub.add_parser("rebuild-search", help="Rebuild the derived full-text projection locally")
+    sub.add_parser(
+        "rebuild-document-search", help="Rebuild imported-document lexical projection locally"
+    )
     add_arguments(sub)
     args = parser.parse_args()
     settings = Settings()
@@ -91,6 +94,10 @@ def main():
             from ada.search import rebuild_search
 
             print(f"Reindexed {rebuild_search(sessions)} source-backed claims.")
+        elif args.command == "rebuild-document-search":
+            from ada.documents import rebuild_document_search
+
+            print(f"Reindexed {rebuild_document_search(sessions)} imported-document chunks.")
         else:
             from sqlalchemy import text
 
@@ -152,10 +159,15 @@ def run_chat(args, timeout):
         response = client.get(f"/v1/conversations/{conversation}")
         response.raise_for_status()
         print("Scope:", response.json()["scope_id"])
-        from ada.personality import PROMPT_VERSION
+        from ada.personality import PROMPT_VERSION, RETRIEVAL_PROMPT_VERSIONS
 
         if response.json()["prompt_version"] != PROMPT_VERSION:
-            print("Saved prompt needs an explicit upgrade for memory retrieval:")
+            if response.json()["prompt_version"] in RETRIEVAL_PROMPT_VERSIONS:
+                print(
+                    "Claim retrieval remains available. Document retrieval needs an explicit prompt upgrade:"
+                )
+            else:
+                print("Saved prompt needs an explicit upgrade for memory retrieval:")
             print(f"ada upgrade-prompt {conversation}")
         print(
             f"Conversation: {conversation}\n/quit to leave. /retry resends the last request ID. "

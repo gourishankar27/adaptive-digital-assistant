@@ -83,6 +83,25 @@ describe('real HTTP adapter', () => {
       expect((error as AdaError).failure.retryAfterMs).toBe(3000);
     }
   });
+  it.each(['database_not_ready', 'monitoring_unavailable'])('explains a known %s failure without exposing its body', async detail => {
+    const transport: FetchTransport = async () => json({ detail, private_input: 'SYNTHETIC_PRIVATE_VALUE' }, 503, { 'Retry-After': '3' });
+    try { await new HttpAdaApi(origin, 'synthetic-test-credential', transport).me(); throw new Error('expected failure'); }
+    catch (error) {
+      expect(error).toBeInstanceOf(AdaError);
+      expect((error as AdaError).failure).toMatchObject({ kind: 'server', status: 503, outcome: 'unavailable', retryAfterMs: 3000 });
+      expect((error as AdaError).message).toContain('migrations');
+      expect((error as AdaError).message).not.toContain('SYNTHETIC_PRIVATE_VALUE');
+    }
+  });
+  it.each([
+    { body: '{"detail":"SYNTHETIC_PRIVATE_VALUE"}', type: 'application/json' },
+    { body: '{"detail":"database_not_ready"}', type: 'text/html' },
+    { body: '{"detail":"database_not_ready","extra":"' + 'x'.repeat(2048) + '"}', type: 'application/json' },
+    { body: '{"detail":', type: 'application/json' },
+  ])('keeps an unknown, malformed, non-JSON or oversized 503 generic', async ({ body, type }) => {
+    const transport: FetchTransport = async () => new Response(body, { status: 503, headers: { 'Content-Type': type } });
+    await expect(new HttpAdaApi(origin, 'synthetic-test-credential', transport).me()).rejects.toMatchObject({ failure: { kind: 'busy', status: 503, message: 'The server is unavailable or busy. Wait before retrying.' } });
+  });
   it('parses Retry-After seconds/date and keeps uncertain outcomes explicit', () => {
     expect(retryAfter('3')).toBe(3000);
     expect(retryAfter('Thu, 08 Oct 2026 12:00:03 GMT', Date.parse('2026-10-08T12:00:00Z'))).toBe(3000);
