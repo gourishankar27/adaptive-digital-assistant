@@ -1,6 +1,8 @@
 # Phase 06 — backend monitoring dashboard
 
-Status: planned. Prerequisite: Phase 05 and the Phase 03 web scaffold.
+Status: checkpoints 0/A–D implemented; local Windows/PostgreSQL/Chromium checks passed.
+Release HTTPS, manual screen-reader/other-browser and sustained-load verification
+remain pending. Prerequisite: Phase 05 and the Phase 03 web scaffold, verified in source.
 Apply UI-SPEC, STANDARDS and CODEX-WORKFLOW. The first release is read-only.
 
 ## Goal and flow
@@ -9,6 +11,16 @@ An authorized operator signs in, sees actual backend health, filters requests an
 inspects recorded status/error/retrieval metadata. Every enabled view calls the
 implemented admin API. Monitoring must remain useful when the provider is down
 or a metric is unavailable; it must not show fabricated success or private chat.
+
+## Checkpoint 0 - multiple color themes
+
+This change is only focused on the theme of the admin-web app.
+Instead on sticking with one theme, can we implement multiple themes with different color palettes.
+
+I want the main theme to move around oxford blue color #002147 same as android app.
+and also create some other themes, around dark red around #350616, olive green  #3c4c24
+so the task should be to just implement multiple themes and provide options in the settings to chage the theme, while blue staying the main theme.
+
 
 ## Checkpoint A — authentication and routing
 
@@ -107,3 +119,19 @@ metadata, and denied users cannot access it. No mock production fallback or raw
 private content is exposed. Document startup/build/serving commands and observed
 limits, update STATUS/WORKLOG and stop. Hosting/deployment and future operational
 write controls require an explicit selected task.
+
+## Implemented checkpoint evidence — 2026-10-09 UTC
+
+| Checkpoint | Delivered behavior | Verification |
+| --- | --- | --- |
+| 0 | Settings palettes: Oxford Blue/default, Dark Red, Olive Green; system/light/dark and text size; appearance-only persistence | All six palette/mode semantic contrast checks, preference reload/system media, signed-out visual review |
+| A | Admin-me permission/UUID confirmation, memory-only credential, `/admin` routes, composite detail identity, switch/logout/401/403 cleanup, late-result fencing | Session/transport/UI invariants; real HTTP/PostgreSQL ordinary denial/local revocation/direct detail; no stored credential |
+| B | Actual counts/coverage/readiness/admission, measured provider state, null/zero/unknown/unavailable/degraded, last success/stale markers, bounded visible polling/Retry-After | Polling timers/hidden/auth/cooldown invariants; actual refused provider connection, explicit failure/health UI fixtures |
+| C | Server-filtered bounded request pages, reset/back state, timeline/token/retrieval budgets, legacy absence and selected-versus-cited wording | PostgreSQL pagination/two owners sharing UUID/failed request/legacy trace; escaped metadata/int64 tests |
+| D | Read-only configuration/audit, semantic controls/table headers/regions, skip link/focus/narrow/zoom/themes | Real audit HTTP, keyboard/focus/table traversal, 390px/200% CSS zoom, six semantic contrast combinations |
+
+Final web typecheck/lint/unit/build and five Chromium production-build same-origin
+tests passed. Clean install and exported DTO check passed; server/schema snapshots
+remain unchanged. Actual counts, skips, corrected interim failures and remaining
+release/manual checks are in [STATUS](STATUS.md) and [WORKLOG](WORKLOG.md).
+No application DB migration, real account grant, deployment or later phase occurred.

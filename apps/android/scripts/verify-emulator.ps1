@@ -54,7 +54,7 @@ try {
     }
     if (-not $adaReady) { throw 'Disposable HTTP test server did not become ready' }
     Set-AdaPrivateTestCredential -AdbPath $adaAdb -SelectedDevice $Device -Credential $adaCredential
-    & $adaGradle -p $adaAndroid connectedDebugAndroidTest '-Pandroid.testInstrumentationRunnerArguments.adaHttpIntegration=true' '-Pandroid.testInstrumentationRunnerArguments.notClass=dev.ada.assistant.ProcessRecoveryPrepareTest,dev.ada.assistant.ProcessRecoveryResumeTest' --console=plain
+    & $adaGradle -p $adaAndroid connectedDebugAndroidTest '-Pandroid.testInstrumentationRunnerArguments.adaHttpIntegration=true' '-Pandroid.testInstrumentationRunnerArguments.notClass=dev.ada.assistant.ProcessRecoveryPrepareTest,dev.ada.assistant.ProcessRecoveryResumeTest,dev.ada.assistant.MemoryRecoveryPrepareTest,dev.ada.assistant.MemoryRecoveryResumeTest' --console=plain
     if ($LASTEXITCODE -ne 0) { throw 'Emulator verification failed' }
     # AGP removes test installations; install the verified debug APK for the launch smoke.
     & $adaAdb -s $Device install -r (Join-Path $adaAndroid 'app/build/outputs/apk/debug/app-debug.apk')
@@ -73,6 +73,16 @@ try {
     $adaRecovered = & $adaAdb -s $Device shell am instrument -w -e adaProcessRecovery true -e expectedRequest $adaRequestMatch.Groups[1].Value -e expectedConversation $adaConversationMatch.Groups[1].Value -e class 'dev.ada.assistant.ProcessRecoveryResumeTest#recoversCommittedReplyAfterProcessStop' dev.ada.assistant.debug.test/androidx.test.runner.AndroidJUnitRunner
     if ($LASTEXITCODE -ne 0 -or ($adaRecovered -join "`n") -notmatch 'OK \(1 test\)') { throw 'Force-stop recovery verification failed' }
     Write-Output 'Committed reply force-stop recovery: 2 staged checks passed; no duplicate server turn.'
+    $adaMemoryPrepared = & $adaAdb -s $Device shell am instrument -w -e adaMemoryRecovery true -e class 'dev.ada.assistant.MemoryRecoveryPrepareTest#prepareNoteSuccessAndClaimFailure' dev.ada.assistant.debug.test/androidx.test.runner.AndroidJUnitRunner
+    if ($LASTEXITCODE -ne 0 -or ($adaMemoryPrepared -join "`n") -notmatch 'OK \(1 test\)') { throw 'Note-success memory recovery preparation failed' }
+    $adaMemorySourceMatch = [regex]::Match(($adaMemoryPrepared -join "`n"), 'recoveryMemorySource=([0-9a-fA-F-]{36})')
+    $adaMemoryClaimMatch = [regex]::Match(($adaMemoryPrepared -join "`n"), 'recoveryMemoryClaim=([0-9a-fA-F-]{36})')
+    if (-not $adaMemorySourceMatch.Success -or -not $adaMemoryClaimMatch.Success) { throw 'Memory recovery UUID metadata missing' }
+    & $adaAdb -s $Device shell am force-stop dev.ada.assistant.debug
+    if ($LASTEXITCODE -ne 0) { throw 'Memory recovery process interruption failed' }
+    $adaMemoryRecovered = & $adaAdb -s $Device shell am instrument -w -e adaMemoryRecovery true -e expectedMemorySource $adaMemorySourceMatch.Groups[1].Value -e expectedMemoryClaim $adaMemoryClaimMatch.Groups[1].Value -e class 'dev.ada.assistant.MemoryRecoveryResumeTest#resumesOriginalMemoryAfterProcessStopWithoutDuplicates' dev.ada.assistant.debug.test/androidx.test.runner.AndroidJUnitRunner
+    if ($LASTEXITCODE -ne 0 -or ($adaMemoryRecovered -join "`n") -notmatch 'OK \(1 test\)') { throw 'Force-stop memory recovery verification failed' }
+    Write-Output 'Note-success/claim-failure force-stop recovery: 2 staged checks passed; original source/claim IDs retained without duplicates.'
     & $adaAdb -s $Device shell am start -W -n dev.ada.assistant.debug/dev.ada.assistant.MainActivity
     if ($LASTEXITCODE -ne 0) { throw 'Emulator launch failed' }
 } finally {

@@ -1,0 +1,10 @@
+import { vi } from 'vitest';
+import type { AdminApi, Overview, RequestDetail } from '../src/api/admin';
+export const owner = '00000000-0000-0000-0000-000000000001', otherOwner = '00000000-0000-0000-0000-000000000002', requestId = '00000000-0000-0000-0000-000000000010';
+export const health = { reachability: 'unknown' as const, model_available: null, checked_at: null, error_code: null, cache_seconds: 30 as const };
+export const admission = { max_parallel: 1, process_available_slots: 1, process_active_slots: 0, workers: 1 as const };
+export const overview: Overview = { window_hours: 24, created_from: 0n, updated_at: 1000n, requests: { running: 0, completed: 2, failed: 1 }, input_tokens: null, output_tokens: 0, input_tokens_known_requests: 0, output_tokens_known_requests: 1, database_ready: true, schema_version: '0004', provider_health: health, generation_admission: admission };
+export const detail: RequestDetail = { owner_id: owner, request_id: requestId, conversation_id: requestId, scope_id: requestId, status: 'completed', attempt: 1, provider: 'fake', model: '<script>model</script>', created_at: 0n, started_at: 0n, finished_at: 1000n, observed_at: 1000n, elapsed_ms: 1000n, error_code: null, input_tokens: null, output_tokens: 0, retrieval: { available: false } };
+export function mockAdmin(id = owner): AdminApi {
+  return { adminMe: vi.fn(async () => ({ id, permissions: ['monitoring:read' as const] })), overview: vi.fn(async () => overview), providers: vi.fn(async () => ({ provider: 'fake', model: 'fake-v1', health, generation_admission: admission, context_tokens: 100, output_tokens: 10, timeout_seconds: 30 })), requests: vi.fn(async () => ({ items: [detail, { ...detail, owner_id: otherOwner }], limit: 50, offset: 0, has_more: false, created_from: 0n, created_to: 1000n, updated_at: 1000n })), detail: vi.fn(async (id: string) => ({ ...detail, owner_id: id })), audit: vi.fn(async () => ({ items: [], limit: 50, offset: 0, has_more: false, retention_days: 30 as const, max_rows: 10000 as const, updated_at: 1000n })), disconnect: vi.fn() };
+}

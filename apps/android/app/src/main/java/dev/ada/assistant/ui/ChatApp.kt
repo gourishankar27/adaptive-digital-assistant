@@ -106,7 +106,7 @@ fun ChatApp(vm: ChatViewModel, openSettings: () -> Unit) {
         },
         bottomBar = {
             if (state.account != null && !typing) NavigationBar(windowInsets = WindowInsets(0, 0, 0, 0)) {
-                val inChat = state.destination !in setOf(ChatDestination.Settings, ChatDestination.Connect)
+                val inChat = state.destination !in setOf(ChatDestination.Settings, ChatDestination.Connect, ChatDestination.Memory)
                 NavigationBarItem(
                     selected = inChat,
                     onClick = { focus.clearFocus(); vm.navigate(ChatDestination.Conversations) },
@@ -114,8 +114,9 @@ fun ChatApp(vm: ChatViewModel, openSettings: () -> Unit) {
                     modifier = Modifier.testTag("nav-chat"),
                 )
                 NavigationBarItem(
-                    selected = false, enabled = false, onClick = {}, icon = { NavigationGlyph(1) }, label = { Text("Memory") },
-                    modifier = Modifier.semantics { stateDescription = "Memory editing is not available yet" },
+                    selected = state.destination == ChatDestination.Memory, enabled = state.capabilities?.structured_memory == true,
+                    onClick = { focus.clearFocus(); vm.navigate(ChatDestination.Memory) }, icon = { NavigationGlyph(1) }, label = { Text("Memory") },
+                    modifier = Modifier.testTag("nav-memory").semantics { stateDescription = if (state.capabilities?.structured_memory == true) "Owned statements and evidence" else "This server does not offer structured memory" },
                 )
                 NavigationBarItem(
                     selected = state.destination == ChatDestination.Settings,
@@ -134,6 +135,7 @@ fun ChatApp(vm: ChatViewModel, openSettings: () -> Unit) {
                 ChatDestination.Chat -> ConversationScreen(state, vm, typing)
                 ChatDestination.Sources -> SourcesScreen(state, vm)
                 ChatDestination.Retrieval -> RetrievalScreen(state, vm)
+                ChatDestination.Memory -> MemoryScreens(vm.memory)
                 ChatDestination.Settings -> AccountSettingsScreen(state, vm, openSettings)
             }
         }
@@ -242,7 +244,12 @@ private fun NewConversationScreen(state: ChatState, vm: ChatViewModel) {
         )
         Text("Chat style", style = MaterialTheme.typography.titleMedium)
         Text("Style shapes expression. It never changes ownership or permissions.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        val offPageProfile = state.selectedProfile?.takeIf { saved -> state.profiles.items.none { it.id == saved.id } }
         Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
+            offPageProfile?.let { profile ->
+                ChoiceRow(state.createProfileId == profile.id, profile.name, "Selected for your next conversation · ${profile.style} · ${profile.warmth} · ${profile.detail}", !state.creating,
+                    { vm.selectProfile(profile.id) }, Modifier.testTag("profile-${profile.id}"))
+            }
             state.profiles.items.forEach { profile ->
                 ChoiceRow(
                     selected = state.createProfileId == profile.id,
@@ -255,7 +262,7 @@ private fun NewConversationScreen(state: ChatState, vm: ChatViewModel) {
         }
         if (state.profiles.loading) BusyIndicator("Loading your styles")
         if (state.profiles.hasMore && !state.profiles.loading) TextButton(onClick = vm::loadMoreProfiles, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Load more styles") }
-        if (state.profiles.items.isEmpty() || addStyle) {
+        if ((state.profiles.items.isEmpty() && offPageProfile == null) || addStyle) {
             OutlinedTextField(profileName, { profileName = it }, label = { Text("New style name") }, singleLine = true,
                 supportingText = { Text("Starts warm, conversational and balanced. Up to 40 characters.") },
                 enabled = !state.creatingProfile, modifier = Modifier.fillMaxWidth().testTag("new-profile-name"))
@@ -395,7 +402,7 @@ private fun ConversationContext(state: ChatState, vm: ChatViewModel, maximumHeig
         }
         Text(conversation.title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
         Text("Scope: ${scope?.name ?: scopeLabel(conversation.scope_kind)}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text("Saved style: ${conversation.personality.name} · ${conversation.personality.style} · ${conversation.personality.warmth}", style = MaterialTheme.typography.bodySmall)
+        Text("Saved style: ${conversation.personality.name} · ${conversation.personality.style} · ${conversation.personality.warmth} · ${conversation.personality.detail}", style = MaterialTheme.typography.bodySmall)
         TextButton(onClick = { contextDetails = !contextDetails }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text(if (contextDetails) "Hide conversation details" else "Conversation details") }
         if (contextDetails) SafeChatText("Saved prompt: ${conversation.prompt_version}\nRevision: ${conversation.revision}\nConversation: ${conversation.id}\nScope: ${conversation.scope_id}", links = false)
         if (conversation.prompt_version in setOf("ada-baseline-v1", "ada-baseline-v2") && state.capabilities?.chat_prompt_version == "ada-baseline-v3") {
@@ -601,6 +608,8 @@ private fun AccountSettingsScreen(state: ChatState, vm: ChatViewModel, openSetti
         }
         OutlinedButton(onClick = openSettings, modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("appearance")) { Text("Appearance") }
         Text("Choose Oxford Blue, Dark Red or Olive Green in light or dark mode. Text follows the system font size.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        HorizontalDivider()
+        SettingsProfiles(state, vm)
         state.account?.let { account ->
             HorizontalDivider()
             Text("Replace this account’s token", style = MaterialTheme.typography.titleMedium)
@@ -619,7 +628,74 @@ private fun AccountSettingsScreen(state: ChatState, vm: ChatViewModel, openSetti
         }
         Text("Account and server changes clear local conversations, sources, drafts and pending requests. A request already submitted may continue on the server.", style = MaterialTheme.typography.bodyMedium)
         Button(onClick = vm::logout, modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("logout")) { Text("Log out / change server") }
-        Text("Memory editing, voice and tools are not available in this version.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text("Voice, tools and automatic memory extraction are not available in this version.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
+private fun SettingsProfiles(state: ChatState, vm: ChatViewModel) {
+    var creating by remember(state.account?.owner, state.account?.server) { mutableStateOf(false) }
+    var choosing by remember(state.account?.owner, state.account?.server) { mutableStateOf(false) }
+    val profileDraft = state.profileDraft
+    val focus = LocalFocusManager.current
+    val selected = state.profiles.items.firstOrNull { it.id == state.createProfileId }
+        ?: state.selectedProfile?.takeIf { it.id == state.createProfileId }
+    Text("Chat styles", style = MaterialTheme.typography.titleMedium)
+    Text("Choose an expression style for a new conversation. Existing conversations keep their saved style, prompt and knowledge scope.", style = MaterialTheme.typography.bodyMedium)
+    state.conversation?.let { conversation ->
+        Text("Saved in ${conversation.title}: ${conversation.personality.name} · ${conversation.personality.style} · ${conversation.personality.warmth} · ${conversation.personality.detail}", style = MaterialTheme.typography.bodySmall)
+    }
+    Text(selected?.let { "For a new conversation: ${it.name} · ${it.style} · ${it.warmth} · ${it.detail}" } ?: "Choose a style when starting a new conversation.", style = MaterialTheme.typography.bodySmall)
+    OutlinedButton(onClick = { choosing = !choosing; if (choosing) vm.refreshProfiles() }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("settings-choose-profile")) { Text(if (choosing) "Close style list" else "Choose for a new conversation") }
+    if (choosing) {
+        Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
+            state.selectedProfile?.takeIf { saved -> state.profiles.items.none { it.id == saved.id } }?.let { profile ->
+                ChoiceRow(state.createProfileId == profile.id, profile.name, "Selected for your next conversation · ${profile.style} · ${profile.warmth} · ${profile.detail}", !state.creatingProfile,
+                    { vm.selectProfile(profile.id); choosing = false }, Modifier.testTag("settings-profile-${profile.id}"))
+            }
+            state.profiles.items.forEach { profile ->
+                ChoiceRow(state.createProfileId == profile.id, profile.name, "${profile.style} · ${profile.warmth} · ${profile.detail}", enabled = !state.creatingProfile,
+                    select = { vm.selectProfile(profile.id); choosing = false }, modifier = Modifier.testTag("settings-profile-${profile.id}"))
+            }
+        }
+        if (state.profiles.loading) BusyIndicator("Loading owned styles")
+        if (state.profiles.hasMore && !state.profiles.loading) TextButton(onClick = vm::loadMoreProfiles, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Load more styles") }
+    }
+    OutlinedButton(onClick = { creating = !creating }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("settings-new-profile")) { Text(if (creating) "Close new style" else "Create a chat style") }
+    if (creating) {
+        OutlinedTextField(profileDraft.name, { vm.updateProfileDraft(profileDraft.copy(name = it)) }, label = { Text("Profile name") }, singleLine = true,
+            supportingText = { Text("Up to 40 letters, numbers, spaces, underscores, dots or hyphens.") },
+            enabled = !state.creatingProfile, modifier = Modifier.fillMaxWidth().testTag("settings-profile-name"))
+        Text("Style", style = MaterialTheme.typography.titleSmall)
+        Column(Modifier.selectableGroup()) {
+            listOf("direct", "conversational", "formal").forEach { choice ->
+                ChoiceRow(profileDraft.style == choice, choice.replaceFirstChar(Char::uppercase), "Expression style", !state.creatingProfile,
+                    { vm.updateProfileDraft(profileDraft.copy(style = choice)) }, Modifier.testTag("settings-style-$choice"))
+            }
+        }
+        Text("Warmth", style = MaterialTheme.typography.titleSmall)
+        Column(Modifier.selectableGroup()) {
+            listOf("reserved", "warm").forEach { choice ->
+                ChoiceRow(profileDraft.warmth == choice, choice.replaceFirstChar(Char::uppercase), "Expression only; no permissions or learning", !state.creatingProfile,
+                    { vm.updateProfileDraft(profileDraft.copy(warmth = choice)) }, Modifier.testTag("settings-warmth-$choice"))
+            }
+        }
+        Text("Detail", style = MaterialTheme.typography.titleSmall)
+        Column(Modifier.selectableGroup()) {
+            listOf("concise", "balanced", "detailed").forEach { choice ->
+                ChoiceRow(profileDraft.detail == choice, choice.replaceFirstChar(Char::uppercase), "Preferred amount of explanation", !state.creatingProfile,
+                    { vm.updateProfileDraft(profileDraft.copy(detail = choice)) }, Modifier.testTag("settings-detail-$choice"))
+            }
+        }
+        if (state.profileUncertain) {
+            Text("The profile creation outcome is unknown. Refresh and review the owned list before consciously allowing a new creation.", style = MaterialTheme.typography.bodySmall)
+            TextButton(onClick = { choosing = true; vm.refreshProfiles() }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Refresh and review styles") }
+            TextButton(onClick = vm::acknowledgeProfileReview, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("settings-review-profile")) { Text("I reviewed the list; allow a new style") }
+        }
+        Button(onClick = { focus.clearFocus(); vm.createProfile(profileDraft.name, profileDraft.style, profileDraft.warmth, profileDraft.detail) },
+            enabled = !state.creatingProfile && !state.profileUncertain && profileDraft.name.isNotBlank(), modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("settings-create-profile")) {
+            Text(if (state.creatingProfile) "Creating style…" else "Create for new conversations")
+        }
     }
 }
 

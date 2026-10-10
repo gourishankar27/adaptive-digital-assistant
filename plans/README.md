@@ -7,8 +7,12 @@ history and puts usable interfaces before larger backend additions.
 Phase 03 implements typed existing contracts and Android/web connection and UI
 foundations. Phase 04 adds authenticated Android conversations, chat, encrypted
 request recovery and original source cards. Physical-phone and release checks
-remain distinct from local verification. There is no admin API/dashboard or
-later backend implementation. The Windows/PostgreSQL rerun closes the 02A fixture gate;
+remain distinct from local verification. Phase 05 implements explicit grants,
+audited metadata APIs and bounded provider health. Phase 06 implements the read-only
+admin dashboard with selectable palettes. Phase 07 adds explicit Android memory,
+exact evidence/correction recovery and new static personality profiles. Later
+backend features remain planned.
+The Windows/PostgreSQL rerun closes the 02A fixture gate;
 see STATUS/WORKLOG for preserved historical and current evidence.
 
 ## Start here
@@ -47,7 +51,8 @@ are designs until implemented and exported in OpenAPI. The existing
 | 19 | [phase-19-edge-and-external-integrations.md](phase-19-edge-and-external-integrations.md) | Optional local mobile models and selected integrations | 12, 18; measured device requirements |
 
 Phase 04 stops at chat and source inspection. A separately selected Phase 07 can
-add user memory management; Phases 05–06 can add admin authorization/monitoring.
+add user memory management; Phase 05 supplies authorization/metadata and a separately
+selected Phase 06 now provides the read-only monitoring dashboard.
 Later backend phases can be chosen independently according to their prerequisites.
 Streaming can be brought forward after 04; voice can follow streaming without
 waiting for all memory phases. Phase numbers identify documents, not a requirement

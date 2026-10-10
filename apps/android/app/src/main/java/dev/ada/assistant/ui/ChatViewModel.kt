@@ -23,6 +23,7 @@ class ChatViewModel(
 ) : ViewModel() {
     private val mutableState = MutableStateFlow(ChatState())
     val state = mutableState.asStateFlow()
+    val memory = MemoryController(api, store, viewModelScope) { expire() }
     private var credential: ConnectionCredential? = null
     private var identity: SessionIdentity? = null
     private var generation = 0L
@@ -56,6 +57,7 @@ class ChatViewModel(
     }
     private fun current(epoch: Long) = epoch == generation
     private fun resetMemory() {
+        memory.reset()
         generation++; selection++; sourceSelection++
         jobs.toList().forEach { it.cancel() }; jobs.clear(); pollJob = null
         credential = null; identity = null; drafts.clear(); retryNotBefore = 0
@@ -167,6 +169,7 @@ class ChatViewModel(
         }
         if (!current(epoch)) return
         credential = connection; identity = verified
+        memory.setVerifiedSession(connection, verified, features)
         update { it.copy(connecting = false, account = AccountSummary(normalized, user.id, user.name, features.provider, features.model),
             capabilities = features, destination = ChatDestination.Conversations,
             fault = null, notice = null,
@@ -199,13 +202,20 @@ class ChatViewModel(
     }
     fun navigate(destination: ChatDestination) {
         if (mutableState.value.account == null) return
+        if (destination == ChatDestination.Memory) {
+            if (mutableState.value.capabilities?.structured_memory != true) return
+            memory.activate()
+        }
         update { it.copy(destination = destination, fault = null) }
     }
-    fun back() = navigate(when (mutableState.value.destination) {
+    fun back() {
+        if (mutableState.value.destination == ChatDestination.Memory && memory.back()) return
+        navigate(when (mutableState.value.destination) {
         ChatDestination.Retrieval -> ChatDestination.Sources
         ChatDestination.Sources -> if (mutableState.value.conversation == null) ChatDestination.Conversations else ChatDestination.Chat
         else -> ChatDestination.Conversations
-    })
+        })
+    }
 
     private fun <T> merge(old: List<T>, page: List<T>, id: (T) -> UUID): List<T> {
         val rows = linkedMapOf<UUID, T>()
@@ -300,8 +310,10 @@ class ChatViewModel(
     }
 
     fun beginCreate() {
-        update { it.copy(destination = ChatDestination.NewConversation, createTitle = "", createProfileId = it.profiles.items.firstOrNull()?.id,
-            createScopeId = null, creationUncertain = false, profileUncertain = false, fault = null, notice = null) }
+        update { it.copy(destination = ChatDestination.NewConversation, createTitle = "",
+            createProfileId = it.createProfileId?.takeIf { selected -> it.selectedProfile?.id == selected || it.profiles.items.any { row -> row.id == selected } }
+                ?: it.profiles.items.firstOrNull()?.id,
+            createScopeId = null, creationUncertain = false, fault = null, notice = null) }
         refreshProfiles(); refreshScopes()
     }
     fun updateCreateTitle(title: String) = update { it.copy(createTitle = title) }
@@ -309,8 +321,15 @@ class ChatViewModel(
         notice = "After reviewing the style list, a new creation is a conscious action and may duplicate an earlier uncertain outcome.") }
     fun acknowledgeConversationReview() = update { it.copy(creationUncertain = false,
         notice = "After reviewing conversations, a new creation is a conscious action and may duplicate an earlier uncertain outcome.") }
-    fun selectProfile(id: UUID) = update { it.copy(createProfileId = id) }
+    fun selectProfile(id: UUID) {
+        val row = state.value.profiles.items.firstOrNull { it.id == id }
+            ?: state.value.selectedProfile?.takeIf { it.id == id } ?: return
+        update { it.copy(createProfileId = id, selectedProfile = row) }
+    }
     fun selectScope(id: UUID?) = update { it.copy(createScopeId = id) }
+    fun updateProfileDraft(body: PersonalityInputDto) {
+        if (!state.value.creatingProfile) update { it.copy(profileDraft = body) }
+    }
     fun createProfile(name: String, style: String = "conversational", warmth: String = "warm", detail: String = "balanced") {
         val current = mutableState.value
         if (current.account == null || current.creatingProfile || current.profileUncertain) return
@@ -324,7 +343,8 @@ class ChatViewModel(
             if (!current(epoch)) return@sessionWork
             when (result) {
                 is ApiResult.Success -> {
-                    update { it.copy(creatingProfile = false, createProfileId = result.value.id, notice = "The style was created and selected.") }
+                    update { it.copy(creatingProfile = false, createProfileId = result.value.id, selectedProfile = result.value,
+                        notice = "The style was created and selected for a new conversation.") }
                     refreshProfiles()
                 }
                 is ApiResult.Failure -> {

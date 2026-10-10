@@ -1,13 +1,14 @@
 # Phase 05 — admin authorization and monitoring API
 
-Status: planned. Prerequisite: Phase 03. Apply STANDARDS and CODEX-WORKFLOW.
+Status: checkpoints A–C implemented; Windows/disposable PostgreSQL verification
+recorded in STATUS/WORKLOG. Prerequisite: Phase 03. Apply STANDARDS and CODEX-WORKFLOW.
 This phase creates the server contract required by the separate admin UI.
 
 ## Goal
 
 Allow an explicitly authorized operator to inspect sanitized operational metadata
-without expanding the private user API's ownership rules. Today there is no
-admin role. A name, personality, first account or model instruction must never
+without expanding the private user API's ownership rules. The Phase 03 baseline
+had no admin role. A name, personality, first account or model instruction must never
 grant one.
 
 ## Checkpoint A — explicit role and audit
@@ -88,3 +89,18 @@ revoked account cannot. Private user routes preserve ownership. The migration,
 audit and current-head readiness work on the target PostgreSQL database. Record
 results and any unresolved measurements. No admin UI, remote shell, token-management
 page or destructive recovery endpoint is implemented in this phase.
+
+## Implemented checkpoints
+
+- A: migration 0004, absent-by-default grants, UUID-based local grant/revoke,
+  transactional bounded audit, current-role checks and pre-delivery revocation.
+- B: all six typed routes above, composite identity, bounded filters/envelopes,
+  selected metadata/SQL JSON scalar summaries, explicit null/legacy handling.
+- C: current-head readiness, generation-free cached/bounded Ollama metadata probe,
+  actual process admission, unknown GPU/throughput and additive capabilities.
+
+See [operator/API documentation](../docs/ADMIN-MONITORING.md) for finalized fields,
+rate/retention policy, installation and failure semantics. Actual runs and remaining
+intended-database installation/HTTPS/performance verification are in STATUS/WORKLOG.
+The application database was not migrated and no real account received a grant
+during validation. Phase 06 and all later feature implementations remain unstarted.

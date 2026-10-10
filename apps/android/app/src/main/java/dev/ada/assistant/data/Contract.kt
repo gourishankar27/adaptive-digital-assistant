@@ -3,6 +3,9 @@
 package dev.ada.assistant.data
 
 import java.util.UUID
+import java.security.MessageDigest
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -183,4 +186,62 @@ fun utf16ToCodePointOffset(text: String, offset: Int): Int {
 fun codePointToUtf16Offset(text: String, offset: Int): Int {
     require(offset in 0..text.codePointCount(0, text.length))
     return text.offsetByCodePoints(0, offset)
+}
+
+/** Validate exact bytes, never normalize the source or substitute a current source version. */
+private fun exactSourceHash(content: String): String {
+    var index = 0
+    while (index < content.length) {
+        val character = content[index]
+        if (character.isHighSurrogate()) {
+            require(index + 1 < content.length && content[index + 1].isLowSurrogate()) { "Invalid source Unicode" }
+            index += 2
+        } else {
+            require(!character.isLowSurrogate() && character != '\u0000') { "Invalid source Unicode" }
+            index++
+        }
+    }
+    val digits = "0123456789abcdef"
+    return buildString(64) {
+        for (byte in MessageDigest.getInstance("SHA-256").digest(content.toByteArray(Charsets.UTF_8))) {
+            val value = byte.toInt() and 255
+            append(digits[value ushr 4]); append(digits[value and 15])
+        }
+    }
+}
+
+/** Client aid only: an authenticated server must authorize every source and write. */
+fun exactEvidenceSelection(source: SourceVersionDto, scope: UUID, startUtf16: Int, endUtf16: Int): EvidenceDto {
+    require(source.scope_id == scope) { "Source scope mismatch" }
+    require(source.trust_class == "user_explicit") { "Source is not explicit user evidence" }
+    require(exactSourceHash(source.content) == source.content_hash) { "Source content hash mismatch" }
+    val start = utf16ToCodePointOffset(source.content, startUtf16)
+    val end = utf16ToCodePointOffset(source.content, endUtf16)
+    require(start < end) { "Select a nonempty source quote" }
+    val quote = source.content.substring(startUtf16, endUtf16)
+    require(quote.isNotBlank()) { "Select a nonblank source quote" }
+    return EvidenceDto(source.id, start, end, quote, source.content_hash)
+}
+
+/** Exact provenance for read-only detail; this does not authorize endorsing model evidence. */
+fun verifyClaimEvidence(claim: ClaimDto, source: SourceVersionDto): Boolean = runCatching {
+    val evidence = claim.evidence
+    require(source.id == evidence.source_version_id && source.scope_id == claim.scope_id)
+    require(source.content_hash == evidence.content_hash && exactSourceHash(source.content) == source.content_hash)
+    require(evidence.span_start >= 0 && evidence.span_end > evidence.span_start)
+    val start = codePointToUtf16Offset(source.content, evidence.span_start)
+    val end = codePointToUtf16Offset(source.content, evidence.span_end)
+    require(source.content.substring(start, end) == evidence.quote && evidence.quote.isNotBlank())
+    true
+}.getOrDefault(false)
+
+/** Canonical API timestamp. Valid time is separate from the returned source storage time. */
+fun normalizeUtcMillis(value: String): String? {
+    if (value.isBlank()) return null
+    require(value.length <= 64) { "Timestamp is too long" }
+    val parsed = OffsetDateTime.parse(value.trim())
+    require(parsed.nano % 1_000_000 == 0) { "Timestamp requires millisecond precision" }
+    val instant = parsed.toInstant()
+    require(instant.atOffset(ZoneOffset.UTC).year in 1..9999) { "Timestamp is outside the server date range" }
+    return instant.toString()
 }

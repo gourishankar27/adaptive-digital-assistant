@@ -1,16 +1,17 @@
-# ADA web UI foundations (Phase 03)
+# ADA admin web — Phase 06
 
-This local development SPA checks the authenticated account and capabilities
-using the existing ADA HTTP API. It also provides light/dark/large-text previews
-and the planned admin screen map. Admin monitoring needs the Phase 05 server
-authorization contract and Phase 06 UI. This scaffold grants no admin role and
-does not implement a dashboard, chat or user enrollment.
+Read-only backend monitoring for a server-authorized operator: sign-in, overview,
+provider/limit configuration, server-filtered request pages, composite owner/request
+detail and audit metadata. All six enabled reads use existing `/v1/admin` routes.
+No raw chats, source quotes, prompts or operational write controls are exposed.
 
 ## Windows setup and checks
 
-Use Node **24.12.0** and npm **11.6.2** (also pinned by .node-version, .nvmrc,
-engines and packageManager). npm ci installs exactly package-lock.json. Python's
-existing virtual environment is needed for the disposable integration server.
+Use pinned Node **24.12.0**, npm **11.6.2**, package-lock.json and the root Python
+virtual environment. Browser integration requires reachable PostgreSQL and the
+dedicated **ada_phase2_test** database. Prepare it with root
+`scripts/test-postgres.ps1`, or supply `ADA_TEST_DATABASE_URL` privately in the
+environment naming only that database. Never print credentials/connection strings.
 
 ```powershell
 Push-Location apps\admin-web
@@ -25,19 +26,30 @@ npm run test:e2e
 Pop-Location
 ```
 
-The e2e command launches Chromium, loopback Vite on 5173 and the repository's
-client_test_server.py on 18763. The latter creates a disposable, migrated SQLite
-database, a synthetic account and the actual FastAPI application with FakeProvider.
-The test token is generated in memory, inherited by the server/workers, and never
-printed. One browser test uses the actual HTTP adapter without interception;
-separate fixture tests cover invalid credentials, escaping and keyboard states.
-Recording, screenshots and video are disabled. A fake model integration is not
-evidence of a real Ollama reply or PostgreSQL semantics.
+E2e starts Chromium, loopback Vite :5173 and one-worker actual ADA HTTP :18763.
+`scripts/admin_web_test_server.py` loads root connection settings, derives only
+ada_phase2_test and creates a unique migrated schema. Explicit test URLs must
+name that database; inherited search paths/arbitrary schema names are rejected.
+Random credentials stay in inherited environment memory. Two synthetic operators
+receive explicit grants; ordinary owners remain unprivileged. Local fixture actions
+use the existing grant service, with no remote test mutation endpoint. Teardown
+removes the exact schema even if Windows kills the server before its finally block.
+Startup failure does not fall back to SQLite or mocked authorization.
 
-## Run against your existing backend
+Successful synthetic chats use FakeProvider through owned HTTP APIs. A failed
+request and subsequent health probe encounter a real TCP refusal at a bound,
+non-listening loopback socket. No live generation occurs. Fixtures include two
+owners sharing a request UUID, recorded zero tokens and a missing legacy trace.
+Sign-in/grants/revocation/pagination/detail/audit use real PostgreSQL/HTTP.
+Intercepted 401/429/503 and unknown/degraded model metadata are separate UI tests.
+Browser recording, traces, screenshots and video are disabled.
 
-Start ADA from the root using its existing scripts/start.ps1 (loopback :8000,
-one Uvicorn worker). In another PowerShell window:
+## Run with an existing backend
+
+The backend must already have migration 0004 and an explicit monitoring grant for
+your account UUID. See [ADMIN-MONITORING.md](../../docs/ADMIN-MONITORING.md).
+Phase 06 implementation does not migrate the application DB or grant real accounts.
+Start ADA with root `scripts/start.ps1` (loopback :8000, one worker), then:
 
 ```powershell
 Push-Location apps\admin-web
@@ -45,68 +57,89 @@ npm ci
 npm run dev
 ```
 
-Open http://127.0.0.1:5173. Keep the browser server origin as shown, then enter
-a current ADA bearer token. Connect calls GET /v1/me and GET /v1/capabilities.
-No credential is stored in localStorage/sessionStorage, a URL or persisted cache.
-Reload, logout, changing account/server and 401 clear private state. Editing the
-server also clears the token field. Leaving a screen does not cancel generation.
+Open **http://127.0.0.1:5173/admin/**. Keep the browser origin as shown and enter a
+current bearer token. Admin-me verifies permission and operator UUID; the header
+and Settings confirm principal/server. Ordinary users receive Access denied.
 
-The Vite proxy forwards same-origin /v1 requests to http://127.0.0.1:8000. To use
-another development API server, stop Vite and set its fixed target before restart:
+Relative `/v1` requests use a fixed Vite proxy to http://127.0.0.1:8000. To select
+another development API, stop Vite, set a non-secret origin and restart:
 
 ```powershell
 $env:ADA_API_TARGET = 'https://your-private-ada-host.example'
 npm run dev
 ```
 
-The target accepts HTTPS or loopback HTTP only and rejects credentials, query
-strings and paths. It is a non-secret origin, never a database/Ollama URL.
-The UI accepts only its current browser origin so a user-entered URL cannot
-redirect bearer credentials. No production CORS or deployment is configured.
-`npm run preview` is a local build preview; it has no development API proxy.
+The proxy accepts HTTPS or loopback HTTP without userinfo/path/query. The UI
+accepts only its current HTTPS/loopback browser origin, so entered values cannot
+redirect credentials. Database/provider URLs are never browser inputs.
 
-Android emulator and USB connection instructions are in ../android/README.md.
-The backend's loopback default remains unchanged.
+## Build and same-origin smoke
 
-## Contract and state boundaries
+```powershell
+npm run build
+npm run preview -- --port 4173
+```
 
-- src/api/generated.ts includes DTOs/paths for every current OpenAPI route. Run
-  npm run contracts:generate after an authorized contract change. Its explicit
-  int64 → bigint transform preserves all signed 64-bit UTC milliseconds.
-- src/api/decode.ts runtime-validates implemented reads, tolerates unknown fields
-  (including future numeric values) and safely retains future request enum values.
-  Unknown states cannot be interpreted as completed. Supported connection API
-  version is v1 with server authority. Optional older flags never enable features.
-- HttpAdaApi implements the injected AdaApi interface for account/capability and
-  owned request-status reads. Redirects are errors; transport failures never load
-  fixtures. Errors use actionable fixed wording, never server/private body text.
-  401 disconnects. Retry-After is parsed for visible manual reconnect guidance;
-  reads have no automatic retry. Timeout/network loss is an unknown submitted
-  outcome; status reconciliation must use the original request ID and payload.
-- ConnectionSession binds query keys to server/owner/scope/request, clears all
-  private caches before switching identity and rejects late old results. Tokens
-  stay solely in the live adapter; the entry field clears upon submission.
-- ScreenState defines empty/loading/loaded/stale/offline/forbidden/error/deferred
-  and unknown-outcome states for subsequent phases. There are no client writes,
-  journals, streaming or cancellation controls. API creation POSTs lack idempotency
-  keys; later screens must reconcile uncertain creation rather than blindly retry.
-- Completed requests retain their original citations. sourceForLabel searches only
-  that response; unknown labels and legacy missing traces never create a card.
-  Baseline v1/v2 remain frozen until explicit audited upgrade; v3 retrieval is
-  available according to capabilities, never silently upgraded by the client.
-- Text rendering escapes HTML, and safeHref allowlists HTTP(S) without userinfo.
-  Unicode selection offsets are converted from UTF-16 to code points; selecting
-  inside a surrogate pair is rejected. Exact quote whitespace is preserved.
+Open **http://127.0.0.1:4173/admin/**. Loopback preview serves built assets,
+`/admin` route fallback and the same fixed `/v1` proxy. To exercise the production
+build against disposable PostgreSQL with the whole browser suite:
 
-All dependencies are exact pinned versions. Chosen versions were checked against
-[Vite requirements](https://vite.dev/guide/), [React documentation](https://react.dev/versions),
-[React Router](https://reactrouter.com/start/declarative/installation),
-[TanStack Query](https://tanstack.com/query/latest/docs/framework/react/installation),
-[Vitest](https://vitest.dev/guide/), [Playwright](https://playwright.dev/docs/intro),
-[OpenAPI TypeScript](https://openapi-ts.dev/node) and
-[lossless-json](https://github.com/josdejong/lossless-json) on 2026-10-08,
-with npm metadata used for exact published versions and compatible peer ranges.
-TypeScript 5.9.3 is compatible with typescript-eslint's <6.1 range; jsdom 26.1.0
-supports the pinned Node. Native controls and interaction tests cover accessibility;
-manual screen-reader and additional browser verification remain required before
-a usable admin release.
+```powershell
+$env:ADA_WEB_BUILD_SMOKE = '1'
+try { npm run test:e2e }
+finally { Remove-Item Env:ADA_WEB_BUILD_SMOKE }
+Pop-Location
+```
+
+For separately authorized HTTPS hosting, serve `dist` under `/admin/`, resolve
+only client routes to its index, and forward `/v1/` to ADA on the same origin.
+API errors must keep their JSON/status, never SPA fallback HTML. Preserve bearer
+headers/no-store responses and exclude credentials/private bodies from logging
+and analytics. Vite base and BrowserRouter basename are `/admin`. No CORS, cookie,
+login or refresh endpoint is assumed. Preview is a local smoke arrangement;
+hosting/deployment and release HTTPS verification were not performed.
+
+## State, data and appearance
+
+- Credentials live only in the active HTTP adapter; the input clears on submission.
+  Reload/pagehide requires sign-in. Logout/reconnect/server change and 401/403 abort
+  reads, clear all queries and fence late results. Revoked detail disappears on
+  the next denial. A hidden tab learns of revocation when server reads resume.
+- Query keys include server, verified principal, session epoch, filters and both
+  owner/request UUIDs. Only allowed DTO fields enter caches; unknown extensions are
+  dropped. Int64 times/durations remain bigint; values outside Date's range display
+  exact epoch milliseconds. Unknown statuses remain unknown. Nothing persists
+  except appearance enums; no token/results in storage, URLs or error bodies.
+- Visible mounted views poll every **30 seconds**, without automatic retry,
+  focus/reconnect triggers or background polling. Hidden tabs disable refresh.
+  Retry-After extends intervals and establishes a session cooldown across view
+  changes/manual reads/sign-in. Transient failures retain last success labelled
+  stale; 401/403 clear it and 404 hides detail. Unmounted caches are discarded.
+- Requests use server UUID/state/provider/UTC-window filters, 10/25/50/100 rows
+  (server default 50), offset capped at 10,000, maximum 7-day window (default last
+  24 hours). Pagination freezes returned bounds; detail/back restores safe filters.
+  Creation-descending/composite order stays authoritative. Offset pages are
+  observations, not an immutable snapshot while requests change.
+- Counts have windows, units and last-success/server observation times. Token sums
+  include known-value coverage. Null/zero/unknown/unavailable/degraded differ.
+  Request elapsed includes context/database overhead; retrieval time measures its
+  recorded step. Legacy missing values say Not recorded. Selected memories are
+  not citation counts. GPU/throughput and synthetic charts are absent.
+- Provider limits and audit are read-only. Audit shows fixed actor/action/target/
+  outcome/time metadata with server 30-day/10,000-event retention. Permission checks
+  remain server-enforced. No shell/retry/cancel/purge/token/prompt editing exists.
+- Settings defaults to **Oxford Blue #002147**, with **Dark Red #350616** and
+  **Olive Green #3c4c24**. Each supports system/light/dark brightness and larger
+  text. Only enum preferences persist under `ada.appearance.v1`; disabled storage
+  still permits changes in the current tab. System brightness follows the OS.
+- Native labels/headings/table captions/column headers, labelled horizontal table
+  regions, skip link and focus styles support keyboard/narrow/zoom layouts.
+  Navigation focuses main; refreshing keeps focus and does not announce ticks.
+  Model/error text is escaped, with no raw HTML insertion.
+
+Earlier Phase 03 compatibility transport/state tests remain. The live app uses
+HttpAdminApi, AdminSession and TanStack Query monitoring views. Server contracts,
+capabilities, prompts, migrations and dependency pins are unchanged in Phase 06.
+Manual screen-reader/other-browser review, real release HTTPS and sustained
+polling/performance remain target checks; see [STATUS](../../plans/STATUS.md) and
+[WORKLOG](../../plans/WORKLOG.md).

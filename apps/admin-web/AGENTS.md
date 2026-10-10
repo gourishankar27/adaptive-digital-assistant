@@ -11,8 +11,9 @@ README and actual contracts/openapi.json before changing transport or screens.
   proxy targets fixed outside user input. No direct database or provider access.
 - Clear account/server state and query caches on reconnect, disconnect and 401.
   Preserve server/owner/scope/request keys and fence late async results.
-- The current server has no admin role. No names, profiles, route guards or
-  ordinary account tokens grant admin access. Phase 03 screens are foundations.
+- Phase 05 server monitoring requires an explicit current database grant. Names,
+  profiles, route guards and ordinary tokens confer no admin access. Phase 06
+  is read-only monitoring; changing permissions or configuration has no web control.
 - Render untrusted content as text; allowlist link schemes. Do not add raw HTML
   rendering or executable code affordances. Preserve exact quotes and code points.
 - Decode full int64 timestamps losslessly. Never pass unsafe integers through
@@ -28,8 +29,10 @@ README and actual contracts/openapi.json before changing transport or screens.
 - Run npm ci, npm run contracts:check, npm run typecheck, npm run lint,
   npm run test -- --run, npm run build and npm run test:e2e from this directory.
   Install the pinned Playwright Chromium first with npx playwright install chromium.
-  Browser integration starts a migrated disposable SQLite backend with fake model;
-  report that separately from PostgreSQL and real Ollama/device evidence.
+  Browser integration starts a real HTTP server in a migrated disposable schema
+  in the dedicated PostgreSQL ada_phase2_test database. Synthetic chat seeds use
+  a fake model; failed request/health use actual loopback TCP refusal. Explicit
+  intercepted UI error/health cases stay distinct from real authorization evidence.
 - Review a browser launch and keyboard navigation. Never capture a credentialed
   browser trace/screenshot. Record checks actually run and remaining manual
   verification in the root plans/STATUS.md and plans/WORKLOG.md.

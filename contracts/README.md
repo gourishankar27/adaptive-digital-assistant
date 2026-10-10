@@ -1,16 +1,22 @@
 # Existing ADA HTTP contract
 
-`openapi.json` is exported from the implemented FastAPI routes. Phase 03 adds
-output schemas; it does not add an admin role, sign-in, streaming, cancellation,
-upload, device inference or monitoring endpoint. No database migration or prompt
-upgrade is required to use these schemas. Existing CLI clients use the same
-field names, statuses and retry fingerprints.
+`openapi.json` is exported from the implemented FastAPI routes. Phase 03 added
+output schemas. Phase 05 adds explicitly granted, audited monitoring metadata
+and requires migration 0004; no prompt upgrade is needed. Existing CLI/user clients
+use the same field names, statuses and retry fingerprints. Streaming, cancellation,
+uploads, device inference, enrollment and the monitoring dashboard remain absent.
 
 All `/v1/` operations require a bearer credential. Ownership comes from the
 authenticated user, never a supplied owner ID, profile name, source label or
-personality. A resource owned by another account returns the same sanitized 404
+personality. Private user resources owned by another account return the same sanitized 404
 as an unavailable resource. The unauthenticated health routes disclose only
 liveness/schema readiness.
+
+Admin metadata routes are a separate explicit-grant boundary. Even granted admins
+remain owners on the normal private routes. `admin_monitoring` is an additive
+capability flag (older omitted values default false), not permission. All six
+`/v1/admin/` outputs use closed allowlists and require current grants/audits;
+see [ADMIN-MONITORING.md](../docs/ADMIN-MONITORING.md) for fields and limits.
 
 | HTTP area | Exported outputs | Existing behavior |
 |---|---|---|
@@ -24,7 +30,7 @@ liveness/schema readiness.
 | Sources | `SourceVersionOutput` | Explicit note creation returns 201, identical same-ID replay returns 200. Exact text/hash/trust are retained. |
 | Claims/corrections | `ClaimOutput` | Explicit source-backed creation/correction returns 201, identical same-ID replay returns 200. Valid-time history remains available. |
 
-Lists use `limit`/`offset` and return arrays, without a fabricated total or cursor.
+Owned resource lists use `limit`/`offset` and return arrays, without a fabricated total or cursor.
 Profile/conversation/scope lists default to 50, maximum 100. Event/source/claim
 lists default to 100, maximum 200. Profiles, conversations, scopes and sources
 order by creation timestamp then ID. Events order by request creation timestamp,
@@ -82,8 +88,9 @@ unknown/malformed errors receive generic client wording and never fixture data.
 | 502 | Provider failure; inspect persisted failed request before offering exact retry. |
 | 503 | Admission busy (`Retry-After: 3`) or database not ready on health readiness; bounded backoff. |
 
-Clients also have safe mappings for 403/429 and future error statuses, but no
-current route is advertised as emitting these or as providing an admin API.
+Admin routes return 403 for known accounts without a current grant and 429 for
+bounded polling, with `Retry-After: 60`. DB/audit failures return sanitized 503.
+Admin lists use bounded envelopes rather than changing existing user list arrays.
 
 ## Prompt and citation compatibility
 

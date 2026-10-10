@@ -4,6 +4,7 @@ from uuid import uuid4
 from sqlalchemy import (
     JSON,
     BigInteger,
+    Boolean,
     CheckConstraint,
     ForeignKey,
     ForeignKeyConstraint,
@@ -93,6 +94,10 @@ class Conversation(Base):
 class Request(Base):
     __tablename__ = "requests"
     __table_args__ = (
+        Index("request_admin_created", "created_at", "owner_id", "id"),
+        Index("request_admin_status", "status", "created_at", "owner_id", "id"),
+        Index("request_admin_owner", "owner_id", "created_at", "id"),
+        Index("request_admin_provider", "provider", "created_at", "owner_id", "id"),
         UniqueConstraint("owner_id", "id", "conversation_id"),
         ForeignKeyConstraint(
             ["owner_id", "conversation_id"], ["conversations.owner_id", "conversations.id"]
@@ -306,4 +311,46 @@ class RetrievalTrace(Base):
     selected: Mapped[list] = mapped_column(JSON)
     budget: Mapped[dict] = mapped_column(JSON)
     retrieval_ms: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[int] = mapped_column(BigInteger, default=now_ms)
+
+
+class AdminGrant(Base):
+    __tablename__ = "admin_grants"
+    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), primary_key=True)
+    enabled: Mapped[bool] = mapped_column(Boolean)
+    updated_at: Mapped[int] = mapped_column(BigInteger, default=now_ms)
+
+
+class AdminAuditState(Base):
+    """Serializes bounded audit insertion/pruning across local CLI and server."""
+
+    __tablename__ = "admin_audit_state"
+    __table_args__ = (CheckConstraint("id = 1", name="admin_audit_singleton"),)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+
+
+class AdminAudit(Base):
+    __tablename__ = "admin_audit"
+    __table_args__ = (
+        CheckConstraint("actor_kind IN ('user', 'local_operator')", name="admin_audit_actor"),
+        CheckConstraint(
+            "action IN ('role.grant', 'role.revoke', 'monitor.me', 'monitor.overview', "
+            "'monitor.requests', 'monitor.request', 'monitor.providers', 'monitor.audit')",
+            name="admin_audit_action",
+        ),
+        CheckConstraint(
+            "outcome IN ('allowed', 'denied', 'not_found', 'invalid', 'failed', "
+            "'granted', 'revoked', 'unchanged', 'rate_limited')",
+            name="admin_audit_outcome",
+        ),
+        Index("admin_audit_created", "created_at", "id"),
+        Index("admin_audit_actor_created", "actor_id", "created_at", "id"),
+    )
+    id: Mapped[int] = mapped_column(BigInteger().with_variant(Integer, "sqlite"), primary_key=True)
+    actor_id: Mapped[str] = mapped_column(String(36))
+    actor_kind: Mapped[str] = mapped_column(String(20))
+    action: Mapped[str] = mapped_column(String(30))
+    target_owner_id: Mapped[str | None] = mapped_column(String(36))
+    target_request_id: Mapped[str | None] = mapped_column(String(36))
+    outcome: Mapped[str] = mapped_column(String(20))
     created_at: Mapped[int] = mapped_column(BigInteger, default=now_ms)

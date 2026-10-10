@@ -160,7 +160,7 @@ def run(phase1, output):
                 stop(process)
                 migrate(ROOT, database)
                 process = start(ROOT, database, port)
-                assert get("/health/ready")["schema"] == "0003"
+                assert get("/health/ready")["schema"] == "0004"
                 assert get(f"/v1/claims/{claim['id']}") == claim
                 assert get(f"/v1/conversations/{c}")["prompt_version"] == "ada-baseline-v2"
                 assert get(f"/v1/conversations/{c}/events") == old_events
@@ -239,7 +239,7 @@ def run(phase1, output):
         "backend": "sqlite",
         "provider": "fake",
         "from_schema": "0002",
-        "to_schema": "0003",
+        "to_schema": "0004",
         "checks": checks,
         "real_llm_tested": False,
     }

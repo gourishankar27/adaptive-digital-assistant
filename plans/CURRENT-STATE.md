@@ -1,6 +1,6 @@
 # Current ADA baseline
 
-Recorded 2026-10-08. Read current source and tests before implementing a phase;
+Recorded 2026-10-09. Read current source and tests before implementing a phase;
 this file is a planning snapshot, not a permanent claim about the repository.
 
 ## Implemented
@@ -28,7 +28,8 @@ corrections and retrieval diagnostics. The browser API explorer is `/docs`.
 
 Ownership comes from the bearer credential, not a submitted owner field. A
 conversation selects one owned scope. Scopes are private; shared membership and
-admin roles are not implemented. Source mapping proves provenance, not truth or
+cross-user private access is not implemented. Phase 05 explicit admin grants allow
+only sanitized monitoring metadata. Source mapping proves provenance, not truth or
 the semantic correctness of the model's sentence.
 
 `GET /v1/conversations/{id}/events` returns event text, request ID/status and
@@ -39,10 +40,10 @@ OpenAPI, including sanitized errors and retrieval details.
 
 Chat returns a complete response. There is no streaming, cancellation endpoint,
 automatic memory extraction, document upload, embedding search, tool executor,
-admin API, voice interface or local mobile model. Static warmth/style
+voice interface or local mobile model. Static warmth/style
 configuration exists; dynamic affect and learned relationship preferences do not.
 
-## Verification evidence
+## Historical verification evidence — Phases 02A/03
 
 The original packaged Linux run recorded 60 passed/50 skipped. The user's Windows
 PostgreSQL run reported 105 passed, 3 failed, 2 skipped. All three failures were
@@ -51,7 +52,7 @@ while manifest keys require `/`. This update changes fixture serialization to
 `.as_posix()` and adds a test that simulates Windows path objects on Linux.
 The production migration validation remains strict.
 
-This update's Linux run recorded 61 passed/50 skipped/1 existing warning;
+The Phase 02A Linux run recorded 61 passed/50 skipped/1 existing warning;
 Ruff lint and format checks passed across src, tests, migrations and scripts.
 The additional passing test is the portable Windows-path regression. No
 disposable PostgreSQL was configured for this local run.
@@ -86,8 +87,9 @@ Kotlin/Compose; the web app uses React/TypeScript/Vite. Test transports and
 `scripts/client_test_server.py` are explicit test-only adapters; the latter uses
 loopback, migrated disposable SQLite and a fake model.
 
-The web foundation has no dashboard workflow or admin authority; its credential
-remains in memory. Android Phase 04 adds owned conversation/history/chat/source
+The Phase 03 web foundation introduced no admin authority; Phase 06 now provides
+read-only monitoring through the explicit Phase 05 grants. Its credential remains
+in memory. Android Phase 04 adds owned conversation/history/chat/source
 screens, manually issued credential enrollment, Keystore-encrypted pending
 requests, identity-verified restart checks and explicit exact-payload retries.
 Source/retry DTOs preserve the existing server contract. No schema migration is needed.
@@ -98,3 +100,59 @@ compatible with that reported OS. Phase 04 physical-phone accessibility/connecti
 real-model and release HTTPS checks remain pending target verification. A remote
 connection/distribution setup and admin credential enrollment require later selected
 work; phone inference is not implemented.
+
+## Phase 05 monitoring
+
+Migration 0004 follows the unchanged released head 0003. Empty grants, a fixed-field
+rolling audit/state lock and monitoring indexes are implemented. Trusted local
+`grant-admin`/`revoke-admin` commands use exact account UUIDs. All six `/v1/admin/`
+GET routes require an existing bearer principal and current explicit grant; audit
+and recheck happen before successful delivery. User endpoints remain owner-only.
+
+Metadata queries exclude private text and credentials, preserve composite request
+identity/null metrics/legacy traces and bound windows/pagination/polling/audit.
+Readiness now requires 0004. Cached Ollama model-list health performs no generation
+or network I/O within transactions. Admission is the actual one-worker process
+semaphore; GPU and throughput remain unknown. Capabilities advertise availability
+without granting access. See docs/ADMIN-MONITORING.md and STATUS/WORKLOG for exact
+contracts, disposable PostgreSQL/HTTP/local-provider evidence and remaining target
+installation/HTTPS/performance checks. No production migration, real grant,
+admin dashboard or later backend feature was performed in this phase.
+
+## Phase 06 admin web
+
+The `/admin` SPA implements operator sign-in via admin-me, overview/provider
+readiness, server-filtered request pagination, composite owner/request details,
+retrieval budgets and audit metadata. Settings offers Oxford Blue #002147 by
+default, Dark Red #350616 and Olive Green #3c4c24 with system/light/dark and larger
+text. Only appearance preferences persist. Every monitoring read uses the actual
+admin API; no direct database/provider access, raw chats or production fixtures.
+
+Current-role loss/sign-out/switch clears all metadata and pending reads. Polling
+is bounded/visible-only, respects Retry-After across views and marks transient
+failures stale. Bigint time decoding, null/zero distinctions and legacy trace
+labels preserve the server contract. No schema or API change was required.
+Real Chromium/one-worker HTTP integration uses migrated disposable PostgreSQL
+and actual grants/revocation. See STATUS/WORKLOG for checks, explicit test-fixture
+health/error cases and remaining HTTPS/manual accessibility/performance evidence.
+The intended application database and real account grants were not changed.
+
+## Phase 07 Android explicit memory and personality
+
+The Android Memory destination uses existing authenticated scope/source/claim
+APIs for pagination, current/as-of/history, exact evidence and replacement links.
+Remember and correction require a reviewed annotation/quote preview and explicit
+Save. Encrypted immutable source/claim reservations and a durable note stage
+support identical replay after interruption, while conflicts retain input for
+review. UTF-16 selections become code-point spans without quote normalization;
+model-generated sources cannot become user evidence. A future correction leaves
+the old assertion visible until its half-open interval ends. Original chat
+citations retain their saved validity/evidence snapshots.
+
+Settings exposes the existing static personality enums and profile name, creating
+a new owned profile for future conversations. Existing conversations retain frozen
+personality/prompt snapshots. The additive encrypted v2 local record preserves
+v1 chat recovery; logout/switch/401 clear both private journals and caches.
+No server route, OpenAPI, migration, inference behavior or dependency was changed.
+STATUS/WORKLOG distinguish local checks from physical S24 FE/Android 16, HTTPS,
+TalkBack and actual model verification still needed on the target setup.

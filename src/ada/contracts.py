@@ -23,6 +23,7 @@ class UserOutput(BaseModel):
 
 
 class CapabilitiesOutput(BaseModel):
+    admin_monitoring: bool = False
     api_version: str
     chat: bool
     streaming: bool

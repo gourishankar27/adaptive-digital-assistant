@@ -4,6 +4,7 @@ import android.util.AtomicFile
 import androidx.test.platform.app.InstrumentationRegistry
 import java.io.File
 import java.security.KeyStore
+import java.security.MessageDigest
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
@@ -21,6 +22,41 @@ class SecureSessionStoreInstrumentedTest {
     private val identity = SessionIdentity("https://ada.example/", UUID.fromString("00000000-0000-4000-8000-000000000001"))
     private fun pending() = PendingMessage(identity, UUID.fromString("00000000-0000-4000-8000-000000000002"),
         ChatInputDto(UUID.fromString("00000000-0000-4000-8000-000000000003"), "Synthetic 😀 recovery\r\n", "2026-10-08T00:00:00.000Z", false))
+    private fun memory() = PendingMemory(MemoryReservation(identity,
+        UUID.fromString("00000000-0000-4000-8000-000000000004"), UUID.fromString("00000000-0000-4000-8000-000000000005"),
+        note = NoteInputDto(UUID.fromString("00000000-0000-4000-8000-000000000006"), "Synthetic 😀 memory\r\n e\u0301 தமிழ்  "),
+        subject = "user", predicate = "language", value = "Tamil", kind = "preference", validFrom = "2026-10-08T00:00:00.001Z"))
+    private fun memorySource(): SourceVersionDto {
+        val reservation = memory().reservation
+        val note = checkNotNull(reservation.note)
+        val hash = MessageDigest.getInstance("SHA-256").digest(note.content.toByteArray(Charsets.UTF_8)).joinToString("") { "%02x".format(it) }
+        return SourceVersionDto(note.source_id, note.source_id, reservation.scopeId, 1, note.content, hash, "user_explicit", 1791417600001L)
+    }
+
+    @Test fun memoryNoteCheckpointAndChatSurviveActualKeystoreRecreationTogether() = exercise { file, alias, store ->
+        store.saveCredential(StoredCredential(identity, "synthetic-instrumented-token"))
+        store.savePending(pending()); store.saveMemoryPending(memory())
+        val staged = memory().copy(source = memorySource())
+        store.saveMemoryPending(staged)
+        assertFalse(file.readBytes().toString(Charsets.UTF_8).contains("Synthetic"))
+        val recreated = EncryptedSessionStore(AtomicSessionDisk(file), AesGcmSessionCipher(AndroidSessionKeys(alias)), true)
+        assertEquals(staged, recreated.memoryPending(identity)); assertEquals(pending(), recreated.pending(identity))
+        assertEquals(staged.source!!.content.codePointCount(0, staged.source.content.length), staged.claimInput().span_end)
+        assertEquals("2026-10-08T00:00:00.001Z", staged.claimInput().valid_from)
+    }
+
+    @Test fun memoryAndChatClearOnActualIdentitySwitchAndKeyLoss() = exercise { file, alias, store ->
+        store.saveCredential(StoredCredential(identity, "synthetic-instrumented-token"))
+        store.savePending(pending()); store.saveMemoryPending(memory())
+        store.saveCredential(StoredCredential(identity, "synthetic-rotated-token"))
+        assertEquals(memory(), store.memoryPending(identity)); assertEquals(pending(), store.pending(identity))
+        val other = identity.copy(owner = UUID.randomUUID())
+        store.saveCredential(StoredCredential(other, "synthetic-other-token"))
+        assertNull(store.memoryPending(identity)); assertNull(store.memoryPending(other)); assertNull(store.pending(other))
+        store.saveMemoryPending(memory().copy(reservation = memory().reservation.copy(identity = other)))
+        KeyStore.getInstance("AndroidKeyStore").apply { load(null); deleteEntry(alias) }
+        assertNull(store.memoryPending(other)); assertNull(store.readCredential()); assertFalse(file.exists())
+    }
 
     @Test fun actualKeystorePersistsEncryptedExactJournalAndExcludesBackupLocation() = exercise { file, alias, store ->
         store.saveCredential(StoredCredential(identity, "synthetic-instrumented-token"))

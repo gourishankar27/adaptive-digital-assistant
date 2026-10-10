@@ -1,6 +1,6 @@
 # Phase 2 architecture decisions
 
-Status: persistent chat, explicit source-backed memory, scoped retrieval and citation traces.
+Status: persistent chat, source-backed memory, retrieval/citations and explicit admin monitoring.
 
 ## Deployment
 
@@ -30,7 +30,8 @@ are checked against authenticated ownership before a conversation or memory writ
 
 PostgreSQL is authoritative. SQLAlchemy uses composite ownership foreign keys for
 personality/conversation/request/event links. Application reads always include the
-authenticated owner. This is application-enforced isolation with database integrity
+authenticated owner on private user routes. The explicitly granted admin metadata
+routes select a separate fixed metadata allowlist across owners. This is application-enforced isolation with database integrity
 constraints, not PostgreSQL row-level security. The database administrator and server
 operator remain trusted. RLS is a future defense-in-depth decision before a less
 trusted deployment.
@@ -139,6 +140,55 @@ data: protect database/backups.
 Snapshots and rejected/failed requests currently have no automated retention policy.
 There is no public deployment, security certification, or high-availability claim.
 
+Phase 05 migration 0004 adds grants defaulting absent, a fixed-field rolling audit
+and indexed monitoring filters. Local UUID-based grant/revoke commands atomically
+audit changes under a singleton audit-state lock. Admin reads use existing bearer
+authentication, fresh grants and a pre-response audit/recheck, including in-flight
+revocation. Normal private routes never bypass owner checks. The trusted local
+operator has a reserved audit actor ID; HTTP audit actors are authenticated user IDs.
+
+Monitoring selects columns/JSON scalar counts rather than private ORM snapshots.
+It preserves composite owner/request identity and unrecorded metrics as null.
+Polling, query windows, pagination and audit rows/age are bounded. Provider model-list
+probes are serialized/cached, response/time bounded and run outside DB transactions;
+they never generate. Readiness validates supported head 0004. Admission shows the
+actual process semaphore, with one worker; GPU/throughput remain unknown. See
+[ADMIN-MONITORING.md](ADMIN-MONITORING.md) for allowlists, failure/audit semantics,
+retention and installation. Phase 05 introduces no account impersonation.
+
+## Admin web monitoring (Phase 06)
+
+The React SPA in `apps/admin-web` serves under `/admin` and reads the six existing
+same-origin `/v1/admin` endpoints. AdminSession verifies admin-me before enabling
+queries. The live HTTP adapter holds the bearer token; submission clears the entry
+field. No credentials or query results are persisted. Only enum-valued appearance
+preferences (Oxford Blue/default, Dark Red, Olive Green; brightness/text size) use
+localStorage. Reload requires operator sign-in again.
+
+Query identity includes server, verified principal, session epoch, filters and
+both request owner/request UUIDs. Logout, identity change and 401/403 abort pending
+reads, clear metadata and fence late results. The server remains the permission
+authority on every read. Ordinary private APIs are unchanged. Runtime projection
+accepts only metadata fields and decodes int64 times as bigint, even when a future
+response adds private fields. Request/detail/audit text is rendered literally.
+
+Overview shows server counts and token coverage; Providers shows reported limits
+and generation-free health; Requests uses server pagination/filters; Detail shows
+recorded timeline/retrieval budgets with explicit missing legacy values; Audit
+shows fixed-field role/read events. No chart is synthesized from counts. Metrics
+have units and observation/last-success times. Unknown, zero, unavailable and
+degraded states stay distinct. Transient errors mark retained values stale;
+authentication loss removes them. Views poll at 30 seconds only when visible,
+with no automatic retry or background refresh. Retry-After establishes a session
+cooldown across view changes and manual refresh. Cache entries expire on unmount.
+
+Native controls, labelled horizontal table regions, stable refresh focus, palettes
+with light/dark/system modes and text sizing support keyboard/narrow/zoom layouts.
+The same-origin local build smoke uses Vite preview with a fixed `/v1` proxy.
+HTTPS static hosting with `/admin` fallback requires a separately selected setup;
+no deployment or operational write control is part of Phase 06. Server OpenAPI,
+schema, admission, snapshots and provider behavior remain unchanged.
+
 ## Mobile compute split (future)
 
 Phase 03 adds typed OpenAPI output/error contracts and independent Android/web
@@ -160,8 +210,31 @@ requires reconnect; logout/account switching clears private recovery and caches.
 Drafts and loaded history/source cards otherwise stay in ViewModel memory.
 Source cards and retrieval details come from the same owned request snapshot;
 they are not reconstructed from current claims. Polling is bounded, 401 stops
-recovery, and there is no cancellation, streaming, Android memory writer or
+recovery, and there is no cancellation, streaming or
 device inference. Existing server authority and released schema remain intact.
+
+Phase 07 adds a MemoryController owned by the authenticated chat ViewModel. Its
+scope/mode/date/page and source-detail state is fenced by verified server/owner
+and selection epochs; it never changes saved request citation maps. Lists use
+server interval filtering, including superseded rows valid before a future
+correction. Competing loaded assertions are warnings, not truth rankings.
+
+The additive encrypted session format v2 retains the v1 credential/chat journal
+and adds one immutable memory reservation. Source/claim IDs, note or exact
+user-evidence selection, annotation, interval and correction target commit before
+POST. A returned note version is a second durable stage before claim submission.
+Both journals share the existing Keystore key/file and a bounded 128 KiB record;
+token rotation preserves them only after server/owner verification. Switching,
+logout and 401 clear both. No memory POST runs automatically during restore.
+Identical replay uses existing server write fingerprints; conflicts retain input
+for review. Explicit local recovery discard never deletes server evidence.
+
+Exact evidence uses UTF-8 SHA-256 and Unicode code-point spans converted from
+UTF-16 selections. Existing model sources remain read-only and cannot support a
+user write. Settings creates profiles using the current style/warmth/detail enums;
+selection applies to new conversations. Frozen personality/prompt snapshots and
+the explicit supported prompt-upgrade flow remain unchanged. No server contract,
+migration, inference or dependency change is required by this client phase.
 
 Future client work may add Android microphone input, an optional local model,
 intent suggestions, draft summaries and offline drafts. These are not implemented

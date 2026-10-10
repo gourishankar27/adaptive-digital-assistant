@@ -154,6 +154,10 @@ class HttpAdaApi(callTimeoutMillis: Long = 65_000) : AdaApi {
         "idempotency_key_reused", "retry_history_changed", "request_in_progress", "conversation_busy",
         "request_conflict", "request_superseded", "unsupported_prompt_upgrade", "message_exceeds_context_budget",
         "provider_unavailable", "model_not_found", "provider_timeout", "invalid_response", "interrupted",
+        "source_id_reused", "source_conflict", "claim_id_reused", "claim_duplicate", "claim_conflict",
+        "claim_already_superseded", "evidence_content_changed", "source_not_user_evidence",
+        "invalid_evidence_span", "empty_evidence_span", "invalid_validity_interval",
+        "correction_outside_validity_interval", "history_and_as_of_conflict", "invalid_query_value",
     )
     private fun page(limit: Int, offset: Int) = mapOf("limit" to limit.toString(), "offset" to offset.toString())
     override suspend fun me(connection: ConnectionCredential) = call<MeDto>(connection, "me")

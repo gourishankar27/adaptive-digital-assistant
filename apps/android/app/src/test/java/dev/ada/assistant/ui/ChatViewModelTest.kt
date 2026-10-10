@@ -378,7 +378,9 @@ class ChatViewModelTest {
 
     @Test fun ambiguousConversationCreationRefreshesListWithoutDuplicatePost() = runTest {
         val (vm, api, _) = ready()
-        vm.beginCreate(); vm.selectProfile(UUID.randomUUID()); vm.updateCreateTitle("Synthetic new conversation")
+        val owned = PersonalityDto(UUID.randomUUID(), "Owned style", "direct", "reserved", "concise")
+        api.profileRows = listOf(owned); vm.refreshProfiles(); advanceUntilIdle()
+        vm.beginCreate(); vm.selectProfile(owned.id); vm.updateCreateTitle("Synthetic new conversation")
         api.createCall = { ApiResult.Failure(ApiFailure.Timeout) }
         val priorReads = api.conversationReads
         vm.createConversation(); vm.createConversation(); advanceUntilIdle()
@@ -403,6 +405,18 @@ class ChatViewModelTest {
         vm.createProfile("New style"); advanceUntilIdle()
         assertEquals(created.id, vm.state.value.createProfileId)
         assertEquals(listOf(created.id, old.id), vm.state.value.profiles.items.map { it.id })
+    }
+    @Test fun createdProfileOutsideFirstPageRemainsSelectedForNewConversation() = runTest {
+        val (vm, api, _) = ready()
+        val first = PersonalityDto(UUID.randomUUID(), "First style", "direct", "reserved", "concise")
+        val created = first.copy(id = UUID.randomUUID(), name = "Created style")
+        api.profileRows = List(50) { first.copy(id = UUID.randomUUID()) }
+        api.profileCall = { ApiResult.Success(created) }
+        vm.createProfile("Created style"); advanceUntilIdle()
+        assertEquals(50, vm.state.value.profiles.items.size)
+        vm.beginCreate(); advanceUntilIdle()
+        assertEquals(created.id, vm.state.value.createProfileId)
+        assertEquals(api.profileRows, vm.state.value.profiles.items)
     }
 
     @Test fun conflictingIdNeverTreatsDifferentSavedAnswerAsThisReservationsReply() = runTest {

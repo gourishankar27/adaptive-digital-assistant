@@ -7,6 +7,7 @@ export type FetchTransport = (input: string, init: RequestInit) => Promise<Respo
 export function normalizeServer(value: string): string {
   const url = new URL(value);
   if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password || url.search || url.hash || (url.pathname !== '/' && url.pathname !== '')) throw new ContractError();
+  if (url.protocol !== 'https:' && !['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname)) throw new ContractError();
   if (url.origin !== window.location.origin) throw new ContractError();
   return url.origin;
 }
@@ -35,7 +36,7 @@ export class HttpAdaApi implements AdaApi {
     }, signal);
   }
 
-  private async get<T>(path: string, decode: (value: unknown) => T, signal?: AbortSignal): Promise<T> {
+  protected async get<T>(path: string, decode: (value: unknown) => T, signal?: AbortSignal): Promise<T> {
     if (!this.token) throw new AdaError({ kind: 'authentication', message: 'Reconnect with a current token.', outcome: 'unavailable' });
     const controller = new AbortController();
     this.active.add(controller);

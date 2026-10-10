@@ -1,11 +1,13 @@
-# ADA Android chat MVP (Phase 04)
+# ADA Android chat and explicit memory (Phases 04/07)
 
 This Compose/Material 3 app verifies an issued ADA bearer credential with real
 `GET /v1/me` and `GET /v1/capabilities`, then provides owned conversation
 selection/creation, paginated history, complete chat replies, exact-request
 recovery and source cards. Three light/dark palettes and system-scaled typography
-remain available. Memory editing, existing profile editing, streaming, voice,
-tools and device inference remain later selected phases.
+remain available. Phase 07 adds owned memory browsing, exact evidence selection,
+explicit Remember/correction previews and encrypted write recovery, plus new
+static personality profiles. Existing profile editing, automatic extraction,
+streaming, voice, tools and device inference remain later selected phases.
 
 Production transport is `HttpAdaApi`, injected through `AdaApi` into the
 chat ViewModel. Test-only mocks and canonical server fixtures never enter
@@ -118,7 +120,7 @@ appearance preferences or logs. `AndroidSessionStore` encrypts a bounded atomic
 record with an [Android Keystore](https://developer.android.com/privacy-and-security/keystore)
 AES-256-GCM key under `noBackupFilesDir`; it stores
 the verified normalized server/owner credential and at most one exact pending
-message. File and directory commits complete before network submission. There is
+message and one memory write. File and directory commits complete before network submission. There is
 no plaintext fallback. Missing keys, tampering, unknown local formats or reinstall
 discard unusable state and require reconnect. The activity blocks screenshots;
 cloud backup and device transfer explicitly exclude app data, following the
@@ -177,6 +179,50 @@ version/origin and validity remain intact; optional Details show IDs/hashes/UTC
 milliseconds. Selected but uncited context is in a separate retrieval detail view.
 Source provenance does not guarantee truth or answer correctness.
 
+## Explicit memory and static personality (Phase 07)
+
+Open **Memory**, choose an owned scope and browse current statements, a timezone-
+bearing date or all history. Pagination stays on the server. Effective intervals
+are half-open; a superseded record can still be current before a future correction.
+History describes valid time rather than reconstructing what ADA knew at a date.
+Overlapping different values are competing assertions, never a truth ranking.
+Detail shows the exact quote/full source version and an available replacement link.
+
+**Remember** accepts a user note or a selection from an owned user source, plus
+subject, predicate, value, kind and optional effective bounds. Existing source
+text is read-only; selection preserves emoji, combining marks, CRLF and non-Latin
+text without normalization. Model-generated sources cannot support user writes.
+Review the annotation and quote, then press **Save** to explicitly endorse it.
+Corrections preview the old/new values, effective time and new evidence, then use
+the real atomic supersede endpoint. Source editing/deletion and automatic
+extraction are unavailable.
+
+Before any POST, the app encrypts the exact source/claim IDs and input. After the
+note succeeds it durably records that returned source version before submitting
+the claim. A failed second step can leave a raw note; it is not reported as a
+saved claim. Restart verifies the owner/server and offers **Check saved write**
+or **Resume with original IDs**, with no automatic memory POST. Resume uses identical
+payloads and server replay fingerprints, including a committed claim subsequently
+corrected by another client. 409/422 retain the reservation and actionable review
+state. A failed journal cleanup blocks another write. Explicitly discarding local
+recovery preserves input for editing and never deletes remote notes or claims;
+review owned history before knowingly creating a new assertion.
+
+The bounded encrypted record is now v2 (128 KiB maximum plaintext). It reads the
+existing v1 credential/chat journal with the same file/key/AAD, then writes v2
+on the next update. Downgrading to a v1-only app requires reconnecting. Both
+journals remain bound to verified server/owner, with memory additionally bound to
+scope. They coexist during chat and explicit memory writes; logout/switch/401
+clear both. Unsubmitted form drafts remain only in ViewModel memory through
+rotation/navigation, not process death or Android saved-state bundles.
+
+**Settings → New chat style** exposes name, direct/conversational/formal,
+reserved/warm and concise/balanced/detailed. Create a new server profile and select
+it for a new conversation. Existing chats keep their frozen style and prompt;
+their active saved style/scope remains visible. Ambiguous profile creation requires
+refresh/review because that endpoint has no idempotency key. Appearance preferences
+remain local expression settings and grant no knowledge permissions.
+
 ## DTO and state boundaries
 
 `data/Contract.kt` preserves UUIDs, Long UTC milliseconds, exact evidence text,
@@ -200,7 +246,7 @@ to retain drafts across activity recreation;
 `ChatState` separates drafts, immutable submitted payloads, status and history.
 Private caches/journals include normalized server and verified owner, plus request
 and conversation where applicable. Phase 03's state map remains a historical
-foundation; the Memory editing destination is disabled in the running UI. UI labels use ordinary words; private text
+foundation; Phase 07 enables the owned Memory destination. UI labels use ordinary words; private text
 is rendered as Compose text and never executed.
 
 ## Emulator verification
@@ -228,11 +274,17 @@ instrumentation stages then leave a committed reply journaled, force-stop the
 app with adb, and cold-restore through the production activity. Recovery verifies
 the original request, one server attempt, the same event pair and original sources
 without another Send. The default helper remains unchanged for web tests.
+Phase 07 adds four real-HTTP memory tests, four synthetic Compose memory/profile
+flows and two more Keystore invariants. Two additional staged memory checks save
+a real note, simulate failure before claim submission, force-stop the app, then
+restore through MainActivity and explicitly resume the original IDs without a
+duplicate note or claim. Long Unicode evidence and correction validation are
+exercised through the restored UI. All model replies in this helper are fake.
 Port 18764 must be free.
 
 Plain `gradlew.bat connectedDebugAndroidTest` runs the UI smoke; the authenticated
 HTTP tests explicitly skip unless their helper prerequisites are provisioned.
-The two force-stop stages require the script's explicit staging arguments.
+The four chat/memory force-stop stages require the script's explicit staging arguments.
 Use the script for a complete HTTP integration run. A physical-phone smoke with
 the actual server/connection method, TalkBack, hardware-keyboard traversal, large
 display settings and long content still needs target verification. The script
@@ -298,7 +350,7 @@ These checks supplement the Phase 03 evidence above:
 Samsung S24 FE/Android 16 appearance, TalkBack, keyboard and visual/IME review
 remain target checks. No physical-phone installation or deployment was performed.
 
-## Phase 04 checks (2026-10-09 UTC, Windows 11)
+## Historical Phase 04 checks (2026-10-09 UTC, Windows 11)
 
 - Prerequisites/source/OpenAPI were inspected before changes. Android baseline:
   15 unit tests/lint/debug build passed. Baseline Python `pytest -q`: 64 passed,
@@ -344,3 +396,41 @@ manual visual/IME/copy-selection review and API 26 behavior. Automated emulator
 focus/labels/scrolling do not substitute for those checks. Web checks were skipped
 because this phase changes no web behavior. No signing, deployment, later phase,
 production-data migration or real-model performance/battery claim is included.
+
+## Phase 07 checks (2026-10-09 UTC, Windows 11)
+
+- Current source/OpenAPI/scoped instructions and Phase 04 prerequisites inspected;
+  ordinary Python baseline 87 passed/69 skipped, Android baseline tasks succeeded
+  with unit/lint tasks cached. No backend or dependency change was needed.
+- Final `testDebugUnitTest lintDebug assembleDebug assembleRelease
+  assembleDebugAndroidTest`: **98 unit tests passed, 0 skips**, lint **0 errors/14
+  existing dependency notices**, debug, unsigned release and test APKs built.
+- Final `scripts/verify-emulator.ps1`: **21 emulator tests passed, 0 skips**, then
+  **2 chat + 2 memory actual force-stop stages passed**. Android 17/API 37/WHPX,
+  small 480×320 dp landscape and font scale 1.5. Four new Compose tests use explicit
+  synthetic API/storage; four new memory tests use real authenticated HTTP against
+  migrated disposable SQLite. FakeProvider replies remain explicitly fake.
+- Real HTTP covers note/claim/correction identical replay and changed-ID-input
+  conflicts, exact multilingual/emoji/combining/CRLF evidence, unauthorized ID
+  guesses, model source rejection, correction boundaries including the old end,
+  future current/as-of/history and original saved request citation preservation.
+  Recovery commits a real note, simulates failure before claim POST, force-stops,
+  then restores through the production activity and explicitly resumes exact
+  source/claim IDs once. Long evidence and validation focus also passed.
+- Initial emulator run was 19 passed/2 failed: focus loss collapsed the readonly
+  selection before preview and keyboard dismissal raced navigation. Both were
+  fixed and the full checks rerun. Regression tests also caught late 401 handling,
+  corrected-after-commit replay and newly created profiles beyond page one.
+- Backend dedicated PostgreSQL suite **152 passed/4 documented skips**; Ruff lint
+  and format passed (48 files). **31/31** captured server/OpenAPI/migration/lock/
+  catalog files are unchanged from the phase starting tree. Release APK inspection
+  confirms versionCode 3/name 0.7.0-memory, target 36, backup/cleartext disabled,
+  no release HTTP exceptions; debug retains exactly its three allowed hosts.
+- At 22:30:46 UTC the temporary test credential was absent, disposable HTTP
+  listener stopped, display/font settings reset and task emulator shut down.
+
+Physical S24 FE/Android 16, API 26 behavior, trusted release HTTPS, TalkBack/manual
+visual/hardware-keyboard checks and actual-server/Ollama/network-loss verification
+remain pending. No deployment, signing/distribution or later feature was performed.
+See [STATUS](../../plans/STATUS.md) and [WORKLOG](../../plans/WORKLOG.md) for checkpoint
+mapping, actual failures/checks/skips and preserved earlier evidence.

@@ -1,6 +1,9 @@
 # Phase 07 — Android memory, evidence and personality screens
 
-Status: planned. Prerequisite: Phase 04. Existing Phase 1/2 APIs provide the core
+Status: checkpoints A–D implemented; local Android/PostgreSQL/emulator checks
+passed (2026-10-09). Physical phone/HTTPS/manual accessibility
+and real-model verification remain separate. See [STATUS.md](STATUS.md) and
+[WORKLOG.md](WORKLOG.md) for actual checks. Prerequisite: Phase 04. Existing Phase 1/2 APIs provide the core
 memory contract. Apply UI-SPEC, STANDARDS and CODEX-WORKFLOW.
 
 ## Goal

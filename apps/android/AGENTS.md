@@ -1,12 +1,13 @@
 # Android foundation rules
 
 Root AGENTS.md and plans/STANDARDS.md remain authoritative. Phase 04 adds
-authenticated chat and encrypted recovery to the Phase 03 foundations. Memory
-editing, streaming, cancellation, voice and tools remain later selected phases.
+authenticated chat and encrypted recovery to the Phase 03 foundations. Phase 07
+adds explicit memory/evidence/correction and new static personality profiles.
+Streaming, cancellation, voice, tools and automatic extraction remain later phases.
 
 - Production repositories inject AdaApi and use authenticated ADA HTTP only.
   Mock transports and fixture data belong under test/androidTest, never main.
-- Credentials and the exact pending journal use Keystore-backed authenticated
+- Credentials and both exact pending chat/memory journals use Keystore-backed authenticated
   encryption under noBackupFilesDir. Never use appearance preferences for secrets.
   Verify server/owner before recovery; key loss requires reconnect, not plaintext fallback.
 - Do not log private DTOs, error bodies, bearer tokens or credential URLs.
@@ -14,6 +15,9 @@ editing, streaming, cancellation, voice and tools remain later selected phases.
   scope/request. Clear private state on disconnect or account/server change.
 - Preserve UUIDs, Long UTC milliseconds, exact source quotes and code-point spans.
   Unknown server states do not mean completed; unsupported write controls stay off.
+- Reserve exact source/claim IDs before memory POST; note acknowledgement is a
+  durable stage, not claim success. Recovery reuses identical input and never
+  replaces saved chat citation snapshots with refreshed memory.
 - Escape display content, allow only safe link schemes, and never execute content.
 - Keep system text scaling, labels, keyboard focus and minimum 48dp touch targets.
 - Debug HTTP is limited to the hosts in src/debug; release requires verified TLS.

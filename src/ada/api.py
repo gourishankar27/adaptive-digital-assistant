@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy import case, select, text
+from sqlalchemy.exc import SQLAlchemyError
 
 from ada.auth import token_hash
 from ada.config import Settings
@@ -50,6 +51,7 @@ from ada.models import (
     SourceVersion,
     User,
 )
+from ada.monitoring import Monitoring, admin_router
 from ada.personality import PROMPT_VERSION, build_prompt
 from ada.providers import FakeProvider, OllamaProvider
 from ada.retrieval import (
@@ -61,6 +63,7 @@ from ada.retrieval import (
     public_trace,
     retrieve,
 )
+from ada.schema import SCHEMA_HEAD
 from ada.service import ChatService, ServiceError, public_request
 
 
@@ -191,9 +194,21 @@ def create_app(settings=None, provider=None, sessions=None):
         title="ADA",
         version="0.2.0",
         lifespan=lifespan,
-        description="Phase 2. Scoped memory retrieval, cited chat, and durable evidence traces.",
+        description="Scoped memory retrieval, cited chat, durable evidence traces and explicitly granted admin monitoring.",
     )
     app.state.sessions, app.state.chat, app.state.memory = sessions, service, memory
+
+    @app.middleware("http")
+    async def monitoring_cache(request: HttpRequest, call_next):
+        response = await call_next(request)
+        if request.url.path.startswith("/v1/admin/"):
+            response.headers["Cache-Control"] = "no-store"
+        return response
+
+    @app.exception_handler(SQLAlchemyError)
+    def database_error(request: HttpRequest, exc: SQLAlchemyError):
+        # Do not echo SQL parameters, credential hashes or connection strings.
+        return JSONResponse(status_code=503, content={"detail": "database_not_ready"})
 
     @app.exception_handler(ServiceError)
     async def service_error(_: HttpRequest, exc: ServiceError):
@@ -221,12 +236,15 @@ def create_app(settings=None, provider=None, sessions=None):
         if len(credentials.credentials) > 200:
             raise HTTPException(401, "invalid_token")
         with sessions() as db:
-            user = db.scalar(
-                select(User).where(User.token_hash == token_hash(credentials.credentials))
+            user_id = db.scalar(
+                select(User.id).where(User.token_hash == token_hash(credentials.credentials))
             )
-            if user is None:
+            if user_id is None:
                 raise HTTPException(401, "invalid_token", headers={"WWW-Authenticate": "Bearer"})
-            return user.id
+            return user_id
+
+    app.state.admin = Monitoring(sessions, settings, provider, service)
+    app.include_router(admin_router(app.state.admin, current_user))
 
     def owned_conversation(db, owner, conversation_id):
         row = db.scalar(
@@ -247,7 +265,7 @@ def create_app(settings=None, provider=None, sessions=None):
         try:
             with sessions() as db:
                 version = db.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
-                if version != "0003":
+                if version != SCHEMA_HEAD:
                     raise RuntimeError("schema mismatch")
         except Exception:
             raise HTTPException(503, "database_not_ready") from None
@@ -263,6 +281,7 @@ def create_app(settings=None, provider=None, sessions=None):
     def capabilities(owner: str = Depends(current_user)):
         return {
             "api_version": "v1",
+            "admin_monitoring": True,
             "chat": True,
             "streaming": False,
             "tools": False,

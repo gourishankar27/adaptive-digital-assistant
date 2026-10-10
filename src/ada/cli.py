@@ -1,11 +1,12 @@
 import argparse
 import json
 import os
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import httpx
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
+from ada.admin import set_admin_grant
 from ada.auth import create_user, rotate_token
 from ada.cli_memory import add_arguments, run_remote
 from ada.config import Settings
@@ -22,6 +23,11 @@ def main():
     for name in ("create-user", "rotate-token"):
         p = sub.add_parser(name)
         p.add_argument("name")
+    for name in ("grant-admin", "revoke-admin"):
+        p = sub.add_parser(name, help="Local database operator: change explicit monitoring grant")
+        p.add_argument(
+            "user_id", type=UUID, help="Exact issued account UUID, never an account name"
+        )
     recover = sub.add_parser("recover-stale")
     recover.add_argument("--older-than-seconds", type=int, default=300)
     chat = sub.add_parser("chat")
@@ -56,7 +62,13 @@ def main():
         return
     engine, sessions = connect(settings.database_url)
     try:
-        if args.command == "create-user":
+        if args.command in ("grant-admin", "revoke-admin"):
+            print(
+                json.dumps(
+                    set_admin_grant(sessions, str(args.user_id), args.command == "grant-admin")
+                )
+            )
+        elif args.command == "create-user":
             user_id, token = create_user(sessions, args.name)
             print(
                 json.dumps(
@@ -103,7 +115,11 @@ def main():
                             "Configured model is not installed. Pull that exact tag first."
                         )
     except IntegrityError:
+        if args.command in ("grant-admin", "revoke-admin"):
+            parser.exit(1, "Admin operation failed; no grant change was committed.\n")
         parser.exit(1, "User name already exists. Use rotate-token if you lost access.\n")
+    except SQLAlchemyError:
+        parser.exit(1, "Database operation failed. Check connectivity and schema migration.\n")
     except (ValueError, httpx.HTTPError) as exc:
         parser.exit(1, f"{exc}\n")
     finally:

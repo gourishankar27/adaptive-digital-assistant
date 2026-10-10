@@ -3,7 +3,7 @@ package dev.ada.assistant.ui
 import dev.ada.assistant.data.*
 import java.util.UUID
 
-enum class ChatDestination { Connect, Conversations, NewConversation, Chat, Sources, Retrieval, Settings }
+enum class ChatDestination { Connect, Conversations, NewConversation, Chat, Sources, Retrieval, Memory, Settings }
 enum class PendingPhase { Journaling, Submitting, Unknown, Running, Failed, Missing, Conflict, Blocked }
 data class ChatPage<T>(
     val items: List<T> = emptyList(), val loading: Boolean = false,
@@ -28,7 +28,9 @@ data class ChatState(
     val traceLoading: Boolean = false, val traceMissing: Boolean = false,
     val fault: ApiFailure? = null, val notice: String? = null,
     val createTitle: String = "", val createProfileId: UUID? = null, val createScopeId: UUID? = null,
+    val selectedProfile: PersonalityDto? = null,
     val creating: Boolean = false, val creationUncertain: Boolean = false,
     val creatingProfile: Boolean = false, val profileUncertain: Boolean = false,
+    val profileDraft: PersonalityInputDto = PersonalityInputDto(),
     val upgrading: Boolean = false,
 )

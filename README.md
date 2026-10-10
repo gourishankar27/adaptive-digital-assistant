@@ -27,8 +27,10 @@ Chat retrieves relevant saved claims from its conversation's scope. It also uses
 complete recent turns from that conversation. It does not extract or write claims.
 Tools, document ingestion, consolidation, affect learning, iOS and device
 inference are deferred. Phase 03 adds Android/web foundations; Phase 04 adds an
-Android authenticated chat client for these existing server APIs. Admin
-monitoring and Android memory editing remain later selected work.
+Android authenticated chat client for these existing server APIs. Phase 05 adds
+explicitly granted, audited admin metadata APIs. Phase 06 adds a read-only admin
+dashboard with selectable palettes. Phase 07 adds Android explicit memory,
+exact evidence, valid-time corrections and new static personality profiles.
 
 ## New Windows installation
 
@@ -153,9 +155,26 @@ disposable test database; see the upgrade guide. [VALIDATION.md](docs/VALIDATION
 records completed checks and remaining Windows/PostgreSQL/model checks.
 
 Local administration: `ada create-user NAME`, `ada rotate-token NAME`, `ada doctor`,
-`ada recover-stale --older-than-seconds 300`, `ada rebuild-search`. Tokens are random bearer secrets
+`ada recover-stale --older-than-seconds 300`, `ada rebuild-search`,
+`ada grant-admin ACCOUNT_UUID`, `ada revoke-admin ACCOUNT_UUID`. Tokens are random bearer secrets
 stored as hashes. Read [ARCHITECTURE.md](docs/ARCHITECTURE.md) before changing
 ownership, evidence or retry behavior.
+
+## Phase 05 admin monitoring API
+
+Migration **0004** adds empty explicit grants, bounded metadata audit and monitoring
+indexes. Upgrade the intended database with `alembic upgrade head` during installation;
+the API's readiness now requires 0004. No existing/new user is automatically granted.
+The local operator uses account UUIDs to grant/revoke monitoring. Existing bearer
+tokens remain valid; ordinary private APIs remain owner-only even for admins.
+
+Six read-only `/v1/admin/` routes expose request metadata, bounded aggregates,
+retrieval counts/budgets, current schema/provider health, real process admission
+and audit metadata. They exclude private text/credentials, throttle polling and
+audit access before returning results. Cached Ollama health uses only model-list
+metadata; GPU/throughput remain unknown. See [operator and API documentation](docs/ADMIN-MONITORING.md)
+for commands, schemas, retention, errors and validation. The Phase 06 dashboard
+uses those six routes; see [admin web setup](apps/admin-web/README.md).
 
 ## Phase 03 client foundations
 
@@ -171,9 +190,11 @@ No database migration, prompt upgrade or server configuration change is required
 for these foundations. Keep the API on loopback with one worker; use the web
 development proxy or the documented emulator/USB connection for local development.
 See [phase status](plans/STATUS.md) for checks actually run and remaining device
-verification. The web scaffold is not an admin dashboard.
+verification. Phase 06 adds authorized overview, request/detail, provider and audit
+views at `/admin`, plus Oxford Blue (default), Dark Red and Olive Green Settings.
+Web credentials remain in memory; current server grants are required on every read.
 
-## Android chat MVP (Phase 04)
+## Android chat and explicit memory (Phases 04/07)
 
 The [Android app](apps/android/README.md) connects with an issued token, loads owned
 styles/scopes/conversations, creates or resumes a conversation, sends complete
@@ -182,6 +203,12 @@ encrypted request reservation before sending, checks that ID after interruption,
 and offers explicit same-payload retry instead of silently sending a new turn.
 Conversation prompt upgrades remain explicit. Oxford Blue is the default palette;
 Dark Red and Olive Green are available in Settings, each with light/dark colors.
+
+Memory offers owned scopes, paginated current/dated/history views, exact source
+versions, explicitly reviewed assertions and atomic corrections through the
+existing API. Source and claim IDs are encrypted before submission; interrupted
+note/claim writes resume identical input. Settings creates static profiles for
+new conversations without rewriting an existing conversation's saved personality.
 
 No backend migration, prompt upgrade or changed API contract is required to install
 the client. Physical S24 FE/Android 16, release HTTPS and manual real-Ollama/source

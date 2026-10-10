@@ -1,4 +1,106 @@
 export interface paths {
+    "/v1/admin/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Me */
+        get: operations["me_v1_admin_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Requests */
+        get: operations["requests_v1_admin_requests_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/requests/{owner_id}/{request_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Request Detail */
+        get: operations["request_detail_v1_admin_requests__owner_id___request_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Providers */
+        get: operations["providers_v1_admin_providers_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Overview */
+        get: operations["overview_v1_admin_overview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/audit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Audits */
+        get: operations["audits_v1_admin_audit_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health/live": {
         parameters: {
             query?: never;
@@ -364,8 +466,307 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AdminAuditOutput */
+        AdminAuditOutput: {
+            /**
+             * Id
+             * Format: int64
+             */
+            id: bigint;
+            /**
+             * Actor Id
+             * Format: uuid
+             */
+            actor_id: string;
+            /**
+             * Actor Kind
+             * @enum {string}
+             */
+            actor_kind: "user" | "local_operator";
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "role.grant" | "role.revoke" | "monitor.me" | "monitor.overview" | "monitor.requests" | "monitor.request" | "monitor.providers" | "monitor.audit";
+            /** Target Owner Id */
+            target_owner_id: string | null;
+            /** Target Request Id */
+            target_request_id: string | null;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "allowed" | "denied" | "not_found" | "invalid" | "failed" | "granted" | "revoked" | "unchanged" | "rate_limited";
+            /**
+             * Created At
+             * Format: int64
+             */
+            created_at: bigint;
+        };
+        /** AdminAuditsOutput */
+        AdminAuditsOutput: {
+            /** Items */
+            items: components["schemas"]["AdminAuditOutput"][];
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+            /** Has More */
+            has_more: boolean;
+            /**
+             * Retention Days
+             * @default 30
+             * @constant
+             */
+            retention_days: 30;
+            /**
+             * Max Rows
+             * @default 10000
+             * @constant
+             */
+            max_rows: 10000;
+            /**
+             * Updated At
+             * Format: int64
+             */
+            updated_at: bigint;
+        };
+        /** AdminMeOutput */
+        AdminMeOutput: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Permissions */
+            permissions: "monitoring:read"[];
+        };
+        /** AdminOverviewOutput */
+        AdminOverviewOutput: {
+            /** Window Hours */
+            window_hours: number;
+            /**
+             * Created From
+             * Format: int64
+             */
+            created_from: bigint;
+            /**
+             * Updated At
+             * Format: int64
+             */
+            updated_at: bigint;
+            requests: components["schemas"]["RequestCounts"];
+            /** Input Tokens */
+            input_tokens: number | null;
+            /** Output Tokens */
+            output_tokens: number | null;
+            /** Input Tokens Known Requests */
+            input_tokens_known_requests: number;
+            /** Output Tokens Known Requests */
+            output_tokens_known_requests: number;
+            /** Database Ready */
+            database_ready: boolean;
+            /** Schema Version */
+            schema_version: string | null;
+            provider_health: components["schemas"]["ProviderHealth"];
+            generation_admission: components["schemas"]["AdmissionOutput"];
+            /** Gpu Utilization */
+            gpu_utilization?: number | null;
+            /** Tokens Per Second */
+            tokens_per_second?: number | null;
+        };
+        /** AdminProvidersOutput */
+        AdminProvidersOutput: {
+            /** Provider */
+            provider: string;
+            /** Model */
+            model: string;
+            health: components["schemas"]["ProviderHealth"];
+            generation_admission: components["schemas"]["AdmissionOutput"];
+            /** Context Tokens */
+            context_tokens: number;
+            /** Output Tokens */
+            output_tokens: number;
+            /** Timeout Seconds */
+            timeout_seconds: number;
+            /** Gpu Utilization */
+            gpu_utilization?: number | null;
+            /** Tokens Per Second */
+            tokens_per_second?: number | null;
+        };
+        /** AdminRequestDetailOutput */
+        AdminRequestDetailOutput: {
+            /**
+             * Owner Id
+             * Format: uuid
+             */
+            owner_id: string;
+            /**
+             * Request Id
+             * Format: uuid
+             */
+            request_id: string;
+            /**
+             * Conversation Id
+             * Format: uuid
+             */
+            conversation_id: string;
+            /**
+             * Scope Id
+             * Format: uuid
+             */
+            scope_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "running" | "completed" | "failed";
+            /** Attempt */
+            attempt: number;
+            /** Provider */
+            provider: string;
+            /** Model */
+            model: string;
+            /**
+             * Created At
+             * Format: int64
+             */
+            created_at: bigint;
+            /**
+             * Started At
+             * Format: int64
+             */
+            started_at: bigint;
+            /** Finished At */
+            finished_at: bigint | null;
+            /**
+             * Observed At
+             * Format: int64
+             */
+            observed_at: bigint;
+            /**
+             * Elapsed Ms
+             * @description Finished/observed minus current attempt start, including context and DB overhead; not provider latency.
+             */
+            elapsed_ms: bigint | null;
+            /** Error Code */
+            error_code: string | null;
+            /** Input Tokens */
+            input_tokens: number | null;
+            /** Output Tokens */
+            output_tokens: number | null;
+            retrieval: components["schemas"]["RetrievalSummary"];
+        };
+        /** AdminRequestOutput */
+        AdminRequestOutput: {
+            /**
+             * Owner Id
+             * Format: uuid
+             */
+            owner_id: string;
+            /**
+             * Request Id
+             * Format: uuid
+             */
+            request_id: string;
+            /**
+             * Conversation Id
+             * Format: uuid
+             */
+            conversation_id: string;
+            /**
+             * Scope Id
+             * Format: uuid
+             */
+            scope_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "running" | "completed" | "failed";
+            /** Attempt */
+            attempt: number;
+            /** Provider */
+            provider: string;
+            /** Model */
+            model: string;
+            /**
+             * Created At
+             * Format: int64
+             */
+            created_at: bigint;
+            /**
+             * Started At
+             * Format: int64
+             */
+            started_at: bigint;
+            /** Finished At */
+            finished_at: bigint | null;
+            /**
+             * Observed At
+             * Format: int64
+             */
+            observed_at: bigint;
+            /**
+             * Elapsed Ms
+             * @description Finished/observed minus current attempt start, including context and DB overhead; not provider latency.
+             */
+            elapsed_ms: bigint | null;
+            /** Error Code */
+            error_code: string | null;
+            /** Input Tokens */
+            input_tokens: number | null;
+            /** Output Tokens */
+            output_tokens: number | null;
+        };
+        /** AdminRequestsOutput */
+        AdminRequestsOutput: {
+            /** Items */
+            items: components["schemas"]["AdminRequestOutput"][];
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+            /** Has More */
+            has_more: boolean;
+            /**
+             * Created From
+             * Format: int64
+             */
+            created_from: bigint;
+            /**
+             * Created To
+             * Format: int64
+             */
+            created_to: bigint;
+            /**
+             * Updated At
+             * Format: int64
+             */
+            updated_at: bigint;
+        };
+        /** AdmissionOutput */
+        AdmissionOutput: {
+            /** Max Parallel */
+            max_parallel: number;
+            /** Process Available Slots */
+            process_available_slots: number;
+            /** Process Active Slots */
+            process_active_slots: number;
+            /**
+             * Workers
+             * @default 1
+             * @constant
+             */
+            workers: 1;
+        };
         /** CapabilitiesOutput */
         CapabilitiesOutput: {
+            /**
+             * Admin Monitoring
+             * @default false
+             */
+            admin_monitoring: boolean;
             /** Api Version */
             api_version: string;
             /** Chat */
@@ -747,6 +1148,26 @@ export interface components {
             /** Revision */
             revision: number;
         };
+        /** ProviderHealth */
+        ProviderHealth: {
+            /**
+             * Reachability
+             * @enum {string}
+             */
+            reachability: "reachable" | "unreachable" | "unknown";
+            /** Model Available */
+            model_available: boolean | null;
+            /** Checked At */
+            checked_at: bigint | null;
+            /** Error Code */
+            error_code: ("provider_unavailable" | "invalid_health_response") | null;
+            /**
+             * Cache Seconds
+             * @default 30
+             * @constant
+             */
+            cache_seconds: 30;
+        };
         /** ReadyOutput */
         ReadyOutput: {
             /**
@@ -756,6 +1177,24 @@ export interface components {
             status: "ready";
             /** Schema */
             schema: string;
+        };
+        /** RequestCounts */
+        RequestCounts: {
+            /**
+             * Running
+             * @default 0
+             */
+            running: number;
+            /**
+             * Completed
+             * @default 0
+             */
+            completed: number;
+            /**
+             * Failed
+             * @default 0
+             */
+            failed: number;
         };
         /** RequestOutput */
         RequestOutput: {
@@ -878,6 +1317,29 @@ export interface components {
             overview: boolean;
             /** Prompt Version */
             prompt_version?: string | null;
+        };
+        /** RetrievalSummary */
+        RetrievalSummary: {
+            /** Available */
+            available: boolean;
+            /** Candidate Count */
+            candidate_count?: number | null;
+            /** Selected Count */
+            selected_count?: number | null;
+            /** Retrieval Ms */
+            retrieval_ms?: number | null;
+            /** Memory Limit Bytes */
+            memory_limit_bytes?: number | null;
+            /** Memory Used Bytes */
+            memory_used_bytes?: number | null;
+            /** Prompt Limit Bytes */
+            prompt_limit_bytes?: number | null;
+            /** Prompt Used Bytes */
+            prompt_used_bytes?: number | null;
+            /** History Pairs Omitted */
+            history_pairs_omitted?: number | null;
+            /** Candidate Pool Truncated */
+            candidate_pool_truncated?: boolean | null;
         };
         /** RetrieveInput */
         RetrieveInput: {
@@ -1050,6 +1512,470 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    me_v1_admin_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminMeOutput"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOutput"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+        };
+    };
+    requests_v1_admin_requests_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+                owner_id?: string | null;
+                request_id?: string | null;
+                status?: ("running" | "completed" | "failed") | null;
+                provider?: string | null;
+                created_from?: bigint | null;
+                created_to?: bigint | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminRequestsOutput"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOutput"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+        };
+    };
+    request_detail_v1_admin_requests__owner_id___request_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                owner_id: string;
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminRequestDetailOutput"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOutput"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+        };
+    };
+    providers_v1_admin_providers_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminProvidersOutput"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOutput"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+        };
+    };
+    overview_v1_admin_overview_get: {
+        parameters: {
+            query?: {
+                window_hours?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminOverviewOutput"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOutput"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+        };
+    };
+    audits_v1_admin_audit_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+                actor_id?: string | null;
+                action?: ("role.grant" | "role.revoke" | "monitor.me" | "monitor.overview" | "monitor.requests" | "monitor.request" | "monitor.providers" | "monitor.audit") | null;
+                outcome?: ("allowed" | "denied" | "not_found" | "invalid" | "failed" | "granted" | "revoked" | "unchanged" | "rate_limited") | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminAuditsOutput"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOutput"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+        };
+    };
     live_health_live_get: {
         parameters: {
             query?: never;

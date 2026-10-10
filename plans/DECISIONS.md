@@ -100,3 +100,29 @@ tool choices alone are not evidence that a device or product flow passed.
 These choices stay within Phase 04. STATUS/WORKLOG distinguish deterministic
 fake-provider HTTP/emulator checks from pending physical-phone, HTTPS and real
 Ollama verification; there is no deployment or release distribution.
+
+## 2026-10-09 UTC — Phase 05 decisions
+
+- Use a separate absent-by-default grant keyed by account UUID, with no remote
+  enrollment. The trusted local operator uses a reserved audit actor UUID; HTTP
+  actions use the authenticated user's UUID. No name/persona/model/claim grants
+  authority, and private user routes never inherit cross-owner access.
+- Serialize role changes and audit insert/prune with a singleton row. Audit and
+  role changes commit together; audited successful reads recheck grants before
+  delivery. Prune on operations at 30 days/10,000 logical rows, hide expired query
+  rows and throttle authenticated polling at 60/principal and 600/global/minute.
+  This is a rolling operational record, not individual human/compliance attribution.
+- Select metadata columns and JSON scalar lengths/budget keys. Preserve composite
+  request identity, nullable metrics and absent legacy traces; elapsed timestamps
+  include overhead and are not claimed as provider latency. Admin pagination uses
+  bounded envelopes without changing existing user arrays.
+- Probe only Ollama model-list metadata with bounded response/time and a serialized
+  30-second success/failure cache outside database transactions. Unknown adapters,
+  GPU utilization and throughput remain unknown. Expose actual process semaphore
+  slots and keep one worker. Provider client logs are suppressed only in probe threads.
+- Supported schema head is 0004, checked against Alembic by a regression test.
+  Preserve released migration bytes, request inputs/replay, prompt snapshots and
+  existing paths. Regenerate web DTOs only; no dashboard workflow is introduced.
+
+These choices implement Phase 05, not Phase 06 or later authentication/operations
+features. See docs/ADMIN-MONITORING.md and STATUS/WORKLOG for limits and actual runs.

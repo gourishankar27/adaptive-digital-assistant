@@ -8,6 +8,7 @@ from sqlalchemy import func, select, text
 from sqlalchemy.exc import IntegrityError
 
 from ada.models import Conversation, Event, Personality, Request, Scope, SourceVersion, now_ms
+from ada.schema import SCHEMA_HEAD
 
 
 def test_populated_phase0_upgrade_preserves_history_ids_and_replay(harness):
@@ -98,7 +99,9 @@ def test_populated_phase0_upgrade_preserves_history_ids_and_replay(harness):
         for version in versions:
             assert version.scope_id == scope and version.owner_id == h["a_id"]
             assert version.content_hash == hashlib.sha256(version.content.encode()).hexdigest()
-        assert db.execute(text("SELECT version_num FROM alembic_version")).scalar_one() == "0003"
+        assert (
+            db.execute(text("SELECT version_num FROM alembic_version")).scalar_one() == SCHEMA_HEAD
+        )
     replay = send(h, conversation, content, request_id)
     assert replay.status_code == 200 and replay.json()["response"] == response
     assert h["provider"].calls == []
