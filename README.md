@@ -1,5 +1,4 @@
-# ADA — Phase 2
-
+# ADA
 Python/FastAPI on your Windows laptop, with PostgreSQL and a configurable Ollama
 model. Accounts share model weights. Personality, history and memory remain
 private to each authenticated user.
