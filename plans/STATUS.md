@@ -14,8 +14,8 @@ Recorded 2026-10-10 UTC. Update after implementation and verification.
 | 07 | Checkpoints A–D implemented; local Android/PostgreSQL/emulator checks passed | Owned memory/evidence, reviewed writes and encrypted same-ID recovery, valid-time corrections and new static profiles. Android 98 unit + 21 emulator tests + 4 actual force-stop stages passed. Physical S24 FE/Android 16, HTTPS/TalkBack/real-model checks remain. |
 | 08 | Text/Markdown checkpoints 1–4 implemented; local verification passed | Migration 0005, atomic versioned uploads, exact chunks/lexical projection, typed imported evidence and Android upload/recovery/source UI. Backend 244 passed/7 expected skips; web 51 unit/6 Chromium. Android evidence below. PDF deferred; application 0005 installation and target checks remain. |
 | 09 | All selected checkpoints implemented; local verification passed | Additive 0006, owned explicit aliases/self/claim links, previewed reversible merge, historical frozen retrieval and Android reviewed recovery. Full backend 271 passed/8 skips; final affected PostgreSQL/SQLite 35 passed/1 skip. Android 134 unit/25 emulator tests + 8 actual force-stop stages; web 51 unit/6 Chromium. Application 0006 and physical-phone/HTTPS/real-model checks remain. |
-| 10 | Planned | Phase 08; scoped semantic quality measurements; Phase 09 for entity-aware work. |
-| 11 | Planned | Phases 07/08; review-based promotion; Phase 09 for canonical links. |
+| 10 | Checkpoints 1–4 implemented; disabled exit locally verified | Additive 0007, digest-bound bounded embeddings/index rebuild, exact scoped ranking, lexical fallback and frozen diagnostics. Full backend 307 passed/8 skips; final affected 37 passed. Synthetic comparison/capacity, Ruff and web checks passed. Real-model quality/resources and application 0007 installation remain pending; semantic is disabled by default. |
+| 11 | Implemented; final Android verification in progress | Additive 0008, bounded selected-source suggestions, exact reviewed revisions, immutable endorsements/support, same-key receipts and Android encrypted review inbox. Backend/Ruff/web/real-versus-fixture corpus checks passed; final emulator recovery is being verified. Application 0008/physical-phone/representative quality remain. |
 | 12 | Planned | Phase 03 and relevant client; permission and receipt contracts. |
 | 13 | Planned | Phases 08/11; durable consolidation jobs. |
 | 14 | Planned | Phase 07; explicit preference and bounded session-state contract. |
@@ -36,8 +36,10 @@ remain planned. The separately requested admin repair installed 0004 and an exac
 account grant. At the Phase 08 boundary, application migration 0005 was pending.
 The final Phase 09 read-only check observed application head 0005 and one active
 grant for the selected account; Phase 09 has not migrated it. Current source needs
-0006 before operational use. Phase 09 now supplies explicit scoped identities and
-the Android review/editor. No deployment was performed.
+0008 before operational use. Phase 09 supplies explicit scoped identities and
+the Android review/editor. Phase 10 supplies optional exact hybrid retrieval,
+deliberately disabled pending real-model measurements. Phase 11 adds explicit
+selected-source proposals/review, while automatic extraction remains off. No deployment was performed.
 If work is incomplete, record the checkpoint and exact blocking condition; keep
 the usable earlier feature active. Missing device/database checks stay visible.
 
@@ -702,3 +704,287 @@ journals absent, fixture listeners stopped. Emulator font/display reset and the
 task-launched emulator stopped. The local compose DB was restored to its initially
 stopped state, retaining application/test data and grants. No application upgrade,
 physical-phone action, external message, later phase or deployment occurred.
+
+## Phase 10 verification details — 2026-10-10 UTC
+
+Code: clean base **13a0cb3** plus this Phase 10 working tree. Required/root/plan
+instructions, current source/OpenAPI/migration history and tests were inspected
+first. Phase 08 documents and Phase 09 identities were present; the initial source
+head was 0006. Existing server/client contracts, released history and previous
+validation evidence were preserved. No later phase or deployment was implemented.
+
+Checkpoint results:
+
+- Provider: interface and server-only bounded HTTP adapter over the existing
+  locked httpx/Ollama runtime. Selected `embeddinggemma:300m`, 768 dimensions by
+  default, verified full official manifest digest and search-prefix/index version.
+  Exact count/model/dimension/digest, finite nonzero vectors, no input truncation,
+  input/batch/response/time bounds and shared generation admission are enforced.
+  No new dependency, lockfile or wrapper. The selected model is absent locally.
+- Index: migration **0007** adds only discardable composite owner/scope/item/source
+  references, exact hashes and digest/dimension namespace metadata. Explicit owned
+  rebuild reuses valid entries, embeds outside transactions and rechecks the full
+  bounded history snapshot under a scope lock before atomic publication. Partial
+  failure/correction races preserve the prior index and all original history.
+- Retrieval: exact authorized cosine ranking with 256-item/conservative-content
+  bounds; time, document availability, source integrity and entity ambiguity gates
+  precede scoring. Lexical-first RRF60 merges channels while preserving conflict
+  groups and whole-prompt budgets. Missing/stale/drifting/provider/busy/bound cases
+  fall back to the original baseline without fabricated scores. New semantic and
+  channel metadata freezes with request context; failed/completed replay does not
+  re-embed or search a newer index. v3/v4 prompts and fingerprints are unchanged.
+- Evaluation/exit: 13 synthetic mixed questions and explicit fixture vectors,
+  plus 256-item/768-dimension capacity/failure checks on both databases. No ANN or
+  pgvector was selected. **Semantic retrieval remains disabled by default.**
+  Fixture benefit does not establish real-model relevance/resource quality; the
+  selected phase explicitly allows a documented disabled exit. See
+  [the policy and installation route](../docs/EMBEDDINGS-AND-HYBRID-RETRIEVAL.md).
+
+Checks actually run:
+
+- Ordinary unchanged baseline `pytest -q`: **152 passed/131 skipped**, 215.88 s.
+  Existing compose PostgreSQL was initially stopped; it was started for dedicated
+  fixtures. Unchanged PostgreSQL/SQLite baseline: **275 passed/8 skipped**,
+  333.52 s, excluding the two newly written Phase 10 test modules. Baseline Ruff
+  lint/format passed for **67 files**. No production schema was used by fixtures.
+- New provider invariants were red before implementation (missing module).
+  Intermediate focused runs: 21 passed/4 failed, then 23 passed/2 failed; bounds
+  and evaluation-fixture issues were corrected. An affected suite then passed
+  **32 tests**, 64.22 s. Full changed ordinary run: **171 passed/143 skipped/1
+  failed**, 258.16 s. The failure assumed a rejected older downgrade retained head;
+  0007 can discard derived vectors before 0006 refuses to destroy identity history.
+  Restoring head before Alembic check corrected that test without suppressing it.
+- Full `.\scripts\test-postgres.ps1`: **307 passed/8 skipped**, 411.31 s.
+  Subsequent refinements added strict zero-checked-out-connection embedding
+  assertions, evaluation DB guard/stable tie ordering and original semantic M/D
+  citation replay across document replacement. Final affected provider/retrieval/
+  storage/evaluation/old-upgrade suite: **37 passed, zero skips**, 71.85 s on
+  SQLite and dedicated PostgreSQL. Backend runtime was unchanged after the full
+  run; these final changes are evaluation/tests. Full-suite skips are six SQLite
+  lock/concurrency exclusions and two opt-in live-provider health cases.
+- Populated upgrade/downgrade/re-upgrade, Alembic check, native scoped FK rejection,
+  prior write/source hashes and frozen requests passed. Offline 0006→0007
+  PostgreSQL SQL compiled with a fake connection URL; this is distinct from the
+  migration execution above. Final Ruff lint/format: **76 files passed**.
+  Compileall and repository-configured `git diff --check` passed.
+- Final synthetic comparison on each database: lexical recall@5/MRR@5 **0.4286/
+  0.4286**; explicit fixture hybrid **1.0/0.7857**, with **18/18 exact evidence
+  checks**, zero isolation/integrity/negative failures and normal-run degraded
+  fallback rate **0**. Dataset is entirely synthetic and vectors are five hand-built
+  concept components; no real-model quality claim. Final hybrid median/max HTTP
+  latency was SQLite **132.229/286.993 ms**, PostgreSQL **159.884/290.051 ms**,
+  under Python allocation tracing. Synthetic timings are not production estimates.
+  The standalone fixture/disabled CLI modes ran; disabled mode retained recall/MRR
+  0.4286 and the same baseline selections. The unchanged original claim benchmark
+  CLI retained recall/MRR **0.8667**, exact evidence **1.0**, zero isolation/negative
+  failures. Its generated report was moved to ignored task artifacts.
+- Final capacity: **256 items × 768 dimensions**, **32 batches of eight**; SQLite
+  build/query **2374.736/2493.530 ms**, Python peak **10,096,858 bytes**; PostgreSQL
+  **2498.062/2366.315 ms**, **9,206,837 bytes**. Item 257 caused lexical fallback and
+  rejected rebuild. Provider vectors were explicit synthetic constants; tracing
+  excludes database/GPU allocations and does not measure real embedding inference.
+- Web `npm ci`: **270 packages**, audit **0 vulnerabilities**. Generated contracts/
+  freshness, typecheck/lint, **51 unit tests**, production build and **6 actual
+  PostgreSQL-backed Chromium cases** passed (21.9 s). Final timestamp metadata
+  regeneration/freshness/typecheck passed. Only generated web DTOs changed.
+- Compatibility: **47 old paths and 63 old schemas** preserve existing operations,
+  parameters/security/responses, required fields and old property shapes. New
+  fields are optional in four schemas, with one new owned path. **276 protected
+  hashes** matched, including migrations 0001–0006, prompts, fixtures, locks,
+  wrappers, Android source and later phase files. UTF-8/NUL/link review passed;
+  final record/cleanup checks below include the completed status/work log.
+- Local inspection: Ollama **0.40.1**, i9-14900HX, **31.62 GiB RAM**, RTX 4090 Laptop
+  GPU **16,376 MiB**, observed **552 MiB** used. Official registry layers total
+  **621,875,501 bytes**, not measured resident model memory. The selected model
+  was absent; a real bounded adapter probe returned sanitized
+  `embedding_model_changed` before inference. No model was downloaded/generated.
+
+Failures/skips/target verification: initial tests and fixture/schema assumptions
+above were corrected, not counted as passes. One read-only inline probe command
+had shell quoting failure; the saved helper ran successfully. A formatting check
+caught the benchmark refinement and passed after formatting. Patch context
+mismatches performed no writes and were corrected. The existing Starlette/httpx,
+npm encoding and Playwright color notices remain. Standalone legacy smoke upgrade,
+ANN/pgvector, Android build/emulator/phone and real-model inference were not run:
+legacy replay is covered by migrated fixtures, exact search needs no extension,
+Android is byte-identical, and the embedding model is absent. No new mobile control.
+
+Remaining targets: application **0007 installation** (final observed head **0005**,
+selected grant active and unchanged); actual selected-model load/CPU/GPU memory,
+latency/threshold calibration and comparative relevance on representative authorized
+ADA evidence before activation; sustained load and operational install/backup
+checks. Earlier physical S24 FE/Android 16/HTTPS/manual accessibility limits remain
+historical. No application migration, role/token change, physical-phone action,
+later phase, external message or deployment occurred. Stop at Phase 10.
+
+Final record/cleanup — **2026-10-10 18:59:16 UTC**: all **276 protected hashes**
+still match; **35 changed/new UTF-8/NUL files**, **14 Markdown documents/68 local
+links**, Ruff lint/format (76 files) and normal whitespace checks passed. Read-only
+application check confirmed head 0005 and the selected grant unchanged; **zero
+disposable schemas** and no fixture/API/preview listener remained at the inspected
+task ports. The compose database was restored to its initially stopped state,
+preserving volumes/data/grants. No application install, embedding activation,
+model download, phone change, later phase or deployment occurred.
+
+## Phase 11 verification details — 2026-10-10 UTC
+
+Code: **13a0cb3** plus the preserved uncommitted Phase 10 baseline and this Phase
+11 working tree. Required root/plan/scoped instructions, actual source, OpenAPI,
+migration/test state and prerequisites were inspected before implementation.
+Phases 07/08/09 are present; source initially required 0007, configured application
+was observed at 0005. No application upgrade, grant/token change or deployment.
+
+Checkpoint implementation:
+
+- Strict owned selected-source extraction is bounded and shares chat admission;
+  inference has no checked-out DB connection. Exact source/version/hash/spans are
+  checked before inference and before atomic batch publication. Unknown fields,
+  fabricated/foreign evidence, duplicate keys, nonfinite values and model-selected
+  canonical links fail safely. Pending proposals never enter factual retrieval.
+- Migration **0008** adds extraction/proposal/review/support ledgers and nullable
+  provenance; migrations 0001–0007, original evidence and prompts are preserved.
+  Edits retain the original model candidate, revision history and exact support.
+  Review hash binds candidate, conflicts and canonical mapping under a scope lock.
+- Explicit acceptance creates separate immutable user endorsement evidence and
+  original support mappings. Principal/review key/revision/hash are bound to the
+  receipt. Specific half-open correction and all mappings commit atomically;
+  repeated identical review returns the original receipt. Reject creates no claim.
+  Optional review-v1/user_reviewed provenance preserves old origin enums, old
+  clients and frozen historical cards. Fresh retrieval verifies support integrity.
+- Android implements owned inbox/detail/exact excerpts, edits/new preview,
+  annotation and explicit accept/reject confirmation. Existing Keystore no-backup
+  persistence advances to v5 with one unsent draft and one exact operation, old
+  versions readable, verified identity and no automatic submission on restore.
+  Admin overview exposes only windowed state counts through a closed decoder.
+  No dependency, wrapper, lockfile, chat prompt or automatic extraction change.
+
+Checks actually run so far:
+
+- Unchanged ordinary baseline `pytest -q`: **174 passed/144 skipped**, 268.39 s.
+  PostgreSQL was initially stopped and absent from that command's fixture env.
+  Unchanged dedicated PostgreSQL/SQLite baseline: **310 passed/8 skipped**,
+  432.35 s. Ruff lint/format passed for **76 files**. Android baseline unit/lint/
+  debug build succeeded with cached tasks; this is not a fresh 134-test execution.
+- New approval test failed before service wiring (missing state.proposals).
+  Android journal compilation failed before the required storage methods existed.
+  First affected backend run: 8 passed/2 failed/12 skipped; UTC Z versus +00:00
+  canonicalization was fixed. Subsequent affected checks: **21 passed/1 skip**,
+  24.41 s; **29 passed/1 skip**, 39.43 s; **59 passed/1 skip**, 72.21 s.
+- Full changed `scripts/test-postgres.ps1`: **349 passed/9 skipped**, 559.23 s.
+  Final added admin privacy, all-or-nothing publication, publication-time source
+  tamper and scoped FK invariants are covered by the subsequent affected run:
+  **45 passed/1 skip**, 57.96 s. These late tests were added after full collection;
+  do not infer a later full-suite count. Full skips are seven SQLite lock/race
+  exclusions and two opt-in live-provider health checks. Real PostgreSQL fixtures
+  exercised concurrent review, native scoped foreign keys, rollback, populated
+  0007→0008 upgrade, empty downgrade/re-upgrade, Alembic check and refusal to
+  downgrade populated review history. Original completed replay/hashes passed.
+- Offline PostgreSQL **0007→0008 SQL** compiled with a fake URL separately from
+  real fixture migration execution. Compileall and Ruff lint/format passed for
+  **87 files**; normal repository whitespace check passed. Existing Windows CRLF
+  notices and Starlette/httpx deprecation are recorded separately from failures.
+- Web `npm ci`: **270 packages**, audit zero vulnerabilities. Contract generation/
+  freshness, typecheck, lint, **52 unit tests**, production build and **six actual
+  migrated PostgreSQL/HTTP production-build Chromium cases passed**, 23.7 s.
+  Counts privacy/legacy decoder behavior is tested without a private review UI.
+- Initial changed Android build found a job-completion type mismatch, fixed.
+  The next unit run had 136 tests/two old storage-version expectation failures;
+  v5 and real v3 test conversion were corrected. The subsequent build passed
+  **143 unit cases**, lint zero errors/14 warnings, debug and test APK assembly
+  (2 m 3 s). Timestamp/partial-draft refinements have two further tests awaiting
+  the final unit gate. An intermediate command attempted compilation before its
+  new timestamp helper was defined; the helper was immediately added.
+- First full emulator run: **20 passed/6 failed**, 26 ordinary tests, 5 m 16 s.
+  Five older chat/document/entity cases failed and the new proposal test asserted
+  text on its container rather than its text child. The assertion was corrected.
+  Second full run: **20 passed/6 failed**, 5 m 8 s; the proposal case now reaches
+  the empty-claims HTTP check but fails along with the older flows. Focused
+  diagnostics and final recovery verification are still in progress. These runs
+  are failures, not device passes; staged recovery did not run after suite failure.
+
+Extraction evaluation:
+
+The committed eight-case corpus is entirely synthetic, with five positive cases
+across explicit/imported/generated sources, Unicode and decisions, and three
+instruction/question/ambiguous-identity negatives. Gold fixture execution on
+SQLite and dedicated PostgreSQL produced **5 proposals/5 exact evidence matches/
+5 explicit endorsements**, precision/recall 1 (tautological fixture result).
+First two-case real Ollama probe produced two exact-supported proposals with
+strict-string precision/recall zero and no endorsements (before the independent
+review edit was added). The full real **qwen3.8:27b** eight-case run produced
+**4 proposals, 4 exact support matches, 0 extraction failures, 4 explicit review
+edits and 4 endorsements**. It abstained on the tentative generated case and all
+three negatives. Strict subject/predicate/value/kind gold-string precision and
+recall were both **0** because the returned annotations used different field wording. Reports
+remain ignored; no private ADA evidence or source quotes appear in these records.
+Exact evidence is not entailment, truth or representative model quality. A
+simulated reviewer independently supplies the corpus's final annotation; the
+model cannot approve itself. Independent manual/representative quality remains.
+
+Verification still pending: final Android unit/lint/build/emulator/recovery,
+complete compatibility/record/cleanup audit; application **0008 installation**
+(observed head 0005), physical **Samsung S24 FE/Android 16**, release HTTPS/manual
+TalkBack/keyboard accessibility and representative real-model quality/load. No
+standalone old-checkout smoke, release signing/installation, ANN extension or
+semantic activation was run; populated migrated fixtures cover old replay,
+release deployment is unauthorized and exact/disabled Phase 10 is preserved.
+No later phase, external message, private-phone action or deployment. Stop at 11.
+
+Phase 11 final refinements/checks (verification continues): strict boolean
+confidence/numeric-date coercion tests were red (**2 failed**) before validation
+was tightened. A subsequent affected run passed **55/1 skip**, 74.32 s. The new
+PostgreSQL concurrent edit-versus-review case passed (**1/1 SQLite skip**, 0.87 s),
+with only the winning revision/decision persisted. Cross-owner nonce reuse was
+red (**1 failed/1 PostgreSQL-not-configured skip**): derived endorsement/claim IDs
+collided. Namespace derivation now includes the authenticated owner for proposal,
+endorsement, claim and identity-history IDs. Final affected proposals/extraction/
+corpus/schema/client-contract run: **58 passed/2 expected SQLite race skips**,
+74.35 s on SQLite and actual PostgreSQL. These are later checks than the full
+349-test run; no larger full count is inferred. Lint/format remains 87 files.
+
+Emulator investigation: a focused proposal case failed with a transport
+Unreachable result (1 failed, 1 m 12 s); loopback checked the same synthetic empty
+claims response as HTTP 200/zero rows in 15 ms. Extending the disposable helper's
+five-second idle connection lifetime to **90 seconds** allowed the explicit
+real-HTTP edit/accept/reject flow to pass (**1 ordinary test**, 4 m 17 s), followed
+by **all ten force-stop recovery stages** without skips. Production adapter
+redirect/POST-retry behavior is unchanged. Temporary diagnostics printed only
+safe failure classes, were removed, and the three older diagnostic test files
+were restored byte-for-byte. Short-idle/HTTPS behavior on the actual phone/server
+remains a target check. The separate launch command reported **Status timeout**
+despite exit zero; it is not a launch pass. The script now force-stops for cold
+launch and requires **Status ok**, not just an exit code.
+
+Final Android unit/lint/debug/test-APK gate passed: **145 unit tests, zero
+failures/skips**, lint **0 errors/14 existing warnings**, build **1 m 29 s**.
+Includes v4→v5 encrypted partial draft recovery preserving entity state, malformed
+Unicode rejection, exact UTC edit reconciliation and safe unknown provenance
+labels. The full 26-case ordinary emulator suite and strict launch/recovery gate
+are running against the finished source. Read-only app check still showed 0005/
+active selected grant unchanged; zero disposable PostgreSQL schemas. Complete
+compatibility audit: **48 original paths/65 schemas** preserve prior operations,
+security, required fields and property definitions; **271 other baseline hashes**
+match, including all old migrations/prompts/locks/wrappers/fixtures/later phases.
+**62 changed/new UTF-8/NUL files, 13 Markdown documents/78 local links** passed.
+Final record/cleanup follows; no later phase or deployment.
+
+Final publication quota invariant: two concurrent extractions can reserve below
+400 before either finishes. The PostgreSQL regression was red (1 failed/1 SQLite
+skip, 1.02 s). Publication now rechecks the exact staged batch plus retained rows
+under the scope lock, failing the losing batch with zero partial proposals and a
+replayable failure receipt. Final affected proposal/extraction/corpus/schema/client
+suite: **59 passed/3 expected SQLite concurrency skips**, 78.86 s. The real
+PostgreSQL race retained exactly 400 proposals and zero unreviewed claims. This
+supersedes 58/2 for the final backend runtime; the earlier full 349/9 run remains
+historical evidence. The already-running emulator helper loaded before this last
+quota-only guard; its ordinary single-extraction scopes do not hit that guard.
+The guard itself ran against actual PostgreSQL. No server contract changed.
+
+Final ordinary Android emulator suite against the finished client source:
+**26 passed, zero failures/skips**, build/test command completed in **21 m 46 s**.
+This includes the real-HTTP proposal edit/accept/reject flow and existing chat,
+memory, document and entity regressions. The ten separate force-stop stages and
+strict cold launch continue after this ordinary-suite pass; their final outcome
+is recorded below when available. This is the Android 17 emulator, not the
+physical Samsung S24 FE/Android 16. The helper uses synthetic extraction and
+90-second idle keep-alive; no real-model or release-HTTPS device pass is inferred.

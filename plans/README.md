@@ -13,7 +13,9 @@ admin dashboard with selectable palettes. Phase 07 adds explicit Android memory,
 exact evidence/correction recovery and new static personality profiles. Phase 08
 adds bounded text/Markdown upload/version/chunk retrieval and Android document UI.
 Phase 09 adds explicit scoped identities, aliases, historical links, reversible
-merge and Android review/recovery. Later backend features remain planned.
+merge and Android review/recovery. Phase 10 adds bounded exact hybrid retrieval,
+kept disabled by default until real-model evaluation supports activation. Later
+backend features remain planned.
 The Windows/PostgreSQL rerun closes the 02A fixture gate;
 see STATUS/WORKLOG for preserved historical and current evidence.
 
@@ -109,3 +111,8 @@ substitute for the repository's current state or server-side authorization.
 - [SOURCES.md](SOURCES.md): official references checked for planning, with a date.
 
 Keep secrets, private message text and real source quotes out of these records.
+
+Phase 11 now implements selected-source proposals with explicit Android review,
+new endorsement evidence and reliable scoped review receipts. Automatic extraction
+and approval remain disabled. Application migration 0008 and remaining target
+checks are separate from implementation; see STATUS. Later phases remain planned.

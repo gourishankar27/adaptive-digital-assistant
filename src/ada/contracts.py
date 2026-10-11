@@ -23,6 +23,11 @@ class UserOutput(BaseModel):
 
 
 class CapabilitiesOutput(BaseModel):
+    memory_proposals: str = "unsupported"
+    memory_review: bool = False
+    memory_provenance: str = "legacy"
+    semantic_retrieval: bool = False
+    semantic_state: str = "disabled"
     scoped_entities: bool = False
     entity_resolution: str = "unsupported"
     entity_writes: bool = False
@@ -125,6 +130,7 @@ class RetrievalCandidateOutput(TypedDict):
     # Slot siblings were not ranked. Preserve absent keys instead of adding nulls.
     score: NotRequired[float]
     term_coverage: NotRequired[int]
+    semantic_similarity: NotRequired[float]
 
 
 @with_config(ConfigDict(extra="allow"))

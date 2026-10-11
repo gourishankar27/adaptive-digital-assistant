@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
 import dev.ada.assistant.data.CitationDto
+import dev.ada.assistant.data.reviewOriginLabel
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -36,6 +37,13 @@ fun ChatSourceCard(source: CitationDto, requestId: UUID, modifier: Modifier = Mo
         Column(Modifier.padding(AdaSpacing.medium), verticalArrangement = Arrangement.spacedBy(AdaSpacing.medium)) {
             Text("Source [${source.label}]", style = MaterialTheme.typography.titleMedium)
             source.entity?.let { SafeChatText("Explicit entity at this request: ${it.label} · ${it.kind}", links = false) }
+            source.provenance?.let { provenance ->
+                Text(provenance.reviewOriginLabel())
+                provenance.support.forEach { support ->
+                    Text("Original support · ${support.source_origin} · ${support.trust_class} · version ${support.source_version}")
+                    SafeChatText(support.evidence.quote, links = false)
+                }
+            }
             Text(
                 when (source.origin) { "user_asserted" -> "User assertion · source version ${source.source_version}"; else -> "Unrecognized origin · source version ${source.source_version}" },
                 style = MaterialTheme.typography.bodyMedium,

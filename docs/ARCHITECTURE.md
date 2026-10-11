@@ -152,7 +152,7 @@ Monitoring selects columns/JSON scalar counts rather than private ORM snapshots.
 It preserves composite owner/request identity and unrecorded metrics as null.
 Polling, query windows, pagination and audit rows/age are bounded. Provider model-list
 probes are serialized/cached, response/time bounded and run outside DB transactions;
-they never generate. Current readiness validates supported head 0005. Admission shows the
+they never generate. Current readiness validates supported head 0008. Admission shows the
 actual process semaphore, with one worker; GPU/throughput remain unknown. See
 [ADMIN-MONITORING.md](ADMIN-MONITORING.md) for allowlists, failure/audit semantics,
 retention and installation. Phase 05 introduces no account impersonation.
@@ -292,6 +292,27 @@ Keystore record v4/256 KiB; v1–v3 journals remain readable. Restore is read-on
 until explicit receipt check or identical retry. Current identity decisions never
 replace saved source cards. See ENTITIES-AND-ALIASES.md for policy and installation.
 
+## Phase 10 exact hybrid retrieval
+
+Migration 0007 adds discardable owner/scope-constrained embedding entries, binding
+claim/chunk/source IDs and exact hashes to a full model digest/dimension/index
+namespace. Explicit bounded rebuild snapshots immutable history, embeds outside
+transactions under the same generation semaphore, then rechecks under a scope
+lock before atomic publication. Failed or raced rebuilds retain the prior index.
+
+Query embedding occurs before reservation, after ownership checks, outside any
+database transaction. Exact cosine ranking filters current/historical authority
+and entity ambiguity before scoring, with 256-item/content-work bounds. Missing,
+invalid or incompatible entries degrade to the original lexical baseline. Whole
+conflict groups, prompt budgets and imported trust survive. New traces freeze
+semantic/channel metadata; failed/completed replay never searches a newer index.
+There is no ANN, pgvector dependency, new prompt or automatic indexing job.
+
+Semantic retrieval remains disabled by default pending real-model quality/resource
+evidence. Capabilities distinguish configuration and last observed degradation;
+per-request diagnostics record the actual reason. Clients still use owned ADA
+HTTP APIs. See [the Phase 10 policy](EMBEDDINGS-AND-HYBRID-RETRIEVAL.md).
+
 ## Next milestone
 
 Phase 2 establishes a measured lexical/subject baseline. Subsequent milestones can
@@ -299,3 +320,28 @@ evaluate canonical entities, embeddings and consolidation
 against it while preserving the scope/time boundary and exact evidence provenance.
 Tools need explicit intent/authorization/receipt contracts before execution. Automatic
 extraction, autonomous work, affect learning and device inference remain deferred.
+
+## Phase 11 proposals and review
+
+A user selects owned immutable excerpts for bounded structured extraction. The
+server validates source/version/hash/span before and after inference; extraction
+shares process admission with chat and runs outside transactions. Pending
+proposals are separate from claims, lexical search and semantic indexes. A scoped
+lock binds candidate revision, exact evidence, conflicts and canonical mapping to
+a review hash. Confidence never grants factual authority or authorization.
+
+An explicit principal-bound review creates a new user endorsement source and a
+claim with that mandatory exact span, plus original supporting source links.
+Receipt, claim, mapping and optional specific valid-time correction commit
+atomically; same-key replay returns the original receipt. The original imported or
+model trust is preserved. Fresh retrieval validates this mapping before context.
+Request-frozen historical cards remain unchanged.
+
+Migration 0008 adds four scoped tables and nullable claim provenance without
+changing released history or original evidence requirements. Old origin enums
+remain intact; optional `review-v1` provenance exposes `user_reviewed` to capable
+clients. Android extends encrypted persistence to v5 for one draft and exact
+pending operation; restore never writes. Admin receives windowed state counts
+only. See [the policy](MEMORY-PROPOSALS-AND-REVIEW.md) and
+[compatibility decision](../plans/DECISIONS.md). No automatic extraction, approval,
+agent loop or new chat prompt is implemented.

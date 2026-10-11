@@ -49,6 +49,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.ada.assistant.data.ClaimDto
+import dev.ada.assistant.data.reviewOriginLabel
 import dev.ada.assistant.data.PendingMemory
 import dev.ada.assistant.data.SourceVersionDto
 
@@ -165,6 +166,10 @@ private fun MemoryDetail(state: MemoryState, controller: MemoryController) {
         state.detail?.let { claim ->
             SafeChatText("${claim.subject} · ${claim.predicate}: ${claim.value}", links = false)
             Text(kindLabel(claim.kind))
+            claim.provenance?.let { provenance ->
+                Text(provenance.reviewOriginLabel())
+                provenance.support.forEach { support -> MemoryQuote("Original support · ${support.source_origin} · ${support.trust_class}", support.evidence.quote, "memory-reviewed-support") }
+            }
             Text(intervalLabel(claim))
             Text("Recorded ${displayInstant(claim.created_at)}. Recorded time is separate from the validity interval.", style = MaterialTheme.typography.bodySmall)
             if (claim.status == "superseded") Text("A replacement does not erase the earlier interval, including when that replacement starts in the future.")

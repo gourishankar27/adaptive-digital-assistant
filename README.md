@@ -17,6 +17,7 @@ conversation `11b492c2-2667-44a3-bd9c-9a532f63c00f`.
 - Baseline v4 for new conversations, with existing v3 claim retrieval and explicit audited upgrades.
 - Immutable text/Markdown document uploads, exact chunks and separate `[D1]` imported excerpt cards.
 - Explicit scoped entities/aliases, ambiguous choices and audited reversible identity links.
+- Optional bounded exact hybrid retrieval with digest-bound derived indexes and lexical fallback.
 - A reproducible relevance/isolation benchmark and a Phase 1 upgrade installer.
 
 Each claim requires one user evidence version in its authorized scope. Its quote
@@ -26,7 +27,7 @@ The user explicitly supplies the subject/predicate/value annotation.
 
 Chat retrieves relevant saved claims from its conversation's scope. It also uses
 complete recent turns from that conversation. It does not extract or write claims.
-Tools, PDF/OCR, embeddings, consolidation, affect learning, iOS and device
+Tools, PDF/OCR, consolidation, affect learning, iOS and device
 inference are deferred. Phase 03 adds Android/web foundations; Phase 04 adds an
 Android authenticated chat client for these existing server APIs. Phase 05 adds
 explicitly granted, audited admin metadata APIs. Phase 06 adds a read-only admin
@@ -41,6 +42,25 @@ canonical interpretations alongside exact original evidence. See
 [ENTITIES-AND-ALIASES.md](docs/ENTITIES-AND-ALIASES.md) for migration **0006**,
 resolution policy, limits and recovery. Installing this source requires head 0006;
 the configured application database has not been upgraded by this implementation.
+
+Phase 10 adds migration **0007**, a server-only embedding adapter, atomic scoped
+index rebuild and exact semantic ranking alongside the original baseline.
+**Embeddings stay disabled by default**: synthetic comparison/capacity checks do
+not establish real-model benefit. See
+[EMBEDDINGS-AND-HYBRID-RETRIEVAL.md](docs/EMBEDDINGS-AND-HYBRID-RETRIEVAL.md)
+for bounds, fallback, activation/evaluation and installation. Current source
+requires head 0008 after Phase 11; the application database was not migrated by these phases.
+
+Phase 11 adds migration **0008**, selected-source model suggestions, a private
+Android review inbox and explicit accept/edit/reject receipts. Acceptance creates
+new immutable user endorsement evidence and separate original support links;
+unreviewed proposals never enter factual retrieval. Optional versioned
+`user_reviewed` provenance preserves old origin enums and saved request cards.
+Admin overview adds operational counts only. Automatic extraction/approval stays
+off. See [MEMORY-PROPOSALS-AND-REVIEW.md](docs/MEMORY-PROPOSALS-AND-REVIEW.md)
+for API, bounds, migration, recovery and real-versus-fixture evaluation limits.
+The configured application remains at observed 0005; installation of head 0008
+and physical S24 FE/Android 16 checks are pending. No deployment occurred.
 
 ## New Windows installation
 

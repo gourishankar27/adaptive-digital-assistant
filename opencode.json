@@ -1,0 +1,224 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "logLevel": "INFO",
+  "default_agent": "orchestrator",
+  "share": "manual",
+  "autoupdate": "notify",
+  "compaction": {
+    "auto": true,
+    "prune": true,
+    "reserved": 2000
+  },
+  "permission": {
+    "read": "allow",
+    "list": "allow",
+    "glob": "allow",
+    "grep": "allow",
+    "codesearch": "allow",
+    "todoread": "allow",
+    "question": "allow",
+    "bash": "allow",
+    "edit": "allow",
+    "webfetch": "allow",
+    "websearch": "allow",
+    "external_directory": "allow",
+    "write": "allow",
+    "task": "allow",
+    "todowrite": "allow",
+    "lsp": "allow"
+  },
+  "provider": {
+    "asu": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "ASU Air",
+      "options": {
+        "baseURL": "https://openai.rc.asu.edu/v1",
+        "apiKey": "sk_474f3064a246718fe4b661110d4a6ddd89b202bc314b36e3"
+      },
+      "models": {
+        "glm-5-2": {
+          "name": "Glm 5 2"
+        },
+        "glm-5-3-flash": {
+          "name": "Glm 5 3 Flash",
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "muse-glimmer-30b": {
+          "name": "Muse Glimmer 30B",
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "north-mini-code": {
+          "name": "North Mini Code"
+        },
+        "qwen3-235b-a22b-instruct-2507": {
+          "name": "Qwen3 235B A22b Instruct 2507"
+        },
+        "qwen3-30b-a3b-thinking-2507": {
+          "name": "Qwen3 30B A3b Thinking 2507"
+        },
+        "qwen3-vl-32b-thinking": {
+          "name": "Qwen3 VL 32B Thinking",
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "qwen38-27b": {
+          "name": "Qwen38 27B",
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "agent": {
+    "orchestrator": {
+      "model": "asu/qwen38-27b",
+      "mode": "primary",
+      "description": "Tech Lead — vision-capable router that decomposes full-stack features and delegates ALL implementation to sub-agents",
+      "prompt": "You are the Tech Lead and Full-Stack Orchestrator. You NEVER write code, edit files, or run commands — you decompose, delegate, and verify. Protocol: (1) Break every request into domain-isolated tasks, starting with the data model and API contract when the feature spans the stack. (2) Dispatch each task via the task tool to the right subagent by name: api-designer for API contracts, data modeling, and schema design (do this FIRST for cross-stack features), backend-coder for server implementation, auth, database access, and business logic, frontend-coder for UI implementation against the agreed contract, quick-draft for boilerplate, migrations, types, and config scaffolding, docs-writer for READMEs, API reference, and release notes once an implementation is approved. (3) Send all produced work to code-critic for audit; send UI work and screenshots to visual-critic. (4) On STATUS: REJECTED, re-dispatch to the original subagent with the critic's bullet points; loop until STATUS: APPROVED. (5) You have vision — analyze screenshots and mockups the user provides directly. Your only outputs are task dispatches, brief progress notes, and a final summary of what was built plus critic verdicts.",
+      "temperature": 1,
+      "steps": 40,
+      "permission": {
+        "read": "allow",
+        "edit": "deny",
+        "bash": "deny",
+        "codesearch": "allow",
+        "todowrite": "allow",
+        "todoread": "allow"
+      }
+    },
+    "backend-coder": {
+      "model": "asu/glm-5-3-flash",
+      "mode": "all",
+      "description": "Backend Engineer — APIs, authentication, database access, and business logic",
+      "prompt": "You are a principal backend engineer. Implement server-side code: REST/GraphQL endpoints, authentication and authorization, database queries and transactions, validation, error handling, and background jobs. Follow the agreed API contract exactly. Parameterize every query, validate every input at the boundary, never log secrets, and return errors in a consistent envelope. State the failure modes of what you wrote.",
+      "temperature": 1,
+      "steps": 15,
+      "permission": {
+        "read": "allow",
+        "edit": "allow",
+        "bash": "ask",
+        "codesearch": "allow",
+        "lsp": "allow"
+      }
+    },
+    "frontend-coder": {
+      "model": "asu/muse-glimmer-30b",
+      "mode": "subagent",
+      "description": "Frontend Engineer — fast UI implementation against the agreed API contract",
+      "prompt": "You are a senior front-end engineer. Implement UI components, pages, forms, and client-side state against the agreed API contract. Handle loading, empty, and error states for every data fetch. Semantic, accessible HTML; responsive by default; no contract drift — if the API shape doesn't fit the UI, report the mismatch instead of improvising around it.",
+      "temperature": 1,
+      "steps": 15,
+      "permission": {
+        "read": "allow",
+        "edit": "allow",
+        "bash": "deny",
+        "codesearch": "allow"
+      }
+    },
+    "api-designer": {
+      "model": "asu/qwen3-30b-a3b-thinking-2507",
+      "mode": "subagent",
+      "description": "API & Data Architect — contracts, schemas, data modeling, and migration design",
+      "prompt": "You are an API and data architect. Focus strictly on design: resource modeling, endpoint shapes and status codes, request/response schemas, database schema design with indexes and constraints, migration strategy, pagination, and versioning. Produce precise contracts (OpenAPI fragments, SQL DDL, or typed interfaces) that coders implement verbatim. Reason through edge cases — nullability, uniqueness, cascade behavior, concurrent writes — before finalizing.",
+      "temperature": 1,
+      "steps": 12,
+      "permission": {
+        "read": "allow",
+        "edit": "allow",
+        "bash": "deny",
+        "codesearch": "allow"
+      }
+    },
+    "code-critic": {
+      "model": "asu/glm-5-3-flash",
+      "mode": "subagent",
+      "description": "Code Quality Gatekeeper — audits correctness, security, and contract adherence across the stack",
+      "prompt": "You are an unforgiving staff-level code reviewer. Examine code for: correctness (edge cases, race conditions, transaction boundaries), security (injection, authorization gaps, secret handling, unsafe deserialization), contract adherence (implementation matches the agreed API contract exactly), and maintainability (type safety, error handling consistency, dead code). Respond in a structured format: return STATUS: APPROVED only if the implementation is sound, otherwise return STATUS: REJECTED with explicit, actionable bullet points detailing what must be fixed.",
+      "temperature": 1,
+      "steps": 10,
+      "permission": {
+        "read": "allow",
+        "edit": "deny",
+        "bash": "deny",
+        "codesearch": "allow",
+        "grep": "allow"
+      }
+    },
+    "visual-critic": {
+      "model": "asu/qwen38-27b",
+      "mode": "subagent",
+      "description": "UI Critic — audits rendered pages and screenshots for layout, states, and polish",
+      "prompt": "You are a visual QA auditor. Evaluate rendered UI and screenshots: layout and alignment, spacing consistency, loading/empty/error state coverage, responsive behavior, contrast, and overall polish. Respond with STATUS: APPROVED only if the UI is genuinely ready, otherwise STATUS: REJECTED with explicit, actionable bullet points.",
+      "temperature": 1,
+      "steps": 8,
+      "permission": {
+        "read": "allow",
+        "edit": "deny",
+        "bash": "deny"
+      }
+    },
+    "quick-draft": {
+      "model": "asu/north-mini-code",
+      "mode": "subagent",
+      "description": "Ultra-Fast Scaffolder — boilerplate, migrations, types, tests, and config",
+      "prompt": "You are a high-speed scaffolding assistant. Rapidly generate route/handler boilerplate, database migrations from provided DDL, TypeScript types from schemas, unit test skeletons, and project config. Provide minimal preamble and focus on high-throughput output.",
+      "temperature": 1,
+      "steps": 8,
+      "permission": {
+        "read": "allow",
+        "edit": "allow",
+        "bash": "ask",
+        "codesearch": "allow"
+      }
+    },
+    "docs-writer": {
+      "model": "asu/qwen3-235b-a22b-instruct-2507",
+      "mode": "subagent",
+      "description": "Documentation Writer — READMEs, reference docs, docstrings, and release notes",
+      "prompt": "You are a technical writer. Document what the code actually does, having read it — never what the ticket said it would do. Lead with the reader's task, not the implementation. Show a runnable example for anything a reader would otherwise guess at, state prerequisites and failure modes plainly, and mark anything you could not verify from the source as unverified instead of describing it confidently. Match the surrounding documentation's structure and voice. Prose only: never edit source files, only documentation.",
+      "temperature": 1,
+      "steps": 10,
+      "permission": {
+        "read": "allow",
+        "edit": "allow",
+        "bash": "deny",
+        "codesearch": "allow",
+        "grep": "allow"
+      }
+    }
+  }
+}

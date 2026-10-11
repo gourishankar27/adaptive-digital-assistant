@@ -503,3 +503,37 @@ request's canonical interpretation; retrieval details show frozen ambiguous choi
 See [identity policy](../../docs/ENTITIES-AND-ALIASES.md) and
 [STATUS](../../plans/STATUS.md) for executed checks and physical S24 FE/Android 16,
 HTTPS, TalkBack and real-model verification still pending.
+
+## Phase 11 selected-source review
+
+Version 0.11.0-review adds Memory → Review memory suggestions when the server
+advertises selected_sources_v1, memory_review and review-v1 provenance. Select an
+owned note or document excerpt, explicitly request suggestions, inspect exact
+support/origin/dates/conflicts, save edits and inspect the new revision, then
+confirm accept or reject with a decision annotation. Acceptance creates new
+explicit endorsement evidence; original model/imported support remains untrusted
+and distinguishable. Reviewed cards show User reviewed. No bulk/automatic approval.
+
+Keystore persistence advances to v5 (same 256 KiB bound, v1–v4 readable), with
+one unsent private draft and one exact extraction/edit/review operation. Restore
+never POSTs. Check the original receipt or explicitly retry identical input after
+identity verification; logout/account/server/key loss clears private state.
+Inbox/scope pagination is available; source/document/entity/excerpt pickers are
+bounded to the first 50 items. The native selector submits one excerpt per
+extraction; the API supports four. See
+[the server policy](../../docs/MEMORY-PROPOSALS-AND-REVIEW.md).
+
+The existing verify-emulator.ps1 script includes the new real-HTTP review flow
+and two approval-delivery-loss stages separated by actual adb force-stop (ten
+staged checks including prior chat/memory/document/entity recovery). ProposalOnly
+focuses the ordinary proposal UI test while retaining those recovery stages.
+The disposable helper labels model extraction as a deterministic fixture; it
+never uses the configured application database. Actual final checks and failures
+are in [STATUS](../../plans/STATUS.md). Physical S24 FE/Android 16, release TLS,
+manual TalkBack/keyboard accessibility and real-device resources remain pending.
+
+The disposable HTTP helper keeps idle sockets alive for 90 seconds to cover UI
+review pauses in this emulator environment. Production redirect/POST-retry policy
+is unchanged. verify-emulator.ps1 requires Status ok from an actual cold launch;
+an exit-zero timeout is a failed smoke check. Real-phone/HTTPS and short-idle
+connection behavior remain target verification, distinct from fixture passes.

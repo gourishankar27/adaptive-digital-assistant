@@ -6,6 +6,7 @@ It is not an enrollment service or a production server entry point.
 """
 
 import argparse
+import json
 import os
 import re
 import tempfile
@@ -37,6 +38,36 @@ class AndroidChatProvider(FakeProvider):
         ):
             return Completion("[FAKE provider] Synthetic imported document reply [D1].", self.model)
         return Completion("[FAKE provider] Synthetic test reply [M1].", self.model)
+
+
+class AndroidProposalExtractor(FakeProvider):
+    """Explicit deterministic suggestions only in the disposable device helper."""
+
+    model = "synthetic-proposals-v1"
+
+    def complete(self, messages):
+        selected = json.loads(messages[-1]["content"])["selected_sources"][0]
+        pin = {
+            key: selected[key]
+            for key in ("source_version_id", "version", "content_hash", "span_start", "span_end")
+        }
+        return Completion(
+            json.dumps(
+                {
+                    "candidates": [
+                        {
+                            "subject": "Android verification project",
+                            "predicate": "color",
+                            "value": "Oxford Blue",
+                            "kind": "preference",
+                            "support": [pin],
+                            "confidence": 0.9,
+                        }
+                    ]
+                }
+            ),
+            self.model,
+        )
 
 
 def seed_android_chat(sessions, owner):
@@ -104,10 +135,15 @@ def main():
             settings = Settings(database_url=database_url, provider="fake", max_parallel=1)
             provider = AndroidChatProvider() if args.android_chat_fixtures else FakeProvider()
             app = create_app(settings, provider, sessions)
+            if args.android_chat_fixtures:
+                app.state.proposals.provider = AndroidProposalExtractor()
             uvicorn.run(
                 app,
                 host="127.0.0.1",
                 port=args.port,
+                # UI review pauses exceed the default five-second idle lifetime.
+                # Keep fixture sockets alive through a review; production retry policy is unchanged.
+                timeout_keep_alive=90,
                 workers=1,
                 access_log=False,
                 log_level="error",

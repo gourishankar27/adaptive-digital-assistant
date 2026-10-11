@@ -1,6 +1,8 @@
 # Phase 10 — embeddings and measured hybrid retrieval
 
-Status: planned. Prerequisite: Phase 08; Phase 09 for entity-aware behavior.
+Status: implemented; semantic activation deliberately disabled pending real-model
+quality/resource evaluation. Local checks are recorded in STATUS/WORKLOG.
+Prerequisite: implemented Phases 08 and 09.
 Apply STANDARDS and CODEX-WORKFLOW. Keep the Phase 2 lexical baseline available.
 
 ## Goal
@@ -70,3 +72,24 @@ concurrent correction, scoped ANN recall if used, disabled embeddings and old
 completed/failed replay. Run migrations/PostgreSQL/Ruff/backend and evaluation
 checks. Exit with measured benefit or a documented decision to leave semantic
 retrieval disabled; never assert quality improvement without comparative data.
+
+## Implemented checkpoint map
+
+1. `ada.embeddings`: bounded provider interface/HTTP adapter; exact selected
+   EmbeddingGemma 300M manifest/dimension/prefix/index specification, checked
+   official documentation and local runtime/resources. No additional dependency.
+   The model is absent; resident resource and real inference checks remain pending.
+2. Migration 0007/`ada.semantic`: composite references, exact hashes and namespace,
+   bounded history snapshot, reuse/invalidated rebuild and atomic race-checked
+   publication. No mutation of original sources/claims/traces.
+3. Authorized exact cosine ranking, entity/time/source gates, deterministic
+   lexical-first RRF60 fusion, existing conflict/prompt limits and frozen replay.
+   No ANN or pgvector: the measured bounded corpus does not justify either.
+4. Reproducible 13-query synthetic comparison, failure suite and 256-item capacity
+   checks on SQLite/PostgreSQL. Fixture improvement is explicitly not real-model
+   benefit. Exit decision: keep semantic disabled; expose actual fallback diagnostics
+   and retain the baseline. Real-model/representative ADA quality remains target work.
+
+See [implementation/installation policy](../docs/EMBEDDINGS-AND-HYBRID-RETRIEVAL.md).
+Stop at Phase 10. This phase authorizes no extraction, consolidation, agent tools,
+background indexing service, deployment or application database migration.

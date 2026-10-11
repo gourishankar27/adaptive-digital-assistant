@@ -177,3 +177,13 @@ capabilities, prompts, migrations and dependency pins are unchanged in Phase 06.
 Manual screen-reader/other-browser review, real release HTTPS and sustained
 polling/performance remain target checks; see [STATUS](../../plans/STATUS.md) and
 [WORKLOG](../../plans/WORKLOG.md).
+
+## Phase 11 operational proposal counts
+
+Overview optionally shows pending/accepted/rejected counts within its selected
+creation window; older servers show an unavailable state. The closed decoder
+discards private proposal, annotation and support fields. No admin review UI or
+cross-user proposal access is added. Server grants, audits, memory-only bearer
+storage and same-origin HTTP remain required. See
+[the policy](../../docs/MEMORY-PROPOSALS-AND-REVIEW.md) and
+[checks](../../plans/STATUS.md).

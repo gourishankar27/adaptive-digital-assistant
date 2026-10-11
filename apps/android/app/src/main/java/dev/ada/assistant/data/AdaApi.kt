@@ -59,6 +59,13 @@ sealed interface ApiFailure {
 
 /** Every method is an existing ADA route; no enrollment/admin/cancellation API is invented. */
 interface AdaApi {
+    suspend fun proposals(connection: ConnectionCredential, scope: UUID, limit: Int = 25, offset: Int = 0): ApiResult<List<ProposalDto>> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun proposal(connection: ConnectionCredential, id: UUID): ApiResult<ProposalDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun extraction(connection: ConnectionCredential, id: UUID): ApiResult<ExtractionDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun reviewReceipt(connection: ConnectionCredential, id: UUID): ApiResult<ReviewReceiptDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun extractProposals(connection: ConnectionCredential, pending: PendingProposal): ApiResult<ExtractionDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun editProposal(connection: ConnectionCredential, pending: PendingProposal): ApiResult<ProposalDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun reviewProposal(connection: ConnectionCredential, pending: PendingProposal): ApiResult<ReviewReceiptDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
     suspend fun entities(connection: ConnectionCredential, scope: UUID, limit: Int = 50, offset: Int = 0): ApiResult<List<EntityDto>> = ApiResult.Failure(ApiFailure.IncompatibleContract)
     suspend fun entityAliases(connection: ConnectionCredential, id: UUID): ApiResult<List<EntityAliasDto>> = ApiResult.Failure(ApiFailure.IncompatibleContract)
     suspend fun resolveEntity(connection: ConnectionCredential, scope: UUID, body: EntityResolveInputDto): ApiResult<EntityResolutionDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
@@ -97,6 +104,14 @@ interface AdaApi {
 }
 
 class HttpAdaApi(callTimeoutMillis: Long = 65_000) : AdaApi {
+    override suspend fun proposals(connection: ConnectionCredential, scope: UUID, limit: Int, offset: Int) = call<List<ProposalDto>>(connection, "scopes/$scope/memory-proposals", query = page(limit, offset))
+    override suspend fun proposal(connection: ConnectionCredential, id: UUID) = call<ProposalDto>(connection, "memory-proposals/$id")
+    override suspend fun extraction(connection: ConnectionCredential, id: UUID) = call<ExtractionDto>(connection, "memory-extractions/$id")
+    override suspend fun reviewReceipt(connection: ConnectionCredential, id: UUID) = call<ReviewReceiptDto>(connection, "memory-reviews/$id")
+    private fun validProposal(connection: ConnectionCredential, pending: PendingProposal, kind: String): Boolean = try { validateProposalPending(pending); pending.kind == kind && pending.identity.server == connection.server.toString() } catch (_: Exception) { false }
+    override suspend fun extractProposals(connection: ConnectionCredential, pending: PendingProposal): ApiResult<ExtractionDto> = if (validProposal(connection, pending, "extract")) call(connection, "scopes/${pending.scopeId}/memory-extractions", pending.body) else ApiResult.Failure(ApiFailure.Validation)
+    override suspend fun editProposal(connection: ConnectionCredential, pending: PendingProposal): ApiResult<ProposalDto> = if (validProposal(connection, pending, "edit")) call(connection, "memory-proposals/${pending.proposalId}/edit", pending.body) else ApiResult.Failure(ApiFailure.Validation)
+    override suspend fun reviewProposal(connection: ConnectionCredential, pending: PendingProposal): ApiResult<ReviewReceiptDto> = if (validProposal(connection, pending, "review")) call(connection, "memory-proposals/${pending.proposalId}/review", pending.body) else ApiResult.Failure(ApiFailure.Validation)
     override suspend fun entities(connection: ConnectionCredential, scope: UUID, limit: Int, offset: Int) = call<List<EntityDto>>(connection, "scopes/$scope/entities", query = page(limit, offset))
     override suspend fun entityAliases(connection: ConnectionCredential, id: UUID) = call<List<EntityAliasDto>>(connection, "entities/$id/aliases")
     override suspend fun resolveEntity(connection: ConnectionCredential, scope: UUID, body: EntityResolveInputDto) = call<EntityResolutionDto>(connection, "scopes/$scope/entities/resolve", adaJson.encodeToString(body))

@@ -30,6 +30,7 @@ from ada.admin_contracts import (
 from ada.contracts import ErrorOutput, ValidationErrorOutput
 from ada.memory import Timestamp
 from ada.models import AdminAudit, AdminGrant, Conversation, Request, RetrievalTrace, now_ms
+from ada.proposal_models import MemoryProposal
 from ada.providers import OllamaProvider
 from ada.schema import SCHEMA_HEAD
 
@@ -429,11 +430,27 @@ def admin_router(monitor, current_user):
             version = db.execute(
                 text("SELECT version_num FROM alembic_version")
             ).scalar_one_or_none()
+            proposal_counts = None
+            if version == SCHEMA_HEAD:
+                counts = dict(
+                    db.execute(
+                        select(MemoryProposal.status, func.count())
+                        .where(
+                            MemoryProposal.created_at >= start,
+                            MemoryProposal.created_at <= timestamp,
+                        )
+                        .group_by(MemoryProposal.status)
+                    ).all()
+                )
+                proposal_counts = {
+                    state: counts.get(state, 0) for state in ("pending", "accepted", "rejected")
+                }
         return {
             "window_hours": window_hours,
             "created_from": start,
             "updated_at": timestamp,
             "requests": {r["status"]: r["count"] for r in rows},
+            "memory_proposal_counts": proposal_counts,
             **{
                 key: sum(r[key] or 0 for r in rows) if any(r[known] for r in rows) else None
                 for key, known in (

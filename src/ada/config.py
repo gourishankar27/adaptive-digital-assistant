@@ -17,6 +17,15 @@ class Settings(BaseSettings):
     prompt_bytes: int = Field(default=6000, ge=1200, le=24000)
     memory_bytes: int = Field(default=2200, ge=0, le=12000)
     retrieval_limit: int = Field(default=8, ge=1, le=16)
+    embedding_enabled: bool = False
+    embedding_model: Literal["embeddinggemma:300m"] = "embeddinggemma:300m"
+    embedding_digest: str = Field(
+        default="85462619ee721b466c5927d109d4cb765861907d5417b9109caebc4e614679f1",
+        pattern=r"^[a-f0-9]{64}$",
+    )
+    embedding_dimensions: Literal[128, 256, 512, 768] = 768
+    embedding_timeout_seconds: int = Field(default=10, ge=1, le=30)
+    embedding_min_similarity: float = Field(default=0.7, ge=0, le=1, allow_inf_nan=False)
 
     @model_validator(mode="after")
     def fits_context(self):

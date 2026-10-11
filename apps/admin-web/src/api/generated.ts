@@ -443,6 +443,125 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/scopes/{scope_id}/memory-extractions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Extract */
+        post: operations["extract_v1_scopes__scope_id__memory_extractions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memory-extractions/{extraction_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Extraction */
+        get: operations["extraction_v1_memory_extractions__extraction_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/scopes/{scope_id}/memory-proposals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Inbox */
+        get: operations["inbox_v1_scopes__scope_id__memory_proposals_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memory-proposals/{proposal_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Detail */
+        get: operations["detail_v1_memory_proposals__proposal_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memory-proposals/{proposal_id}/edit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Edit */
+        post: operations["edit_v1_memory_proposals__proposal_id__edit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memory-proposals/{proposal_id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Review */
+        post: operations["review_v1_memory_proposals__proposal_id__review_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memory-reviews/{review_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Receipt */
+        get: operations["receipt_v1_memory_reviews__review_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health/live": {
         parameters: {
             query?: never;
@@ -701,6 +820,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/scopes/{scope_id}/semantic-index/rebuild": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Rebuild Semantic Index */
+        post: operations["rebuild_semantic_index_v1_scopes__scope_id__semantic_index_rebuild_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/scopes/{scope_id}/notes": {
         parameters: {
             query?: never;
@@ -885,6 +1021,10 @@ export interface components {
         };
         /** AdminOverviewOutput */
         AdminOverviewOutput: {
+            /** Memory Proposal Counts */
+            memory_proposal_counts?: {
+                [key: string]: number;
+            } | null;
             /** Window Hours */
             window_hours: number;
             /**
@@ -1154,8 +1294,57 @@ export interface components {
              */
             origin: "user_confirmed";
         };
+        /** Candidate */
+        Candidate: {
+            /** Subject */
+            subject: string;
+            /** Predicate */
+            predicate: string;
+            /** Value */
+            value: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "fact" | "preference" | "decision";
+            /** Valid From */
+            valid_from?: string | null;
+            /** Valid To */
+            valid_to?: string | null;
+            /** Subject Entity Id */
+            subject_entity_id?: string | null;
+            /** Support */
+            support: components["schemas"]["SourcePin"][];
+            /** Confidence */
+            confidence?: number | null;
+        };
         /** CapabilitiesOutput */
         CapabilitiesOutput: {
+            /**
+             * Memory Proposals
+             * @default unsupported
+             */
+            memory_proposals: string;
+            /**
+             * Memory Review
+             * @default false
+             */
+            memory_review: boolean;
+            /**
+             * Memory Provenance
+             * @default legacy
+             */
+            memory_provenance: string;
+            /**
+             * Semantic Retrieval
+             * @default false
+             */
+            semantic_retrieval: boolean;
+            /**
+             * Semantic State
+             * @default disabled
+             */
+            semantic_state: string;
             /**
              * Scoped Entities
              * @default false
@@ -1266,6 +1455,7 @@ export interface components {
         };
         /** CitationOutput */
         CitationOutput: {
+            provenance?: components["schemas"]["ReviewProvenance"] | null;
             /** Label */
             label: string;
             /**
@@ -1352,6 +1542,7 @@ export interface components {
         };
         /** ClaimOutput */
         ClaimOutput: {
+            provenance?: components["schemas"]["ReviewProvenance"] | null;
             /**
              * Id
              * Format: uuid
@@ -1400,6 +1591,29 @@ export interface components {
              */
             origin: "user_asserted";
             evidence: components["schemas"]["EvidenceOutput"];
+        };
+        /** ConflictOutput */
+        ConflictOutput: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Value */
+            value: string;
+            /**
+             * Valid From
+             * Format: int64
+             */
+            valid_from: bigint;
+            /** Valid To */
+            valid_to: bigint | null;
+            /** Status */
+            status: string;
+            /** Write Hash */
+            write_hash: string;
+            /** Subject Entity Id */
+            subject_entity_id: string | null;
         };
         /** ConversationInput */
         ConversationInput: {
@@ -1466,6 +1680,8 @@ export interface components {
             score?: number;
             /** Term Coverage */
             term_coverage?: number;
+            /** Semantic Similarity */
+            semantic_similarity?: number;
         } & {
             [key: string]: unknown;
         };
@@ -1687,6 +1903,14 @@ export interface components {
             created_at: bigint;
             upload: components["schemas"]["DocumentUploadOutput"];
         };
+        /** EditInput */
+        EditInput: {
+            /** Revision */
+            revision: number;
+            /** Review Hash */
+            review_hash: string;
+            candidate: components["schemas"]["Candidate"];
+        };
         /** EntityChoice */
         EntityChoice: {
             /**
@@ -1881,6 +2105,51 @@ export interface components {
             /** Content Hash */
             content_hash: string;
         };
+        /** ExtractionInput */
+        ExtractionInput: {
+            /**
+             * Extraction Id
+             * Format: uuid
+             */
+            extraction_id: string;
+            /** Sources */
+            sources: components["schemas"]["SourcePin"][];
+        };
+        /** ExtractionOutput */
+        ExtractionOutput: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Scope Id
+             * Format: uuid
+             */
+            scope_id: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "processing" | "completed" | "failed";
+            /** Model */
+            model: string;
+            /** Extractor Version */
+            extractor_version: string;
+            /** Validation */
+            validation: {
+                [key: string]: unknown;
+            };
+            /** Error Code */
+            error_code: string | null;
+            /** Proposal Ids */
+            proposal_ids: string[];
+            /**
+             * Created At
+             * Format: int64
+             */
+            created_at: bigint;
+        };
         /** LinkInput */
         LinkInput: {
             /**
@@ -2028,6 +2297,56 @@ export interface components {
             /** Revision */
             revision: number;
         };
+        /** ProposalOutput */
+        ProposalOutput: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Scope Id
+             * Format: uuid
+             */
+            scope_id: string;
+            /**
+             * Extraction Id
+             * Format: uuid
+             */
+            extraction_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "accepted" | "rejected";
+            /** Revision */
+            revision: number;
+            candidate: components["schemas"]["Candidate"];
+            original_candidate: components["schemas"]["Candidate"];
+            /** Model */
+            model: string;
+            /** Extractor Version */
+            extractor_version: string;
+            /** Validation */
+            validation: {
+                [key: string]: unknown;
+            };
+            /** Support */
+            support: components["schemas"]["SupportingEvidence"][];
+            /** Conflicts */
+            conflicts: components["schemas"]["ConflictOutput"][];
+            /** Review Hash */
+            review_hash: string;
+            /** Rejection Reason */
+            rejection_reason: string | null;
+            /** Review Id */
+            review_id: string | null;
+            /**
+             * Created At
+             * Format: int64
+             */
+            created_at: bigint;
+        };
         /** ProviderHealth */
         ProviderHealth: {
             /**
@@ -2057,6 +2376,22 @@ export interface components {
             status: "ready";
             /** Schema */
             schema: string;
+        };
+        /** RebuildOutput */
+        RebuildOutput: {
+            /** Namespace */
+            namespace: string;
+            /** Indexed */
+            indexed: number;
+            /** Reused */
+            reused: number;
+            /**
+             * Corpus Limit
+             * @default 256
+             */
+            corpus_limit: number;
+            /** Elapsed Ms */
+            elapsed_ms: number;
         };
         /** RenameInput */
         RenameInput: {
@@ -2178,6 +2513,8 @@ export interface components {
             score?: number;
             /** Term Coverage */
             term_coverage?: number;
+            /** Semantic Similarity */
+            semantic_similarity?: number;
         } & {
             [key: string]: unknown;
         };
@@ -2205,6 +2542,7 @@ export interface components {
         };
         /** RetrievalPlanOutput */
         RetrievalPlanOutput: {
+            semantic?: components["schemas"]["SemanticDiagnostic"] | null;
             /** Entity Keys */
             entity_keys?: string[];
             /** Entity Resolution */
@@ -2300,6 +2638,99 @@ export interface components {
              */
             use_documents: boolean;
         };
+        /** ReviewInput */
+        ReviewInput: {
+            /** Revision */
+            revision: number;
+            /** Review Hash */
+            review_hash: string;
+            candidate: components["schemas"]["Candidate"];
+            /**
+             * Review Id
+             * Format: uuid
+             */
+            review_id: string;
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "accept" | "reject";
+            /** Annotation */
+            annotation: string;
+            /** Replace Claim Id */
+            replace_claim_id?: string | null;
+        };
+        /** ReviewOutput */
+        ReviewOutput: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Proposal Id
+             * Format: uuid
+             */
+            proposal_id: string;
+            /**
+             * Scope Id
+             * Format: uuid
+             */
+            scope_id: string;
+            /**
+             * Principal Id
+             * Format: uuid
+             */
+            principal_id: string;
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "accept" | "reject";
+            /** Revision */
+            revision: number;
+            /** Review Hash */
+            review_hash: string;
+            /** Claim Id */
+            claim_id: string | null;
+            /** Endorsement Source Version Id */
+            endorsement_source_version_id: string | null;
+            /**
+             * Created At
+             * Format: int64
+             */
+            created_at: bigint;
+        };
+        /** ReviewProvenance */
+        ReviewProvenance: {
+            /**
+             * Version
+             * @default review-v1
+             * @constant
+             */
+            version: "review-v1";
+            /**
+             * Origin
+             * @constant
+             */
+            origin: "user_reviewed";
+            /**
+             * Proposal Id
+             * Format: uuid
+             */
+            proposal_id: string;
+            /**
+             * Review Id
+             * Format: uuid
+             */
+            review_id: string;
+            /** Model */
+            model: string;
+            /** Extractor Version */
+            extractor_version: string;
+            /** Support */
+            support: components["schemas"]["SupportingEvidence"][];
+        };
         /** ScopeInput */
         ScopeInput: {
             /** Name */
@@ -2343,6 +2774,77 @@ export interface components {
              * Format: uuid
              */
             entity_id: string;
+        };
+        /** SemanticDiagnostic */
+        SemanticDiagnostic: {
+            /**
+             * State
+             * @default disabled
+             */
+            state: string;
+            /**
+             * Reason
+             * @default provider_disabled
+             */
+            reason: string;
+            /** Namespace */
+            namespace?: string | null;
+            /** Model */
+            model?: string | null;
+            /** Model Digest */
+            model_digest?: string | null;
+            /** Dimensions */
+            dimensions?: number | null;
+            /**
+             * Index Version
+             * @default embeddinggemma-search-v1
+             */
+            index_version: string;
+            /**
+             * Ranking Version
+             * @default lexical-first-rrf60-v1
+             */
+            ranking_version: string;
+            /**
+             * Eligible
+             * @default 0
+             */
+            eligible: number;
+            /**
+             * Indexed
+             * @default 0
+             */
+            indexed: number;
+            /**
+             * Query Ms
+             * @default 0
+             */
+            query_ms: number;
+            /**
+             * Ranking Ms
+             * @default 0
+             */
+            ranking_ms: number;
+            /** Index Built At */
+            index_built_at?: bigint | null;
+            /** Min Similarity */
+            min_similarity?: number | null;
+        };
+        /** SourcePin */
+        SourcePin: {
+            /**
+             * Source Version Id
+             * Format: uuid
+             */
+            source_version_id: string;
+            /** Version */
+            version: number;
+            /** Content Hash */
+            content_hash: string;
+            /** Span Start */
+            span_start: number;
+            /** Span End */
+            span_end: number;
         };
         /** SourceVersionOutput */
         SourceVersionOutput: {
@@ -2402,6 +2904,27 @@ export interface components {
             value: string;
             /** Effective At */
             effective_at?: string | null;
+        };
+        /** SupportingEvidence */
+        SupportingEvidence: {
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+            /** Source Version */
+            source_version: number;
+            /**
+             * Source Origin
+             * @enum {string}
+             */
+            source_origin: "chat_event" | "user_note" | "imported_document";
+            /**
+             * Trust Class
+             * @enum {string}
+             */
+            trust_class: "user_explicit" | "model_generated" | "imported_untrusted";
+            evidence: components["schemas"]["EvidenceOutput"];
         };
         /** TraceOutput */
         TraceOutput: {
@@ -4632,6 +5155,572 @@ export interface operations {
             };
         };
     };
+    extract_v1_scopes__scope_id__memory_extractions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                scope_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExtractionInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExtractionOutput"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExtractionOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized validation issues or error code; input is omitted */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+        };
+    };
+    extraction_v1_memory_extractions__extraction_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                extraction_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExtractionOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized validation issues or error code; input is omitted */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+        };
+    };
+    inbox_v1_scopes__scope_id__memory_proposals_get: {
+        parameters: {
+            query?: {
+                status?: ("pending" | "accepted" | "rejected") | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                scope_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalOutput"][];
+                };
+            };
+            /** @description Sanitized error code */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized validation issues or error code; input is omitted */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+        };
+    };
+    detail_v1_memory_proposals__proposal_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized validation issues or error code; input is omitted */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+        };
+    };
+    edit_v1_memory_proposals__proposal_id__edit_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EditInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized validation issues or error code; input is omitted */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+        };
+    };
+    review_v1_memory_proposals__proposal_id__review_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewOutput"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized validation issues or error code; input is omitted */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+        };
+    };
+    receipt_v1_memory_reviews__review_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                review_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized validation issues or error code; input is omitted */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+        };
+    };
     live_health_live_get: {
         parameters: {
             query?: never;
@@ -5441,6 +6530,73 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ValidationErrorOutput"];
+                };
+            };
+        };
+    };
+    rebuild_semantic_index_v1_scopes__scope_id__semantic_index_rebuild_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                scope_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RebuildOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized validation issues or error code; input is omitted */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
                 };
             };
         };

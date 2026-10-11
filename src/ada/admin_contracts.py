@@ -121,6 +121,7 @@ class RequestCounts(Metadata):
 
 
 class AdminOverviewOutput(Metadata):
+    memory_proposal_counts: dict[Literal["pending", "accepted", "rejected"], int] | None = None
     window_hours: int
     created_from: Timestamp
     updated_at: Timestamp

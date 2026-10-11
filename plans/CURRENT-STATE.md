@@ -16,7 +16,7 @@ facts/preferences/decisions and transactional valid-time corrections.
 Phase 2 added full-text/subject retrieval, a whole-prompt byte budget, exact
 evidence checks, source labels and durable per-request retrieval snapshots.
 
-Migrations 0001–0004 remain unchanged; Phase 08 adds head 0005. Baseline v4 is
+Migrations 0001–0007 remain unchanged; Phase 11 adds head 0008. Baseline v4 is
 current for new conversations. v3 retains claim retrieval; earlier conversations
 retain their saved prompt until explicitly upgraded.
 
@@ -40,11 +40,13 @@ and the other client endpoints now have explicit output schemas exported to
 OpenAPI, including sanitized errors and retrieval details.
 
 Chat returns a complete response. There is no streaming, cancellation endpoint,
-automatic memory extraction, PDF/OCR, embedding search, tool executor,
+automatic memory extraction, PDF/OCR, tool executor,
 voice interface or local mobile model. Static warmth/style
 configuration exists; dynamic affect and learned relationship preferences do not.
 Phase 08 implements bounded text/Markdown uploads and imported excerpt retrieval,
 with separate document citations, exact versions and explicit request opt-in.
+Phase 10 implements optional exact semantic retrieval; it is disabled by default
+pending real-model evaluation and retains lexical fallback.
 
 ## Historical verification evidence — Phases 02A/03
 
@@ -213,4 +215,42 @@ The admin web remains metadata-only. See docs/ENTITIES-AND-ALIASES.md and
 STATUS/WORKLOG for executable contracts, checks and remaining target verification.
 The final read-only application check observed head 0005. Installing 0006 remains
 separate and unperformed by this phase.
-No automatic extraction, embeddings, cross-user graph or later phase is implemented.
+No automatic extraction or cross-user graph was implemented in Phase 09.
+
+## Phase 10 optional exact semantic channel
+
+Head 0007 adds only discardable derived embeddings. The server now has bounded
+digest-checked Ollama embedding transport, atomic owner/scope rebuild, exact cosine
+ranking and deterministic lexical-first channel fusion. Existing lexical behavior,
+historical availability, ambiguous-entity exclusion, conflict groups, source
+integrity, v3/v4 prompts and frozen failed/completed replay remain in force.
+Embedding calls share chat admission and run outside transactions.
+
+The selected embedding model is absent locally; semantic retrieval stays disabled
+by default. Synthetic fixture comparison and 256-item/768-dimension capacity
+checks are distinct from real-model benefit/resource measurements. Current
+installation requires 0007, but this phase has not upgraded the application DB or
+downloaded a model. See STATUS/WORKLOG and docs/EMBEDDINGS-AND-HYBRID-RETRIEVAL.md
+for actual verification and pending activation. Later phases remain unimplemented.
+
+## Phase 11 implementation
+
+Migration 0008 adds owned selected-source extraction receipts, pending proposals,
+audited revisions, explicit review receipts and original supporting evidence
+mappings. Strict source/schema checks and bounded inference precede atomic
+publication. No unreviewed proposal enters claim search or model context.
+Explicit acceptance creates a new immutable user endorsement source and claim;
+rejection creates no claim. Specific conflict correction and same-review-key
+replay are atomic. Original model/imported trust and old mandatory evidence stay
+intact. Optional review-v1/user_reviewed provenance distinguishes reviewed memory
+without widening existing origin enums or refreshing historical request cards.
+
+Android Memory hosts the inbox/detail/edit/accept/reject flow with encrypted v5
+identity-bound draft/key recovery. Admin overview adds only state counts.
+Capabilities distinguish selected-source proposals and explicit review from
+still-disabled automatic extraction. Real qwen3.8:27b extraction and separately
+labeled fixture evaluation ran on synthetic evidence; independent representative
+quality evaluation remains pending. Read STATUS/WORKLOG for actual check counts.
+The configured application remains at observed 0005, needs head 0008 installation,
+and was not migrated. Semantic retrieval remains disabled by default. No later
+phase or deployment is implemented.

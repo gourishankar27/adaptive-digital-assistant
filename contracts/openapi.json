@@ -3243,6 +3243,792 @@
         }
       }
     },
+    "/v1/scopes/{scope_id}/memory-extractions": {
+      "post": {
+        "tags": [
+          "memory-review"
+        ],
+        "summary": "Extract",
+        "operationId": "extract_v1_scopes__scope_id__memory_extractions_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "scope_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Scope Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExtractionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtractionOutput"
+                }
+              }
+            }
+          },
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtractionOutput"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/memory-extractions/{extraction_id}": {
+      "get": {
+        "tags": [
+          "memory-review"
+        ],
+        "summary": "Extraction",
+        "operationId": "extraction_v1_memory_extractions__extraction_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "extraction_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Extraction Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtractionOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/scopes/{scope_id}/memory-proposals": {
+      "get": {
+        "tags": [
+          "memory-review"
+        ],
+        "summary": "Inbox",
+        "operationId": "inbox_v1_scopes__scope_id__memory_proposals_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "scope_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Scope Id"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "pending",
+                    "accepted",
+                    "rejected"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "pending",
+              "title": "Status"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "default": 25,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 10000,
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProposalOutput"
+                  },
+                  "title": "Response Inbox V1 Scopes  Scope Id  Memory Proposals Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/memory-proposals/{proposal_id}": {
+      "get": {
+        "tags": [
+          "memory-review"
+        ],
+        "summary": "Detail",
+        "operationId": "detail_v1_memory_proposals__proposal_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "proposal_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Proposal Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/memory-proposals/{proposal_id}/edit": {
+      "post": {
+        "tags": [
+          "memory-review"
+        ],
+        "summary": "Edit",
+        "operationId": "edit_v1_memory_proposals__proposal_id__edit_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "proposal_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Proposal Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/memory-proposals/{proposal_id}/review": {
+      "post": {
+        "tags": [
+          "memory-review"
+        ],
+        "summary": "Review",
+        "operationId": "review_v1_memory_proposals__proposal_id__review_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "proposal_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Proposal Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewOutput"
+                }
+              }
+            }
+          },
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewOutput"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/memory-reviews/{review_id}": {
+      "get": {
+        "tags": [
+          "memory-review"
+        ],
+        "summary": "Receipt",
+        "operationId": "receipt_v1_memory_reviews__review_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "review_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Review Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health/live": {
       "get": {
         "summary": "Live",
@@ -4351,6 +5137,91 @@
         }
       }
     },
+    "/v1/scopes/{scope_id}/semantic-index/rebuild": {
+      "post": {
+        "summary": "Rebuild Semantic Index",
+        "operationId": "rebuild_semantic_index_v1_scopes__scope_id__semantic_index_rebuild_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "scope_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Scope Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RebuildOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/scopes/{scope_id}/notes": {
       "post": {
         "summary": "Create Note",
@@ -5183,6 +6054,27 @@
       },
       "AdminOverviewOutput": {
         "properties": {
+          "memory_proposal_counts": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "integer"
+                },
+                "propertyNames": {
+                  "enum": [
+                    "pending",
+                    "accepted",
+                    "rejected"
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Memory Proposal Counts"
+          },
           "window_hours": {
             "type": "integer",
             "title": "Window Hours"
@@ -5812,8 +6704,132 @@
         ],
         "title": "AliasOutput"
       },
+      "Candidate": {
+        "properties": {
+          "subject": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Subject"
+          },
+          "predicate": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Predicate"
+          },
+          "value": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Value"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "fact",
+              "preference",
+              "decision"
+            ],
+            "title": "Kind"
+          },
+          "valid_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid From"
+          },
+          "valid_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid To"
+          },
+          "subject_entity_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Entity Id"
+          },
+          "support": {
+            "items": {
+              "$ref": "#/components/schemas/SourcePin"
+            },
+            "type": "array",
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Support"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "subject",
+          "predicate",
+          "value",
+          "kind",
+          "support"
+        ],
+        "title": "Candidate"
+      },
       "CapabilitiesOutput": {
         "properties": {
+          "memory_proposals": {
+            "type": "string",
+            "title": "Memory Proposals",
+            "default": "unsupported"
+          },
+          "memory_review": {
+            "type": "boolean",
+            "title": "Memory Review",
+            "default": false
+          },
+          "memory_provenance": {
+            "type": "string",
+            "title": "Memory Provenance",
+            "default": "legacy"
+          },
+          "semantic_retrieval": {
+            "type": "boolean",
+            "title": "Semantic Retrieval",
+            "default": false
+          },
+          "semantic_state": {
+            "type": "string",
+            "title": "Semantic State",
+            "default": "disabled"
+          },
           "scoped_entities": {
             "type": "boolean",
             "title": "Scoped Entities",
@@ -6011,6 +7027,16 @@
       },
       "CitationOutput": {
         "properties": {
+          "provenance": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReviewProvenance"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "label": {
             "type": "string",
             "pattern": "^M[1-9][0-9]*$",
@@ -6230,6 +7256,16 @@
       },
       "ClaimOutput": {
         "properties": {
+          "provenance": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReviewProvenance"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -6341,6 +7377,67 @@
           "evidence"
         ],
         "title": "ClaimOutput"
+      },
+      "ConflictOutput": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "value": {
+            "type": "string",
+            "title": "Value"
+          },
+          "valid_from": {
+            "type": "integer",
+            "format": "int64",
+            "title": "Valid From"
+          },
+          "valid_to": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid To"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "write_hash": {
+            "type": "string",
+            "title": "Write Hash"
+          },
+          "subject_entity_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Entity Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "value",
+          "valid_from",
+          "valid_to",
+          "status",
+          "write_hash",
+          "subject_entity_id"
+        ],
+        "title": "ConflictOutput"
       },
       "ConversationInput": {
         "properties": {
@@ -6460,6 +7557,10 @@
           "term_coverage": {
             "type": "integer",
             "title": "Term Coverage"
+          },
+          "semantic_similarity": {
+            "type": "number",
+            "title": "Semantic Similarity"
           }
         },
         "additionalProperties": true,
@@ -6872,6 +7973,31 @@
         ],
         "title": "DocumentVersionOutput"
       },
+      "EditInput": {
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Revision"
+          },
+          "review_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Review Hash"
+          },
+          "candidate": {
+            "$ref": "#/components/schemas/Candidate"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "revision",
+          "review_hash",
+          "candidate"
+        ],
+        "title": "EditInput"
+      },
       "EntityChoice": {
         "properties": {
           "id": {
@@ -7277,6 +8403,104 @@
         ],
         "title": "EvidenceOutput"
       },
+      "ExtractionInput": {
+        "properties": {
+          "extraction_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Extraction Id"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourcePin"
+            },
+            "type": "array",
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Sources"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "extraction_id",
+          "sources"
+        ],
+        "title": "ExtractionInput"
+      },
+      "ExtractionOutput": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "scope_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Scope Id"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "processing",
+              "completed",
+              "failed"
+            ],
+            "title": "State"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "extractor_version": {
+            "type": "string",
+            "title": "Extractor Version"
+          },
+          "validation": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Validation"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "proposal_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Proposal Ids"
+          },
+          "created_at": {
+            "type": "integer",
+            "format": "int64",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "scope_id",
+          "state",
+          "model",
+          "extractor_version",
+          "validation",
+          "error_code",
+          "proposal_ids",
+          "created_at"
+        ],
+        "title": "ExtractionOutput"
+      },
       "LinkInput": {
         "properties": {
           "operation_id": {
@@ -7596,6 +8820,123 @@
         ],
         "title": "PromptUpgradeOutput"
       },
+      "ProposalOutput": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "scope_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Scope Id"
+          },
+          "extraction_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Extraction Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "accepted",
+              "rejected"
+            ],
+            "title": "Status"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "candidate": {
+            "$ref": "#/components/schemas/Candidate"
+          },
+          "original_candidate": {
+            "$ref": "#/components/schemas/Candidate"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "extractor_version": {
+            "type": "string",
+            "title": "Extractor Version"
+          },
+          "validation": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Validation"
+          },
+          "support": {
+            "items": {
+              "$ref": "#/components/schemas/SupportingEvidence"
+            },
+            "type": "array",
+            "title": "Support"
+          },
+          "conflicts": {
+            "items": {
+              "$ref": "#/components/schemas/ConflictOutput"
+            },
+            "type": "array",
+            "title": "Conflicts"
+          },
+          "review_hash": {
+            "type": "string",
+            "title": "Review Hash"
+          },
+          "rejection_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rejection Reason"
+          },
+          "review_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Id"
+          },
+          "created_at": {
+            "type": "integer",
+            "format": "int64",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "scope_id",
+          "extraction_id",
+          "status",
+          "revision",
+          "candidate",
+          "original_candidate",
+          "model",
+          "extractor_version",
+          "validation",
+          "support",
+          "conflicts",
+          "review_hash",
+          "rejection_reason",
+          "review_id",
+          "created_at"
+        ],
+        "title": "ProposalOutput"
+      },
       "ProviderHealth": {
         "properties": {
           "reachability": {
@@ -7680,6 +9021,39 @@
           "schema"
         ],
         "title": "ReadyOutput"
+      },
+      "RebuildOutput": {
+        "properties": {
+          "namespace": {
+            "type": "string",
+            "title": "Namespace"
+          },
+          "indexed": {
+            "type": "integer",
+            "title": "Indexed"
+          },
+          "reused": {
+            "type": "integer",
+            "title": "Reused"
+          },
+          "corpus_limit": {
+            "type": "integer",
+            "title": "Corpus Limit",
+            "default": 256
+          },
+          "elapsed_ms": {
+            "type": "integer",
+            "title": "Elapsed Ms"
+          }
+        },
+        "type": "object",
+        "required": [
+          "namespace",
+          "indexed",
+          "reused",
+          "elapsed_ms"
+        ],
+        "title": "RebuildOutput"
       },
       "RenameInput": {
         "properties": {
@@ -7971,6 +9345,10 @@
           "term_coverage": {
             "type": "integer",
             "title": "Term Coverage"
+          },
+          "semantic_similarity": {
+            "type": "number",
+            "title": "Semantic Similarity"
           }
         },
         "additionalProperties": true,
@@ -8046,6 +9424,16 @@
       },
       "RetrievalPlanOutput": {
         "properties": {
+          "semantic": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SemanticDiagnostic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "entity_keys": {
             "items": {
               "type": "string"
@@ -8331,6 +9719,198 @@
         ],
         "title": "RetrieveInput"
       },
+      "ReviewInput": {
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Revision"
+          },
+          "review_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Review Hash"
+          },
+          "candidate": {
+            "$ref": "#/components/schemas/Candidate"
+          },
+          "review_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Review Id"
+          },
+          "decision": {
+            "type": "string",
+            "enum": [
+              "accept",
+              "reject"
+            ],
+            "title": "Decision"
+          },
+          "annotation": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Annotation"
+          },
+          "replace_claim_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Replace Claim Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "revision",
+          "review_hash",
+          "candidate",
+          "review_id",
+          "decision",
+          "annotation"
+        ],
+        "title": "ReviewInput"
+      },
+      "ReviewOutput": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "proposal_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Proposal Id"
+          },
+          "scope_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Scope Id"
+          },
+          "principal_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Principal Id"
+          },
+          "decision": {
+            "type": "string",
+            "enum": [
+              "accept",
+              "reject"
+            ],
+            "title": "Decision"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "review_hash": {
+            "type": "string",
+            "title": "Review Hash"
+          },
+          "claim_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Claim Id"
+          },
+          "endorsement_source_version_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endorsement Source Version Id"
+          },
+          "created_at": {
+            "type": "integer",
+            "format": "int64",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "proposal_id",
+          "scope_id",
+          "principal_id",
+          "decision",
+          "revision",
+          "review_hash",
+          "claim_id",
+          "endorsement_source_version_id",
+          "created_at"
+        ],
+        "title": "ReviewOutput"
+      },
+      "ReviewProvenance": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "const": "review-v1",
+            "title": "Version",
+            "default": "review-v1"
+          },
+          "origin": {
+            "type": "string",
+            "const": "user_reviewed",
+            "title": "Origin"
+          },
+          "proposal_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Proposal Id"
+          },
+          "review_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Review Id"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "extractor_version": {
+            "type": "string",
+            "title": "Extractor Version"
+          },
+          "support": {
+            "items": {
+              "$ref": "#/components/schemas/SupportingEvidence"
+            },
+            "type": "array",
+            "title": "Support"
+          }
+        },
+        "type": "object",
+        "required": [
+          "origin",
+          "proposal_id",
+          "review_id",
+          "model",
+          "extractor_version",
+          "support"
+        ],
+        "title": "ReviewProvenance"
+      },
       "ScopeInput": {
         "properties": {
           "name": {
@@ -8410,6 +9990,158 @@
           "entity_id"
         ],
         "title": "SelfInput"
+      },
+      "SemanticDiagnostic": {
+        "properties": {
+          "state": {
+            "type": "string",
+            "title": "State",
+            "default": "disabled"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason",
+            "default": "provider_disabled"
+          },
+          "namespace": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Namespace"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "model_digest": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Digest"
+          },
+          "dimensions": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dimensions"
+          },
+          "index_version": {
+            "type": "string",
+            "title": "Index Version",
+            "default": "embeddinggemma-search-v1"
+          },
+          "ranking_version": {
+            "type": "string",
+            "title": "Ranking Version",
+            "default": "lexical-first-rrf60-v1"
+          },
+          "eligible": {
+            "type": "integer",
+            "title": "Eligible",
+            "default": 0
+          },
+          "indexed": {
+            "type": "integer",
+            "title": "Indexed",
+            "default": 0
+          },
+          "query_ms": {
+            "type": "integer",
+            "title": "Query Ms",
+            "default": 0
+          },
+          "ranking_ms": {
+            "type": "integer",
+            "title": "Ranking Ms",
+            "default": 0
+          },
+          "index_built_at": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Index Built At"
+          },
+          "min_similarity": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Similarity"
+          }
+        },
+        "type": "object",
+        "title": "SemanticDiagnostic"
+      },
+      "SourcePin": {
+        "properties": {
+          "source_version_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Source Version Id"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version"
+          },
+          "content_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Content Hash"
+          },
+          "span_start": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Span Start"
+          },
+          "span_end": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Span End"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source_version_id",
+          "version",
+          "content_hash",
+          "span_start",
+          "span_end"
+        ],
+        "title": "SourcePin"
       },
       "SourceVersionOutput": {
         "properties": {
@@ -8542,6 +10274,49 @@
           "value"
         ],
         "title": "SupersedeInput"
+      },
+      "SupportingEvidence": {
+        "properties": {
+          "source_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Source Id"
+          },
+          "source_version": {
+            "type": "integer",
+            "title": "Source Version"
+          },
+          "source_origin": {
+            "type": "string",
+            "enum": [
+              "chat_event",
+              "user_note",
+              "imported_document"
+            ],
+            "title": "Source Origin"
+          },
+          "trust_class": {
+            "type": "string",
+            "enum": [
+              "user_explicit",
+              "model_generated",
+              "imported_untrusted"
+            ],
+            "title": "Trust Class"
+          },
+          "evidence": {
+            "$ref": "#/components/schemas/EvidenceOutput"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source_id",
+          "source_version",
+          "source_origin",
+          "trust_class",
+          "evidence"
+        ],
+        "title": "SupportingEvidence"
       },
       "TraceOutput": {
         "properties": {

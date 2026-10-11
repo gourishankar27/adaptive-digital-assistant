@@ -106,7 +106,7 @@ fun ChatApp(vm: ChatViewModel, openSettings: () -> Unit) {
         },
         bottomBar = {
             if (state.account != null && !typing) NavigationBar(windowInsets = WindowInsets(0, 0, 0, 0)) {
-                val inChat = state.destination !in setOf(ChatDestination.Settings, ChatDestination.Connect, ChatDestination.Memory, ChatDestination.Documents, ChatDestination.Entities)
+                val inChat = state.destination !in setOf(ChatDestination.Settings, ChatDestination.Connect, ChatDestination.Memory, ChatDestination.Documents, ChatDestination.Entities, ChatDestination.Proposals)
                 NavigationBarItem(
                     selected = inChat,
                     onClick = { focus.clearFocus(); vm.navigate(ChatDestination.Conversations) },
@@ -114,7 +114,7 @@ fun ChatApp(vm: ChatViewModel, openSettings: () -> Unit) {
                     modifier = Modifier.testTag("nav-chat"),
                 )
                 NavigationBarItem(
-                    selected = state.destination in setOf(ChatDestination.Memory, ChatDestination.Entities), enabled = state.capabilities?.structured_memory == true,
+                    selected = state.destination in setOf(ChatDestination.Memory, ChatDestination.Entities, ChatDestination.Proposals), enabled = state.capabilities?.structured_memory == true,
                     onClick = { focus.clearFocus(); vm.navigate(ChatDestination.Memory) }, icon = { NavigationGlyph(1) }, label = { Text("Memory") },
                     modifier = Modifier.testTag("nav-memory").semantics { stateDescription = if (state.capabilities?.structured_memory == true) "Owned statements and evidence" else "This server does not offer structured memory" },
                 )
@@ -142,10 +142,12 @@ fun ChatApp(vm: ChatViewModel, openSettings: () -> Unit) {
                 ChatDestination.Sources -> SourcesScreen(state, vm)
                 ChatDestination.Retrieval -> RetrievalScreen(state, vm)
                 ChatDestination.Memory -> {
+                    if (state.capabilities?.let { it.memory_review && it.memory_proposals == "selected_sources_v1" } == true) TextButton({ vm.navigate(ChatDestination.Proposals) }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("open-proposals")) { Text("Review memory suggestions") }
                     if (state.capabilities?.let { it.scoped_entities && it.entity_writes && it.entity_resolution == "explicit_aliases_v1" } == true) TextButton({ vm.navigate(ChatDestination.Entities) }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("open-entities")) { Text("People, projects and aliases") }
                     MemoryScreens(vm.memory)
                 }
                 ChatDestination.Entities -> EntityScreens(vm.entities) { vm.navigate(ChatDestination.Memory) }
+                ChatDestination.Proposals -> ProposalScreens(vm.proposals) { vm.navigate(ChatDestination.Memory) }
                 ChatDestination.Documents -> DocumentScreens(vm.documents)
                 ChatDestination.Settings -> AccountSettingsScreen(state, vm, openSettings)
             }

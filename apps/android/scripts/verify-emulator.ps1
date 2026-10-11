@@ -1,6 +1,7 @@
-param([string]$Device = 'emulator-5554', [switch]$DocumentOnly, [switch]$EntityOnly)
+param([string]$Device = 'emulator-5554', [switch]$DocumentOnly, [switch]$EntityOnly, [switch]$ProposalOnly)
 $ErrorActionPreference = 'Stop'
 if ($DocumentOnly -and $EntityOnly) { throw 'Select at most one focused emulator suite' }
+if ($ProposalOnly -and ($DocumentOnly -or $EntityOnly)) { throw 'Select at most one focused emulator suite' }
 $adaPriorSerial = $env:ANDROID_SERIAL
 $adaPriorTestCredential = $env:ADA_WEB_TEST_TOKEN
 $adaAndroid = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
@@ -55,9 +56,10 @@ try {
     }
     if (-not $adaReady) { throw 'Disposable HTTP test server did not become ready' }
     Set-AdaPrivateTestCredential -AdbPath $adaAdb -SelectedDevice $Device -Credential $adaCredential
-    $adaInstrumentationArguments = @('-Pandroid.testInstrumentationRunnerArguments.adaHttpIntegration=true', '-Pandroid.testInstrumentationRunnerArguments.notClass=dev.ada.assistant.ProcessRecoveryPrepareTest,dev.ada.assistant.ProcessRecoveryResumeTest,dev.ada.assistant.MemoryRecoveryPrepareTest,dev.ada.assistant.MemoryRecoveryResumeTest,dev.ada.assistant.DocumentRecoveryPrepareTest,dev.ada.assistant.DocumentRecoveryResumeTest,dev.ada.assistant.EntityRecoveryPrepareTest,dev.ada.assistant.EntityRecoveryResumeTest')
+    $adaInstrumentationArguments = @('-Pandroid.testInstrumentationRunnerArguments.adaHttpIntegration=true', '-Pandroid.testInstrumentationRunnerArguments.notClass=dev.ada.assistant.ProcessRecoveryPrepareTest,dev.ada.assistant.ProcessRecoveryResumeTest,dev.ada.assistant.MemoryRecoveryPrepareTest,dev.ada.assistant.MemoryRecoveryResumeTest,dev.ada.assistant.DocumentRecoveryPrepareTest,dev.ada.assistant.DocumentRecoveryResumeTest,dev.ada.assistant.EntityRecoveryPrepareTest,dev.ada.assistant.EntityRecoveryResumeTest,dev.ada.assistant.ProposalRecoveryPrepareTest,dev.ada.assistant.ProposalRecoveryResumeTest')
     if ($DocumentOnly) { $adaInstrumentationArguments += '-Pandroid.testInstrumentationRunnerArguments.class=dev.ada.assistant.DocumentHttpIntegrationTest,dev.ada.assistant.DocumentUiHttpTest' }
     if ($EntityOnly) { $adaInstrumentationArguments += '-Pandroid.testInstrumentationRunnerArguments.class=dev.ada.assistant.EntityUiHttpTest' }
+    if ($ProposalOnly) { $adaInstrumentationArguments += '-Pandroid.testInstrumentationRunnerArguments.class=dev.ada.assistant.ProposalUiHttpTest' }
     & $adaGradle -p $adaAndroid connectedDebugAndroidTest @adaInstrumentationArguments --console=plain
     if ($LASTEXITCODE -ne 0) { throw 'Emulator verification failed' }
     # AGP removes test installations; install the verified debug APK for the launch smoke.
@@ -106,8 +108,18 @@ try {
     $adaEntityRecovered = & $adaAdb -s $Device shell am instrument -w -e adaEntityRecovery true -e expectedEntityOperation $adaEntityMatch.Groups[1].Value -e class 'dev.ada.assistant.EntityRecoveryResumeTest#resumesExactEntityAfterProcessStopWithoutDuplicate' dev.ada.assistant.debug.test/androidx.test.runner.AndroidJUnitRunner
     if ($LASTEXITCODE -ne 0 -or ($adaEntityRecovered -join "`n") -notmatch 'OK \(1 test\)') { throw 'Force-stop entity recovery verification failed' }
     Write-Output 'Committed-entity force-stop recovery: 2 staged checks passed; exact operation reused without duplicate identity.'
-    & $adaAdb -s $Device shell am start -W -n dev.ada.assistant.debug/dev.ada.assistant.MainActivity
-    if ($LASTEXITCODE -ne 0) { throw 'Emulator launch failed' }
+    $adaProposalPrepared = & $adaAdb -s $Device shell am instrument -w -e adaProposalRecovery true -e class 'dev.ada.assistant.ProposalRecoveryPrepareTest#prepareCommittedReviewWithoutDelivery' dev.ada.assistant.debug.test/androidx.test.runner.AndroidJUnitRunner
+    if ($LASTEXITCODE -ne 0 -or ($adaProposalPrepared -join "`n") -notmatch 'OK \(1 test\)') { throw 'Committed-review recovery preparation failed' }
+    $adaProposalMatch = [regex]::Match(($adaProposalPrepared -join "`n"), 'recoveryProposalReview=([0-9a-fA-F-]{36})')
+    if (-not $adaProposalMatch.Success) { throw 'Proposal review UUID metadata missing' }
+    & $adaAdb -s $Device shell am force-stop dev.ada.assistant.debug
+    if ($LASTEXITCODE -ne 0) { throw 'Review recovery interruption failed' }
+    $adaProposalRecovered = & $adaAdb -s $Device shell am instrument -w -e adaProposalRecovery true -e expectedProposalReview $adaProposalMatch.Groups[1].Value -e class 'dev.ada.assistant.ProposalRecoveryResumeTest#exactReviewReceiptSurvivesActualForceStop' dev.ada.assistant.debug.test/androidx.test.runner.AndroidJUnitRunner
+    if ($LASTEXITCODE -ne 0 -or ($adaProposalRecovered -join "`n") -notmatch 'OK \(1 test\)') { throw 'Force-stop review recovery verification failed' }
+    Write-Output 'Committed-review force-stop recovery: 2 staged checks passed; exact review key retained, one endorsement/claim and original receipt.'
+    $adaLaunch = & $adaAdb -s $Device shell am start -S -W -n dev.ada.assistant.debug/dev.ada.assistant.MainActivity
+    if ($LASTEXITCODE -ne 0 -or ($adaLaunch -join "`n") -notmatch '(?m)^Status: ok\s*$') { throw 'Emulator cold launch did not confirm success' }
+    Write-Output 'Emulator cold launch: Status ok.'
 } finally {
     $adaInstalled = & $adaAdb -s $Device shell pm path dev.ada.assistant.debug
     if ($adaInstalled) { & $adaAdb -s $Device shell run-as dev.ada.assistant.debug rm -f files/foundation-test-token }

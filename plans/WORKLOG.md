@@ -899,3 +899,225 @@ zero disposable PostgreSQL schemas, no helper listener, test credential or encry
 journal. Emulator display/font reset; task-launched emulator shut down. Existing
 compose DB restored to its initially stopped state with its volume/grants retained.
 No 0006 application installation or physical-phone/deployment action was performed.
+
+### 2026-10-10 — Phase 10 checkpoints 1–4 — base 13a0cb3 + working tree
+
+Scope: only embeddings and measured hybrid retrieval. Read required/root/plan
+documents, actual source/OpenAPI/migrations and fresh baselines. Existing Phase 08
+documents and Phase 09 scoped identities met the prerequisites. No new agents,
+later phases, model download, application installation or deployment.
+
+Changed behavior/files: new embeddings/provider, derived index models and semantic
+service; migration 0007; bounded owned rebuild route; compatible retrieval/chat
+integration and capability/trace/candidate fields; new synthetic evaluation corpus/
+runner and provider/storage/failure/replay tests. Existing identity downgrade test
+now restores newer disposable head before checking schema after a retained-history
+refusal. Source/OpenAPI/generated web DTOs, example configuration, current policy,
+architecture/plans/contracts and installation docs updated. All prompts, earlier
+migrations, Android files, dependency locks/wrappers and later plans are preserved.
+
+Data/API/prompt changes: 0007 adds discardable scope-bound JSON vectors with exact
+evidence IDs/hashes and full digest/dimension/index namespace. Bounded history
+snapshot/inference/recheck/atomic publication preserves sources and old traces.
+`POST /v1/scopes/{scope_id}/semantic-index/rebuild` is owner-only and shares process
+generation admission. Exact filtered cosine ranking merges by lexical-first RRF60;
+failures use the unchanged baseline. Reserved diagnostics and evidence freeze
+across retry/replay. No prompt version, input fingerprint or automatic upgrade.
+Semantic is disabled by default because real-model measurements are unavailable.
+
+Checks actually run and results:
+
+- Ordinary baseline 152 passed/131 skipped (215.88 s); dedicated baseline 275
+  passed/8 skipped (333.52 s), excluding the two initially added Phase 10 modules.
+  Ruff baseline lint/format passed, 67 files. Compose DB was started from stopped.
+- Expected missing-module red test; focused 21 passed/4 failed then 23 passed/2
+  failed while correcting corpus default binding and entity/document fixture fields;
+  all fixed. Affected 32 passed (64.22 s). Full ordinary changed run 171 passed/
+  143 skipped/1 old downgrade-head failure (258.16 s), corrected by restoring head.
+- Full `scripts/test-postgres.ps1`: **307 passed/8 skipped**, 411.31 s. Final
+  affected provider/semantic/storage/evaluation/old-populated-upgrade rerun:
+  **37 passed/0 skipped**, 71.85 s. Includes subsequently added connection-pool
+  assertions (embedding outside transactions), DB guard, stable evaluation UUID
+  ordering and frozen original semantic M/D citations after a new document version.
+  Full runtime remains unchanged after that successful full run; final refinements
+  affect tests/evaluation. Eight full skips are six SQLite concurrency/lock cases
+  and two opt-in health tests, not failures suppressed from the suite.
+- Native composite FK rejection, populated 0006→0007/downgrade/re-upgrade/Alembic
+  check, historical hashes and completed/failed replay passed. Offline PostgreSQL
+  0006→0007 SQL compiled separately. Ruff lint/format passed for 76 files; Python
+  compileall and normal repository whitespace check passed.
+- Final 13-question fully synthetic comparison on SQLite/PostgreSQL: lexical
+  recall@5/MRR@5 0.4286/0.4286; explicit five-component fixture vectors hybrid
+  1.0/0.7857; 18/18 exact evidence, zero isolation/negative failures, degraded
+  fallback rate 0. Hybrid traced median/max HTTP ms: SQLite 132.229/286.993,
+  PostgreSQL 159.884/290.051. Corpus covers historical changes, conflicts,
+  ambiguity, imported evidence, foreign owners/scopes and unknown/time negatives.
+  No real embedding model, private ADA content or answer entailment was measured.
+- Capacity at 256×768: 32 batches, SQLite build/query 2374.736/2493.530 ms and
+  10,096,858 peak traced Python bytes; PostgreSQL 2498.062/2366.315 ms and 9,206,837
+  bytes. Item 257 falls back/rejects; model vectors are synthetic constants and
+  tracing excludes DB/GPU. No production throughput/resource claim.
+- `evaluate_hybrid.py` fixture and disabled CLI modes ran on disposable SQLite;
+  disabled kept the baseline. Unchanged `evaluate_retrieval.py` CLI retained
+  recall/MRR 0.8667, exact evidence 1.0, zero isolation/negative failures. Generated
+  output was moved into ignored task artifacts. PostgreSQL comparison ran through
+  the reproducible benchmark test, not a separate `--postgres` CLI invocation.
+- Web pinned clean install 270 packages/audit zero vulnerabilities; contracts
+  generation/check/typecheck/lint, 51 unit cases, build and six real disposable
+  PostgreSQL/HTTP Chromium cases passed (21.9 s). Final int64 metadata regeneration/
+  typecheck passed. No UI/lock changes beyond generated contract DTOs.
+- Compatibility audit: 47 prior paths/all operations and 63 schemas preserve old
+  shapes/security/required fields; optional additions in four schemas and one new
+  path. 276 protected file hashes match. UTF-8/NUL/Markdown links and whitespace
+  checks passed; final complete record/cleanup review is appended below.
+
+Windows/PostgreSQL/model evidence: real PostgreSQL 17 fixtures/disposable schemas
+on this host; SQLite supplements them. Local runtime 0.40.1, i9-14900HX/31.62 GiB
+RAM/RTX 4090 Laptop 16,376 MiB, observed GPU use 552 MiB. Official docs and registry
+manifest checked; selected 300M/768 digest fixed to
+85462619ee721b466c5927d109d4cb765861907d5417b9109caebc4e614679f1; layer bytes
+621,875,501 are download metadata. Selected model is absent; actual adapter probe
+failed safely before inference with embedding_model_changed. No dependency added.
+Initial inline shell probe quoting, fixture assumptions, formatting and patch
+context errors were corrected; no private data was printed or test disabled.
+Existing Starlette/httpx/npm encoding/terminal color warnings remain separate.
+
+Checks skipped and reason: real embedding load/quality/GPU/CPU measurements (model
+not installed), ANN/pgvector (bounded exact design selected), standalone legacy
+checkout smoke (populated migration/replay tests instead), Android/emulator/phone
+(all Android source unchanged). Prior phone/HTTPS/manual accessibility remains
+target evidence, not a fresh result. PostgreSQL CLI mode was not separately rerun;
+the benchmark function executed on both actual database fixtures.
+
+Remaining issues: intended application stays at observed 0005 with its selected
+grant active; installation needs head 0007. Keep semantic disabled until real-model
+quality/threshold/resource measurements support activation. Representative
+authorized ADA corpus, sustained load and operational install/backup checks remain.
+No application migration, grant/token change, phone action or deployment.
+
+Next eligible checkpoint: target verification/installation is separate; Phase 10
+stops with its documented disabled exit. Any later implementation needs explicit
+selection. Final cleanup follows below; historical logs are retained.
+
+Final review/cleanup — **2026-10-10 18:59:16 UTC**: compatibility still matches
+47 paths/63 schemas and 276 protected hashes. Completed records included in
+35 UTF-8/NUL file checks and 14 Markdown documents/68 local-link checks; normal
+whitespace and Ruff lint/format (76 files) passed. Application head 0005/selected
+active grant unchanged, zero disposable schemas, inspected fixture/API/preview
+ports stopped. Existing compose DB restored to its original stopped state without
+removing volumes or data. Semantic remains off, model absent, no application
+migration, later phase, phone action, external message or deployment.
+
+### 2026-10-10 — Phase 11 checkpoints — 13a0cb3 plus preserved Phase 10 working tree
+
+Scope: only selected-source memory proposals and explicit user review; read all
+required/current/scoped instructions, source/OpenAPI/test/migration baselines.
+Phases 07/08/09 prerequisites exist. Application head 0005 was inspected, not
+upgraded. Prior uncommitted Phase 10 source and validation records are preserved.
+
+Changed behavior/files: proposal/extraction/review contracts/service/API/models,
+additive migration 0008, support integrity in fresh retrieval, optional reviewed
+provenance, Android inbox/edit/confirm/recovery v5 and admin counts only. New
+endorsement evidence preserves original generated/imported trust; exact scoped
+review receipts and specific corrections commit atomically. No unreviewed factual
+retrieval, automatic extraction/approval, dependency or prompt upgrade.
+
+Data/API/prompt changes: seven owned paths; optional proposal/review/review-v1
+capabilities, claim/card provenance and closed admin state counts. Old operations,
+origin enums, required fields, write/request hashes and frozen request replay
+remain intact. Detailed bounds/compatibility in
+[MEMORY-PROPOSALS-AND-REVIEW](../docs/MEMORY-PROPOSALS-AND-REVIEW.md).
+
+Checks actually run: unchanged ordinary 174 passed/144 skipped (268.39 s), real
+PostgreSQL/SQLite baseline 310 passed/8 skipped (432.35 s), baseline Ruff 76 files,
+cached Android baseline build. Test-first missing service/storage red checks.
+Canonical date failures fixed; affected progression 21/1 (24.41 s), 29/1 (39.43 s),
+59/1 (72.21 s). Full changed PostgreSQL suite **349 passed/9 skipped** (559.23 s),
+then late publication/admin/FK/rollback checks **45 passed/1 skip** (57.96 s).
+Populated upgrade/downgrade refusal, Alembic check, owner FK and concurrent
+approval passed. Offline 0007→0008 PostgreSQL SQL and compileall passed; Ruff
+lint/format 87 files and normal whitespace passed. Web clean locked install
+270/audit zero vulnerabilities, contracts/typecheck/lint, **52 unit cases**, build
+and **6 real PostgreSQL-backed built Chromium cases** passed (23.7 s).
+
+Android: initial compile and two v5 expectation failures fixed, then **143 unit
+cases**, lint 0 errors/14 warnings, debug/test APK build passed (2 m 3 s). Two
+further partial-draft/date recovery cases and final gate are pending. Emulator
+runs each had **20 passed/6 failed** (5 m 16 s; 5 m 8 s); old chat/document/entity
+flows failed, and the new flow first had an incorrect container assertion, fixed,
+then failed at empty-claims HTTP check. Diagnostic verification continues; no
+recovery-stage pass is inferred after suite failure. Intermediate helper-not-yet-
+defined compilation and a Windows-default text-decoding error were corrected;
+UTF-8 history was restored, not discarded. Existing runtime/tool warnings remain.
+
+Windows/PostgreSQL/device/model evidence: PostgreSQL 17 dedicated disposable
+schemas, SQLite supplement, task-launched headless Android 17/API 37 emulator at
+480×320dp landscape/1.5× text. Physical Samsung S24 FE/Android 16 is untouched.
+Eight synthetic corpus cases: fixture **5 exact supported proposals/5 explicit
+endorsements**, strict-string precision/recall 1 by construction on both DBs.
+Real qwen3.8:27b: **4 proposals/4 exact supports/0 failures**, four independent
+explicit annotation edits and four endorsements. Strict gold-string precision/
+recall 0 because the output field wording differs. It abstained on the tentative
+model-output case and the three negatives. First two-case real probe had two
+exact proposals/zero endorsements before explicit review edits were implemented.
+No representative/private evidence quality or entailment claim.
+
+Checks skipped and reason: standalone older-checkout smoke (populated migration/
+replay tests instead), physical phone/HTTPS/manual accessibility and operational
+load (separate target environments), deployment/signing/install (unauthorized),
+semantic activation/ANN (preserved Phase 10 disabled exact design). Full pytest
+skips are seven SQLite locking exclusions and two opt-in provider health probes;
+new affected skip is SQLite concurrent review, executed on real PostgreSQL.
+
+Remaining issues: final Android gate, record/compatibility/cleanup review;
+application head 0008 installation (observed 0005/grant unchanged), independent
+representative model annotation, target phone/HTTPS/TalkBack and sustained load.
+Next eligible checkpoint: finish these Phase 11 checks and stop. Later phase,
+external messages and deployment require separate explicit selection.
+
+Phase 11 final refinements: strict extraction type tests red (2 failures) before
+rejecting boolean confidence/numeric dates; affected 55 passed/1 skip (74.32 s).
+PostgreSQL edit-versus-review race passed (1 passed/1 SQLite skip, 0.87 s).
+Owner nonce-reuse regression red (1 failure/1 unavailable-PG skip) exposed derived
+ID collision; owner namespace was added to proposal/endorsement/claim/link IDs.
+Final affected suite **58 passed/2 SQLite race skips**, 74.35 s, includes actual
+PostgreSQL and all proposal/extraction/corpus/schema/client contracts. Real-model
+corpus run predates these type/namespace refinements; final fixture/DB checks
+cover them, and the extraction prompt/transport is unchanged.
+
+Emulator: focused proposal run failed Unreachable (1 failure, 1 m 12 s); the same
+synthetic empty list returned loopback 200 in 15 ms. Test helper idle keep-alive
+increased from 5 to 90 s; production adapter retry/redirect policy unchanged.
+Focused UI flow then **1 passed**, 4 m 17 s, and **ten actual force-stop stages
+passed**, zero skips, including lost approval delivery with one claim/endorsement
+and original receipt. Temporary safe diagnostics removed; older test files
+restored exactly. A separate launch reported timeout despite exit zero, recorded
+as a failure; script now requires Status ok after an actual cold launch.
+Final Android **145 unit tests**, lint 0 errors/14 old warnings and debug/test APK
+build passed (1 m 29 s). Full ordinary emulator/final strict launch still running.
+
+Final contract regeneration/freshness/typecheck passed after schema refinements.
+Ruff lint/format 87 files, compileall, 48 old paths/65 schemas and **271 protected
+baseline hashes** passed. 62 UTF-8/NUL files, 13 Markdown documents/78 local links
+passed. Read-only application 0005/selected active grant unchanged, zero fixture
+schemas. Short-idle real-phone/HTTPS reliability joins existing device/manual
+quality targets. Final complete record/cleanup remains; no later phase/deployment.
+
+Final publication quota invariant: two concurrent extractions can reserve below
+400 before either finishes. The PostgreSQL regression was red (1 failed/1 SQLite
+skip, 1.02 s). Publication now rechecks the exact staged batch plus retained rows
+under the scope lock, failing the losing batch with zero partial proposals and a
+replayable failure receipt. Final affected proposal/extraction/corpus/schema/client
+suite: **59 passed/3 expected SQLite concurrency skips**, 78.86 s. The real
+PostgreSQL race retained exactly 400 proposals and zero unreviewed claims. This
+supersedes 58/2 for the final backend runtime; the earlier full 349/9 run remains
+historical evidence. The already-running emulator helper loaded before this last
+quota-only guard; its ordinary single-extraction scopes do not hit that guard.
+The guard itself ran against actual PostgreSQL. No server contract changed.
+
+Final finished-source ordinary emulator suite: **26 passed, zero failures/skips**,
+command duration **21 m 46 s**. Actual HTTP proposal editing, explicit accept/reject
+and older chat/memory/document/entity flows passed. The ten separate force-stop
+stages and strict cold launch are still running. Android 17 emulator evidence is
+separate from the pending S24 FE/Android 16, release HTTPS and real-model targets;
+the disposable helper supplies synthetic extraction and 90-second keep-alive.

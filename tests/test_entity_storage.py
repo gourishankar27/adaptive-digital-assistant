@@ -71,6 +71,9 @@ def test_populated_0005_upgrade_preserves_string_claim_hash_prompt_and_replay(ha
     entity(h, scope)
     with pytest.raises(RuntimeError, match="refusing a lossy downgrade"):
         command.downgrade(h["config"], "0005")
+    # Newer discardable indexes can already have reversed when the retained
+    # identity migration refuses. Restore head without changing identity data.
+    command.upgrade(h["config"], "head")
     command.check(h["config"])
 
 

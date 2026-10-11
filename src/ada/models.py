@@ -257,6 +257,7 @@ class Claim(Base):
     quote: Mapped[str] = mapped_column(Text)
     evidence_hash: Mapped[str] = mapped_column(String(64))
     write_hash: Mapped[str] = mapped_column(String(64))
+    provenance: Mapped[dict | None] = mapped_column(JSON)
     superseded_by: Mapped[str | None] = mapped_column(String(36))
     created_at: Mapped[int] = mapped_column(BigInteger, default=now_ms)
 

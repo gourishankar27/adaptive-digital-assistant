@@ -26,6 +26,7 @@ class ChatViewModel(
     val memory = MemoryController(api, store, viewModelScope) { expire() }
     val documents = DocumentController(api, store, viewModelScope, { expire() })
     val entities = EntityController(api, store, viewModelScope, { expire() })
+    val proposals = ProposalController(api, store, viewModelScope, { expire() })
     private var credential: ConnectionCredential? = null
     private var identity: SessionIdentity? = null
     private var generation = 0L
@@ -62,6 +63,7 @@ class ChatViewModel(
         memory.reset()
         documents.reset()
         entities.reset()
+        proposals.reset()
         generation++; selection++; sourceSelection++
         jobs.toList().forEach { it.cancel() }; jobs.clear(); pollJob = null
         credential = null; identity = null; drafts.clear(); retryNotBefore = 0
@@ -176,6 +178,7 @@ class ChatViewModel(
         memory.setVerifiedSession(connection, verified, features)
         documents.setVerifiedSession(connection, verified, features)
         entities.setVerifiedSession(connection, verified, features)
+        proposals.setVerifiedSession(connection, verified, features)
         update { it.copy(connecting = false, account = AccountSummary(normalized, user.id, user.name, features.provider, features.model),
             capabilities = features, destination = ChatDestination.Conversations,
             fault = null, notice = null,
@@ -220,6 +223,10 @@ class ChatViewModel(
             if (mutableState.value.capabilities?.let { it.scoped_entities && it.entity_writes && it.entity_resolution == "explicit_aliases_v1" } != true) return
             entities.activate()
         }
+        if (destination == ChatDestination.Proposals) {
+            if (mutableState.value.capabilities?.let { it.memory_review && it.memory_proposals == "selected_sources_v1" && it.memory_provenance == "review-v1" } != true) return
+            proposals.activate()
+        }
         update { it.copy(destination = destination, fault = null) }
     }
     fun back() {
@@ -228,6 +235,7 @@ class ChatViewModel(
         navigate(when (mutableState.value.destination) {
         ChatDestination.Retrieval -> ChatDestination.Sources
         ChatDestination.Entities -> ChatDestination.Memory
+        ChatDestination.Proposals -> ChatDestination.Memory
         ChatDestination.Sources -> if (mutableState.value.conversation == null) ChatDestination.Conversations else ChatDestination.Chat
         else -> ChatDestination.Conversations
         })

@@ -14,11 +14,12 @@ run the migration from the repository root when installing this change:
 .\.venv\Scripts\python.exe -m alembic check
 ```
 
-The current supported head is **0006**. Admin monitoring was introduced by
+The current supported head is **0007**. Admin monitoring was introduced by
 migration **0004**, which adds empty `admin_grants`, metadata audit/state tables
 and request-monitoring indexes. Phase 08 adds document ingestion in **0005**;
 Phase 09 adds explicit scoped identity in **0006**. Running the current source
-requires 0006 for readiness. It preserves populated users,
+requires 0007 for readiness after Phase 10 adds its discardable embedding index.
+Embeddings remain disabled by default. It preserves populated users,
 credential hashes, requests, prompts and retrieval snapshots. Released migrations
 0001–0003 stay unchanged. Neither migration nor startup grants an account access.
 `/health/ready` rejects an old/unknown schema with sanitized 503; `/health/live`

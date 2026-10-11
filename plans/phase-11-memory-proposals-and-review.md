@@ -1,6 +1,6 @@
 # Phase 11 — proposed memory with explicit user review
 
-Status: planned. Prerequisites: Phases 07 and 08; Phase 09 for canonical links.
+Status: implemented; final local Android verification in progress. Prerequisites: Phases 07 and 08; Phase 09 for canonical links.
 Apply STANDARDS and CODEX-WORKFLOW. Automatic approval is outside this phase.
 
 ## Goal
@@ -69,3 +69,31 @@ stub runs separately. Run populated migrations, PostgreSQL and Android flows.
 Exit with a real source→proposal→user review→claim flow, honest provenance and
 reliable receipts. Capabilities still distinguish proposals from automatic memory
 writes. Unreviewed output must never enter factual retrieval as an endorsed claim.
+
+## Implementation record
+
+The checkpoints are implemented in migration 0008, bounded selected-source
+extraction, owned proposal/edit/review APIs, immutable endorsement and original
+support mappings, exact principal/revision/hash receipts, specific atomic
+correction, Android inbox and encrypted draft/key recovery, and admin counts only.
+Optional review-v1 provenance preserves the original v1 enums and historical
+request snapshots. Unreviewed proposals remain outside factual retrieval.
+
+Real PostgreSQL migrations/concurrency/rollback, old-contract preservation, web
+and Android unit/build checks, and the 26-case ordinary emulator suite passed.
+The final separate force-stop stages and strict cold launch are still running.
+Real Ollama and fixture evaluations ran separately on an eight-case synthetic
+corpus; strict gold-string precision/recall was zero for the real model. Exact
+support matching and explicit independent review do not establish entailment or
+representative quality.
+
+See [the implementation policy](../docs/MEMORY-PROPOSALS-AND-REVIEW.md),
+[STATUS](STATUS.md) and [WORKLOG](WORKLOG.md) for checkpoints, exact checks,
+intermediate failures, skips and remaining targets. Application head 0008
+installation (observed application 0005), Samsung S24 FE/Android 16, release HTTPS,
+manual TalkBack/keyboard accessibility, short-idle connection behavior and
+representative real-model quality/load remain target verification. No standalone
+old-checkout smoke, release signing/installation, ANN extension or semantic
+activation was run. Populated migrated fixtures cover old replay; Phase 10's
+disabled exact design remains unchanged. Stop at Phase 11; no later phase,
+automatic approval, external message or deployment is included.

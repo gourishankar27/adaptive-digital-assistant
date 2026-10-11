@@ -16,8 +16,8 @@ android {
         applicationId = "dev.ada.assistant"
         minSdk = 26
         targetSdk = 36
-        versionCode = 5
-        versionName = "0.9.0-entities"
+        versionCode = 6
+        versionName = "0.11.0-review"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

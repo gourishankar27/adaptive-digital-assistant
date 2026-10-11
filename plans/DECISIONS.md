@@ -187,3 +187,45 @@ The existing Android Memory entry hosts the editor instead of adding an unrelate
 application. Exact entity operation recovery extends the same Keystore record to
 v4; old chat/memory/document records remain readable. See
 [identity policy](../docs/ENTITIES-AND-ALIASES.md) and [STATUS](STATUS.md).
+
+## Phase 10: exact scoped vectors, disabled activation
+
+Use the existing pinned HTTP stack and local Ollama embedding endpoint rather
+than adding a model runtime or vector extension. Bind the selected 300M model's
+full manifest digest, dimension and text-prefix version to a namespace. Exact
+bounded ranking on PostgreSQL/SQLite avoids an unproven scoped ANN pool. Rebuild
+is an explicit owned API call under the same process admission as chat; it has no
+background worker or independent GPU process.
+
+Derived history indexes preserve original evidence. Publication rechecks the full
+bounded corpus after inference, with atomic replacement and one namespace/scope.
+Partial/stale/dimension drift fails the semantic channel as a whole to lexical.
+Queries apply entity/time/availability gates before cosine scoring. Lexical-first
+RRF60 preserves baseline reliability, whole conflict slots and prompt budgeting.
+New trace metadata and channel results freeze at reservation; retries do not refresh.
+
+Hand-built synthetic vectors improved fixture recall, but the selected model is
+not installed and has no local resource/relevance measurement. Keep production
+semantic activation disabled. This satisfies the selected phase's documented
+disabled-exit alternative, with a reproducible real-provider evaluation command
+for later target verification. No later phase or deployment is inferred.
+
+## Phase 11: endorsement evidence and versioned reviewed origin
+
+Keep existing v1 origin enums byte-compatible. Reviewed claims retain the legacy
+user_asserted envelope because their mandatory evidence is a newly authored
+explicit endorsement. Add an optional provenance object with version review-v1
+and origin user_reviewed, advertised through memory_provenance capability. Updated
+clients display User reviewed and original support trust separately. This avoids
+breaking strict older decoders while preserving a distinct reviewed origin and
+never relabeling model/imported text as user-authored. Existing claims and frozen
+request citations retain their original shapes/provenance.
+
+Use a separate proposal/extraction/review ledger with scope locks and exact
+review hashes. Approval atomically creates immutable user evidence, claim,
+original support links and receipt; specific corrections preserve other values.
+Do not promote the original model/imported source itself. Fresh retrieval verifies
+those mappings and support integrity. Downgrading populated review history is
+refused. The Android record advances to v5 with old versions readable and exact
+explicit recovery. No dependencies or prompt versions change. See
+[the implemented policy](../docs/MEMORY-PROPOSALS-AND-REVIEW.md).

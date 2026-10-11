@@ -5,6 +5,12 @@ import { amount, timestamp } from '../src/monitor-query';
 import { detail, otherOwner, overview, owner, requestId } from './mock-admin';
 const wire = (value: unknown) => JSON.stringify(value, (_, v) => typeof v === 'bigint' ? Number(v) : v);
 describe('monitoring allowlist and lossless adapter', () => {
+  it('projects proposal counts without retaining private reviews or excerpts', () => {
+    const result = decodeOverview({ ...overview, memory_proposal_counts: { pending: 2, accepted: 1, rejected: 0, review_text: 'private', quotes: ['private'] } });
+    expect(result.memory_proposal_counts).toEqual({ pending: 2, accepted: 1, rejected: 0 });
+    expect(decodeOverview(overview).memory_proposal_counts).toBeNull();
+    expect(() => decodeOverview({ ...overview, memory_proposal_counts: { pending: -1, accepted: 0, rejected: 0 } })).toThrow(ContractError);
+  });
   it('describes read-only filter failures without exposing bodies or implying submission', async () => {
     const api = new HttpAdminApi(window.location.origin, 'credential', async () => new Response('{"detail":"private input"}', { status: 422, headers: { 'Content-Type': 'application/json' } }));
     await expect(api.requests({})).rejects.toMatchObject({ failure: { kind: 'validation', message: 'The server rejected the monitoring filters. Check the IDs, page and date window.' } });

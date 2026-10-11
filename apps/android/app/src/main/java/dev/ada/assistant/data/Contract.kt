@@ -46,6 +46,7 @@ val adaJson = Json { ignoreUnknownKeys = true; explicitNulls = false; encodeDefa
     val document_retrieval: Boolean = false, val document_citations: Boolean = false,
     val document_max_bytes: Int = 0,
     val scoped_entities: Boolean = false, val entity_writes: Boolean = false, val entity_resolution: String = "unsupported",
+    val memory_proposals: String = "unsupported", val memory_review: Boolean = false, val memory_provenance: String = "legacy",
 )
 @Serializable data class PersonalitySnapshotDto(
     val name: String, val style: String, val warmth: String, val detail: String,
@@ -77,6 +78,7 @@ val adaJson = Json { ignoreUnknownKeys = true; explicitNulls = false; encodeDefa
     val kind: String, val status: String, val valid_from: Long, val valid_to: Long? = null,
     val superseded_by: UUID? = null, val created_at: Long, val origin: String, val evidence: EvidenceDto,
     val subject_entity_id: UUID? = null,
+    val provenance: ReviewProvenanceDto? = null,
 )
 @Serializable data class CitationDto(
     val label: String, val claim_id: UUID, val scope_id: UUID, val subject: String,
@@ -84,6 +86,7 @@ val adaJson = Json { ignoreUnknownKeys = true; explicitNulls = false; encodeDefa
     val valid_to: Long? = null, val origin: String, val evidence: EvidenceDto,
     val source_id: UUID, val source_version: Int, val conflict: Boolean,
     val subject_entity_id: UUID? = null, val entity: EntityChoiceDto? = null,
+    val provenance: ReviewProvenanceDto? = null,
 )
 @Serializable data class RequestDto(
     val request_id: UUID, val conversation_id: UUID, val status: String,

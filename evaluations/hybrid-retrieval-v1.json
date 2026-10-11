@@ -1,0 +1,35 @@
+{
+  "version": "hybrid-synthetic-v1",
+  "provenance": "All passages, people, choices and questions are synthetic fixtures written for Phase 10; no private ADA content.",
+  "as_of": "2027-01-01T00:00:00Z",
+  "claims": [
+    {"key":"train_old","subject":"Mira","predicate":"commute","value":"train","quote":"Mira travels by train.","valid_from":"2025-01-01T00:00:00Z"},
+    {"key":"bike_now","supersedes":"train_old","subject":"Mira","predicate":"commute","value":"bike","quote":"Mira now travels by bike.","valid_from":"2026-01-01T00:00:00Z"},
+    {"key":"tea","subject":"user","predicate":"beverage","value":"tea","quote":"My preferred beverage is tea."},
+    {"key":"conflict_train","subject":"Route","predicate":"transport","value":"train","quote":"The Route uses a train."},
+    {"key":"conflict_bike","subject":"Route","predicate":"transport","value":"bike","quote":"The Route uses a bike."},
+    {"key":"alex_one","subject":"Alex One","predicate":"commute","value":"train","quote":"Alex One travels by train.","entity":"Alex"},
+    {"key":"alex_two","subject":"Alex Two","predicate":"commute","value":"bike","quote":"Alex Two travels by bike.","entity":"Alex"},
+    {"key":"other_scope","scope":"other","subject":"Decoy","predicate":"commute","value":"train","quote":"Scopedecoy travels by train."},
+    {"key":"other_owner","scope":"bob","subject":"Decoy","predicate":"commute","value":"train","quote":"Ownerdecoy travels by train."}
+  ],
+  "documents": [
+    {"key":"power_doc","quote":"Restart the battery controller after an electrical outage.","available":"2025-01-01T00:00:00Z"},
+    {"key":"decoy_doc","scope":"other","quote":"Restart the battery controller after an electrical outage.","available":"2025-01-01T00:00:00Z"}
+  ],
+  "queries": [
+    {"key":"lexical_current","query":"Mira commute","expected":["bike_now"],"forbidden":["train_old"]},
+    {"key":"historical_train","query":"rail journey","as_of":"2025-06-01T00:00:00Z","expected":["train_old"],"forbidden":["bike_now"]},
+    {"key":"cycle_paraphrase","query":"cycle travel","expected":["bike_now"]},
+    {"key":"beverage_paraphrase","query":"What do I like sipping?","expected":["tea"]},
+    {"key":"lexical_tea","query":"preferred beverage","expected":["tea"]},
+    {"key":"conflicting_slot","query":"Route transport","expected":["conflict_train","conflict_bike"]},
+    {"key":"ambiguous_entities","query":"Alex rail journey","expected":[],"forbidden":["alex_one","alex_two"]},
+    {"key":"imported_paraphrase","query":"power recovery","documents":true,"expected":["power_doc"]},
+    {"key":"unpublished_document","query":"power recovery","documents":true,"as_of":"2024-01-01T00:00:00Z","expected":[],"forbidden":["power_doc"]},
+    {"key":"owner_decoy","query":"Ownerdecoy","expected":[],"forbidden":["other_owner"]},
+    {"key":"scope_decoy","query":"Scopedecoy","documents":true,"expected":[],"forbidden":["other_scope","decoy_doc"]},
+    {"key":"unknown_topic","query":"telescope optics","expected":[]},
+    {"key":"ambiguous_time","query":"What was my commute last year?","expected":[],"time_mode":"needs_date"}
+  ]
+}

@@ -25,9 +25,12 @@ ADA, then use the existing repository commands:
 .\.venv\Scripts\python.exe -m alembic check
 ```
 
-The current source requires head 0006 for readiness. Phase 09 verification uses
+The Phase 09 source requires head 0006 for readiness. Phase 09 verification uses
 disposable schemas and has not migrated the configured application database.
 The final read-only check observed head 0005; installation of 0006 remains pending.
+Phase 10's current source requires **0007**; see
+[embedding installation/evaluation](EMBEDDINGS-AND-HYBRID-RETRIEVAL.md). The Phase 09
+observation above is historical, not a fresh application check.
 No new prompt version is needed: v4 remains current, v3 claim retrieval
 remains supported, and old conversations retain their explicit upgrade policy.
 

@@ -1,6 +1,13 @@
 # Android / iOS boundary
 
 The generated `contracts/openapi.json` is the implemented Phase 2 contract.
+It also includes implemented Phase 08/09 additions and Phase 10's optional
+semantic diagnostics. Clients may ignore absent/additive `plan.semantic` and
+`semantic_similarity`; original request source cards remain authoritative for
+display. Semantic retrieval stays disabled by default. Clients never generate
+embeddings or contact the provider/database. Mathematical scores are optional
+diagnostics, not truth confidence. See
+[Phase 10 policy](EMBEDDINGS-AND-HYBRID-RETRIEVAL.md).
 Native clients send `Authorization: Bearer <token>` and JSON over HTTPS. Use UUIDs
 for request IDs; preserve the ID/content/time/retrieval options until the request outcome is known. On
 503, wait using Retry-After and randomized backoff. On network timeout, query
