@@ -23,6 +23,18 @@ class UserOutput(BaseModel):
 
 
 class CapabilitiesOutput(BaseModel):
+    episodes: str = "unsupported"
+    consolidation_jobs: str = "unsupported"
+    consolidation_generation: bool = False
+    consolidation_worker: bool = False
+    agent_tools: str = "unsupported"
+    agent_protocol: str = "unsupported"
+    agent_registry: list[str] = Field(default_factory=list)
+    memory_proposals: str = "unsupported"
+    memory_review: bool = False
+    memory_provenance: str = "legacy"
+    semantic_retrieval: bool = False
+    semantic_state: str = "disabled"
     scoped_entities: bool = False
     entity_resolution: str = "unsupported"
     entity_writes: bool = False
@@ -125,6 +137,7 @@ class RetrievalCandidateOutput(TypedDict):
     # Slot siblings were not ranked. Preserve absent keys instead of adding nulls.
     score: NotRequired[float]
     term_coverage: NotRequired[int]
+    semantic_similarity: NotRequired[float]
 
 
 @with_config(ConfigDict(extra="allow"))

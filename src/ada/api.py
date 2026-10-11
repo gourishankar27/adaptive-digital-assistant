@@ -12,8 +12,14 @@ from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, field_validato
 from sqlalchemy import case, select, text
 from sqlalchemy.exc import SQLAlchemyError
 
+from ada.agent_api import agent_router
+from ada.agent_provider import OllamaAgentProvider
+from ada.agents import AgentService, UnavailableAgentProvider
 from ada.auth import token_hash
 from ada.config import Settings
+from ada.consolidation import ConsolidationService, UnavailableConsolidator
+from ada.consolidation_api import consolidation_router
+from ada.consolidation_provider import OllamaConsolidator
 from ada.contracts import (
     CapabilitiesOutput,
     ConversationOutput,
@@ -31,6 +37,7 @@ from ada.document_api import document_router
 from ada.documents import MAX_UPLOAD_BYTES
 from ada.entity_api import entity_router
 from ada.evidence import public_source_version, validate_text
+from ada.extraction import OllamaExtractor
 from ada.memory import (
     ClaimInput,
     ClaimOutput,
@@ -56,6 +63,8 @@ from ada.models import (
 )
 from ada.monitoring import Monitoring, admin_router
 from ada.personality import PROMPT_VERSION, build_prompt
+from ada.proposal_api import proposal_router
+from ada.proposals import ProposalService
 from ada.providers import FakeProvider, OllamaProvider
 from ada.retrieval import (
     CitationOutput,
@@ -68,6 +77,7 @@ from ada.retrieval import (
     retrieve,
 )
 from ada.schema import SCHEMA_HEAD
+from ada.semantic import RebuildOutput
 from ada.service import ChatService, ServiceError, public_request
 
 
@@ -192,9 +202,14 @@ def create_app(settings=None, provider=None, sessions=None):
 
     @asynccontextmanager
     async def lifespan(_):
-        yield
-        if engine is not None:
-            engine.dispose()
+        if settings.consolidation_worker_enabled:
+            app.state.consolidation.start()
+        try:
+            yield
+        finally:
+            app.state.consolidation.stop()
+            if engine is not None:
+                engine.dispose()
 
     app = FastAPI(
         title="ADA",
@@ -203,13 +218,46 @@ def create_app(settings=None, provider=None, sessions=None):
         description="Scoped memory retrieval, cited chat, durable evidence traces and explicitly granted admin monitoring.",
     )
     app.state.sessions, app.state.chat, app.state.memory = sessions, service, memory
+    app.state.proposals = ProposalService(
+        sessions,
+        OllamaExtractor(settings) if settings.provider == "ollama" else provider,
+        service.capacity,
+    )
+    app.state.agents = AgentService(
+        sessions,
+        OllamaAgentProvider(settings)
+        if settings.provider == "ollama"
+        else UnavailableAgentProvider(),
+        service.capacity,
+    )
+    app.state.consolidation = ConsolidationService(
+        sessions,
+        OllamaConsolidator(settings)
+        if settings.provider == "ollama"
+        else UnavailableConsolidator(),
+        app.state.proposals,
+        service.capacity,
+    )
 
     @app.middleware("http")
     async def monitoring_cache(request: HttpRequest, call_next):
         response = await call_next(request)
         if request.url.path.startswith("/v1/admin/") or (
             request.url.path.startswith("/v1/")
-            and ("/document-" in request.url.path or "/documents" in request.url.path)
+            and (
+                "/document-" in request.url.path
+                or "/documents" in request.url.path
+                or "/semantic-index/" in request.url.path
+                or "/memory-proposals" in request.url.path
+                or "/memory-extractions" in request.url.path
+                or "/memory-reviews" in request.url.path
+                or "/agent-" in request.url.path
+                or "/tool-receipts" in request.url.path
+                or request.url.path == "/v1/tools"
+                or "/episodes" in request.url.path
+                or "/episode-contexts" in request.url.path
+                or "/consolidation-jobs" in request.url.path
+            )
         ):
             response.headers["Cache-Control"] = "no-store"
         return response
@@ -256,6 +304,9 @@ def create_app(settings=None, provider=None, sessions=None):
     app.include_router(admin_router(app.state.admin, current_user))
     app.include_router(document_router(sessions, current_user, error_responses))
     app.include_router(entity_router(sessions, current_user, error_responses))
+    app.include_router(proposal_router(app.state.proposals, current_user, error_responses))
+    app.include_router(agent_router(app.state.agents, current_user, error_responses))
+    app.include_router(consolidation_router(app.state.consolidation, current_user, error_responses))
 
     def owned_conversation(db, owner, conversation_id):
         row = db.scalar(
@@ -292,6 +343,22 @@ def create_app(settings=None, provider=None, sessions=None):
     def capabilities(owner: str = Depends(current_user)):
         return {
             "api_version": "v1",
+            "episodes": "source_linked_v1",
+            "consolidation_jobs": "bounded_jobs_v1",
+            "consolidation_generation": app.state.consolidation.generation_available,
+            "consolidation_worker": settings.consolidation_worker_enabled,
+            "agent_tools": "approval_read_only_v1"
+            if not isinstance(app.state.agents.provider, UnavailableAgentProvider)
+            else "unsupported",
+            "agent_protocol": "ada-agent-v1",
+            "agent_registry": ["calculator", "memory_lookup", "source_lookup"],
+            "memory_proposals": "selected_sources_v1",
+            "memory_review": True,
+            "memory_provenance": "review-v1",
+            "semantic_retrieval": service.semantic.enabled,
+            "semantic_state": service.semantic.last_state
+            if service.semantic.enabled
+            else "disabled",
             "admin_monitoring": True,
             "document_ingestion": "text_markdown_v1",
             "document_uploads": True,
@@ -561,17 +628,31 @@ def create_app(settings=None, provider=None, sessions=None):
         responses=error_responses(401, 404, 422),
     )
     def retrieve_memory(scope_id: UUID, body: RetrieveInput, owner: str = Depends(current_user)):
+        plan = plan_query(body.query, body.as_of)
+        with sessions() as db:
+            owned_scope(db, owner, str(scope_id))
+        prepared = service.semantic.prepare(body.query, enabled=plan["time_mode"] != "needs_date")
         with sessions.begin() as db:
             lock_scope_for_retrieval(db, owner, str(scope_id))
             return retrieve(
                 db,
                 owner,
                 str(scope_id),
-                plan_query(body.query, body.as_of),
+                plan,
                 limit=body.limit,
                 budget_bytes=body.budget_bytes,
                 use_documents=body.use_documents,
+                semantic=service.semantic,
+                prepared=prepared,
             )
+
+    @app.post(
+        "/v1/scopes/{scope_id}/semantic-index/rebuild",
+        response_model=RebuildOutput,
+        responses=error_responses(401, 404, 409, 422, 503),
+    )
+    def rebuild_semantic_index(scope_id: UUID, owner: str = Depends(current_user)):
+        return service.semantic.rebuild(owner, str(scope_id))
 
     @app.post(
         "/v1/scopes/{scope_id}/notes",

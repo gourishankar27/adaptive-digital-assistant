@@ -187,3 +187,89 @@ The existing Android Memory entry hosts the editor instead of adding an unrelate
 application. Exact entity operation recovery extends the same Keystore record to
 v4; old chat/memory/document records remain readable. See
 [identity policy](../docs/ENTITIES-AND-ALIASES.md) and [STATUS](STATUS.md).
+
+## Phase 10: exact scoped vectors, disabled activation
+
+Use the existing pinned HTTP stack and local Ollama embedding endpoint rather
+than adding a model runtime or vector extension. Bind the selected 300M model's
+full manifest digest, dimension and text-prefix version to a namespace. Exact
+bounded ranking on PostgreSQL/SQLite avoids an unproven scoped ANN pool. Rebuild
+is an explicit owned API call under the same process admission as chat; it has no
+background worker or independent GPU process.
+
+Derived history indexes preserve original evidence. Publication rechecks the full
+bounded corpus after inference, with atomic replacement and one namespace/scope.
+Partial/stale/dimension drift fails the semantic channel as a whole to lexical.
+Queries apply entity/time/availability gates before cosine scoring. Lexical-first
+RRF60 preserves baseline reliability, whole conflict slots and prompt budgeting.
+New trace metadata and channel results freeze at reservation; retries do not refresh.
+
+Hand-built synthetic vectors improved fixture recall, but the selected model is
+not installed and has no local resource/relevance measurement. Keep production
+semantic activation disabled. This satisfies the selected phase's documented
+disabled-exit alternative, with a reproducible real-provider evaluation command
+for later target verification. No later phase or deployment is inferred.
+
+## Phase 11: endorsement evidence and versioned reviewed origin
+
+Keep existing v1 origin enums byte-compatible. Reviewed claims retain the legacy
+user_asserted envelope because their mandatory evidence is a newly authored
+explicit endorsement. Add an optional provenance object with version review-v1
+and origin user_reviewed, advertised through memory_provenance capability. Updated
+clients display User reviewed and original support trust separately. This avoids
+breaking strict older decoders while preserving a distinct reviewed origin and
+never relabeling model/imported text as user-authored. Existing claims and frozen
+request citations retain their original shapes/provenance.
+
+Use a separate proposal/extraction/review ledger with scope locks and exact
+review hashes. Approval atomically creates immutable user evidence, claim,
+original support links and receipt; specific corrections preserve other values.
+Do not promote the original model/imported source itself. Fresh retrieval verifies
+those mappings and support integrity. Downgrading populated review history is
+refused. The Android record advances to v5 with old versions readable and exact
+explicit recovery. No dependencies or prompt versions change. See
+[the implemented policy](../docs/MEMORY-PROPOSALS-AND-REVIEW.md).
+
+## Phase 12: separate protocol, all read-only proposals approved
+
+Keep normal ChatInput, required tools:false, saved v3/v4 snapshots and completed
+replay unchanged. Add an explicit ada-agent-v1 compatibility registry/run input
+and additive agent capabilities rather than treating ordinary model JSON as a
+command or silently upgrading old prompts. This preserves v3 claim retrieval and
+uses the existing audited upgrade path for older conversations.
+
+Select calculator and owned memory/source lookup only. Every selected tool,
+including read-only calls, receives an exact version/argument/actor preview and
+explicit approval. This exercises the permission/receipt checkpoint without
+authorizing an unselected external integration. Unknown outcomes fence late workers
+and never reexecute. Tool-origin evidence does not create user claims. SQLite's
+nontransactional downgrade DDL requires a 0009 preflight before the existing 0008
+review-history refusal; 0008 and older migrations are unchanged. The pinned Alembic
+revision planner resolves both absolute and relative downgrade destinations.
+
+The existing Android Keystore record becomes v6 without changing file/key/AAD or
+dependency versions; all prior formats remain readable. Saved approval delivery
+can reconcile by authenticated GET, with no automatic POST. Admin's optional
+aggregate state counts carry no private arguments/results. See
+[the implemented policy](../docs/TOOLS-AND-AGENT-LOOP.md).
+
+## 2026-10-11 — Phase 13 continuity without factual promotion
+
+Episode summaries have generated trust and exact original maps; they do not enter
+claim/document candidates or alter ordinary chat/prompt inputs. The request-ID
+navigation-context protocol freezes a selected bounded map separately, preserving
+completed replay and saved v3/v4 snapshots. Android provides explicit navigation
+and source inspection, not an implicit prompt upgrade. Tags are labels, not support.
+
+One bounded lifespan worker shares process admission and leases read-only
+generation for at most three tracked attempts. Reserve/claim/publication are short
+transactions; a fenced result and receipt commit atomically. Proposal publication
+validates the complete batch before writes and submits only pending Phase 11
+suggestions. Lexical rebuild changes derived projections only. Policy/schema/model
+and source snapshots participate in dedup/stale checks. History is retained.
+
+Static migration 0010 preflights populated lower-history downgrade guards before
+any SQLite DDL. Android journal v7 retains old formats/keys; GET-only restoration
+does not resubmit unknown delivery. Admin's newest-25 projection contains IDs,
+states and measured times, with no private source/output text. See
+[the implemented policy](../docs/EPISODES-AND-CONSOLIDATION.md).

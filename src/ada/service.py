@@ -26,6 +26,7 @@ from ada.retrieval import (
     response_document_citations,
     retrieve,
 )
+from ada.semantic import SemanticService
 
 
 def public_request(row: Request, trace=None) -> dict:
@@ -78,8 +79,11 @@ class ChatService:
     def __init__(self, sessions, provider, settings):
         self.sessions, self.provider, self.settings = sessions, provider, settings
         self.capacity = threading.BoundedSemaphore(settings.max_parallel)
+        self.semantic = SemanticService(sessions, settings, self.capacity)
 
-    def _context(self, db, conversation, content, as_of, use_memory, use_documents=False):
+    def _context(
+        self, db, conversation, content, as_of, use_memory, use_documents=False, prepared=None
+    ):
         system = {"role": "system", "content": conversation.system_prompt}
         newest = {"role": "user", "content": content}
         compatible = conversation.prompt_version in RETRIEVAL_PROMPT_VERSIONS
@@ -130,6 +134,8 @@ class ChatService:
             limit=self.settings.retrieval_limit,
             budget_bytes=min(remaining, self.settings.memory_bytes),
             use_documents=document_enabled,
+            semantic=self.semantic,
+            prepared=prepared,
         )
         evidence = memory_message(result["selected"], result["plan"], result["document_selected"])
         remaining -= result["budget"]["memory_used_bytes"]
@@ -186,6 +192,29 @@ class ChatService:
         if not self.capacity.acquire(blocking=False):
             raise ServiceError(503, "generation_capacity_busy")
         try:
+            # Validate private identity before embedding, outside the reservation
+            # transaction. Failed/running retries never refresh their evidence.
+            prepared = None
+            with self.sessions() as db:
+                conversation = db.scalar(
+                    select(Conversation).where(
+                        Conversation.id == conversation_id, Conversation.owner_id == owner
+                    )
+                )
+                if conversation is None:
+                    raise ServiceError(404, "conversation_not_found")
+                retry = db.get(Request, (owner, request_id))
+                plan = plan_query(
+                    content,
+                    as_of,
+                    enabled=use_memory and conversation.prompt_version in RETRIEVAL_PROMPT_VERSIONS,
+                )
+            if retry is None:
+                prepared = self.semantic.prepare(
+                    content,
+                    admitted=True,
+                    enabled=plan["enabled"] and plan["time_mode"] != "needs_date",
+                )
             try:
                 with self.sessions.begin() as db:
                     conversation = db.scalar(
@@ -215,7 +244,7 @@ class ChatService:
                         raise ServiceError(409, "conversation_busy")
                     if old is None:
                         context, retrieval = self._context(
-                            db, conversation, content, as_of, use_memory, use_documents
+                            db, conversation, content, as_of, use_memory, use_documents, prepared
                         )
                         old = Request(
                             owner_id=owner,

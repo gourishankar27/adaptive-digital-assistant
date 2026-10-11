@@ -1,6 +1,8 @@
 # Phase 13 — episodic memory and durable consolidation
 
-Status: planned. Prerequisites: Phases 08 and 11; Phase 10 is optional.
+Status: implemented; local exit gates passed; target verification remains.
+Prerequisites: Phases 08 and 11 verified against source/contracts/tests;
+Phase 10 is present but remains optional and disabled by default.
 Apply STANDARDS and CODEX-WORKFLOW. Raw sources remain the provenance foundation.
 
 ## Goal
@@ -56,3 +58,44 @@ Evaluate summary faithfulness/omissions on a documented corpus with exact source
 checks; do not substitute fluent wording for evidence. Exit with restartable
 bounded jobs and inspectable source-linked episodes. Automatic cleanup/deletion
 and unbounded background processing remain outside this phase.
+
+## Checkpoint evidence — 2026-10-11
+
+- [x] Owner/scope source-linked generated episodes, exact original hashes and
+  code-point spans, conversation/event references, half-open time range and
+  version/model/provenance map. Tags and omissions remain separate from support.
+- [x] Migration 0010 adds literal owner/scope constraints without changing earlier
+  migrations. Populated upgrade, native foreign keys, lower-history preflight,
+  old chat replay and Alembic model/schema consistency run on PostgreSQL/SQLite.
+- [x] Explicit durable jobs reserve, claim and atomically publish with 120-second
+  leases, three tracked attempts, policy/source dedup and fencing. Model work
+  runs outside database transactions and shares existing process admission.
+  Crash before/after commit, shutdown, lease expiry, stale attempts, source/policy
+  changes, capacity and partial-batch/model failures are covered.
+- [x] Summary, pending Phase 11 proposal and scoped lexical projection rebuild
+  flows work. Tests enforce no claim endorsement until separate explicit review;
+  original evidence, prior episodes and valid-time history are retained.
+- [x] Bounded navigation-context request snapshots freeze exact authorized maps.
+  The explicit architecture decision keeps episodes separate from ordinary chat
+  prompts and factual evidence candidates; no implicit prompt upgrade occurs.
+- [x] Android history/episodes and encrypted v7 exact-key recovery (v1–v6 readable)
+  use authenticated HTTP only. Admin's newest-25 metadata view has no private
+  source/input/output text. Measured queued/running/completed/failed/stale states
+  are distinct from missing/unconfirmed outcomes.
+- [x] Four-case documented synthetic evaluation runs through actual durable jobs
+  on migrated PostgreSQL, including native qwen3.8:27b. Exact original support,
+  omissions/markers, attribution and uncertainty were checked independently;
+  small-corpus success is not broad entailment/truth/quality evidence.
+- [x] Full PostgreSQL/SQLite 516 passed/19 expected skips; Ruff 115 files clean;
+  Android 164 units, lint/debug/test build and actual emulator HTTP/force-stop/
+  cold launch; web clean install/contracts/typecheck/lint/54 units/build and six
+  PostgreSQL Chromium cases. Detailed actual runs, corrected failures, skips
+  and target limits remain in STATUS/WORKLOG.
+- [ ] Explicit application head-0010 installation and representative operational
+  checks; Samsung S24 FE/Android 16, minimum API 26, release HTTPS/short-idle
+  behavior, TalkBack/manual accessibility and sustained worker resource/load
+  verification. No physical phone was attached; release/distribution/deployment
+  and later phases were not performed.
+
+See [implemented policy](../docs/EPISODES-AND-CONSOLIDATION.md),
+[status](STATUS.md) and [work log](WORKLOG.md).

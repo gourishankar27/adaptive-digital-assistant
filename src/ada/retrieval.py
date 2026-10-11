@@ -22,7 +22,7 @@ from ada.entities import IdentityView, entity_query_keys
 from ada.entity_contracts import EntityChoice, EntityResolutionOutput
 from ada.entity_models import ClaimEntityLink
 from ada.evidence import content_hash
-from ada.memory import EvidenceOutput, MemoryInput, Timestamp, time_ms
+from ada.memory import EvidenceOutput, MemoryInput, ReviewProvenance, Timestamp, time_ms
 from ada.models import (
     Claim,
     ClaimSearch,
@@ -35,6 +35,7 @@ from ada.models import (
     now_ms,
 )
 from ada.search import SEARCH_VERSION, normalize, search_fields
+from ada.semantic import SemanticDiagnostic
 
 CANDIDATE_LIMIT = 64
 STOP_WORDS = frozenset(
@@ -80,6 +81,7 @@ class RetrieveInput(MemoryInput):
 
 
 class CitationOutput(BaseModel):
+    provenance: ReviewProvenance | None = None
     label: str = Field(pattern=r"^M[1-9][0-9]*$")
     claim_id: UUID
     scope_id: UUID
@@ -127,9 +129,11 @@ class DocumentCandidateOutput(TypedDict):
     decision: str
     score: NotRequired[float]
     term_coverage: NotRequired[int]
+    semantic_similarity: NotRequired[float]
 
 
 class RetrievalPlanOutput(BaseModel):
+    semantic: SemanticDiagnostic | None = None
     entity_keys: list[str] = Field(default_factory=list)
     entity_resolution: list[EntityResolutionOutput] = Field(default_factory=list)
     entity_ambiguity_in_context: bool = False
@@ -259,6 +263,8 @@ def memory_message(selected, plan, document_selected=()):
         for item in document_selected
     ]
     for item, original in zip(items, selected):
+        if original.get("provenance"):
+            item["provenance"] = original["provenance"]
         if original.get("entity"):
             item["entity"] = original["entity"]
     payload = {"type": "ada_memory_evidence", "as_of": iso_time(plan["as_of"]), "items": items}
@@ -300,8 +306,8 @@ def _base_query(owner, scope_id, at):
         .where(
             Claim.owner_id == owner,
             Claim.scope_id == scope_id,
-            Claim.valid_from <= at,
-            or_(Claim.valid_to.is_(None), Claim.valid_to > at),
+            Claim.valid_from <= at if at is not None else True,
+            or_(Claim.valid_to.is_(None), Claim.valid_to > at) if at is not None else True,
             SourceVersion.trust_class == "user_explicit",
         )
     )
@@ -323,7 +329,9 @@ def _fts_condition(db, terms):
     return literal_column("claim_search.rowid").in_(ids).params(memory_fts=match)
 
 
-def _valid_evidence(claim, source, projection):
+def _valid_evidence(claim, source, projection, *, db=None):
+    from ada.review_integrity import valid_review
+
     # A projection is never factual authority. Refuse stale projections too.
     return (
         source.content_hash == claim.evidence_hash == content_hash(source.content)
@@ -331,11 +339,13 @@ def _valid_evidence(claim, source, projection):
         and source.content[claim.span_start : claim.span_end] == claim.quote
         and bool(claim.quote.strip())
         and all(getattr(projection, key) == value for key, value in search_fields(claim).items())
+        and valid_review(db, claim)
     )
 
 
 def _citation(claim, source, *, conflict):
     return {
+        **({"provenance": claim.provenance} if claim.provenance else {}),
         "claim_id": claim.id,
         "scope_id": claim.scope_id,
         "subject": claim.subject,
@@ -362,6 +372,7 @@ def _document_base_query(owner, scope_id, at):
     # Select a source's latest available published version BEFORE checking expiry.
     # An expired replacement cannot silently reveal an older version again.
     newer = aliased(DocumentUpload)
+    cutoff = at if at is not None else 2**63 - 1
     replaced = (
         select(newer.id)
         .where(
@@ -369,8 +380,8 @@ def _document_base_query(owner, scope_id, at):
             newer.scope_id == DocumentUpload.scope_id,
             newer.source_id == DocumentUpload.source_id,
             newer.state == "ready",
-            newer.published_at <= at,
-            newer.available_from <= at,
+            newer.published_at <= cutoff,
+            newer.available_from <= cutoff,
             newer.version > DocumentUpload.version,
         )
         .exists()
@@ -408,10 +419,14 @@ def _document_base_query(owner, scope_id, at):
             DocumentChunk.owner_id == owner,
             DocumentChunk.scope_id == scope_id,
             DocumentUpload.state == "ready",
-            DocumentUpload.published_at <= at,
-            DocumentUpload.available_from <= at,
-            or_(DocumentUpload.available_to.is_(None), DocumentUpload.available_to > at),
-            ~replaced,
+            DocumentUpload.published_at <= at
+            if at is not None
+            else DocumentUpload.published_at.is_not(None),
+            DocumentUpload.available_from <= at if at is not None else True,
+            or_(DocumentUpload.available_to.is_(None), DocumentUpload.available_to > at)
+            if at is not None
+            else True,
+            ~replaced if at is not None else True,
             Source.kind == "imported_document",
             SourceVersion.trust_class == "imported_untrusted",
             SourceVersion.version == DocumentUpload.version,
@@ -479,33 +494,54 @@ def _document_citation(chunk, source, upload):
     }
 
 
-def _retrieve_documents(db, owner, scope_id, plan, result, *, limit, budget_bytes):
+def _retrieve_documents(
+    db, owner, scope_id, plan, result, *, limit, budget_bytes, semantic_hits=()
+):
     terms = plan["expanded_terms"]
-    if not terms:
+    if not terms and not semantic_hits:
         return
     padded = literal(" ") + DocumentSearch.search_text + literal(" ")
     coverage = sum(
         (case((padded.contains(" " + t + " ", autoescape=True), 1), else_=0) for t in terms),
         literal(0),
     )
-    hits = db.execute(
-        _document_base_query(owner, scope_id, plan["as_of"])
-        .where(_document_fts_condition(db, terms))
-        .order_by(coverage.desc(), DocumentChunk.id)
-        .limit(CANDIDATE_LIMIT + 1)
-    ).all()
+    hits = (
+        db.execute(
+            _document_base_query(owner, scope_id, plan["as_of"])
+            .where(_document_fts_condition(db, terms))
+            .order_by(coverage.desc(), DocumentChunk.id)
+            .limit(CANDIDATE_LIMIT + 1)
+        ).all()
+        if terms
+        else []
+    )
     result["budget"]["candidate_pool_truncated"] |= len(hits) > CANDIDATE_LIMIT
+    ranked = {}
     for rank, row in enumerate(hits[:CANDIDATE_LIMIT], 1):
+        ranked[row[0].id] = {"row": row, "channels": ["document_lexical"], "score": 1 / (60 + rank)}
+    for rank, (row, similarity) in enumerate(semantic_hits, 1):
+        detail = ranked.setdefault(row[0].id, {"row": row, "channels": [], "score": 0.0})
+        detail["channels"].append("document_semantic")
+        detail["score"] += 1 / (60 + rank)
+        detail["semantic_similarity"] = similarity
+    ordered = sorted(
+        ranked.values(),
+        key=lambda d: (-int("document_lexical" in d["channels"]), -d["score"], d["row"][0].id),
+    )
+    for detail in ordered:
+        row = detail["row"]
         chunk, source, upload, projection = row
         candidate = {
             "chunk_id": chunk.id,
             "source_version_id": source.id,
-            "channels": ["document_lexical"],
-            "score": round(1 / (60 + rank), 8),
+            "channels": detail["channels"],
+            "score": round(detail["score"], 8),
             "term_coverage": len(set(terms) & set(projection.search_text.split())),
             "decision": "invalid_evidence",
         }
         result["document_candidates"].append(candidate)
+        if "semantic_similarity" in detail:
+            candidate["semantic_similarity"] = detail["semantic_similarity"]
         if not _valid_document(*row):
             continue
         selected = result["document_selected"]
@@ -521,7 +557,18 @@ def _retrieve_documents(db, owner, scope_id, plan, result, *, limit, budget_byte
         candidate["decision"] = "selected"
 
 
-def retrieve(db, owner, scope_id, plan, *, limit=8, budget_bytes=2200, use_documents=False):
+def retrieve(
+    db,
+    owner,
+    scope_id,
+    plan,
+    *,
+    limit=8,
+    budget_bytes=2200,
+    use_documents=False,
+    semantic=None,
+    prepared=None,
+):
     """Caller must hold the owned scope's shared lock for a consistent snapshot."""
     started = time.perf_counter_ns()
     plan = dict(plan)
@@ -531,6 +578,7 @@ def retrieve(db, owner, scope_id, plan, *, limit=8, budget_bytes=2200, use_docum
         "document_reason",
         "ready" if documents_enabled else ("date_required" if use_documents else "disabled"),
     )
+    plan["semantic"] = prepared.diagnostic if prepared else SemanticDiagnostic().model_dump()
     result = {
         "version": "lexical-documents-v1" if documents_enabled else SEARCH_VERSION,
         "scope_id": scope_id,
@@ -592,6 +640,17 @@ def retrieve(db, owner, scope_id, plan, *, limit=8, budget_bytes=2200, use_docum
     forbidden = [cid for cid, root in roots.items() if root in ambiguous_roots]
     if forbidden:
         base = base.where(Claim.id.not_in(forbidden))
+    semantic_hits = {"claim": [], "document": []}
+    if semantic is not None and prepared is not None:
+        semantic_hits = semantic.rank(
+            db,
+            owner,
+            scope_id,
+            prepared,
+            base,
+            _document_base_query(owner, scope_id, plan["as_of"]) if documents_enabled else None,
+        )
+        plan["semantic"] = semantic_hits["diagnostic"]
     terms = plan["expanded_terms"]
     padded = literal(" ") + ClaimSearch.search_text + literal(" ")
     coverage = sum(
@@ -622,6 +681,9 @@ def retrieve(db, owner, scope_id, plan, *, limit=8, budget_bytes=2200, use_docum
         )
         channels["subject"] = db.execute(ordered.where(subject).limit(CANDIDATE_LIMIT + 1)).all()
     ranks, rows = {}, {}
+    if semantic_hits["claim"]:
+        channels["semantic"] = [row for row, _ in semantic_hits["claim"]]
+    similarities = {row[0].id: score for row, score in semantic_hits["claim"]}
     for channel, hits in channels.items():
         result["budget"]["candidate_pool_truncated"] |= len(hits) > CANDIDATE_LIMIT
         for rank, row in enumerate(hits[:CANDIDATE_LIMIT], 1):
@@ -631,7 +693,15 @@ def retrieve(db, owner, scope_id, plan, *, limit=8, budget_bytes=2200, use_docum
             detail["score"] += 1 / (60 + rank)
             detail["channels"].append(channel)
             detail["coverage"] = len(set(terms) & set(projection.search_text.split()))
-    sorted_ids = sorted(rows, key=lambda key: (-ranks[key]["coverage"], -ranks[key]["score"], key))
+    sorted_ids = sorted(
+        rows,
+        key=lambda key: (
+            -int(any(c != "semantic" for c in ranks[key]["channels"])),
+            -ranks[key]["coverage"],
+            -ranks[key]["score"],
+            key,
+        ),
+    )
     decisions, groups, seen = {}, [], set()
     for claim_id in sorted_ids:
         claim, source, projection = rows[claim_id]
@@ -643,7 +713,9 @@ def retrieve(db, owner, scope_id, plan, *, limit=8, budget_bytes=2200, use_docum
             "channels": detail["channels"],
             "decision": "ranked",
         }
-        if not _valid_evidence(claim, source, projection):
+        if claim_id in similarities:
+            decisions[claim_id]["semantic_similarity"] = similarities[claim_id]
+        if not _valid_evidence(claim, source, projection, db=db):
             decisions[claim_id]["decision"] = "invalid_evidence"
             continue
         root = roots.get(claim.id)
@@ -671,7 +743,7 @@ def retrieve(db, owner, scope_id, plan, *, limit=8, budget_bytes=2200, use_docum
             decisions[claim_id]["decision"] = "slot_too_large"
             result["budget"]["candidate_pool_truncated"] = True
             continue
-        if not all(_valid_evidence(*sibling) for sibling in siblings):
+        if not all(_valid_evidence(*sibling, db=db) for sibling in siblings):
             decisions[claim_id]["decision"] = "invalid_evidence"
             continue
         unique = {}
@@ -712,7 +784,14 @@ def retrieve(db, owner, scope_id, plan, *, limit=8, budget_bytes=2200, use_docum
         result["budget"]["memory_used_bytes"] = message_cost(memory_message(selected, plan))
     if documents_enabled:
         _retrieve_documents(
-            db, owner, scope_id, plan, result, limit=limit, budget_bytes=budget_bytes
+            db,
+            owner,
+            scope_id,
+            plan,
+            result,
+            limit=limit,
+            budget_bytes=budget_bytes,
+            semantic_hits=semantic_hits["document"],
         )
     result["retrieval_ms"] = (time.perf_counter_ns() - started) // 1_000_000
     return result

@@ -26,6 +26,21 @@ test('keyboard entry, all palettes/brightness contrast, narrow windows and 200% 
 });
 test('actual PostgreSQL sign-in, provider refusal, server pagination, same UUID owners and legacy detail', async ({ page }) => {
   await page.goto('/admin/overview'); await signIn(page); await expect(page.getByText('Responding', { exact: true })).toBeVisible(); await expect(page.getByText('Unavailable', { exact: true })).toBeVisible();
+  const jobs = page.getByRole('table', { name: 'Newest maintenance jobs' });
+  await expect(jobs.locator('tbody tr')).toHaveCount(2);
+  await expect(jobs.getByText('queued', { exact: true })).toBeVisible();
+  await expect(jobs.getByText('completed', { exact: true })).toBeVisible();
+  await expect(jobs.getByText('Not recorded', { exact: true })).toBeVisible();
+  await expect(jobs).not.toContainText('Synthetic browser verification input.');
+  await expect(jobs.locator('th[scope="col"]')).toHaveCount(5);
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
+  await page.getByRole('region', { name: 'Maintenance job metadata' }).focus();
+  await expect(page.getByRole('region', { name: 'Maintenance job metadata' })).toBeFocused();
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.evaluate(() => { document.body.style.zoom = '2'; });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
+  await page.evaluate(() => { document.body.style.zoom = ''; });
   await page.getByRole('link', { name: 'Providers', exact: true }).click(); await expect(page.getByText('browser-test-unavailable', { exact: true })).toBeVisible(); await expect(page.getByText('provider_unavailable', { exact: true })).toBeVisible();
   await page.getByRole('link', { name: 'Requests', exact: true }).click(); await page.getByLabel('Rows per page').selectOption('10'); await page.getByRole('button', { name: 'Apply filters' }).click(); await expect(page.getByRole('table').locator('tbody tr')).toHaveCount(10);
   await page.getByRole('button', { name: 'Next page' }).click(); await expect(page.getByText('Page 2 · 10 rows per page')).toBeVisible(); await expect(page.getByRole('table').locator('tbody tr')).toHaveCount(5);

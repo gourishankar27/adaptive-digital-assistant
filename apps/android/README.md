@@ -1,4 +1,4 @@
-# ADA Android chat, memory, documents and identities (Phase 09)
+# ADA Android chat, memory, documents, identities and read-only tools (Phase 12)
 
 This Compose/Material 3 app verifies an issued ADA bearer credential with real
 `GET /v1/me` and `GET /v1/capabilities`, then provides owned conversation
@@ -7,7 +7,7 @@ recovery and source cards. Three light/dark palettes and system-scaled typograph
 remain available. Phase 07 adds owned memory browsing, exact evidence selection,
 explicit Remember/correction previews and encrypted write recovery, plus new
 static personality profiles. Existing profile editing, automatic extraction,
-streaming, voice, tools and device inference remain later selected phases.
+streaming, voice, external writes and device inference remain later selected phases.
 Phase 08 adds owned UTF-8 text/Markdown import, immutable version/status/chunk
 reads, explicit encrypted upload recovery and request-frozen imported source cards.
 
@@ -503,3 +503,78 @@ request's canonical interpretation; retrieval details show frozen ambiguous choi
 See [identity policy](../../docs/ENTITIES-AND-ALIASES.md) and
 [STATUS](../../plans/STATUS.md) for executed checks and physical S24 FE/Android 16,
 HTTPS, TalkBack and real-model verification still pending.
+
+## Phase 11 selected-source review
+
+Version 0.11.0-review adds Memory → Review memory suggestions when the server
+advertises selected_sources_v1, memory_review and review-v1 provenance. Select an
+owned note or document excerpt, explicitly request suggestions, inspect exact
+support/origin/dates/conflicts, save edits and inspect the new revision, then
+confirm accept or reject with a decision annotation. Acceptance creates new
+explicit endorsement evidence; original model/imported support remains untrusted
+and distinguishable. Reviewed cards show User reviewed. No bulk/automatic approval.
+
+Keystore persistence advances to v5 (same 256 KiB bound, v1–v4 readable), with
+one unsent private draft and one exact extraction/edit/review operation. Restore
+never POSTs. Check the original receipt or explicitly retry identical input after
+identity verification; logout/account/server/key loss clears private state.
+Inbox/scope pagination is available; source/document/entity/excerpt pickers are
+bounded to the first 50 items. The native selector submits one excerpt per
+extraction; the API supports four. See
+[the server policy](../../docs/MEMORY-PROPOSALS-AND-REVIEW.md).
+
+The existing verify-emulator.ps1 script includes the new real-HTTP review flow
+and two approval-delivery-loss stages separated by actual adb force-stop (ten
+staged checks including prior chat/memory/document/entity recovery). ProposalOnly
+focuses the ordinary proposal UI test while retaining those recovery stages.
+The disposable helper labels model extraction as a deterministic fixture; it
+never uses the configured application database. Actual final checks and failures
+are in [STATUS](../../plans/STATUS.md). Physical S24 FE/Android 16, release TLS,
+manual TalkBack/keyboard accessibility and real-device resources remain pending.
+
+The disposable HTTP helper keeps idle sockets alive for 90 seconds to cover UI
+review pauses in this emulator environment. Production redirect/POST-retry policy
+is unchanged. verify-emulator.ps1 requires Status ok from an actual cold launch;
+an exit-zero timeout is a failed smoke check. Real-phone/HTTPS and short-idle
+connection behavior remain target verification, distinct from fixture passes.
+
+## Phase 12 read-only tools
+
+Open an owned conversation, then **Read-only tools**. This entry requires the exact
+server agent capability/registry and saved v3/v4 compatibility. Task/tool selection
+creates a separate run. Review the account, scope, version and exact arguments,
+then explicitly approve or deny. Actual receipts distinguish completed, failed,
+revoked and unknown outcomes; the final model answer remains untrusted.
+
+Journal v6 extends the existing Keystore/AES-GCM 256 KiB no-backup record; v1–v5
+remain readable. Exact run and approval/recovery keys commit before POST. Restore
+only GETs the verified owner's run/receipt; it never writes automatically. Normal
+chat and source snapshots remain unchanged. No provider/database access or external
+integration is added. Server source requires migration 0009, not installed by this
+task. See [the policy](../../docs/TOOLS-AND-AGENT-LOOP.md).
+
+Run `scripts/verify-agent-emulator.ps1 -Device emulator-5556` with an existing,
+task-owned emulator for focused actual HTTP approval/denial, staged force-stop
+receipt recovery and strict cold launch. It rejects physical-device serials and
+uses only a disposable fixture server. This does not replace physical S24 FE /
+Android 16, HTTPS, TalkBack or target resource checks in STATUS/WORKLOG.
+
+## Phase 13 history and episodes
+
+From an owned conversation open **History & episodes**. Select up to four complete
+messages, review exact excerpts, then explicitly queue a summary or pending-memory
+suggestion job. The same view offers a scoped lexical index rebuild and paginated
+episodes/jobs. Generation requires current server capabilities. Generated labels,
+exact original versions and measured states keep interpretation separate from facts.
+
+Version 0.13.0-episodes/versionCode 8 uses encrypted journal v7, with v1–v6 readable.
+One exact job reservation is saved before POST; restart only GETs its original key.
+Timeouts retain unconfirmed delivery for explicit check/identical retry. Local
+discard does not stop/delete server work. Existing palettes and normal chat remain
+unchanged. Source head 0010 installation is separate from client builds.
+
+`scripts/verify-episode-emulator.ps1 -Device emulator-5556` verifies actual fixture
+HTTP, generated source inspection, staged force-stop recovery and strict cold
+launch on a task-owned emulator only. It keeps newly created fixture directories
+inside ignored workspace storage. See [policy](../../docs/EPISODES-AND-CONSOLIDATION.md)
+and STATUS/WORKLOG for actual runs and physical-phone/release limits.

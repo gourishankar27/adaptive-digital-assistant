@@ -5,11 +5,15 @@ authenticated chat and encrypted recovery to the Phase 03 foundations. Phase 07
 adds explicit memory/evidence/correction and new static personality profiles.
 Phase 08 adds bounded text/Markdown uploads and imported document evidence.
 Phase 09 adds explicit scoped entities/aliases and reviewed identity mappings.
-Streaming, cancellation, voice, tools and automatic extraction remain later phases.
+Phase 11 adds selected-source proposals and explicit review with new endorsement evidence.
+Phase 12 adds separately capability-gated read-only tools with exact approval and receipts.
+Phase 13 adds explicitly queued generated episodes, pending suggestions and scoped
+lexical rebuild jobs, with source inspection and GET-only encrypted job recovery.
+Streaming, cancellation, voice, external writes and automatic extraction remain later phases.
 
 - Production repositories inject AdaApi and use authenticated ADA HTTP only.
   Mock transports and fixture data belong under test/androidTest, never main.
-- Credentials and exact pending chat/memory/document/entity journals use Keystore-backed authenticated
+- Credentials and exact pending chat/memory/document/entity/proposal journals use Keystore-backed authenticated
   encryption under noBackupFilesDir. Never use appearance preferences for secrets.
   Verify server/owner before recovery; key loss requires reconnect, not plaintext fallback.
 - Do not log private DTOs, error bodies, bearer tokens or credential URLs.
@@ -29,6 +33,10 @@ Streaming, cancellation, voice, tools and automatic extraction remain later phas
 - Identity changes require explicit review, including self and merge preview.
   Save the original scoped operation/body before POST; restore never auto-writes.
   Ambiguity stays visible, and source cards retain the request's canonical snapshot.
+- Episode summaries are generated navigation, never endorsed factual evidence.
+  Save the exact job before POST; restore only reads the original key. A local
+  discard does not cancel/delete server work. Pending suggestions still need
+  the separate Phase 11 review. Keep scope/source hashes and code-point spans exact.
 - Escape display content, allow only safe link schemes, and never execute content.
 - Keep system text scaling, labels, keyboard focus and minimum 48dp touch targets.
 - Debug HTTP is limited to the hosts in src/debug; release requires verified TLS.
@@ -37,3 +45,12 @@ Streaming, cancellation, voice, tools and automatic extraction remain later phas
 - Run gradlew.bat testDebugUnitTest lintDebug assembleDebug. Run
   connectedDebugAndroidTest and launch on an emulator when available. Record
   physical-phone, TalkBack, font-size and network checks honestly.
+
+- Proposal drafts and exact extraction/edit/review keys are encrypted and bound
+  to verified identity. Model confidence does not approve a claim; display exact
+  support trust and require a fresh revision preview after editing. Acceptance
+  creates a separate explicit endorsement, never relabels imported/model sources.
+
+- Agent journal v6 saves exact scoped creation/decision/recovery input before POST.
+  Restore performs GET only; receipts preserve tool trust and original nonce. Unknown
+  states never imply execution. Native model requests cannot approve themselves.

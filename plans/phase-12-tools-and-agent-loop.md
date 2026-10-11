@@ -1,6 +1,6 @@
 # Phase 12 — bounded tools and agent execution
 
-Status: planned. Prerequisite: Phase 03; Phase 04/06 for relevant client controls.
+Status: implemented; local checks passed; target verification remains. Prerequisite: Phase 03; Phase 04/06 for relevant client controls.
 Apply STANDARDS and CODEX-WORKFLOW. Implement selected tools only, not a universal
 shell/browser/email agent.
 
@@ -75,3 +75,33 @@ effects require separate explicit authorization and are not a default exit gate.
 Exit with the documented selected registry, bounded loop, accurate capability,
 reliable failure states and no implicit privilege from model output. Stop before
 adding unselected integrations, schedules or unlimited autonomous execution.
+
+## Implemented checkpoint mapping
+
+- Registry/data: selected versioned read-only specs, strict typed arguments/results,
+  scoped migration 0009 and immutable exact approval/receipt identity.
+- Loop/compatibility: separate native ada-agent-v1 mode, explicit prompt compatibility,
+  frozen bounded context, shared admission, short reservations and generation fencing.
+- Action checkpoint: every selected read-only request gets exact human approval;
+  no external write integration selected or authorized. Revocation and unknown
+  recovery never claim cancellation or repeat an ambiguous execution.
+- Clients/monitoring: Android exact preview/receipts and encrypted v6 GET-only
+  restoration; admin closed aggregate counts with no private execution control.
+- Verification: owned HTTP/schema/failure/PG concurrency and populated replay tests,
+  actual client adapters, real local native tool receipts, staged emulator recovery.
+  Consult [STATUS](STATUS.md) and [WORKLOG](WORKLOG.md) for actual results/skips,
+  remaining target verification and migration installation boundary. Tests use
+  synthetic disposable data; no external message or deployment is included.
+
+Policy and exact bounds: [TOOLS-AND-AGENT-LOOP.md](../docs/TOOLS-AND-AGENT-LOOP.md).
+Stop here; no unselected integrations or later phase is implemented.
+
+Final local gate (2026-10-11 UTC): PostgreSQL/SQLite **440 passed/18 documented
+skips**, Ruff/compileall; Android **155 units**, lint/debug/test APK, actual focused
+HTTP approval/denial and two force-stop stages with strict cold launch, including
+compact landscape/1.5× text; web **53 units/six PostgreSQL Chromium scenarios**;
+real local qwen3.8:27b **three read-only native flows** with owned durable receipts.
+Original 55 paths/76 schemas, released migrations and later phase files survive.
+Head 0009 is not installed in the application; S24 FE/Android 16, release HTTPS,
+manual accessibility and sustained target resource/model checks remain explicit
+in STATUS/WORKLOG. No external write, later phase or deployment occurred.

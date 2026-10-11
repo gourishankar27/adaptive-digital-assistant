@@ -26,6 +26,9 @@ class ChatViewModel(
     val memory = MemoryController(api, store, viewModelScope) { expire() }
     val documents = DocumentController(api, store, viewModelScope, { expire() })
     val entities = EntityController(api, store, viewModelScope, { expire() })
+    val proposals = ProposalController(api, store, viewModelScope, { expire() })
+    val agents = AgentController(api, store, viewModelScope, { expire() })
+    val episodes = EpisodeController(api, store, viewModelScope, { expire() })
     private var credential: ConnectionCredential? = null
     private var identity: SessionIdentity? = null
     private var generation = 0L
@@ -62,6 +65,9 @@ class ChatViewModel(
         memory.reset()
         documents.reset()
         entities.reset()
+        proposals.reset()
+        agents.reset()
+        episodes.reset()
         generation++; selection++; sourceSelection++
         jobs.toList().forEach { it.cancel() }; jobs.clear(); pollJob = null
         credential = null; identity = null; drafts.clear(); retryNotBefore = 0
@@ -176,6 +182,9 @@ class ChatViewModel(
         memory.setVerifiedSession(connection, verified, features)
         documents.setVerifiedSession(connection, verified, features)
         entities.setVerifiedSession(connection, verified, features)
+        proposals.setVerifiedSession(connection, verified, features)
+        agents.setVerifiedSession(connection, verified, features)
+        episodes.setVerifiedSession(connection, verified, features)
         update { it.copy(connecting = false, account = AccountSummary(normalized, user.id, user.name, features.provider, features.model),
             capabilities = features, destination = ChatDestination.Conversations,
             fault = null, notice = null,
@@ -208,6 +217,8 @@ class ChatViewModel(
     }
     fun navigate(destination: ChatDestination) {
         if (mutableState.value.account == null) return
+        if (destination == ChatDestination.Tools && mutableState.value.capabilities?.hasAgentTools() != true) return
+        if (destination == ChatDestination.Episodes && mutableState.value.capabilities?.hasEpisodes() != true) return
         if (destination == ChatDestination.Memory) {
             if (mutableState.value.capabilities?.structured_memory != true) return
             memory.activate()
@@ -220,6 +231,10 @@ class ChatViewModel(
             if (mutableState.value.capabilities?.let { it.scoped_entities && it.entity_writes && it.entity_resolution == "explicit_aliases_v1" } != true) return
             entities.activate()
         }
+        if (destination == ChatDestination.Proposals) {
+            if (mutableState.value.capabilities?.let { it.memory_review && it.memory_proposals == "selected_sources_v1" && it.memory_provenance == "review-v1" } != true) return
+            proposals.activate()
+        }
         update { it.copy(destination = destination, fault = null) }
     }
     fun back() {
@@ -228,6 +243,9 @@ class ChatViewModel(
         navigate(when (mutableState.value.destination) {
         ChatDestination.Retrieval -> ChatDestination.Sources
         ChatDestination.Entities -> ChatDestination.Memory
+        ChatDestination.Proposals -> ChatDestination.Memory
+        ChatDestination.Tools -> if (mutableState.value.conversation == null) ChatDestination.Conversations else ChatDestination.Chat
+        ChatDestination.Episodes -> if (mutableState.value.conversation == null) ChatDestination.Conversations else ChatDestination.Chat
         ChatDestination.Sources -> if (mutableState.value.conversation == null) ChatDestination.Conversations else ChatDestination.Chat
         else -> ChatDestination.Conversations
         })

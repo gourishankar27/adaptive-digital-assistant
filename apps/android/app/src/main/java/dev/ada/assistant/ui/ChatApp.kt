@@ -77,6 +77,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.ada.assistant.data.ApiFailure
 import dev.ada.assistant.data.EventDto
+import dev.ada.assistant.data.hasAgentTools
+import dev.ada.assistant.data.hasEpisodes
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -106,7 +108,7 @@ fun ChatApp(vm: ChatViewModel, openSettings: () -> Unit) {
         },
         bottomBar = {
             if (state.account != null && !typing) NavigationBar(windowInsets = WindowInsets(0, 0, 0, 0)) {
-                val inChat = state.destination !in setOf(ChatDestination.Settings, ChatDestination.Connect, ChatDestination.Memory, ChatDestination.Documents, ChatDestination.Entities)
+                val inChat = state.destination !in setOf(ChatDestination.Settings, ChatDestination.Connect, ChatDestination.Memory, ChatDestination.Documents, ChatDestination.Entities, ChatDestination.Proposals)
                 NavigationBarItem(
                     selected = inChat,
                     onClick = { focus.clearFocus(); vm.navigate(ChatDestination.Conversations) },
@@ -114,7 +116,7 @@ fun ChatApp(vm: ChatViewModel, openSettings: () -> Unit) {
                     modifier = Modifier.testTag("nav-chat"),
                 )
                 NavigationBarItem(
-                    selected = state.destination in setOf(ChatDestination.Memory, ChatDestination.Entities), enabled = state.capabilities?.structured_memory == true,
+                    selected = state.destination in setOf(ChatDestination.Memory, ChatDestination.Entities, ChatDestination.Proposals), enabled = state.capabilities?.structured_memory == true,
                     onClick = { focus.clearFocus(); vm.navigate(ChatDestination.Memory) }, icon = { NavigationGlyph(1) }, label = { Text("Memory") },
                     modifier = Modifier.testTag("nav-memory").semantics { stateDescription = if (state.capabilities?.structured_memory == true) "Owned statements and evidence" else "This server does not offer structured memory" },
                 )
@@ -142,10 +144,14 @@ fun ChatApp(vm: ChatViewModel, openSettings: () -> Unit) {
                 ChatDestination.Sources -> SourcesScreen(state, vm)
                 ChatDestination.Retrieval -> RetrievalScreen(state, vm)
                 ChatDestination.Memory -> {
+                    if (state.capabilities?.let { it.memory_review && it.memory_proposals == "selected_sources_v1" } == true) TextButton({ vm.navigate(ChatDestination.Proposals) }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("open-proposals")) { Text("Review memory suggestions") }
                     if (state.capabilities?.let { it.scoped_entities && it.entity_writes && it.entity_resolution == "explicit_aliases_v1" } == true) TextButton({ vm.navigate(ChatDestination.Entities) }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("open-entities")) { Text("People, projects and aliases") }
                     MemoryScreens(vm.memory)
                 }
                 ChatDestination.Entities -> EntityScreens(vm.entities) { vm.navigate(ChatDestination.Memory) }
+                ChatDestination.Proposals -> ProposalScreens(vm.proposals) { vm.navigate(ChatDestination.Memory) }
+                ChatDestination.Tools -> AgentScreen(vm.agents, state.conversation, state.account)
+                ChatDestination.Episodes -> EpisodeScreen(vm.episodes, state.conversation)
                 ChatDestination.Documents -> DocumentScreens(vm.documents)
                 ChatDestination.Settings -> AccountSettingsScreen(state, vm, openSettings)
             }
@@ -334,6 +340,10 @@ private fun ConversationScreen(state: ChatState, vm: ChatViewModel, typing: Bool
       val pendingHeight = (totalMaxHeight * 0.25f).coerceAtMost(170.dp)
       val composerHeight = (totalMaxHeight * (if (compact) 0.45f else 0.40f)).coerceAtMost(280.dp)
       Column(Modifier.fillMaxSize()) {
+       if (!typing && (state.capabilities?.hasAgentTools() == true || state.capabilities?.hasEpisodes() == true)) Row(Modifier.fillMaxWidth()) {
+         if (state.capabilities?.hasAgentTools() == true) TextButton({ vm.navigate(ChatDestination.Tools) }, modifier = Modifier.weight(1f).heightIn(min = AdaSpacing.touch).testTag("open-tools")) { Text("Read-only tools") }
+         if (state.capabilities?.hasEpisodes() == true) TextButton({ vm.navigate(ChatDestination.Episodes) }, modifier = Modifier.weight(1f).heightIn(min = AdaSpacing.touch).testTag("open-episodes")) { Text("History & episodes") }
+       }
        if (!typing) {
         if (!compact) {
             ConversationContext(state, vm, headerHeight)

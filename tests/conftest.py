@@ -54,7 +54,9 @@ def harness(request, tmp_path, monkeypatch):
     config = Config(str(ROOT / "alembic.ini"))
     command.upgrade(config, "head")
     engine, sessions = connect(url)
-    settings = Settings(database_url=url, provider="fake", max_parallel=2)
+    settings = Settings(
+        database_url=url, provider="fake", max_parallel=2, consolidation_worker_enabled=False
+    )
     provider = RecordingProvider()
     app = create_app(settings, provider, sessions)
     a_id, a_token = create_user(sessions, "Alice")

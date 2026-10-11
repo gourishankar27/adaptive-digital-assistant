@@ -5,6 +5,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from ada.consolidation_contracts import JobKind, JobStatus
 from ada.memory import Timestamp
 
 Outcome = Literal[
@@ -120,7 +121,19 @@ class RequestCounts(Metadata):
     failed: int = 0
 
 
+class AgentCounts(Metadata):
+    running: int = Field(ge=0)
+    pending_approval: int = Field(ge=0)
+    completed: int = Field(ge=0)
+    failed: int = Field(ge=0)
+    unknown: int = Field(ge=0)
+
+
 class AdminOverviewOutput(Metadata):
+    consolidation_job_counts: dict[JobStatus, int] | None = None
+    consolidation_jobs: list["AdminJobMetadata"] | None = None
+    agent_run_counts: AgentCounts | None = None
+    memory_proposal_counts: dict[Literal["pending", "accepted", "rejected"], int] | None = None
     window_hours: int
     created_from: Timestamp
     updated_at: Timestamp
@@ -135,6 +148,21 @@ class AdminOverviewOutput(Metadata):
     generation_admission: AdmissionOutput
     gpu_utilization: float | None = None
     tokens_per_second: float | None = None
+
+
+class AdminJobMetadata(Metadata):
+    id: UUID
+    owner_id: UUID
+    scope_id: UUID
+    kind: JobKind
+    status: JobStatus
+    checkpoint: str
+    version: str
+    attempt: int
+    created_at: Timestamp
+    started_at: Timestamp | None
+    finished_at: Timestamp | None
+    elapsed_ms: int | None
 
 
 class AdminAuditOutput(Metadata):

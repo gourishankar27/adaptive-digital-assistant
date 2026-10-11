@@ -60,7 +60,26 @@ class EvidenceOutput(BaseModel):
     content_hash: str
 
 
+class SupportingEvidence(BaseModel):
+    source_id: UUID
+    source_version: int
+    source_origin: Literal["chat_event", "user_note", "imported_document"]
+    trust_class: Literal["user_explicit", "model_generated", "imported_untrusted"]
+    evidence: EvidenceOutput
+
+
+class ReviewProvenance(BaseModel):
+    version: Literal["review-v1"] = "review-v1"
+    origin: Literal["user_reviewed"]
+    proposal_id: UUID
+    review_id: UUID
+    model: str
+    extractor_version: str
+    support: list[SupportingEvidence]
+
+
 class ClaimOutput(BaseModel):
+    provenance: ReviewProvenance | None = None
     id: UUID
     scope_id: UUID
     subject: str
@@ -148,6 +167,7 @@ class SupersedeInput(EvidenceInput):
 
 def public_claim(row):
     return {
+        "provenance": row.provenance,
         "id": row.id,
         "scope_id": row.scope_id,
         "subject": row.subject,

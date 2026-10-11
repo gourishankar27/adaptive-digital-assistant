@@ -4,7 +4,8 @@ ADA imports bounded UTF-8 `.txt`, `.md` and `.markdown` files into an authentica
 owner's existing scope. Imported text is `imported_document` /
 `imported_untrusted`, never an explicit user assertion. It cannot support the
 existing claim/correction writer. Chat performs no extraction or promotion.
-PDF, OCR, archives, crawling, remote fetch and embeddings are deferred.
+PDF, OCR, archives, crawling and remote fetch are deferred. Phase 10 implements
+optional exact embeddings, disabled by default; this document records Phase 08.
 
 ## Upload and reads
 
@@ -149,3 +150,8 @@ Those installation statements describe the Phase 08 boundary. Current Phase 09
 source requires head **0006**; `upgrade head` now includes the identity migration.
 The final read-only Phase 09 application check observed 0005, with 0006 installation
 still pending. See [ENTITIES-AND-ALIASES.md](ENTITIES-AND-ALIASES.md).
+Those observations remain historical. Current Phase 10 source requires **0007**
+and adds optional exact hybrid retrieval, kept disabled by default. See
+[EMBEDDINGS-AND-HYBRID-RETRIEVAL.md](EMBEDDINGS-AND-HYBRID-RETRIEVAL.md) for its
+installation/evaluation boundary; document trust, versions and frozen D cards are
+preserved.

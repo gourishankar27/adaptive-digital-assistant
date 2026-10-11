@@ -8,6 +8,11 @@ Phase 09 adds head 0006 and typed explicit entities/aliases, resolution, history
 previewed merge/undo and operation receipts. Optional canonical claim/card fields
 and resolution plans preserve original subjects/evidence and legacy defaults.
 See [ENTITIES-AND-ALIASES.md](../docs/ENTITIES-AND-ALIASES.md).
+Phase 10 adds head **0007**, one owned derived-index rebuild endpoint and optional
+semantic capability/trace/candidate diagnostics. All old routes, required fields,
+request fingerprints and citation mappings are preserved. Semantic retrieval is
+disabled by default; see
+[EMBEDDINGS-AND-HYBRID-RETRIEVAL.md](../docs/EMBEDDINGS-AND-HYBRID-RETRIEVAL.md).
 Existing CLI/user clients
 use the same field names, statuses and retry fingerprints. Streaming, cancellation,
 PDF/OCR, device inference and enrollment remain absent. The monitoring dashboard
@@ -178,3 +183,23 @@ dedicated `ADA_TEST_DATABASE_URL`; a skipped case is not PostgreSQL execution.
 Output configuration follows the existing pinned Pydantic release's
 [documented TypedDict configuration](https://docs.pydantic.dev/latest/api/config/#pydantic.config.with_config),
 checked 2026-10-08; no Python dependency was added or upgraded.
+
+## Phase 11 additions
+
+Head 0008 adds seven authenticated selected-source extraction/proposal/edit/review
+and receipt paths. Existing operations, required fields and old property shapes
+remain unchanged. Optional proposal/review/provenance capabilities, reviewed
+claim/card provenance and admin state counts are additive. Legacy origin enums
+remain intact; review-v1 provenance.origin=user_reviewed identifies new explicit
+endorsements and preserves original supporting trust. Automatic extraction stays
+false and old frozen cards remain unchanged. See
+[MEMORY-PROPOSALS-AND-REVIEW.md](../docs/MEMORY-PROPOSALS-AND-REVIEW.md).
+
+## Phase 13 additions
+
+Head 0010 adds authenticated job, episode and navigation-context paths. Job and
+context POSTs document 201 creation and 200 exact replay. New capabilities and
+admin metadata fields are optional; existing path operations, required fields,
+property shapes, origin enums, chat inputs and prompt snapshots remain unchanged.
+Private navigation contexts never become factual chat evidence. See
+[EPISODES-AND-CONSOLIDATION.md](../docs/EPISODES-AND-CONSOLIDATION.md).

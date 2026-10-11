@@ -1,7 +1,13 @@
 from alembic import context
 from sqlalchemy import create_engine, pool
 
-from ada import entity_models  # noqa: F401
+from ada import (  # noqa: F401
+    agent_models,
+    consolidation_models,  # noqa: F401
+    embedding_models,
+    entity_models,
+    proposal_models,
+)
 from ada.config import Settings
 from ada.models import Base
 

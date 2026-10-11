@@ -27,9 +27,12 @@ from ada.admin_contracts import (
     AdminRequestsOutput,
     Outcome,
 )
+from ada.agent_models import AgentRun
+from ada.consolidation_models import ConsolidationJob
 from ada.contracts import ErrorOutput, ValidationErrorOutput
 from ada.memory import Timestamp
 from ada.models import AdminAudit, AdminGrant, Conversation, Request, RetrievalTrace, now_ms
+from ada.proposal_models import MemoryProposal
 from ada.providers import OllamaProvider
 from ada.schema import SCHEMA_HEAD
 
@@ -429,11 +432,93 @@ def admin_router(monitor, current_user):
             version = db.execute(
                 text("SELECT version_num FROM alembic_version")
             ).scalar_one_or_none()
+            proposal_counts = None
+            if version in ("0008", "0009", SCHEMA_HEAD):
+                counts = dict(
+                    db.execute(
+                        select(MemoryProposal.status, func.count())
+                        .where(
+                            MemoryProposal.created_at >= start,
+                            MemoryProposal.created_at <= timestamp,
+                        )
+                        .group_by(MemoryProposal.status)
+                    ).all()
+                )
+                proposal_counts = {
+                    state: counts.get(state, 0) for state in ("pending", "accepted", "rejected")
+                }
+            agent_counts = None
+            if version in ("0009", SCHEMA_HEAD):
+                counts = dict(
+                    db.execute(
+                        select(AgentRun.status, func.count())
+                        .where(AgentRun.created_at >= start, AgentRun.created_at <= timestamp)
+                        .group_by(AgentRun.status)
+                    ).all()
+                )
+                agent_counts = {
+                    state: counts.get(state, 0)
+                    for state in ("running", "pending_approval", "completed", "failed", "unknown")
+                }
+            job_counts, job_rows = None, None
+            if version == SCHEMA_HEAD:
+                counts = dict(
+                    db.execute(
+                        select(ConsolidationJob.status, func.count())
+                        .where(
+                            ConsolidationJob.created_at >= start,
+                            ConsolidationJob.created_at <= timestamp,
+                        )
+                        .group_by(ConsolidationJob.status)
+                    ).all()
+                )
+                job_counts = {
+                    s: counts.get(s, 0)
+                    for s in ("queued", "running", "completed", "failed", "stale")
+                }
+                fields = (
+                    "id",
+                    "owner_id",
+                    "scope_id",
+                    "kind",
+                    "status",
+                    "checkpoint",
+                    "version",
+                    "attempt",
+                    "created_at",
+                    "started_at",
+                    "finished_at",
+                )
+                job_rows = [
+                    dict(r)
+                    | {
+                        "elapsed_ms": max(0, r["finished_at"] - r["started_at"])
+                        if r["started_at"] is not None and r["finished_at"] is not None
+                        else None
+                    }
+                    for r in db.execute(
+                        select(*(getattr(ConsolidationJob, f) for f in fields))
+                        .where(
+                            ConsolidationJob.created_at >= start,
+                            ConsolidationJob.created_at <= timestamp,
+                        )
+                        .order_by(
+                            ConsolidationJob.created_at.desc(),
+                            ConsolidationJob.owner_id,
+                            ConsolidationJob.id,
+                        )
+                        .limit(25)
+                    ).mappings()
+                ]
         return {
             "window_hours": window_hours,
             "created_from": start,
             "updated_at": timestamp,
             "requests": {r["status"]: r["count"] for r in rows},
+            "memory_proposal_counts": proposal_counts,
+            "agent_run_counts": agent_counts,
+            "consolidation_job_counts": job_counts,
+            "consolidation_jobs": job_rows,
             **{
                 key: sum(r[key] or 0 for r in rows) if any(r[known] for r in rows) else None
                 for key, known in (

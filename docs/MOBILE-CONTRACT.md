@@ -1,6 +1,13 @@
 # Android / iOS boundary
 
 The generated `contracts/openapi.json` is the implemented Phase 2 contract.
+It also includes implemented Phase 08/09 additions and Phase 10's optional
+semantic diagnostics. Clients may ignore absent/additive `plan.semantic` and
+`semantic_similarity`; original request source cards remain authoritative for
+display. Semantic retrieval stays disabled by default. Clients never generate
+embeddings or contact the provider/database. Mathematical scores are optional
+diagnostics, not truth confidence. See
+[Phase 10 policy](EMBEDDINGS-AND-HYBRID-RETRIEVAL.md).
 Native clients send `Authorization: Bearer <token>` and JSON over HTTPS. Use UUIDs
 for request IDs; preserve the ID/content/time/retrieval options until the request outcome is known. On
 503, wait using Retry-After and randomized backoff. On network timeout, query
@@ -106,3 +113,14 @@ v1–v3 records survive upgrade. Restore never POSTs; receipt check or identical
 is explicit. A local discard changes no server identity history. Foreign references,
 changed previews and permission fields are enforced by the server. No direct
 provider/database client or account inference is introduced.
+
+## Phase 13 episode navigation
+
+Capabilities add optional `episodes=source_linked_v1`,
+`consolidation_jobs=bounded_jobs_v1`, `consolidation_generation` and
+`consolidation_worker`. Legacy clients/servers retain unsupported defaults.
+Android consumes only authenticated HTTP jobs/episodes/original-source routes.
+Encrypted journal v7 retains earlier records and reserves one exact owned job
+body before submission; restore never POSTs. Navigation contexts are separate
+from ordinary chat input and factual retrieval. See
+[EPISODES-AND-CONSOLIDATION.md](EPISODES-AND-CONSOLIDATION.md).

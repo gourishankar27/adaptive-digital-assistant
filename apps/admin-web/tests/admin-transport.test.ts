@@ -5,6 +5,26 @@ import { amount, timestamp } from '../src/monitor-query';
 import { detail, otherOwner, overview, owner, requestId } from './mock-admin';
 const wire = (value: unknown) => JSON.stringify(value, (_, v) => typeof v === 'bigint' ? Number(v) : v);
 describe('monitoring allowlist and lossless adapter', () => {
+  it('projects maintenance metadata, preserves times and excludes generated/private input', () => {
+    const job = { id: requestId, owner_id: owner, scope_id: requestId, kind: 'episode', status: 'queued', checkpoint: 'reserved', version: 'consolidation-v1', attempt: 0, created_at: 9223372036854775807n, started_at: null, finished_at: null, elapsed_ms: null, input: 'private', snapshot: 'private', summary: 'private' };
+    const safe = decodeOverview({ ...overview, consolidation_job_counts: { queued: 1, running: 0, completed: 0, failed: 0, stale: 0, quotes: ['private'] }, consolidation_jobs: [job] });
+    expect(safe.consolidation_jobs?.[0].created_at).toBe(9223372036854775807n);
+    expect(safe.consolidation_jobs?.[0].started_at).toBeNull(); expect(safe.consolidation_jobs?.[0]).not.toHaveProperty('input');
+    expect(safe.consolidation_jobs?.[0]).not.toHaveProperty('summary'); expect(safe.consolidation_job_counts).not.toHaveProperty('quotes');
+    expect(decodeOverview(overview).consolidation_jobs).toBeNull(); expect(decodeOverview(overview).consolidation_job_counts).toBeNull();
+  });
+  it('keeps tool monitoring to state counts and supports older servers', () => {
+    const safe = decodeOverview({ ...overview, agent_run_counts: { running: 1, pending_approval: 2, completed: 3, failed: 0, unknown: 0, arguments: 'private', results: ['private'] } });
+    expect(safe.agent_run_counts).toEqual({ running: 1, pending_approval: 2, completed: 3, failed: 0, unknown: 0 });
+    expect(decodeOverview(overview).agent_run_counts).toBeNull();
+    expect(() => decodeOverview({ ...overview, agent_run_counts: { running: -1 } })).toThrow(ContractError);
+  });
+  it('projects proposal counts without retaining private reviews or excerpts', () => {
+    const result = decodeOverview({ ...overview, memory_proposal_counts: { pending: 2, accepted: 1, rejected: 0, review_text: 'private', quotes: ['private'] } });
+    expect(result.memory_proposal_counts).toEqual({ pending: 2, accepted: 1, rejected: 0 });
+    expect(decodeOverview(overview).memory_proposal_counts).toBeNull();
+    expect(() => decodeOverview({ ...overview, memory_proposal_counts: { pending: -1, accepted: 0, rejected: 0 } })).toThrow(ContractError);
+  });
   it('describes read-only filter failures without exposing bodies or implying submission', async () => {
     const api = new HttpAdminApi(window.location.origin, 'credential', async () => new Response('{"detail":"private input"}', { status: 422, headers: { 'Content-Type': 'application/json' } }));
     await expect(api.requests({})).rejects.toMatchObject({ failure: { kind: 'validation', message: 'The server rejected the monitoring filters. Check the IDs, page and date window.' } });

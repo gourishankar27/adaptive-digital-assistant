@@ -59,6 +59,22 @@ sealed interface ApiFailure {
 
 /** Every method is an existing ADA route; no enrollment/admin/cancellation API is invented. */
 interface AdaApi {
+    suspend fun consolidationJob(connection: ConnectionCredential, id: UUID): ApiResult<ConsolidationJobDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun consolidationJobs(connection: ConnectionCredential, scope: UUID, offset: Int = 0): ApiResult<List<ConsolidationJobDto>> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun createConsolidationJob(connection: ConnectionCredential, journal: ConsolidationJournal): ApiResult<ConsolidationJobDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun episodes(connection: ConnectionCredential, scope: UUID, offset: Int = 0): ApiResult<List<EpisodeDto>> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun episode(connection: ConnectionCredential, id: UUID): ApiResult<EpisodeDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun agentRun(connection: ConnectionCredential, id: UUID): ApiResult<AgentRunDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun toolReceipt(connection: ConnectionCredential, id: UUID): ApiResult<ToolReceiptDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun createAgentRun(connection: ConnectionCredential, journal: AgentJournal): ApiResult<AgentRunDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun agentOperation(connection: ConnectionCredential, journal: AgentJournal): ApiResult<ToolReceiptDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun proposals(connection: ConnectionCredential, scope: UUID, limit: Int = 25, offset: Int = 0): ApiResult<List<ProposalDto>> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun proposal(connection: ConnectionCredential, id: UUID): ApiResult<ProposalDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun extraction(connection: ConnectionCredential, id: UUID): ApiResult<ExtractionDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun reviewReceipt(connection: ConnectionCredential, id: UUID): ApiResult<ReviewReceiptDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun extractProposals(connection: ConnectionCredential, pending: PendingProposal): ApiResult<ExtractionDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun editProposal(connection: ConnectionCredential, pending: PendingProposal): ApiResult<ProposalDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun reviewProposal(connection: ConnectionCredential, pending: PendingProposal): ApiResult<ReviewReceiptDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
     suspend fun entities(connection: ConnectionCredential, scope: UUID, limit: Int = 50, offset: Int = 0): ApiResult<List<EntityDto>> = ApiResult.Failure(ApiFailure.IncompatibleContract)
     suspend fun entityAliases(connection: ConnectionCredential, id: UUID): ApiResult<List<EntityAliasDto>> = ApiResult.Failure(ApiFailure.IncompatibleContract)
     suspend fun resolveEntity(connection: ConnectionCredential, scope: UUID, body: EntityResolveInputDto): ApiResult<EntityResolutionDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
@@ -97,6 +113,33 @@ interface AdaApi {
 }
 
 class HttpAdaApi(callTimeoutMillis: Long = 65_000) : AdaApi {
+    override suspend fun consolidationJob(connection: ConnectionCredential, id: UUID) = call<ConsolidationJobDto>(connection, "consolidation-jobs/$id")
+    override suspend fun consolidationJobs(connection: ConnectionCredential, scope: UUID, offset: Int) = call<List<ConsolidationJobDto>>(connection, "scopes/$scope/consolidation-jobs", query = page(25, offset))
+    override suspend fun createConsolidationJob(connection: ConnectionCredential, journal: ConsolidationJournal): ApiResult<ConsolidationJobDto> {
+        try { validateConsolidationJournal(journal); require(journal.identity.server == connection.server.toString()) }
+        catch (_: Exception) { return ApiResult.Failure(ApiFailure.Validation) }
+        return call(connection, "scopes/${journal.scopeId}/consolidation-jobs", journal.body)
+    }
+    override suspend fun episodes(connection: ConnectionCredential, scope: UUID, offset: Int) = call<List<EpisodeDto>>(connection, "scopes/$scope/episodes", query = page(25, offset))
+    override suspend fun episode(connection: ConnectionCredential, id: UUID) = call<EpisodeDto>(connection, "episodes/$id")
+    override suspend fun agentRun(connection: ConnectionCredential, id: UUID) = call<AgentRunDto>(connection, "agent-runs/$id")
+    override suspend fun toolReceipt(connection: ConnectionCredential, id: UUID) = call<ToolReceiptDto>(connection, "tool-receipts/$id")
+    private fun validAgent(connection: ConnectionCredential, journal: AgentJournal): Boolean = try { validateAgentJournal(journal); journal.identity.server == connection.server.toString() } catch (_: Exception) { false }
+    override suspend fun createAgentRun(connection: ConnectionCredential, journal: AgentJournal): ApiResult<AgentRunDto> = if (validAgent(connection, journal) && journal.operation == null) call(connection, "conversations/${journal.conversationId}/agent-runs", journal.body) else ApiResult.Failure(ApiFailure.Validation)
+    override suspend fun agentOperation(connection: ConnectionCredential, journal: AgentJournal): ApiResult<ToolReceiptDto> {
+        if (!validAgent(connection, journal) || journal.operation == null) return ApiResult.Failure(ApiFailure.Validation)
+        val op = journal.operation
+        val path = if (op.kind == "recover") "agent-runs/${journal.runId}/recover" else "agent-runs/${journal.runId}/steps/${op.stepId}/${op.kind}"
+        return call(connection, path, op.body)
+    }
+    override suspend fun proposals(connection: ConnectionCredential, scope: UUID, limit: Int, offset: Int) = call<List<ProposalDto>>(connection, "scopes/$scope/memory-proposals", query = page(limit, offset))
+    override suspend fun proposal(connection: ConnectionCredential, id: UUID) = call<ProposalDto>(connection, "memory-proposals/$id")
+    override suspend fun extraction(connection: ConnectionCredential, id: UUID) = call<ExtractionDto>(connection, "memory-extractions/$id")
+    override suspend fun reviewReceipt(connection: ConnectionCredential, id: UUID) = call<ReviewReceiptDto>(connection, "memory-reviews/$id")
+    private fun validProposal(connection: ConnectionCredential, pending: PendingProposal, kind: String): Boolean = try { validateProposalPending(pending); pending.kind == kind && pending.identity.server == connection.server.toString() } catch (_: Exception) { false }
+    override suspend fun extractProposals(connection: ConnectionCredential, pending: PendingProposal): ApiResult<ExtractionDto> = if (validProposal(connection, pending, "extract")) call(connection, "scopes/${pending.scopeId}/memory-extractions", pending.body) else ApiResult.Failure(ApiFailure.Validation)
+    override suspend fun editProposal(connection: ConnectionCredential, pending: PendingProposal): ApiResult<ProposalDto> = if (validProposal(connection, pending, "edit")) call(connection, "memory-proposals/${pending.proposalId}/edit", pending.body) else ApiResult.Failure(ApiFailure.Validation)
+    override suspend fun reviewProposal(connection: ConnectionCredential, pending: PendingProposal): ApiResult<ReviewReceiptDto> = if (validProposal(connection, pending, "review")) call(connection, "memory-proposals/${pending.proposalId}/review", pending.body) else ApiResult.Failure(ApiFailure.Validation)
     override suspend fun entities(connection: ConnectionCredential, scope: UUID, limit: Int, offset: Int) = call<List<EntityDto>>(connection, "scopes/$scope/entities", query = page(limit, offset))
     override suspend fun entityAliases(connection: ConnectionCredential, id: UUID) = call<List<EntityAliasDto>>(connection, "entities/$id/aliases")
     override suspend fun resolveEntity(connection: ConnectionCredential, scope: UUID, body: EntityResolveInputDto) = call<EntityResolutionDto>(connection, "scopes/$scope/entities/resolve", adaJson.encodeToString(body))

@@ -46,7 +46,7 @@ class EntityJournalTest {
         val memory = PendingMemory(MemoryReservation(identity, p.scopeId, UUID.randomUUID(), note = NoteInputDto(UUID.randomUUID(), "Synthetic earlier note"), subject = "Project", predicate = "setting", value = "Blue", kind = "fact"))
         val document = PendingDocument(identity, p.scopeId, UUID.randomUUID(), UUID.randomUUID(), "synthetic.txt", "text/plain", java.util.Base64.getEncoder().encodeToString("Synthetic earlier text".toByteArray()))
         store.savePending(chat); store.saveMemoryPending(memory); store.saveDocumentPending(document)
-        val old = cipher.decrypt(disk.bytes!!).toString(Charsets.UTF_8).replace("\"version\":4", "\"version\":3").replace(",\"entityPending\":null", "")
+        val old = cipher.decrypt(disk.bytes!!).toString(Charsets.UTF_8).replace("\"version\":7", "\"version\":3").replace(",\"entityPending\":null", "").replace(",\"proposalPending\":null", "").replace(",\"proposalDraft\":null", "").replace(",\"agentJournal\":null", "").replace(",\"consolidationJournal\":null", "")
         disk.bytes = cipher.encrypt(old.toByteArray()); val upgraded = EncryptedSessionStore(disk, cipher, true)
         assertNull(upgraded.entityPending(identity)); upgraded.saveEntityPending(p); upgraded.removeEntityPending(identity, p.operationId)
         assertEquals(chat, upgraded.pending(identity)); assertEquals(memory, upgraded.memoryPending(identity)); assertEquals(document, upgraded.documentPending(identity))

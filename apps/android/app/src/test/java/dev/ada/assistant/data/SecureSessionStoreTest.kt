@@ -5,6 +5,7 @@ import java.util.UUID
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.encodeToString
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -36,6 +37,40 @@ private class MemorySessionKeys : SessionKeys {
 }
 
 class SecureSessionStoreTest {
+    @Test fun realV6CiphertextRemainsReadableAndUpgradesWithoutLosingChat() = runTest {
+        val disk = MemorySessionDisk(); val keys = MemorySessionKeys(); val s = store(disk, keys)
+        s.saveCredential(credential()); s.savePending(message())
+        val cipher = AesGcmSessionCipher(keys)
+        val old = cipher.decrypt(disk.bytes!!).toString(Charsets.UTF_8).replace("\"version\":7", "\"version\":6").replace(",\"consolidationJournal\":null", "")
+        assertTrue(old.contains("\"version\":6")); disk.bytes = cipher.encrypt(old.toByteArray())
+        assertEquals(message(), store(disk, keys).pending(identity))
+        s.saveCredential(credential(token = "synthetic-rotated"))
+        assertEquals(message(), s.pending(identity)); assertTrue(cipher.decrypt(disk.bytes!!).toString(Charsets.UTF_8).contains("\"version\":7"))
+    }
+    @Test fun consolidationReservationSurvivesEncryptedRestartAndTokenRotation() = runTest {
+        val disk = MemorySessionDisk(); val keys = MemorySessionKeys(); val s = store(disk, keys)
+        s.saveCredential(credential()); s.savePending(message())
+        val id = UUID.randomUUID(); val p = ConsolidationJournal(identity, UUID.randomUUID(), id,
+            adaJson.encodeToString(ConsolidationInputDto(id, "episode", listOf(SourcePinDto(UUID.randomUUID(), 1, "a".repeat(64), 0, 10)))))
+        s.saveConsolidationJournal(p)
+        assertEquals(p, store(disk, keys).consolidationJournal(identity)); assertNotNull(s.pending(identity))
+        assertFalse(disk.bytes!!.toString(Charsets.UTF_8).contains(p.jobId.toString()))
+        try { s.saveConsolidationJournal(p.copy(body = p.body.replace("episode", "proposals"))); fail("Changed input accepted") } catch (_: SessionStorageException) {}
+        s.saveCredential(credential(token = "synthetic-rotated")); assertEquals(p, s.consolidationJournal(identity))
+        s.removeConsolidationJournal(identity, UUID.randomUUID()); assertEquals(p, s.consolidationJournal(identity))
+        s.saveCredential(credential(identity.copy(owner = UUID.randomUUID()))); assertNull(s.consolidationJournal(identity))
+    }
+    @Test fun agentJournalIsEncryptedExactAndClearedOnIdentityChange() = runTest {
+        val disk = MemorySessionDisk(); val keys = MemorySessionKeys(); val s = store(disk, keys)
+        s.saveCredential(credential())
+        val run = UUID.randomUUID(); val p = AgentJournal(identity, UUID.randomUUID(), UUID.randomUUID(), run, adaJson.encodeToString(AgentInputDto(run, "synthetic-private-task", allowed_tools = listOf("calculator"))))
+        s.saveAgentJournal(p); assertEquals(p, store(disk, keys).agentJournal(identity)); assertFalse(disk.bytes!!.toString(Charsets.UTF_8).contains("synthetic-private-task"))
+        try { s.saveAgentJournal(p.copy(body = p.body.replace("synthetic-private-task", "changed"))); fail("Changed reservation accepted") } catch (_: SessionStorageException) {}
+        val key = UUID.randomUUID(); val op = AgentOperation("approve", key, UUID.randomUUID(), adaJson.encodeToString(AgentApprovalDto(key, "a".repeat(64), "b".repeat(64), "calculator-v1")))
+        s.saveAgentJournal(p.copy(operation = op)); assertEquals(op, store(disk, keys).agentJournal(identity)!!.operation)
+        s.saveCredential(credential(token = "synthetic-rotated")); assertNotNull(s.agentJournal(identity))
+        s.saveCredential(credential(identity.copy(owner = UUID.randomUUID()))); assertNull(s.agentJournal(identity)); assertNull(s.pending(identity))
+    }
     private val identity = SessionIdentity("https://ada.example/", UUID.fromString("00000000-0000-4000-8000-000000000001"))
     private fun credential(identity: SessionIdentity = this.identity, token: String = "synthetic-only-secret") = StoredCredential(identity, token)
     private fun message(identity: SessionIdentity = this.identity, body: ChatInputDto = ChatInputDto(

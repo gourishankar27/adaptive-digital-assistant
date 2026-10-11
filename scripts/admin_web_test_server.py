@@ -85,8 +85,11 @@ def seed(sessions, url, failed_provider):
         )
     for identity in OPERATORS:
         set_admin_grant(sessions, identity, True)
-    settings = Settings(database_url=url, provider="fake", max_parallel=1)
-    with TestClient(create_app(settings, FakeProvider(), sessions)) as client:
+    settings = Settings(
+        database_url=url, provider="fake", max_parallel=1, consolidation_worker_enabled=False
+    )
+    app = create_app(settings, FakeProvider(), sessions)
+    with TestClient(app) as client:
         # Synthetic owners are seeded using actual owned HTTP contracts.
         for index, identity in enumerate(OWNERS):
             credential = credentials[2] if index == 0 else uuid4().hex
@@ -103,6 +106,14 @@ def seed(sessions, url, failed_provider):
             )
             assert conversation.status_code == 201
             conversation_id = conversation.json()["id"]
+            job = client.post(
+                f"/v1/scopes/{conversation.json()['scope_id']}/consolidation-jobs",
+                headers=headers,
+                json={"job_id": str(uuid4()), "kind": "lexical_rebuild", "sources": []},
+            )
+            assert job.status_code == 201
+            if index == 0:
+                assert app.state.consolidation.run_once()
             for request in [
                 SHARED_REQUEST,
                 *([str(uuid4()) for _ in range(12)] if index == 0 else []),
@@ -179,6 +190,7 @@ def main():
                 ollama_url=f"http://127.0.0.1:{unavailable.getsockname()[1]}",
                 ollama_model="browser-test-unavailable",
                 max_parallel=1,
+                consolidation_worker_enabled=False,
             )
             provider = OllamaProvider(settings)
             seed(sessions, url, provider)
