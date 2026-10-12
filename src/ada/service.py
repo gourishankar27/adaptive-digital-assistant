@@ -1,5 +1,6 @@
 import hashlib
 import json
+import re
 import threading
 
 from sqlalchemy import select, update
@@ -7,6 +8,8 @@ from sqlalchemy.exc import IntegrityError
 
 from ada.errors import ServiceError as ServiceError
 from ada.evidence import record_chat_event
+from ada.expression import ExpressionService, prompt_expression
+from ada.learning import continuity_message, prompt_learning
 from ada.memory import time_ms
 from ada.models import Conversation, PromptChange, Request, RetrievalTrace, now_ms
 from ada.personality import (
@@ -46,6 +49,11 @@ def public_request(row: Request, trace=None) -> dict:
         "citations": citations,
         "document_citations": document_citations,
         "citation_warnings": warnings + document_warnings,
+        "continuity_citations": [
+            card
+            for card in (row.learning_snapshot or {}).get("continuity", [])
+            if re.search(r"\[" + re.escape(card["label"]) + r"\]", row.response or "")
+        ],
     }
 
 
@@ -80,11 +88,24 @@ class ChatService:
         self.sessions, self.provider, self.settings = sessions, provider, settings
         self.capacity = threading.BoundedSemaphore(settings.max_parallel)
         self.semantic = SemanticService(sessions, settings, self.capacity)
+        self.expression = ExpressionService(sessions)
+        self.learning = None  # Wired to the same proposal/consolidation services by create_app.
 
     def _context(
-        self, db, conversation, content, as_of, use_memory, use_documents=False, prepared=None
+        self,
+        db,
+        conversation,
+        content,
+        as_of,
+        use_memory,
+        use_documents=False,
+        prepared=None,
+        expression=None,
+        learning=None,
     ):
         system = {"role": "system", "content": conversation.system_prompt}
+        system["content"] += prompt_expression(expression)
+        system["content"] += prompt_learning(learning)
         newest = {"role": "user", "content": content}
         compatible = conversation.prompt_version in RETRIEVAL_PROMPT_VERSIONS
         document_compatible = conversation.prompt_version == DOCUMENT_PROMPT_VERSION
@@ -139,6 +160,15 @@ class ChatService:
         )
         evidence = memory_message(result["selected"], result["plan"], result["document_selected"])
         remaining -= result["budget"]["memory_used_bytes"]
+        continuity = continuity_message(learning)
+        if continuity:
+            needed = message_cost(continuity)
+            if needed > remaining:
+                learning["continuity"] = []
+                learning["continuity_reason"] = "context_budget"
+                continuity = None
+            else:
+                remaining -= needed
         # Complete pairs only. Failed/in-flight turns remain evidence, not model history.
         rows = db.scalars(
             select(Request)
@@ -161,6 +191,8 @@ class ChatService:
         messages = [system] + [m for pair in reversed(pairs) for m in pair]
         if evidence:
             messages.append(evidence)
+        if continuity:
+            messages.append(continuity)
         messages.append(newest)
         result["budget"].update(
             prompt_limit_bytes=self.settings.prompt_bytes,
@@ -192,91 +224,17 @@ class ChatService:
         if not self.capacity.acquire(blocking=False):
             raise ServiceError(503, "generation_capacity_busy")
         try:
-            # Validate private identity before embedding, outside the reservation
-            # transaction. Failed/running retries never refresh their evidence.
-            prepared = None
-            with self.sessions() as db:
-                conversation = db.scalar(
-                    select(Conversation).where(
-                        Conversation.id == conversation_id, Conversation.owner_id == owner
-                    )
-                )
-                if conversation is None:
-                    raise ServiceError(404, "conversation_not_found")
-                retry = db.get(Request, (owner, request_id))
-                plan = plan_query(
-                    content,
-                    as_of,
-                    enabled=use_memory and conversation.prompt_version in RETRIEVAL_PROMPT_VERSIONS,
-                )
-            if retry is None:
-                prepared = self.semantic.prepare(
-                    content,
-                    admitted=True,
-                    enabled=plan["enabled"] and plan["time_mode"] != "needs_date",
-                )
-            try:
-                with self.sessions.begin() as db:
-                    conversation = db.scalar(
-                        select(Conversation)
-                        .where(Conversation.id == conversation_id, Conversation.owner_id == owner)
-                        .with_for_update()
-                    )
-                    if conversation is None:
-                        raise ServiceError(404, "conversation_not_found")
-                    old = db.get(Request, (owner, request_id))
-                    if old:
-                        self._same(old, conversation_id, fingerprint)
-                        if old.status == "completed":
-                            return public_request(old, db.get(RetrievalTrace, (owner, request_id)))
-                        if old.status == "running":
-                            raise ServiceError(409, "request_in_progress")
-                        if old.base_revision != conversation.revision:
-                            raise ServiceError(409, "retry_history_changed")
-                    active = db.scalar(
-                        select(Request.id).where(
-                            Request.owner_id == owner,
-                            Request.conversation_id == conversation_id,
-                            Request.status == "running",
-                        )
-                    )
-                    if active:
-                        raise ServiceError(409, "conversation_busy")
-                    if old is None:
-                        context, retrieval = self._context(
-                            db, conversation, content, as_of, use_memory, use_documents, prepared
-                        )
-                        old = Request(
-                            owner_id=owner,
-                            id=request_id,
-                            conversation_id=conversation_id,
-                            content_hash=fingerprint,
-                            status="running",
-                            base_revision=conversation.revision,
-                            messages=context,
-                            provider=self.provider.id,
-                            model=self.provider.model,
-                        )
-                        db.add(old)
-                        db.flush()
-                        db.add(
-                            RetrievalTrace(
-                                owner_id=owner,
-                                request_id=request_id,
-                                conversation_id=conversation_id,
-                                **{key: value for key, value in retrieval.items()},
-                            )
-                        )
-                        record_chat_event(db, conversation, request_id, "user", content)
-                    else:
-                        old.status, old.error_code = "running", None
-                        old.attempt += 1
-                        old.started_at, old.finished_at = now_ms(), None
-                        old.provider, old.model = self.provider.id, self.provider.model
-                    db.flush()
-                    attempt, messages = old.attempt, old.messages
-            except IntegrityError as exc:
-                raise ServiceError(409, "request_conflict") from exc
+            attempt, messages, completed = self.reserve(
+                owner,
+                conversation_id,
+                request_id,
+                content,
+                as_of=as_of,
+                use_memory=use_memory,
+                use_documents=use_documents,
+            )
+            if completed is not None:
+                return completed
             try:
                 completion = self.provider.complete(messages)
             except Exception as exc:
@@ -308,6 +266,136 @@ class ChatService:
                 return public_request(row, db.get(RetrievalTrace, (owner, request_id)))
         finally:
             self.capacity.release()
+
+    def reserve(
+        self,
+        owner,
+        conversation_id,
+        request_id,
+        content,
+        *,
+        as_of=None,
+        use_memory=True,
+        use_documents=False,
+        register=None,
+    ):
+        """Reserve a frozen attempt under already-acquired process admission."""
+        fingerprint = request_fingerprint(content, as_of, use_memory, use_documents)
+        # Validate private identity before embedding, outside the reservation
+        # transaction. Failed/running retries never refresh their evidence.
+        prepared = None
+        with self.sessions() as db:
+            conversation = db.scalar(
+                select(Conversation).where(
+                    Conversation.id == conversation_id, Conversation.owner_id == owner
+                )
+            )
+            if conversation is None:
+                raise ServiceError(404, "conversation_not_found")
+            retry = db.get(Request, (owner, request_id))
+            plan = plan_query(
+                content,
+                as_of,
+                enabled=use_memory and conversation.prompt_version in RETRIEVAL_PROMPT_VERSIONS,
+            )
+        if retry is None:
+            prepared = self.semantic.prepare(
+                content,
+                admitted=True,
+                enabled=plan["enabled"] and plan["time_mode"] != "needs_date",
+            )
+        try:
+            with self.sessions.begin() as db:
+                conversation = db.scalar(
+                    select(Conversation)
+                    .where(Conversation.id == conversation_id, Conversation.owner_id == owner)
+                    .with_for_update()
+                )
+                if conversation is None:
+                    raise ServiceError(404, "conversation_not_found")
+                old = db.get(Request, (owner, request_id))
+                if old:
+                    self._same(old, conversation_id, fingerprint)
+                    if old.status == "completed":
+                        return (
+                            None,
+                            None,
+                            public_request(old, db.get(RetrievalTrace, (owner, request_id))),
+                        )
+                    if old.status == "running":
+                        raise ServiceError(409, "request_in_progress")
+                    if old.base_revision != conversation.revision:
+                        raise ServiceError(409, "retry_history_changed")
+                active = db.scalar(
+                    select(Request.id).where(
+                        Request.owner_id == owner,
+                        Request.conversation_id == conversation_id,
+                        Request.status == "running",
+                    )
+                )
+                if active:
+                    raise ServiceError(409, "conversation_busy")
+                if old is None:
+                    expression = self.expression.reserve_snapshot(db, conversation, request_id)
+                    learning = (
+                        self.learning.reserve_snapshot(
+                            db,
+                            conversation,
+                            content,
+                            expression,
+                            as_of,
+                            use_memory,
+                        )
+                        if self.learning
+                        else None
+                    )
+                    context, retrieval = self._context(
+                        db,
+                        conversation,
+                        content,
+                        as_of,
+                        use_memory,
+                        use_documents,
+                        prepared,
+                        expression,
+                        learning,
+                    )
+                    old = Request(
+                        owner_id=owner,
+                        id=request_id,
+                        conversation_id=conversation_id,
+                        content_hash=fingerprint,
+                        status="running",
+                        base_revision=conversation.revision,
+                        messages=context,
+                        expression_snapshot=expression,
+                        learning_snapshot=learning,
+                        provider=self.provider.id,
+                        model=self.provider.model,
+                    )
+                    db.add(old)
+                    db.flush()
+                    db.add(
+                        RetrievalTrace(
+                            owner_id=owner,
+                            request_id=request_id,
+                            conversation_id=conversation_id,
+                            **{key: value for key, value in retrieval.items()},
+                        )
+                    )
+                    record_chat_event(db, conversation, request_id, "user", content)
+                else:
+                    old.status, old.error_code = "running", None
+                    old.attempt += 1
+                    old.started_at, old.finished_at = now_ms(), None
+                    old.provider, old.model = self.provider.id, self.provider.model
+                db.flush()
+                attempt, messages = old.attempt, old.messages
+                if register is not None:
+                    register(db, old)
+        except IntegrityError as exc:
+            raise ServiceError(409, "request_conflict") from exc
+        return attempt, messages, None
 
     def upgrade_prompt(self, owner, conversation_id):
         with self.sessions.begin() as db:

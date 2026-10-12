@@ -30,11 +30,13 @@ from ada.admin_contracts import (
 from ada.agent_models import AgentRun
 from ada.consolidation_models import ConsolidationJob
 from ada.contracts import ErrorOutput, ValidationErrorOutput
+from ada.learning_models import LearningReceipt
 from ada.memory import Timestamp
 from ada.models import AdminAudit, AdminGrant, Conversation, Request, RetrievalTrace, now_ms
 from ada.proposal_models import MemoryProposal
 from ada.providers import OllamaProvider
 from ada.schema import SCHEMA_HEAD
+from ada.stream_models import StreamAttempt
 
 DAY_MS = 24 * 60 * 60 * 1000
 _probe_logging = threading.local()
@@ -64,6 +66,8 @@ ERROR_CODES = frozenset(
         "interrupted",
         "conversation_changed",
         "provider_error",
+        "request_cancelled",
+        "response_too_large",
     }
 )
 
@@ -204,6 +208,27 @@ def request_metadata(row, timestamp):
     if item["error_code"] is not None and item["error_code"] not in ERROR_CODES:
         item["error_code"] = "unknown_error"
     return item
+
+
+def stream_metadata(db, owner, request_id, attempt):
+    row = (
+        db.execute(
+            select(
+                StreamAttempt.state,
+                StreamAttempt.sequence,
+                StreamAttempt.replay_after,
+                StreamAttempt.created_at,
+                StreamAttempt.finished_at,
+            ).where(
+                StreamAttempt.owner_id == owner,
+                StreamAttempt.request_id == request_id,
+                StreamAttempt.attempt == attempt,
+            )
+        )
+        .mappings()
+        .first()
+    )
+    return dict(row) if row else None
 
 
 def retrieval_summary(db, owner, request_id):
@@ -392,7 +417,8 @@ def admin_router(monitor, current_user):
             if row is None:
                 raise HTTPException(404, "request_not_found")
             return request_metadata(row, now_ms()) | {
-                "retrieval": retrieval_summary(db, str(owner_id), str(request_id))
+                "retrieval": retrieval_summary(db, str(owner_id), str(request_id)),
+                "stream": stream_metadata(db, str(owner_id), str(request_id), row["attempt"]),
             }
 
     @router.get("/providers", response_model=AdminProvidersOutput, responses=failures)
@@ -460,6 +486,22 @@ def admin_router(monitor, current_user):
                     state: counts.get(state, 0)
                     for state in ("running", "pending_approval", "completed", "failed", "unknown")
                 }
+            learning_counts = None
+            if version == SCHEMA_HEAD:
+                action = LearningReceipt.result["action"].as_string().label("action")
+                counts = dict(
+                    db.execute(
+                        select(action, func.count())
+                        .where(
+                            LearningReceipt.created_at >= start,
+                            LearningReceipt.created_at <= timestamp,
+                        )
+                        .group_by("action")
+                    ).all()
+                )
+                learning_counts = {
+                    key: counts.get(key, 0) for key in ("config", "observe", "review", "reset")
+                }
             job_counts, job_rows = None, None
             if version == SCHEMA_HEAD:
                 counts = dict(
@@ -516,6 +558,7 @@ def admin_router(monitor, current_user):
             "updated_at": timestamp,
             "requests": {r["status"]: r["count"] for r in rows},
             "memory_proposal_counts": proposal_counts,
+            "interaction_learning_counts": learning_counts,
             "agent_run_counts": agent_counts,
             "consolidation_job_counts": job_counts,
             "consolidation_jobs": job_rows,

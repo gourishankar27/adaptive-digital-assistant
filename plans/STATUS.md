@@ -1,6 +1,6 @@
 # Phase status
 
-Recorded 2026-10-11 UTC (2026-10-10 in America/Phoenix). Update after implementation and verification.
+Recorded 2026-10-12 UTC (2026-10-11 in America/Phoenix). Update after implementation and verification.
 “Planned” means a specification exists, not that code or a working UI exists.
 
 | Phase | Status | Evidence / next gate |
@@ -18,9 +18,9 @@ Recorded 2026-10-11 UTC (2026-10-10 in America/Phoenix). Update after implementa
 | 11 | Implemented; cold-launch and target verification remain | Additive 0008, bounded selected-source suggestions, exact reviewed revisions, immutable endorsements/support, same-key receipts and encrypted Android inbox. Backend/Ruff/web/evaluation checks, 145 Android unit tests, 26 emulator tests and ten force-stop stages passed. The strict cold-launch gate failed. Application 0008/physical-phone/HTTPS/representative quality remain. |
 | 12 | Checkpoints implemented; local verification passed | Read-only calculator/memory/source registry, separate bounded native protocol, exact approvals/fenced durable receipts, Android encrypted v6 recovery and admin state counts only. Final PostgreSQL/SQLite 440 passed/18 documented skips; Android 155 units, focused emulator HTTP/force-stop/cold launch; web 53 units/six PG Chromium tests; three real qwen3.8:27b tool flows. Application 0009 installation, S24 FE/Android 16, HTTPS/manual accessibility/resource checks remain. No later phase or deployment. |
 | 13 | Implemented; local gates passed; target verification pending | Head 0010, exact source-linked generated episodes, bounded leased/fenced summary/pending-proposal/lexical jobs, private navigation snapshots, Android v7 history/recovery and admin metadata. PostgreSQL/SQLite 516 passed/19 expected skips; 164 Android units and emulator HTTP/restart/cold launch; 54 web units/six PostgreSQL Chromium checks; four real native summary cases. Application installation, physical S24 FE/Android 16, HTTPS/accessibility/load and broader summary quality remain. Stop at Phase 13; no deployment. |
-| 14 | Planned | Phase 07; explicit preference and bounded session-state contract. |
-| 15 | Planned | Phases 11/13/14; consent and provenance for learning. |
-| 16 | Planned | Phase 04; stream/reconnect/cancel contract; Phase 06 for monitoring. |
+| 14 | Implemented; local exit gates passed; target verification pending | Head 0011, explicit account/scope/profile/conversation preferences, immutable exact receipts, opt-in bounded session tone and frozen request expression. Full PostgreSQL 18/SQLite 562 passed/21 skips; final affected 74 passed/3 skips; Android 174 units and emulator HTTP/force-stop/cold launch; web 54 units/six PostgreSQL Chromium cases. Intended installation, S24 FE/Android 16, HTTPS/accessibility and native-model wording/performance remain. No Phase 15 or deployment. |
+| 15 | Implemented; local verification passed; target verification pending | Head 0012, opt-in selected-interaction observations, independent evidence/review, scoped learned defaults and bounded source-linked continuity. Full PostgreSQL/SQLite 587 passed/22 skips; final affected 172 passed/6 skips; Android 186 units and real HTTP review/recovery/source-card flows; web 54 units/six PostgreSQL Chromium cases. Intended installation, physical S24 FE/Android 16, HTTPS/accessibility, representative preference accuracy, native-model wording and retention policy remain. No later phase or deployment. |
+| 16 | Implemented; local verification passed; target installation/device checks remain | Head 0013, durable owned stream/checkpoint/SSE, exact-attempt Stop and fenced terminal publication; Android 0.16.0-streaming and admin metadata. Full PostgreSQL/SQLite 631 passed/23 skips, final affected 92 passed/2 skips plus two real TCP slow-observer checks; Android 194 units, portrait/compact HTTP UI and force-stop/cold launch; web 55 units/six PG Chromium cases; real Ollama completion/Stop/legacy follow-up. Application 0005 installation to 0013, S24 FE/Android16, HTTPS/manual accessibility/load and retention policy remain. No later phase or deployment. |
 | 17 | Planned | Phases 04/16; explicit audio/transcript boundaries. |
 | 18 | Planned | Phases 05/06 and installed feature inventory; recovery/deletion/device credentials. |
 | 19 | Conditional plan | Phases 12/18 plus measured device or selected integration requirements. |
@@ -31,12 +31,12 @@ chat MVP; target-phone/release verification remains distinct from local checks.
 Phase 05 now supplies server admin authorization and monitoring metadata.
 Phase 06 now supplies the read-only web dashboard. Phase 07 now supplies Android
 explicit memory and new static personality profiles. Phase 08 now supplies bounded
-text/Markdown ingestion and imported document retrieval. Later feature phases
-remain planned. The separately requested admin repair installed 0004 and an exact
+text/Markdown ingestion and imported document retrieval. Phase 16 adds durable
+streaming and explicit Stop; Phases 17–19 remain planned. The separately requested admin repair installed 0004 and an exact
 account grant. At the Phase 08 boundary, application migration 0005 was pending.
 The final Phase 09 read-only check observed application head 0005 and one active
 grant for the selected account; Phase 09 has not migrated it. Current source needs
-0010 before operational use. Phase 09 supplies explicit scoped identities and
+0013 before operational use. Phase 09 supplies explicit scoped identities and
 the Android review/editor. Phase 10 supplies optional exact hybrid retrieval,
 deliberately disabled pending real-model measurements. Phase 11 adds explicit
 selected-source proposals/review, while automatic extraction remains off. No deployment was performed.
@@ -1358,3 +1358,331 @@ as trailing whitespace and failed; no repository-wide newline rewrite was made.
 The normal configured check remains green. Final web contract/type/lint checks
 passed after the expanded browser assertions. Device inventory is empty after
 stopping the owned emulator. Functional and compatibility gates above are final.
+
+
+## Phase 14 — final implementation and local verification — 2026-10-11 20:38 UTC
+
+Time displayed locally: 13:38 America/Phoenix. Base `4df9a72` with a clean initial
+working tree; this working tree implements only Phase 14. Required/root/scoped
+instructions, source, OpenAPI, migration history and test baseline were inspected
+first. Phase 07 prerequisites are present; its target-phone checks remain distinct.
+
+Implemented: migration **0011**, explicit owner-only account/scope/profile/
+conversation preferences and precedence, immutable exact reviewed receipts,
+frozen default inheritance/source receipt maps and an explicit future-reply
+conversation update. Opt-in session tone has native integer ranges, one reviewed
+signal per completed turn, +/-10 accepted changes, deterministic five-point decay,
+30-minute idle/two-hour total expiry, clock-rollback guards and disable/reset.
+Source request/binding/session checks reject stale/foreign signals; malformed
+permission/truth/tool fields never write state. No normal model text is parsed into
+state, automatic mood classifier or Phase 15 learning pipeline was added.
+
+Expression-v1 uses a fixed 800-byte prompt allowance within existing budgets.
+Saved v3/v4 system prompts, personality snapshots, factual filters/ranking, evidence,
+tool policy and chat fingerprints remain unchanged. Failed/completed retries freeze
+expression/messages/citations. Android 0.14.0-expression adds scoped Settings and
+Keystore-encrypted exact journal v8 with v1–v7 compatibility and GET-only restore.
+The admin app stays read-only/private-input-free. Architecture/policy/compatibility
+and bounded storage decisions are documented; no new dependencies were added.
+
+Checks actually run (earlier failures retained as history):
+
+- Baseline: configured PostgreSQL helper failed because application port **5433**
+  was unavailable. SQLite **290 passed/245 skipped**, **174.17 s**; Ruff lint/format
+  clean, **115 files**. A task-owned PostgreSQL **18.6** instance on loopback port
+  55414 and dedicated `ada_phase2_test` then ran the unmodified collected baseline
+  (new invariant file explicitly excluded): **516 passed/19 skips**, **396.99 s**.
+  New invariant first failed before API wiring: **1 failed/32 deselected**. Android
+  baseline unit task was forced fresh; existing XML confirms 164 cases. Web baseline
+  contract/type checks and **54 units** passed (**23.38 s**).
+- First new backend gate **33 passed/1 SQLite concurrency skip**, **25.45 s**.
+  Intermediate affected gate **84 passed/4 failed/3 skipped** (**75.36 s**): export
+  needed regeneration, and a historical migration test queried the new nullable
+  request column while deliberately downgraded. Replay is now checked after its
+  populated upgrade. Expanded new tests initially **44 passed/2 failed/2 skips**
+  (**33.77 s**) due to a missing test import, corrected. Initial Ruff one-line
+  test/service style errors were formatted; no failing lint remains.
+- Full changed PostgreSQL 18/SQLite suite: **562 passed/21 skipped**, **508.94 s**.
+  Covers real populated migrations/Alembic check, native ownership/range constraints,
+  CAS/in-flight concurrency, rollback, lease/review/proposal/tool history and old
+  source/request/prompt replay. Skips: **13 SQLite locking variants** with executed
+  PostgreSQL counterparts, **6 opt-in prior native-tool probes** and **2 opt-in
+  Ollama health variants**. Existing Starlette/httpx deprecation remains.
+- Subsequent final clock-rollback/provenance/actual HTTP-fixture refinements were
+  checked with **74 passed/3 expected SQLite locking skips**, **76.71 s**. A prior
+  final affected run was **72 passed/3 skips**, **72.51 s**, before the two clock
+  cases. Do not infer a later full-suite count from these extra cases.
+- Final Ruff lint/format **121 Python files** clean, compileall and normal Git
+  whitespace check passed (ordinary Windows CRLF notices only). OpenAPI is
+  **75 paths/105 schemas**; all **69 old path operations and 94 old schema required/
+  property shapes** preserved, with three optional capabilities. Migration 0001–0010,
+  locks/wrappers and saved personality prompt source hashes remain unchanged.
+  **56 synthetic HTTP fixtures** include nine new expression cases. Current
+  capabilities/readiness and manifest were refreshed; all 45 other earlier fixture
+  bytes were restored, including their original Windows newlines. Fixture HTTP
+  export was **1 passed/1 unavailable-PG skip**, not a PG fixture claim.
+- Android first changed run: **164 cases/3 obsolete v7-expectation failures**.
+  Next test compilation found a nonexistent fake base, corrected to the existing
+  injected test-adapter pattern. Final XML: **174 tests/0 failures/0 skips**, lint
+  **0 errors/14 existing dependency advisories**, debug/test APK builds passed;
+  reviewed gate **19 s**, **80 tasks, 17 executed/63 up-to-date**. v7/v6 ciphertext,
+  identity rotation/switch, save-before-POST, loss/restart GET-only receipt recovery,
+  malformed fields, legacy capability/range decoding and late-result fencing pass.
+- Actual emulator HTTP: **5 tests passed** (expression controls plus four existing
+  Memory UI checks), **two force-stop stages** restored the original committed
+  preference receipt, and strict cold launch **Status ok**. Initial portrait gate
+  **51 s**, compact **900x500/240 dpi/1.5x text** gate **47 s**, final reviewed
+  portrait gate **48 s**, all on Medium_Phone_API_37.0 / Android 17. Compact geometry
+  was restored. The entire old instrumented suite was not freshly rerun.
+- Web clean `npm ci` reported **0 vulnerabilities**; contract generation/freshness,
+  typecheck, lint, **54 units** (**27.30 s**) and production build passed.
+  Actual isolated PostgreSQL/HTTP production-build Chromium regression:
+  **6 passed**, **22.8 s**. No private preference monitoring view was added.
+
+Remaining targets/skips: explicitly backed-up intended application installation of
+head **0011**. Its configured server remains unavailable (`OperationalError`);
+**0005 is the earlier observation, not a fresh successful read in this phase**.
+Existing PostgreSQL on port 5432 was untouched. Ollama metadata was unavailable
+(`ConnectError`), so **no native inference/wording-quality run occurred**; fixture
+checks establish protocol behavior, not model compliance or diagnosis accuracy.
+Physical **Samsung S24 FE/Android 16**, minimum API 26, release HTTPS/short-idle/
+network transitions, manual TalkBack/keyboard accessibility and representative
+native-model wording/resource/load remain pending. Release build/signing/installation,
+standalone old-checkout smoke and complete old instrumented-suite rerun were not
+performed. Populated fixture replay supplies compatibility evidence.
+
+No application migration, real account/role change, external message, classifier,
+semantic activation, automatic approval/deletion, later phase or deployment.
+Temporary data contain synthetic fixtures only; prior retained/blocked Phase 11–13
+storage was not cleaned or retried. Final task-owned resource/link audit follows.
+
+
+Final audit — 2026-10-11 20:43 UTC (13:43 Phoenix): 12 changed/new Markdown files
+passed UTF-8/local-link checks; Ruff/format 121 files, normal whitespace, web
+contract freshness/typecheck and protected history hashes passed. Restored legacy
+fixture bytes were rechecked by the final Android unit/lint/debug gate (3 s;
+53 tasks, 3 executed/50 up-to-date), XML still 174/0/0. Disposable schemas count
+was zero. Task-owned PostgreSQL stopped successfully; emulator stopped and no
+fixture HTTP/web/test-PostgreSQL listeners remained. The pre-existing PostgreSQL
+service was untouched. New ignored synthetic validation artifacts remain retained;
+no prior blocked cleanup was attempted. No local check failure remains. Stop at14.
+
+## Phase 15 — implementation and local verification — 2026-10-11 21:56 UTC
+
+Code: base `4df9a72` plus the existing uncommitted Phase 14 working tree and
+Phase 15 additions. Required/root/scoped instructions, source, current OpenAPI,
+migrations and tests were inspected first. Phases 11/13/14 exist in source;
+their installation/physical-device gates were not treated as completed. The
+pre-existing Phase 14 changes and validation evidence were preserved.
+
+Implemented: additive **0012**, owner/scope/time/source/version/purpose-bound
+InteractionObservations, confidence classes and configurable independent-evidence
+threshold. Only explicitly selected completed user interactions are annotated;
+there is no automatic extraction/classifier. Same-event retries, copied quotes,
+notes/imports and generated summaries cannot manufacture independent observations.
+Weak guesses expire and never count. Pending proposals never affect chat.
+
+Opt-in/pause/view/approve/reject/edit/off/reset use native ownership constraints,
+owner row locks, CAS revisions and durable same-key receipts. Approved lineage
+freezes contributing observation IDs/revision and stays inspectable after expiry
+or later evidence. Explicit account reuse carries wording enums/receipt IDs only;
+both source/destination scopes must be enrolled. Reset removes live derived state,
+stops new reuse and preserves minimal identifier audit. Immutable historical chat/
+request snapshots and original sources remain for replay; reset is not complete
+account erasure. No derived learning index/shared cache exists.
+
+The independent 1,024-byte learning overlay preserves v3/v4 baselines, frozen
+explicit expression settings and instruction precedence. Authorized episode
+continuity selects bounded complete original excerpts, retains uncertainty,
+omissions/original/generated trust and C citations, and never feeds generated
+summary text as recollection. Factual retrieval receives its budget first.
+Failed/completed retries retain selected policy/cards/messages after reset.
+No automatic factual promotion, emotion diagnosis or exclusive-dependence rule.
+
+Android **0.15.0-learning** adds capability-gated Settings consent, source/evidence,
+review/edit/reject/account choice/pause/disable/reset and exact C source cards.
+Keystore-encrypted **v9** journal preserves v1–v8 reads, saves exact mutations
+before POST and restores receipts using GET only; identity/scope changes and 401
+are fenced. Admin sees aggregate config/observe/review/reset counts only.
+
+Checks actually run (earlier failures retained as history):
+
+- Baseline Ruff lint/format **121 files**, Android **174 units** and web **54
+  units** passed. PostgreSQL 18.6/SQLite baseline **563 passed/1 failed/21 skips**,
+  **428.09 s**: the pre-existing hybrid evaluation fluctuated to recall 0.8571
+  against 1.0 before Phase 15 wiring. Its unchanged focused rerun was **3 passed**,
+  **4.23 s**; no benchmark fix or new Phase 15 failure is claimed.
+- New consent invariant failed before wiring (**1 failed/1 unavailable-PG skip/
+  6 deselected**). Initial learning gate **6 passed/2 failed** (nullable preference
+  JSON expectations); first affected gate **75 passed/2 failed/3 skips** (old
+  hardcoded schema head), corrected. Expanded learning **21 passed/1 SQLite
+  locking skip**. First full changed run **578 passed/7 failed/22 skips**,
+  **531.14 s** exposed a PostgreSQL JSON aggregate GROUP BY binding issue;
+  grouping by the selected alias fixed it. Focused admin/agent gate **29 passed/
+  2 skips**, **30.03 s**.
+- Full changed PostgreSQL/SQLite regression: **587 passed/22 skipped**,
+  **500.62 s**. Populated upgrades, guarded downgrade/upgrade/replay, Alembic
+  schema/native constraints, locking/concurrency, authorization, source trust,
+  prompt compatibility and prior feature regressions passed. Skips: **14 SQLite
+  locking variants** with executed PostgreSQL counterparts, **6 prior opt-in
+  native agent probes** and **2 opt-in Ollama-health variants**. Existing
+  Starlette/httpx deprecation remains.
+- Later reviewed-lineage, source-time, C mapping/omission and contract refinements
+  passed final affected **172 passed/6 skips**, **164.77 s**, across learning,
+  storage/evaluation, contracts, admin/agent monitoring, consolidation and
+  expression. Its skips are **4 SQLite locking variants** with PostgreSQL
+  counterparts and **2 Ollama-health opt-ins**. An earlier affected run was
+  **101 passed/3 skips**, **89.21 s**. Do not infer a later full-suite count.
+- Public synthetic evaluation **27 passed/1 SQLite locking skip**, **29.50 s**:
+  five cases, two database backends and thresholds 3/4 give **20 measured
+  eligibility decisions**, zero automatic promotions. Single explicit/copy/weak/
+  three-independent/four-independent cases distinguish threshold behavior.
+  This does not prove preference accuracy or an optimal real-world threshold.
+- Final Ruff lint/format **180 files** clean, compileall and repository-configured
+  Git whitespace check passed. Existing **75 path operations/105 schema shapes**
+  preserved; current OpenAPI **82 paths/118 schemas** adds seven learning paths
+  and optional capability/response/aggregate fields. **23 protected history,
+  prompt, lock/wrapper and later-plan files** unchanged. All **53 other previous
+  fixture payloads** preserved byte-for-byte. **68 synthetic fixtures** include
+  12 new learning cases; current capabilities/readiness/manifest refreshed.
+  Actual HTTP fixture export **1 passed/1 unavailable-PG skip**, **2.08 s**,
+  is SQLite evidence, not a PostgreSQL export claim.
+- Android final XML **186 tests/0 failures/0 skips**; lint **0 errors/14 existing
+  dependency advisories**, debug/test APK builds passed. Reviewed unit/lint/debug
+  gate **15 s**, **53 tasks (11 executed/42 up-to-date)**. Initial v8-tag/legacy
+  version expectations and fixture names were corrected; no unit failure remains.
+  Actual emulator HTTP portrait gate: **7 focused tests passed**, **53 s**, plus
+  **two actual force-stop stages** restoring the original reviewed receipt and
+  strict cold launch **Status ok**. The tests cover selected-source Settings
+  review/edit/reject/pause/reset and exact saved C source display, plus expression
+  and memory regressions. The full old instrumented suite was not freshly rerun.
+  Compact enlarged-text rerun results are recorded in the final audit below.
+- Web clean `npm ci` reported **0 vulnerabilities**; contract generation/freshness,
+  typecheck, lint, **54 units** (**23.92 s**) and production build passed.
+  Actual isolated PostgreSQL/HTTP production-build Chromium regression:
+  **6 passed**, **22.2 s**. Final contracts/type/lint checks passed again after
+  the final schema export. Admin gains no private profile/source-text access.
+
+Remaining targets/skips: backed-up intended application installation of **0012**.
+Fresh configured database inspection failed (`OperationalError`); **0005 remains
+an earlier observation**, not a fresh read. Ollama metadata failed (`ConnectError`),
+so no Phase 15 native inference/wording-quality run occurred. Representative
+consented preference/continuity accuracy, native-model language/resource/load,
+physical **Samsung S24 FE/Android 16**, minimum API 26, HTTPS/network transitions
+and manual TalkBack/keyboard checks remain. Emulator is API 37 / Android 17;
+test-only deterministic HTTP providers establish protocol/provenance behavior.
+Release signing/distribution and standalone old-checkout smoke were not run.
+Final account/backup/historical-snapshot retention policy remains unresolved and
+is disclosed in Settings/policy. Historical replay is tested, not deletion.
+
+No application migration, real account/role change, semantic activation, external
+message, later phase or deployment. Task resources contain synthetic fixtures;
+prior retained/blocked Phase 11–13 storage was not cleaned or retried.
+
+Final Phase 15 audit — 2026-10-11 21:57 UTC (14:57 Phoenix): compact
+**900x500/240 dpi/1.5x text** run passed **7 focused HTTP UI tests**, **51 s**,
+**two force-stop recovery stages** and strict cold launch **Status ok**. Initial
+offscreen assertion and subsequent child-scroll lookup failed; scrolling the
+Sources LazyColumn to its uncomposed quote before the child assertion resolved
+the test. Geometry/density/font were restored. **14 changed/new Markdown files**
+passed UTF-8/local-link checks; final contract/history/53-fixture-byte audit and
+normal Git whitespace check passed. Disposable PostgreSQL schemas count was zero;
+task-owned PostgreSQL and emulator stopped. No fixture HTTP/web/test-PostgreSQL
+listeners remained. The existing PostgreSQL service and prior retained/blocked
+storage were untouched. No unresolved local failure; target gates above remain.
+Stop at Phase 15.
+
+
+## Phase 16 — implementation and local verification — 2026-10-12 04:17 UTC
+
+Code: base `4df9a72` plus the preserved Phase 14/15 working tree and this Phase 16
+implementation. Required/root/scoped instructions, README/architecture/current
+state, OpenAPI/source/migrations and Python/Android/web baselines were inspected
+before stream wiring. Phase 04 chat/recovery and Phase 06 server-granted monitoring
+met the source prerequisites. Earlier installation/physical gates are retained;
+this implementation does not claim those were completed. Displayed local date is
+2026-10-11, America/Phoenix. Android **0.16.0-streaming**, versionCode **11**.
+
+Implemented checkpoints:
+
+- Additive **0013**, owned composite attempt/event foreign keys, monotonic durable
+  sequences, bounded provisional/checkpoint replay and guarded populated downgrade.
+  Migrations 0001–0012, personality prompts and dependency locks/wrappers unchanged.
+- Reused exact ChatService reservation, request UUID/options/fingerprint, frozen
+  prompt/retrieval/expression/learning/source mapping; legacy API/CLI unchanged.
+  Final response, assistant event/source, revision and terminal event commit once.
+- Bearer-header submit/status/SSE/cancel; idempotent exact-attempt cancellation
+  intent/receipt, completion-vs-cancel locking, delayed shutdown admission and late
+  worker fences. Cancelled maps to old **failed/request_cancelled**. Explicit retry
+  retains its snapshot and existing revision checks. Observer loss never cancels.
+- Bounded native Ollama NDJSON, UTF-8/frame checks, 64 KiB text, 256 retained events,
+  16-event batches/16 observers and shared generation admission. Retained attempts
+  are limited to 8/request and 1,000/owner. Quota rejection rolls back reservation.
+  Instance restart, failed terminal write, operator recovery and expiry fence
+  publication. No inference/observer connection spans an open DB transaction.
+- Android real authenticated OkHttp SSE, duplicate/gap/checkpoint handling,
+  provisional/incomplete display without early source cards, real Stop, bounded
+  reconnect/Retry-After, conversation/navigation/background detach and GET-only
+  same-request force-stop recovery. Existing encrypted journal stays **v9**.
+- Admin exposes only stream state/sequence/replay floor/creation/finish metadata;
+  no deltas, private text or cancellation control. Optional capabilities gate the
+  new client path; older capability payloads retain ordinary chat/polling.
+
+Actual checks and evidence:
+
+| Check | Result / provenance |
+| --- | --- |
+| Backend baseline, migrated SQLite + native PostgreSQL 18.6 | **601 passed, 2 failed, 22 skipped**, 535.78 s. Pre-existing SQLite admin 503 and hybrid recall 0.8571 vs 1.0; the same focused tests then **5 passed**, 10.70 s (reservation refactor had just landed). No unrelated fix is claimed. |
+| Baseline Ruff / Android / web | Ruff lint/format **129 files**; Android **186 units**, fresh 53 s run; web **54 units** and contract freshness passed. |
+| New streaming invariants | Initial auth/cancel red **1 failure/1 unavailable-PG skip**; first gate **5 passed/1 failed** exposed a mixed SQLite checkpoint read, fixed with snapshot transaction. Then **6 passed**, expanded **21/1 skip**, TCP **23/1 skip**, metadata/failure **27/1 skip**. |
+| Full changed backend | **631 passed, 23 skipped**, 539.09 s. This run precedes the final operator/quota/deadline defenses below. |
+| Final review invariants | Operator recovery/state mismatch and quota configuration red **4 failures**; follow-up **30 passed/2 failed/1 skip** had only a test assertion using the wrong error envelope, corrected to existing detail. Final-only deadline publication red **2 failures/2 passed**; fixed the finish-time fence. |
+| Final affected PostgreSQL/SQLite suite | **92 passed, 2 skipped**, 88.03 s: stream service/provider/TCP, contracts, foundation/legacy chat, admin and consolidation storage. Includes owner/request quota rollback, native cancel/completion race, delayed capacity, restart/stale publication and populated 0012 upgrade/check/replay/downgrade guards. |
+| Final slow-observer/commit TCP addition | **2 passed**, 10.08 s after the affected run; an unread SSE body does not block the small synthetic generation, final commit survives detach, batch stays 16 and terminal replay stays exact. This is functional coverage, not a saturated-network/load benchmark. |
+| Contract export / compatibility | Actual SQLite HTTP fixture export **1 passed/1 unavailable-PG skip**. OpenAPI **86 paths/122 schemas**; all 82 prior path operations and 118 prior schemas preserved except three optional additive fields. **Eight fixtures** added: 76 payloads plus manifest. **66** original JSON files unchanged; only capabilities/readiness/manifest updated. |
+| Final backend/static audit | Ruff lint/format **138 files**, compileall and whitespace passed. **22** protected hashes match: migrations 0001–0012, personality, later phases and locks/wrappers. **16** changed/new Markdown files passed UTF-8/local-link checks. A first audit allowed-list used the wrong admin schema name; corrected to AdminRequestDetailOutput before the successful audit. |
+| Android reviewed unit/lint/debug | **194 units, zero failures/errors/skips**, 19 s Gradle gate. Lint zero errors/14 existing advisories; debug/test APKs built. A new conversation-detach invariant failed before fixing observer transitions. |
+| Android emulator: portrait + compact | Explicit synthetic HTTP provider on API37/Android17 emulator: **five focused UI cases**, **two actual force-stop stages**, strict cold launch **Status ok**. Portrait instrumentation gate 53 s; compact **900x500/240 dpi/1.5x text** 51 s. Compact first run failed one offscreen label assertion; scrolling the actual list/child passed, without product layout changes. Geometry/density/font restored. |
+| Web frozen install / gates | Root npm ci encountered a Windows EPERM on a DLL held by the pre-existing user Vite process, after removing dependency files. Isolated same-lockfile npm ci **270 packages/zero vulnerabilities** succeeded. Missing workspace files restored; the matching locked DLL/existing files were not overwritten and user Vite stayed running. Isolated contracts/generation/type/lint/**55 units** (29.26 s)/production build passed; generated contract copied back and workspace freshness/type/lint passed. |
+| Web actual HTTP browser | **Six production-build Chromium cases passed**, 21.3 s, using disposable PostgreSQL/HTTP and isolated UI port5174. User's existing port5173 process was retained. Credentials were memory-only; no credentialed traces/screenshots. |
+| Native provider, separate from fixtures | Real **Ollama/qwen3.8:27b** against own migrated SQLite/ADA API: completed incremental reply, Stop -> cancelled/failed/request_cancelled, original cancel receipt replay, admission release and legacy non-streaming follow-up all passed. Final provider review run: completion first delta **17,281 ms**, total **18,703 ms**, 691 input/14 output tokens; Stop first delta **2,125 ms**, total **2,235 ms**, unknown token counts. Earlier native run: 16,547/18,485 ms (691/16 tokens) and Stop 2,172/2,265 ms. These are synthetic smoke timings, not quality/load or remote GPU-stop acknowledgement. |
+
+Intermediate checks did not count as success: one affected command named absent
+legacy test files and collected nothing; stale OpenAPI/fixture expectations caused
+**69 passed/2 failures/2 skips** before regeneration; the interrupted root web
+install left generation/type commands without their executables until repair.
+The existing Starlette/httpx warning, npm whatwg-encoding deprecation and lint
+advisories were recorded without upgrading pinned dependencies to suppress them.
+
+Skips: full backend **15 SQLite row-lock variants** with executed PostgreSQL
+counterparts, **six prior opt-in native agent probes**, **two opt-in Ollama-health
+cases**. Final affected skips are the SQLite cancellation race and consolidation
+locking copies; both PostgreSQL counterparts ran. Fixture export's PG copy had no
+PG URL in that export command; final PG contract checks ran later. Real Phase 16
+provider smoke is separate from the skipped older opt-in probes.
+
+Remaining installation/target verification: a fresh read-only check observed
+configured application head **0005**, while current source requires **0013**.
+No application migration/deployment was performed. Backed-up intended installation,
+physical Samsung S24 FE/Android16, minimum API26, HTTPS/mobile network interruption,
+manual TalkBack/accessibility, signed release, full old instrumentation suite,
+other browsers and representative concurrency/resource/slow-network measurements
+remain. Native smoke predates the final finish-time defensive fence; the final
+provider/legacy/lease tests cover that refinement. No native quality/remote GPU
+stop acknowledgement is claimed.
+
+Retention limit: 24-hour finished cursor access is **not timed deletion**. Private
+provisional/checkpoint text and bounded retained events/attempts persist; incomplete
+text stays outside completed assistant history/factual retrieval. Account/backups/
+historical erasure requires a separately selected policy. No voice, autonomous
+background tasks, real external tool effects or Phase17–19 implementation.
+See [the policy](../docs/STREAMING-AND-CANCELLATION.md). Stop at Phase16.
+
+Final Phase 16 audit — 2026-10-12 04:20 UTC (2026-10-11 21:20 Phoenix):
+Ruff lint/format138files,16UTF-8/local-link Markdown checks and whitespace passed
+after the final changes. OpenAPI/protected-history/fixture compatibility audit
+passed. Disposable PG schemas count zero; only the task-owned PG55414/emulator5556
+were stopped. No task fixture HTTP18763–18765 or isolated web5174 listeners remain.
+The pre-existing user Vite5173/PID636 and PostgreSQL5432 were retained. Prior blocked
+synthetic artifacts and new ignored validation evidence retained. No unresolved
+local check failure; intended installation and target/retention gates remain.

@@ -10,6 +10,7 @@ import json
 import os
 import re
 import tempfile
+import time
 from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4
@@ -34,10 +35,31 @@ class AndroidChatProvider(FakeProvider):
 
     def complete(self, messages):
         if any(
+            re.search(r'"label"\s*:\s*"C1"', message.get("content", "")) for message in messages
+        ):
+            return Completion("[FAKE provider] Synthetic continuity reference [C1].", self.model)
+        if any(
             re.search(r'"label"\s*:\s*"D1"', message.get("content", "")) for message in messages
         ):
             return Completion("[FAKE provider] Synthetic imported document reply [D1].", self.model)
         return Completion("[FAKE provider] Synthetic test reply [M1].", self.model)
+
+    def stream(self, messages, cancel):
+        if messages[-1]["content"].startswith("Synthetic streaming"):
+            text = ""
+            for _ in range(60):
+                if cancel.wait(0.1):
+                    time.sleep(
+                        0.3
+                    )  # Explicit delayed-shutdown fixture, never production inference.
+                    return
+                text += "synthetic "
+                yield "synthetic "
+            text += "reply."
+            yield "reply."
+            yield Completion(text, self.model, 10, 60)
+        else:
+            yield from super().stream(messages, cancel)
 
 
 class AndroidAgentProvider:

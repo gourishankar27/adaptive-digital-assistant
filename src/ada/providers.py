@@ -34,6 +34,14 @@ class FakeProvider:
     def complete(self, messages: list[dict]) -> Completion:
         return Completion("[FAKE provider] Received: " + messages[-1]["content"], self.model)
 
+    def stream(self, messages, cancel):
+        result = self.complete(messages)
+        for index in range(0, len(result.text), 16):
+            if cancel.is_set():
+                return
+            yield result.text[index : index + 16]
+        yield result
+
 
 class OllamaProvider:
     id = "ollama"

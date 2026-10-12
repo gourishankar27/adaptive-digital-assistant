@@ -1,0 +1,13 @@
+{
+  "target_kind": "conversation",
+  "target_id": "00000000-0000-0000-0000-000000000004",
+  "revision": 1,
+  "values": {
+    "verbosity": "concise",
+    "initiative": null,
+    "formality": null,
+    "humor": "none",
+    "cadence": null
+  },
+  "receipt_id": "00000000-0000-0000-0000-000000000010"
+}

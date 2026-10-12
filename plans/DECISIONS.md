@@ -273,3 +273,69 @@ any SQLite DDL. Android journal v7 retains old formats/keys; GET-only restoratio
 does not resubmit unknown delivery. Admin's newest-25 projection contains IDs,
 states and measured times, with no private source/output text. See
 [the implemented policy](../docs/EPISODES-AND-CONSOLIDATION.md).
+
+
+## Phase 14 — explicit expression overlay, frozen defaults and reviewed signals
+
+Baseline v4 stays current and v3 retrieval remains supported. A separately
+versioned ada-expression-v1 overlay is applied only to explicitly activated or
+newly inherited conversation bindings. This preserves saved personality/system
+prompts and old request fingerprints while permitting an audited future-reply
+update that conflicts with in-flight chat. Defaults never propagate behind
+history. Failed/completed retries retain the original nullable expression snapshot
+and exact messages. The policy reserves exactly 800 bytes within the current
+whole-prompt limit, so different style values cannot alter evidence allocation
+through their length; activation adds this documented fixed overhead.
+
+Explicit preference precedence is personality, account, scope, profile, then
+conversation. Exact source settings receipts are frozen per field. Dynamic tone
+is separately opt-in and is not a feeling, diagnosis, evidence confidence or
+permission. One native-bounded current session per owner/profile/conversation has
+limited reviewed changes, deterministic decay, 30-minute idle/two-hour total
+expiry and explicit disable/reset. Model text is never parsed automatically into
+state. Reviewed model vectors use a strict authenticated review contract; Android
+exposes explicit user-selected next-turn controls. No mood classifier or Phase 15
+learning pipeline is added. Receipts retain fixed reasons/request IDs, not raw
+psychological explanations. Android encrypted v8 retains v1–v7 and restores by
+GET only. See [the policy](../docs/INTERACTION-PREFERENCES-AND-AFFECT.md).
+
+## Phase 15 — selected evidence, reviewed defaults and exact-source continuity
+
+Use a separate learning-v1 policy over unchanged v3/v4 baselines. Opt-in scoped
+selected-source annotations, independent-interaction deduplication and explicit
+review create wording defaults only. The configurable three-interaction gate is
+conservative and evaluated on public synthetic HTTP cases; it is not proof or a
+claim of optimal real-world preference accuracy. No automatic classifier/provider
+pipeline is introduced. Explicit settings win; account reuse carries only enums
+and needs both scopes' consent. Source-linked continuity selects original excerpts
+through validated episodes, excluding generated summaries from ordinary chat.
+
+Reset deletes live observations/proposals/defaults and suppresses every derived
+reuse path; no learning index/cache exists. Minimal receipts keep keys, revision,
+decision and original contributing observation identifiers for audit, without
+quotes/values. Historical request snapshots remain immutable for existing retry/
+replay contracts. The UI discloses this distinction; account-wide erasure/backups
+and snapshot retention still require a selected policy. Android v9 encrypted
+recovery preserves v1–v8 and restores by GET. Admin exposes aggregates only. See
+[the implemented policy](../docs/INTERACTION-LEARNING-AND-CONTINUITY.md).
+
+## Phase 16 — durable checkpoint plus bounded bearer SSE
+
+Use additive 0013 attempt/event tables and reuse ChatService reservation rather
+than change old Request enums, fingerprints or snapshots. Ordinary chat is a
+separate streamable operation; old CLI/API and Phase 12 tool runs keep their
+contracts. Terminal publication and owned Stop share row-lock order. Intent first
+wins; delayed shutdown retains process admission. Instance/attempt fences and
+startup/status/operator reconciliation prevent abandoned or late publication.
+
+Observers are independent bearer-authenticated GETs with bounded replay and fresh
+principal checks. Android uses a real OkHttp callback/flow transport with one-frame
+buffer; leaving/backgrounding detaches only. Existing encrypted exact journal v9
+suffices for GET-only recovery, avoiding a storage-format upgrade. Only canonical
+terminal replies establish citations. Admin projects five metadata fields only.
+
+Count limits cap durable private partial data. The 24-hour cursor access window is
+not deletion; checkpoints/terminal history remain retained, and no account/backups
+erasure policy is implemented here. Local HTTP iterator shutdown is observable,
+remote Ollama GPU-stop acknowledgement is not. See
+[the policy](../docs/STREAMING-AND-CANCELLATION.md).

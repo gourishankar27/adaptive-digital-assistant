@@ -1,0 +1,13 @@
+{
+  "operation_id": "00000000-0000-0000-0000-000000000017",
+  "scope_id": "00000000-0000-0000-0000-000000000003",
+  "action": "observe",
+  "revision": 1,
+  "epoch": 0,
+  "observation_id": "00000000-0000-0000-0000-000000000018",
+  "proposal_id": "00000000-0000-0000-0000-000000000019",
+  "decision": null,
+  "created_at": 1791417600000,
+  "observation_ids": [],
+  "proposal_revision": 1
+}

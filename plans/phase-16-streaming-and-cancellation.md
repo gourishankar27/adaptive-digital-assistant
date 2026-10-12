@@ -1,6 +1,6 @@
 # Phase 16 — durable streaming and generation cancellation
 
-Status: planned. Prerequisite: Phase 04; Phase 06 for monitoring additions.
+Status: implemented; local verification passed; target installation/device checks remain. Prerequisite: Phase 04; Phase 06 for monitoring additions.
 This phase can be selected before higher-numbered memory/affect work. Apply
 STANDARDS and CODEX-WORKFLOW; preserve the non-streaming API/CLI.
 
@@ -71,3 +71,22 @@ Run Android/browser integration where relevant and real provider streaming/Stop
 smoke, clearly separated from fake streams. Exit with resumable exactly-once
 terminal publication and truthful cancellation behavior. No voice or background
 autonomous tasks are introduced as part of this phase.
+
+## Implemented checkpoint audit
+
+- [x] Phase 04 chat/recovery and Phase 06 server-enforced metadata prerequisites inspected.
+- [x] Existing source/OpenAPI/migrations and Python/Android/web baseline inspected before wiring.
+- [x] Additive 0013 owned attempts, bounded durable events/checkpoints, exact reservation reuse.
+- [x] Authenticated submit/SSE/status/cancel; sequenced attempt identities and expired cursor recovery.
+- [x] Frozen context/citations, exactly-once terminal response/event and compatible legacy cancellation.
+- [x] Native provider frames/backpressure, delayed Stop admission, races/fences/restart/revocation.
+- [x] Android actual bearer SSE, provisional text/Stop, GET-only restore and observer detach/reattach.
+- [x] Admin closed metadata projection and additive exported capabilities/contracts/fixtures.
+- [x] Disposable PostgreSQL/SQLite, Ruff, Android/browser integration and separate native smoke.
+- [x] Implemented limits/retention and actual checks/skips recorded in STATUS/WORKLOG.
+- [ ] Backed-up intended application installation, physical S24 FE/Android16 and HTTPS/manual accessibility.
+- [ ] Representative slow-network/load/native resource measurements and selected account/backup retention policy.
+
+See [the implemented policy](../docs/STREAMING-AND-CANCELLATION.md) and
+[STATUS](STATUS.md) for exact evidence. Local completion does not assert target
+installation or remote GPU-stop acknowledgement. No Phase 17–19 or deployment.

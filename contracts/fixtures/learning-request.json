@@ -1,0 +1,19 @@
+{
+  "request_id": "00000000-0000-0000-0000-000000000022",
+  "learning": {
+    "policy_version": "ada-learning-v1",
+    "scope_id": "00000000-0000-0000-0000-000000000003",
+    "epoch": 0,
+    "revision": 1,
+    "preferences": {
+      "verbosity": null,
+      "initiative": null,
+      "formality": null,
+      "humor": null,
+      "cadence": null
+    },
+    "receipts": {},
+    "continuity": [],
+    "continuity_reason": "disabled"
+  }
+}

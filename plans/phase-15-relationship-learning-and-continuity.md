@@ -1,6 +1,8 @@
 # Phase 15 — opt-in interaction learning and continuity
 
-Status: planned. Prerequisites: Phases 11, 13 and 14.
+Status: implemented; local checks and remaining targets recorded in STATUS/WORKLOG.
+Prerequisites: Phases 11, 13 and 14 are present in source; intended installation
+and physical-device/model quality gates remain separate.
 Apply STANDARDS and CODEX-WORKFLOW. Relationship state is per-user interaction
 preference history; it is not a substitute for knowledge scope or authorization.
 
@@ -59,3 +61,25 @@ continuity against source-linked cases with known omissions/conflicts.
 Exit with user-controlled, inspectable learned preferences and evidence-backed
 continuity. Record evaluation limits and unresolved retention requirements.
 No automatic factual promotion, emotion diagnosis or unreviewed permanent rules.
+
+## Implemented checkpoints and remaining targets
+
+- [x] Owner/scope/source/time/version/purpose observations with original trust;
+  selected completed user interactions only, no background classifier.
+- [x] Configurable independent-interaction gate, retry/copy deduplication,
+  tentative weak expiry and synthetic comparison of thresholds 3 and 4.
+- [x] Opt-in/pause/view/approve/reject/edit/reset, explicit account reuse choice,
+  reviewed source lineage and minimal durable same-key receipts.
+- [x] Explicit instruction/settings precedence, bounded exact episode-source
+  continuity, uncertainty/citations/omissions and frozen retries/replay.
+- [x] Android Settings/recovery and private-input-free admin operation counts.
+- [x] Populated migration/native constraints/concurrency, prompt/contract
+  compatibility and real HTTP client review/restart flows (see actual run details).
+- [ ] Intended backed-up application installation of 0012; physical Samsung S24 FE
+  / Android 16, HTTPS/network transitions and manual TalkBack/accessibility.
+- [ ] Representative consented preference accuracy/continuity quality, native-model
+  wording/resources and final account/backup/historical-snapshot retention policy.
+
+See [implemented policy](../docs/INTERACTION-LEARNING-AND-CONTINUITY.md). Reset
+deletes live derived learning; historical chat/request snapshots remain for exact
+replay and are explicitly disclosed. Later phase files remain planned.

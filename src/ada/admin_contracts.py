@@ -76,6 +76,15 @@ class AdminRequestOutput(Metadata):
 
 class AdminRequestDetailOutput(AdminRequestOutput):
     retrieval: RetrievalSummary
+    stream: "StreamMetadata | None" = None
+
+
+class StreamMetadata(Metadata):
+    state: Literal["running", "cancel_requested", "completed", "failed", "cancelled", "interrupted"]
+    sequence: int
+    replay_after: int
+    created_at: Timestamp
+    finished_at: Timestamp | None
 
 
 class AdminRequestsOutput(Metadata):
@@ -134,6 +143,9 @@ class AdminOverviewOutput(Metadata):
     consolidation_jobs: list["AdminJobMetadata"] | None = None
     agent_run_counts: AgentCounts | None = None
     memory_proposal_counts: dict[Literal["pending", "accepted", "rejected"], int] | None = None
+    interaction_learning_counts: (
+        dict[Literal["config", "observe", "review", "reset"], int] | None
+    ) = None
     window_hours: int
     created_from: Timestamp
     updated_at: Timestamp

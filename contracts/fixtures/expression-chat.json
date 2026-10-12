@@ -1,0 +1,15 @@
+{
+  "request_id": "00000000-0000-0000-0000-000000000012",
+  "conversation_id": "00000000-0000-0000-0000-000000000004",
+  "status": "completed",
+  "response": "Answer: Synthetic expression follow-up",
+  "error_code": null,
+  "attempt": 1,
+  "provider": "recording",
+  "model": "test-v1",
+  "input_tokens": 10,
+  "output_tokens": 5,
+  "citations": [],
+  "document_citations": [],
+  "citation_warnings": []
+}

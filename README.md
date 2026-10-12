@@ -49,7 +49,7 @@ index rebuild and exact semantic ranking alongside the original baseline.
 not establish real-model benefit. See
 [EMBEDDINGS-AND-HYBRID-RETRIEVAL.md](docs/EMBEDDINGS-AND-HYBRID-RETRIEVAL.md)
 for bounds, fallback, activation/evaluation and installation. Current source
-requires head 0010 after Phase 13; the application database was not migrated by these phases.
+requires head 0013 after Phase 16; the application database was not migrated by these phases.
 
 Phase 11 adds migration **0008**, selected-source model suggestions, a private
 Android review inbox and explicit accept/edit/reject receipts. Acceptance creates
@@ -270,3 +270,50 @@ factual evidence, saved prompts and completed replay remain unchanged. See
 [EPISODES-AND-CONSOLIDATION.md](docs/EPISODES-AND-CONSOLIDATION.md) for routes,
 bounds and evaluation. Application installation and physical-phone verification
 remain separate; no automatic approval, deletion or later phase is implemented.
+
+## Phase 14 interaction preferences and session tone
+
+Migration **0011** adds explicitly reviewed account/scope/profile/conversation
+preferences, immutable receipts and opt-in bounded session tone. New conversations
+freeze inherited defaults; changing an existing conversation requires an explicit
+audited update for future replies. Dynamic tone can be disabled/reset, decays and
+expires. Requests freeze the exact expression used, including provenance, so
+failed/completed retries preserve their original messages and evidence.
+
+Android Settings provides scoped preferences and encrypted v8 exact receipt
+recovery (v1–v7 readable). The separate `ada-expression-v1` policy preserves saved
+v3/v4 baselines, retrieval and permissions. No automatic mood classifier, learned
+relationship preference or psychological score is implemented. See
+[the expression policy](docs/INTERACTION-PREFERENCES-AND-AFFECT.md) and
+[actual checks](plans/STATUS.md). Intended application installation, physical-phone,
+HTTPS/accessibility and native-model wording checks remain separate. No deployment
+or later phase was performed.
+
+## Phase 15 reviewed interaction learning and continuity
+
+Migration **0012** adds scope-specific opt-in/pause/reset, selected-source
+interaction observations and revision-checked approve/edit/reject decisions.
+Three independent interactions are the configurable default review gate; a single
+exchange or weak guess cannot create an enduring rule. Explicit preferences win.
+Optional account reuse carries only wording enums into other opted-in scopes.
+
+Continuity selects bounded exact original excerpts through authorized episodes,
+with uncertainty and request-frozen C source cards. Generated summaries remain
+separate navigation. Android Settings provides evidence/review controls and
+encrypted v9 GET-only receipt recovery; admin gets aggregate operation counts only.
+Reset removes live learned state while preserving minimal audit and historical
+request replay. See [the Phase 15 policy](docs/INTERACTION-LEARNING-AND-CONTINUITY.md)
+and [actual checks and remaining targets](plans/STATUS.md). No automatic classifier,
+factual promotion, later phase or deployment is included.
+
+## Phase 16 streaming and Stop
+
+Migration **0013** adds owned durable attempts/events, authenticated SSE, GET
+checkpoints and an explicit same-attempt Stop receipt. Android **0.16.0-streaming**
+shows provisional replies, detaches observers on navigation/backgrounding and
+recovers the original request without resubmission. Completed history/citations
+publish once; cancellation maps to the existing `failed/request_cancelled`
+contract. Admin adds measured stream metadata only. Legacy API/CLI chat remains
+available. See [the stream policy](docs/STREAMING-AND-CANCELLATION.md) for races,
+capacity, limits, cursor expiry and retained private partial text. No application
+migration, voice, later phase or deployment is included.

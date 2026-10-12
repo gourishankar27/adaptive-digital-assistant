@@ -9,7 +9,16 @@ Phase 11 adds selected-source proposals and explicit review with new endorsement
 Phase 12 adds separately capability-gated read-only tools with exact approval and receipts.
 Phase 13 adds explicitly queued generated episodes, pending suggestions and scoped
 lexical rebuild jobs, with source inspection and GET-only encrypted job recovery.
-Streaming, cancellation, voice, external writes and automatic extraction remain later phases.
+Phase 14 adds explicitly scoped interaction preferences and opt-in bounded session
+expression, with encrypted v8 exact-key receipt recovery. Restore only reads;
+expression never changes permissions, evidence, factual retrieval or tool approval.
+Phase 15 adds scoped opt-in learning, explicit evidence/review/pause/reset and
+encrypted v9 exact recovery (v1–v8 readable). Learned defaults never authorize
+facts/tools/admin; C source cards retain original trust and request snapshots.
+Phase 16 adds authenticated incremental replies, owned explicit Stop and GET-only
+stream recovery. Detaching/backgrounding never implicitly cancels generation.
+Partial text is provisional and cannot construct citation cards or assistant history.
+Voice, external writes and automatic extraction remain later phases.
 
 - Production repositories inject AdaApi and use authenticated ADA HTTP only.
   Mock transports and fixture data belong under test/androidTest, never main.

@@ -8,6 +8,8 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.test.*
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.flow
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -52,6 +54,25 @@ private fun unsupportedChatApi(): AdaApi = java.lang.reflect.Proxy.newProxyInsta
 ) { _, method, _ -> error("Unexpected test call: ${method.name}") } as AdaApi
 
 private class ChatApiMock(val store: MemorySessionStore) : AdaApi by unsupportedChatApi() {
+    var streamSnapshot: StreamStatusDto? = null
+    val streamChannel = Channel<ApiResult<StreamEventDto>>(Channel.UNLIMITED)
+    var detached = 0
+    var streamPosts = 0
+    val stops = mutableListOf<Pair<UUID, Int>>()
+    override suspend fun submitStream(connection: ConnectionCredential, conversation: UUID, body: ChatInputDto): ApiResult<StreamStatusDto> {
+        assertEquals(body, store.journal!!.body); store.writes += "stream-post"; streamPosts++
+        val result = completed(body.request_id).copy(status = "running", response = null)
+        streamSnapshot = StreamStatusDto(body.request_id, conversation, result.attempt, true, "running", 1, 0, "", result)
+        return ApiResult.Success(streamSnapshot!!)
+    }
+    override suspend fun streamStatus(connection: ConnectionCredential, id: UUID): ApiResult<StreamStatusDto> = streamSnapshot?.let { ApiResult.Success(it) } ?: ApiResult.Failure(ApiFailure.NotFound)
+    override fun streamEvents(connection: ConnectionCredential, id: UUID, attempt: Int, after: Int) = flow {
+        try { for (event in streamChannel) emit(event) } finally { detached++ }
+    }
+    override suspend fun cancelGeneration(connection: ConnectionCredential, id: UUID, attempt: Int): ApiResult<CancelReceiptDto> {
+        stops += id to attempt
+        return ApiResult.Success(CancelReceiptDto(id, attempt, "requested", "running", 1))
+    }
     var user = owner
     var meCall: suspend () -> ApiResult<MeDto> = { ApiResult.Success(MeDto(user, "Synthetic account")) }
     var sendCall: suspend (ChatInputDto) -> ApiResult<RequestDto> = { body -> ApiResult.Success(completed(body.request_id)) }
@@ -111,13 +132,69 @@ private fun journal(identity: SessionIdentity) = PendingMessage(identity, conver
 class ChatViewModelTest {
     @Before fun setup() { Dispatchers.setMain(StandardTestDispatcher()) }
     @After fun cleanup() { Dispatchers.resetMain() }
-    private suspend fun TestScope.ready(store: MemorySessionStore = MemorySessionStore()): Triple<ChatViewModel, ChatApiMock, MemorySessionStore> {
+    private suspend fun TestScope.ready(store: MemorySessionStore = MemorySessionStore(), streaming: Boolean = false): Triple<ChatViewModel, ChatApiMock, MemorySessionStore> {
         val api = ChatApiMock(store)
+        if (streaming) api.features = api.features.copy(streaming = true, generation_cancellation = true, stream_protocol = "ada-stream-v1")
         val vm = ChatViewModel(api, store, true, pollDelaysMs = listOf(0, 1, 2))
         vm.connect("http://localhost:8000", "synthetic-test-token"); advanceUntilIdle()
         vm.openConversation(conversation.id); advanceUntilIdle()
         store.writes.clear()
         return Triple(vm, api, store)
+    }
+
+    @Test fun provisionalStreamingSavesBeforePostAndStopTargetsOriginalAttempt() = runTest {
+        val (vm, api, store) = ready(streaming = true)
+        vm.updateDraft("Synthetic streamed turn"); vm.send(); vm.send(); advanceUntilIdle()
+        val snapshot = api.streamSnapshot!!
+        val delta = StreamEventDto(snapshot.request_id, snapshot.attempt, 2, "delta", kotlinx.serialization.json.JsonObject(mapOf("text" to kotlinx.serialization.json.JsonPrimitive("Provisional [M"))), 1)
+        api.streamChannel.send(ApiResult.Success(delta)); api.streamChannel.send(ApiResult.Success(delta)); runCurrent()
+        assertEquals("Provisional [M", vm.state.value.stream!!.provisional)
+        assertTrue(vm.state.value.sources.isEmpty()); assertEquals(1, api.streamPosts)
+        assertEquals(listOf("journal", "stream-post"), store.writes)
+        vm.stopGeneration(); vm.stopGeneration(); runCurrent()
+        assertEquals(listOf(snapshot.request_id to snapshot.attempt), api.stops)
+        assertNotNull(store.journal)
+        vm.observeForeground(false); runCurrent(); assertEquals(1, api.detached)
+        assertEquals(1, api.streamPosts); assertEquals(1, api.stops.size)
+    }
+
+    @Test fun leavingChatDetachesAndReattachesWithoutResubmitOrCancel() = runTest {
+        val (vm, api, store) = ready(streaming = true)
+        vm.updateDraft("Synthetic observer turn"); vm.send(); advanceUntilIdle()
+        val reserved = store.journal!!
+        vm.navigate(ChatDestination.Settings); runCurrent()
+        assertEquals(1, api.detached); assertTrue(api.stops.isEmpty())
+        vm.navigate(ChatDestination.Chat); runCurrent()
+        assertEquals(reserved, store.journal); assertEquals(1, api.streamPosts)
+        vm.observeForeground(false); runCurrent()
+    }
+
+    @Test fun authoritativeTerminalReplacesProvisionalAndClearsOriginalJournal() = runTest {
+        val (vm, api, store) = ready(streaming = true)
+        vm.updateDraft("Synthetic complete turn"); vm.send(); advanceUntilIdle()
+        val snapshot = api.streamSnapshot!!
+        api.streamSnapshot = snapshot.copy(stream_state = "completed", sequence = 2, result = completed(snapshot.request_id))
+        api.streamChannel.send(ApiResult.Success(StreamEventDto(snapshot.request_id, snapshot.attempt, 2, "completed", kotlinx.serialization.json.JsonObject(mapOf("legacy_status" to kotlinx.serialization.json.JsonPrimitive("completed"))), 1)))
+        api.streamChannel.close(); advanceUntilIdle()
+        assertNull(store.journal); assertNull(vm.state.value.pending); assertNull(vm.state.value.stream)
+        assertEquals(completed(snapshot.request_id), vm.state.value.sources[snapshot.request_id]); assertEquals(1, api.streamPosts)
+    }
+
+    @Test fun switchingConversationDetachesUntilOriginalConversationReturns() = runTest {
+        val (vm, api, store) = ready(streaming = true)
+        vm.updateDraft("Synthetic detached conversation"); vm.send(); advanceUntilIdle()
+        val reserved = store.journal!!
+        val other = conversation.copy(id = UUID.randomUUID())
+        api.conversationRow = other
+        vm.openConversation(other.id); runCurrent()
+        assertEquals(1, api.detached)
+        assertFalse(vm.state.value.streamConnected)
+        assertEquals(reserved, store.journal); assertTrue(api.stops.isEmpty())
+        api.conversationRow = conversation
+        vm.openConversation(conversation.id); runCurrent()
+        assertTrue(vm.state.value.streamConnected)
+        assertEquals(1, api.streamPosts)
+        vm.observeForeground(false); runCurrent()
     }
 
     @Test fun durableJournalPrecedesPostAndDoubleTapCannotAllocateSecondTurn() = runTest {

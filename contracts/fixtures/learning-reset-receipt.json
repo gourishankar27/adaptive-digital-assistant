@@ -1,0 +1,13 @@
+{
+  "operation_id": "00000000-0000-0000-0000-000000000026",
+  "scope_id": "00000000-0000-0000-0000-000000000003",
+  "action": "reset",
+  "revision": 2,
+  "epoch": 1,
+  "observation_id": null,
+  "proposal_id": null,
+  "decision": null,
+  "created_at": 1791417600000,
+  "observation_ids": [],
+  "proposal_revision": null
+}

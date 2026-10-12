@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     memory_bytes: int = Field(default=2200, ge=0, le=12000)
     retrieval_limit: int = Field(default=8, ge=1, le=16)
     consolidation_worker_enabled: bool = True
+    learning_threshold: int = Field(default=3, ge=3, le=10)
     embedding_enabled: bool = False
     embedding_model: Literal["embeddinggemma:300m"] = "embeddinggemma:300m"
     embedding_digest: str = Field(

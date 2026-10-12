@@ -14,6 +14,7 @@ data class PendingState(
     val response: RequestDto? = null, val failure: ApiFailure? = null, val code: String? = null,
 )
 data class ChatState(
+    val stream: StreamStatusDto? = null, val streamConnected: Boolean = false, val stopping: Boolean = false,
     val destination: ChatDestination = ChatDestination.Connect,
     val account: AccountSummary? = null, val capabilities: CapabilitiesDto? = null,
     val connecting: Boolean = false,

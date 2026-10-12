@@ -1,0 +1,59 @@
+{
+  "operation_id": "00000000-0000-0000-0000-000000000014",
+  "action": "reset",
+  "target_kind": "conversation",
+  "target_id": "00000000-0000-0000-0000-000000000004",
+  "created_at": 1791417600000,
+  "reason": "user_reset",
+  "source_request_id": null,
+  "preference": null,
+  "expression": {
+    "policy_version": "ada-expression-v1",
+    "conversation_id": "00000000-0000-0000-0000-000000000004",
+    "profile_id": "00000000-0000-0000-0000-000000000002",
+    "scope_id": "00000000-0000-0000-0000-000000000003",
+    "active": true,
+    "binding_revision": 1,
+    "preferences": {
+      "verbosity": "concise",
+      "initiative": "respond",
+      "formality": "neutral",
+      "humor": "none",
+      "cadence": "direct"
+    },
+    "origins": {
+      "verbosity": "conversation",
+      "initiative": "personality",
+      "formality": "personality",
+      "humor": "conversation",
+      "cadence": "personality"
+    },
+    "source_receipts": {
+      "verbosity": "00000000-0000-0000-0000-000000000010",
+      "initiative": null,
+      "formality": null,
+      "humor": "00000000-0000-0000-0000-000000000010",
+      "cadence": null
+    },
+    "dynamic_enabled": true,
+    "session_id": "00000000-0000-0000-0000-000000000015",
+    "turn": 0,
+    "vector": {
+      "warmth": 60,
+      "focus": 60,
+      "energy": 50,
+      "playfulness": 20,
+      "concern": 30
+    },
+    "defaults": {
+      "warmth": 60,
+      "focus": 60,
+      "energy": 50,
+      "playfulness": 20,
+      "concern": 30
+    },
+    "expires_at": 1791417600000,
+    "expired": false,
+    "last_request_id": null
+  }
+}

@@ -120,6 +120,8 @@ class Request(Base):
     attempt: Mapped[int] = mapped_column(Integer, default=1)
     base_revision: Mapped[int] = mapped_column(Integer)
     messages: Mapped[list] = mapped_column(JSON)
+    expression_snapshot: Mapped[dict | None] = mapped_column(JSON(none_as_null=True))
+    learning_snapshot: Mapped[dict | None] = mapped_column(JSON(none_as_null=True))
     provider: Mapped[str] = mapped_column(String(40))
     model: Mapped[str] = mapped_column(String(120))
     response: Mapped[str | None] = mapped_column(Text)

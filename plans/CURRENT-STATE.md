@@ -1,6 +1,6 @@
 # Current ADA baseline
 
-Recorded 2026-10-11 UTC (2026-10-11 in America/Phoenix). Read current source and tests before implementing a phase;
+Recorded 2026-10-12 UTC (2026-10-11 in America/Phoenix). Read current source and tests before implementing a phase;
 this file is a planning snapshot, not a permanent claim about the repository.
 
 ## Implemented
@@ -16,7 +16,7 @@ facts/preferences/decisions and transactional valid-time corrections.
 Phase 2 added full-text/subject retrieval, a whole-prompt byte budget, exact
 evidence checks, source labels and durable per-request retrieval snapshots.
 
-Migrations 0001–0009 remain unchanged by Phase 13; current head is 0010. Baseline v4 is
+Migrations 0001–0012 remain unchanged by Phase 16; current head is 0013. Baseline v4 is
 current for new conversations. v3 retains claim retrieval; earlier conversations
 retain their saved prompt until explicitly upgraded.
 
@@ -39,10 +39,13 @@ they must not be reconstructed from today's claim list. Conversation/event reads
 and the other client endpoints now have explicit output schemas exported to
 OpenAPI, including sanitized errors and retrieval details.
 
-Chat returns a complete response. There is no streaming, cancellation endpoint,
+Legacy chat returns a complete response. Phase 16 adds authenticated durable
+streaming/checkpoint recovery and explicit generation cancellation. There is no
 automatic memory extraction, PDF/OCR, external write executor,
 voice interface or local mobile model. Static warmth/style
-configuration exists; dynamic affect and learned relationship preferences do not.
+configuration exists. Phase 14 adds opt-in bounded session expression; automatic
+affect inference remains unimplemented. Phase 15 adds opted-in reviewed interaction
+preferences and exact source-linked continuity, with reset and retained replay.
 Phase 08 implements bounded text/Markdown uploads and imported excerpt retrieval,
 with separate document citations, exact versions and explicit request opt-in.
 Phase 10 implements optional exact semantic retrieval; it is disabled by default
@@ -284,3 +287,59 @@ the configured Ollama model and a documented public synthetic corpus; quality
 limits and actual checks are in STATUS/WORKLOG. Installation into the configured
 application database and Samsung S24 FE/Android 16 checks remain separate tasks.
 See [the Phase 13 policy](../docs/EPISODES-AND-CONSOLIDATION.md).
+
+## Phase 14 implemented boundary
+
+Head 0011 adds owner-target preferences, immutable reviewed receipts, frozen
+conversation bindings, one bounded current session per conversation and nullable
+historical request expression snapshots. Explicit precedence is personality,
+account, scope, profile, then conversation. Defaults never propagate behind
+existing conversation history. A separate expression-v1 policy preserves saved
+v3/v4 prompts and factual retrieval; retries preserve exact state/messages.
+
+Tone is disabled by default, strictly typed, limited per turn, decaying and
+expiring. Reviewed model vectors remain proposals without explicit authenticated
+acceptance. No normal model text is parsed into state and no mood classifier or
+learning was added. Android 0.14.0-expression (versionCode 9) adds scoped Settings
+and encrypted v8 GET-only receipt recovery with v1–v7 compatibility. Installation
+into the application database is unperformed; its configured server was
+unavailable during this phase. Native PostgreSQL 18 disposable validation is
+distinct from earlier PostgreSQL 17/application evidence. See
+[policy](../docs/INTERACTION-PREFERENCES-AND-AFFECT.md), STATUS and WORKLOG.
+
+## Phase 15 implemented boundary
+
+Head 0012 adds scope consent, exact source-linked interaction observations,
+deduplicated tentative suggestions, explicit approve/edit/reject receipts,
+reviewed wording defaults and request-frozen learning/continuity snapshots.
+Explicit settings override learned defaults. Account reuse needs both scopes'
+consent and exports only allowlisted wording enums. Pause disables new learning
+and reuse; reset removes live derived state, including account reuse, while minimal
+audit and immutable historical request replay remain. Generated summaries and
+assistant text cannot become interaction evidence or factual authority.
+
+Android 0.15.0-learning (versionCode 10) provides Settings consent, evidence/review,
+pause/reset and encrypted v9 exact recovery with v1–v8 compatibility. Admin reports
+aggregate operation counts only. See
+[policy](../docs/INTERACTION-LEARNING-AND-CONTINUITY.md), STATUS and WORKLOG for
+actual SQLite/native PostgreSQL/HTTP/emulator/browser/evaluation evidence and
+pending intended installation, physical phone, HTTPS/accessibility and native-model
+quality/resource checks. No application migration, later phase or deployment.
+
+## Phase 16 implemented boundary
+
+Head 0013 adds ordinary-chat durable streaming/checkpoints/SSE and explicitly
+owned generation Stop. The original reservation, request UUID/options, frozen
+retrieval/expression/continuity and legacy running/completed/failed schema remain.
+Cancelled attempts are failed/request_cancelled and can be explicitly retried
+against their original snapshot subject to revision checks. Partial text never
+becomes a completed assistant event, factual evidence or source card.
+
+Android 0.16.0-streaming uses the real authenticated HTTP transport, detaches on
+navigation/conversation/background transitions and restores by GET under journal
+v9. Admin exposes measured metadata only. Native Ollama completion/Stop and legacy
+follow-up were measured separately from fake TCP/emulator fixtures. Local gates,
+actual skips and pending installation/physical verification are in STATUS/WORKLOG.
+The fresh application read still observes 0005; it was not migrated. One worker,
+count-bounded private stream retention and separate cursor expiry remain limits.
+See [the policy](../docs/STREAMING-AND-CANCELLATION.md). Stop at Phase 16.

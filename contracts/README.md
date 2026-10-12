@@ -14,7 +14,8 @@ request fingerprints and citation mappings are preserved. Semantic retrieval is
 disabled by default; see
 [EMBEDDINGS-AND-HYBRID-RETRIEVAL.md](../docs/EMBEDDINGS-AND-HYBRID-RETRIEVAL.md).
 Existing CLI/user clients
-use the same field names, statuses and retry fingerprints. Streaming, cancellation,
+use the same field names, statuses and retry fingerprints. Phase 16 adds optional
+durable streaming/Stop without changing legacy request enums.
 PDF/OCR, device inference and enrollment remain absent. The monitoring dashboard
 is implemented in Phase 06.
 
@@ -203,3 +204,55 @@ admin metadata fields are optional; existing path operations, required fields,
 property shapes, origin enums, chat inputs and prompt snapshots remain unchanged.
 Private navigation contexts never become factual chat evidence. See
 [EPISODES-AND-CONSOLIDATION.md](../docs/EPISODES-AND-CONSOLIDATION.md).
+
+## Phase 14 additions
+
+Head 0011 adds six owner-only preference, expression, signal/reset, request-state
+and exact receipt paths. POSTs document 201 creation and 200 identical replay.
+Three optional capabilities advertise explicit settings and expression-v1 while
+automatic affect inference stays false. Existing 69 paths/94 schemas preserve
+their required fields/property types; only optional capability fields are added.
+The expression policy is independent of saved v3/v4 baselines. Nine new expression
+fixtures are generated from actual synthetic HTTP, including legacy-null request
+state, reviewed-model vector clamps and reset receipts. Earlier legacy fixtures
+are retained; current capabilities/readiness and manifest are refreshed. See
+[policy](../docs/INTERACTION-PREFERENCES-AND-AFFECT.md).
+
+## Phase 15 additions
+
+Head 0012 adds seven owner-only learning state/config/observation/review/reset,
+receipt and request-snapshot paths. Creation is 201, exact replay 200. One optional
+capability advertises `ada-learning-v1`; RequestOutput optionally includes original
+C source cards and admin overview optionally includes closed operation counts.
+All 75 earlier path operations and 105 schema shapes/required fields are preserved.
+Chat inputs, fingerprints, old source enums and saved prompts remain unchanged.
+
+Twelve new synthetic HTTP fixtures cover enrollment, three selected observations,
+pending/approved/reset state, exact reviews/receipts and legacy/frozen snapshots.
+The 53 previous non-capability/readiness/manifest payloads retain their bytes.
+Expires-at fixture normalization preserves the original duration relative to
+created-at. Nullable legacy learning and absent optional C cards stay supported.
+See [policy](../docs/INTERACTION-LEARNING-AND-CONTINUITY.md) for provenance, bounds,
+consent, source authorization and the historical replay/reset retention exception.
+
+## Phase 16 additive streaming contract
+
+Head 0013 adds stream submit, status/checkpoint, bearer-authenticated SSE and
+strict same-attempt cancel. `RequestOutput`, ChatInput/options/fingerprints and
+legacy enums stay unchanged. Cancellation maps to failed/request_cancelled;
+StreamStatus carries richer state separately. Capability fields `stream_protocol`
+and `generation_cancellation` default to unsupported/false when omitted. Android
+requires those fields plus streaming before enabling incremental replies/Stop.
+
+SSE IDs are attempt:sequence. The OpenAPI stream operation exports the typed event
+under `x-ada-event-schema`; safe transport control frames are separate. GET
+checkpoint replacement handles gaps/expired cursors; terminal frames never
+manufacture final source cards. Admin detail's optional stream object has only
+state, sequence, replay_after, created_at and finished_at.
+
+Eight additional synthetic HTTP fixtures cover supported capabilities, started/
+running/cancel receipt/cancelled/completed checkpoints, legacy unavailability and
+legacy failed cancellation. Existing fixture payloads remain byte-identical except
+current capabilities/readiness and the expanded manifest. Paths serialize with
+forward slashes on Windows. See
+[the policy](../docs/STREAMING-AND-CANCELLATION.md) for bounds and retry/race rules.

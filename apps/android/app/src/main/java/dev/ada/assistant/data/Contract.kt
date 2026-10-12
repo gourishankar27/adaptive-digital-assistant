@@ -50,6 +50,9 @@ val adaJson = Json { ignoreUnknownKeys = true; explicitNulls = false; encodeDefa
     val agent_tools: String = "unsupported", val agent_protocol: String = "unsupported", val agent_registry: List<String> = emptyList(),
     val episodes: String = "unsupported", val consolidation_jobs: String = "unsupported",
     val consolidation_generation: Boolean = false, val consolidation_worker: Boolean = false,
+    val interaction_preferences: String = "unsupported", val session_expression: String = "unsupported", val automatic_affect_inference: Boolean = false,
+    val interaction_learning: String = "unsupported",
+    val stream_protocol: String = "unsupported", val generation_cancellation: Boolean = false,
 )
 @Serializable data class PersonalitySnapshotDto(
     val name: String, val style: String, val warmth: String, val detail: String,
@@ -98,6 +101,7 @@ val adaJson = Json { ignoreUnknownKeys = true; explicitNulls = false; encodeDefa
     val output_tokens: Int? = null, val citations: List<CitationDto> = emptyList(),
     val citation_warnings: List<String> = emptyList(),
     val document_citations: List<DocumentCitationDto> = emptyList(),
+    val continuity_citations: List<ContinuityCardDto> = emptyList(),
 ) {
     val observedState: ObservedRequestState get() = when (status) {
         "running" -> ObservedRequestState.Running

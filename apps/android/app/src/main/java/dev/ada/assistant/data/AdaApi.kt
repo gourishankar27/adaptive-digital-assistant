@@ -8,6 +8,12 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonObject
@@ -59,6 +65,17 @@ sealed interface ApiFailure {
 
 /** Every method is an existing ADA route; no enrollment/admin/cancellation API is invented. */
 interface AdaApi {
+    suspend fun submitStream(connection: ConnectionCredential, conversation: UUID, body: ChatInputDto): ApiResult<StreamStatusDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun streamStatus(connection: ConnectionCredential, id: UUID): ApiResult<StreamStatusDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun cancelGeneration(connection: ConnectionCredential, id: UUID, attempt: Int): ApiResult<CancelReceiptDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    fun streamEvents(connection: ConnectionCredential, id: UUID, attempt: Int, after: Int): Flow<ApiResult<StreamEventDto>> = flowOf(ApiResult.Failure(ApiFailure.IncompatibleContract))
+    suspend fun preference(connection: ConnectionCredential, kind: String, target: UUID): ApiResult<PreferenceDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun expression(connection: ConnectionCredential, conversation: UUID): ApiResult<ExpressionDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun learning(connection: ConnectionCredential, scope: UUID): ApiResult<LearningStateDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun learningReceipt(connection: ConnectionCredential, operation: UUID): ApiResult<LearningReceiptDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun learningOperation(connection: ConnectionCredential, journal: LearningJournal): ApiResult<LearningReceiptDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun expressionReceipt(connection: ConnectionCredential, operation: UUID): ApiResult<ExpressionReceiptDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun expressionOperation(connection: ConnectionCredential, journal: ExpressionJournal): ApiResult<ExpressionReceiptDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
     suspend fun consolidationJob(connection: ConnectionCredential, id: UUID): ApiResult<ConsolidationJobDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
     suspend fun consolidationJobs(connection: ConnectionCredential, scope: UUID, offset: Int = 0): ApiResult<List<ConsolidationJobDto>> = ApiResult.Failure(ApiFailure.IncompatibleContract)
     suspend fun createConsolidationJob(connection: ConnectionCredential, journal: ConsolidationJournal): ApiResult<ConsolidationJobDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
@@ -113,6 +130,54 @@ interface AdaApi {
 }
 
 class HttpAdaApi(callTimeoutMillis: Long = 65_000) : AdaApi {
+    override suspend fun submitStream(connection: ConnectionCredential, conversation: UUID, body: ChatInputDto) = call<StreamStatusDto>(connection, "conversations/$conversation/stream-requests", adaJson.encodeToString(body))
+    override suspend fun streamStatus(connection: ConnectionCredential, id: UUID) = call<StreamStatusDto>(connection, "requests/$id/stream-status")
+    override suspend fun cancelGeneration(connection: ConnectionCredential, id: UUID, attempt: Int) = call<CancelReceiptDto>(connection, "requests/$id/cancel", adaJson.encodeToString(CancelInputDto(attempt)))
+    override fun streamEvents(connection: ConnectionCredential, id: UUID, attempt: Int, after: Int): Flow<ApiResult<StreamEventDto>> = callbackFlow {
+        val url = connection.server.newBuilder().addPathSegments("v1/requests/$id/stream").addQueryParameter("attempt", attempt.toString()).addQueryParameter("after", after.toString()).build()
+        val streamClient = client.newBuilder().callTimeout(0, TimeUnit.MILLISECONDS).readTimeout(15, TimeUnit.SECONDS).build()
+        val request = Request.Builder().url(url).header("Authorization", "Bearer ${connection.token}").header("Accept", "text/event-stream").build()
+        val pendingCall = streamClient.newCall(request)
+        val reader = launch(Dispatchers.IO) {
+            try {
+                pendingCall.execute().use { response ->
+                    if (!response.isSuccessful) { send(sanitizedFailure(response)); return@use }
+                    if (response.header("Content-Type")?.startsWith("text/event-stream") != true) { send(ApiResult.Failure(ApiFailure.IncompatibleContract)); return@use }
+                    val source = response.body?.source() ?: error("Missing stream")
+                    var type = ""; var data: String? = null; var eventId: String? = null; var bytes = 0
+                    while (!source.exhausted()) {
+                        val line = source.readUtf8LineStrict(70000)
+                        bytes += line.toByteArray(Charsets.UTF_8).size
+                        require(bytes <= 72000)
+                        when {
+                            line.isEmpty() -> {
+                                data?.let { payload ->
+                                    if (type == "access_lost") send(ApiResult.Failure(ApiFailure.Unauthorized))
+                                    else if (type == "reset_required") send(ApiResult.Failure(ApiFailure.Conflict, "stream_cursor_expired"))
+                                    else {
+                                        val event = adaJson.decodeFromString<StreamEventDto>(payload)
+                                        require(event.request_id == id && event.attempt == attempt && event.type == type && eventId == "$attempt:${event.sequence}")
+                                        send(ApiResult.Success(event))
+                                    }
+                                }
+                                type = ""; data = null; eventId = null; bytes = 0
+                            }
+                            line.startsWith("event: ") -> { require(type.isEmpty()); type = line.substring(7) }
+                            line.startsWith("data: ") -> { require(data == null); data = line.substring(6) }
+                            line.startsWith("id: ") -> { require(eventId == null); eventId = line.substring(4) }
+                            line.startsWith(":") -> Unit
+                            else -> error("Unknown stream framing")
+                        }
+                    }
+                    require(data == null && type.isEmpty())
+                }
+            } catch (_: InterruptedIOException) { if (!pendingCall.isCanceled()) send(ApiResult.Failure(ApiFailure.Timeout)) }
+            catch (_: IOException) { if (!pendingCall.isCanceled()) send(ApiResult.Failure(ApiFailure.Unreachable)) }
+            catch (_: Exception) { if (!pendingCall.isCanceled()) send(ApiResult.Failure(ApiFailure.IncompatibleContract)) }
+            finally { close() }
+        }
+        awaitClose { pendingCall.cancel(); reader.cancel() }
+    }.buffer(1)
     override suspend fun consolidationJob(connection: ConnectionCredential, id: UUID) = call<ConsolidationJobDto>(connection, "consolidation-jobs/$id")
     override suspend fun consolidationJobs(connection: ConnectionCredential, scope: UUID, offset: Int) = call<List<ConsolidationJobDto>>(connection, "scopes/$scope/consolidation-jobs", query = page(25, offset))
     override suspend fun createConsolidationJob(connection: ConnectionCredential, journal: ConsolidationJournal): ApiResult<ConsolidationJobDto> {
@@ -222,6 +287,8 @@ class HttpAdaApi(callTimeoutMillis: Long = 65_000) : AdaApi {
         } catch (_: Exception) { null }
     }
     private val safeErrorCodes = setOf(
+        "attempt_superseded", "stream_cursor_expired", "invalid_stream_cursor", "streaming_unavailable", "stream_history_limit", "stream_observer_capacity_busy", "request_cancelled", "response_too_large",
+        "preference_revision_changed", "expression_session_changed", "expression_signal_stale", "expression_requires_prompt_upgrade", "expression_receipt_limit",
         "idempotency_key_reused", "retry_history_changed", "request_in_progress", "conversation_busy",
         "request_conflict", "request_superseded", "unsupported_prompt_upgrade", "message_exceeds_context_budget",
         "provider_unavailable", "model_not_found", "provider_timeout", "invalid_response", "interrupted",
@@ -239,6 +306,27 @@ class HttpAdaApi(callTimeoutMillis: Long = 65_000) : AdaApi {
     )
     private fun page(limit: Int, offset: Int) = mapOf("limit" to limit.toString(), "offset" to offset.toString())
     override suspend fun me(connection: ConnectionCredential) = call<MeDto>(connection, "me")
+    override suspend fun preference(connection: ConnectionCredential, kind: String, target: UUID): ApiResult<PreferenceDto> {
+        if (kind !in setOf("account", "scope", "profile", "conversation")) return ApiResult.Failure(ApiFailure.Validation)
+        return call(connection, "preferences/$kind/$target")
+    }
+    override suspend fun expression(connection: ConnectionCredential, conversation: UUID) = call<ExpressionDto>(connection, "conversations/$conversation/expression")
+    override suspend fun learning(connection: ConnectionCredential, scope: UUID) = call<LearningStateDto>(connection, "scopes/$scope/learning")
+    override suspend fun learningReceipt(connection: ConnectionCredential, operation: UUID) = call<LearningReceiptDto>(connection, "learning-receipts/$operation")
+    override suspend fun learningOperation(connection: ConnectionCredential, journal: LearningJournal): ApiResult<LearningReceiptDto> {
+        try { validateLearningJournal(journal) } catch (_: Exception) { return ApiResult.Failure(ApiFailure.Validation) }
+        if (journal.identity.server != connection.server.toString()) return ApiResult.Failure(ApiFailure.Validation)
+        val route = when(journal.action) { "observe" -> "observations"; "review" -> "reviews"; "reset" -> "reset"; else -> "config" }
+        return call(connection, "scopes/${journal.scopeId}/learning/$route", journal.body)
+    }
+    override suspend fun expressionReceipt(connection: ConnectionCredential, operation: UUID) = call<ExpressionReceiptDto>(connection, "expression-receipts/$operation")
+    override suspend fun expressionOperation(connection: ConnectionCredential, journal: ExpressionJournal): ApiResult<ExpressionReceiptDto> {
+        try { validateExpressionJournal(journal) } catch (_: Exception) { return ApiResult.Failure(ApiFailure.Validation) }
+        if (journal.identity.server != connection.server.toString()) return ApiResult.Failure(ApiFailure.Validation)
+        val path = if (journal.action == "preferences") "preferences/${journal.targetKind}/${journal.targetId}"
+            else "conversations/${journal.targetId}/expression/${if (journal.action == "signal") "signals" else "reset"}"
+        return call(connection, path, journal.body)
+    }
     override suspend fun capabilities(connection: ConnectionCredential) = call<CapabilitiesDto>(connection, "capabilities")
     override suspend fun personalities(connection: ConnectionCredential, limit: Int, offset: Int) = call<List<PersonalityDto>>(connection, "personalities", query = page(limit, offset))
     override suspend fun conversations(connection: ConnectionCredential, limit: Int, offset: Int) = call<List<ConversationDto>>(connection, "conversations", query = page(limit, offset))

@@ -37,7 +37,13 @@ from ada.document_api import document_router
 from ada.documents import MAX_UPLOAD_BYTES
 from ada.entity_api import entity_router
 from ada.evidence import public_source_version, validate_text
+from ada.expression_api import expression_router
+from ada.expression_contracts import POLICY_VERSION as EXPRESSION_POLICY_VERSION
 from ada.extraction import OllamaExtractor
+from ada.learning import LearningService
+from ada.learning_api import learning_router
+from ada.learning_contracts import VERSION as LEARNING_VERSION
+from ada.learning_contracts import ContinuityCard
 from ada.memory import (
     ClaimInput,
     ClaimOutput,
@@ -65,7 +71,7 @@ from ada.monitoring import Monitoring, admin_router
 from ada.personality import PROMPT_VERSION, build_prompt
 from ada.proposal_api import proposal_router
 from ada.proposals import ProposalService
-from ada.providers import FakeProvider, OllamaProvider
+from ada.providers import FakeProvider
 from ada.retrieval import (
     CitationOutput,
     DocumentCitationOutput,
@@ -79,6 +85,8 @@ from ada.retrieval import (
 from ada.schema import SCHEMA_HEAD
 from ada.semantic import RebuildOutput
 from ada.service import ChatService, ServiceError, public_request
+from ada.stream_provider import StreamingOllamaProvider
+from ada.streaming import StreamingService
 
 
 class StrictInput(BaseModel):
@@ -168,6 +176,7 @@ class RequestOutput(BaseModel):
     citations: list[CitationOutput]
     document_citations: list[DocumentCitationOutput] = Field(default_factory=list)
     citation_warnings: list[str]
+    continuity_citations: list[ContinuityCard] = Field(default_factory=list)
 
 
 class TraceOutput(RetrievalOutput):
@@ -195,18 +204,23 @@ def create_app(settings=None, provider=None, sessions=None):
     if sessions is None:
         engine, sessions = connect(settings.database_url)
     provider = provider or (
-        FakeProvider() if settings.provider == "fake" else OllamaProvider(settings)
+        FakeProvider() if settings.provider == "fake" else StreamingOllamaProvider(settings)
     )
     service = ChatService(sessions, provider, settings)
     memory = MemoryService(sessions)
 
     @asynccontextmanager
     async def lifespan(_):
+        try:
+            app.state.streaming.recover()
+        except SQLAlchemyError:
+            pass  # Readiness reports an unavailable/unmigrated database; no fabricated recovery.
         if settings.consolidation_worker_enabled:
             app.state.consolidation.start()
         try:
             yield
         finally:
+            app.state.streaming.stop()
             app.state.consolidation.stop()
             if engine is not None:
                 engine.dispose()
@@ -218,6 +232,8 @@ def create_app(settings=None, provider=None, sessions=None):
         description="Scoped memory retrieval, cited chat, durable evidence traces and explicitly granted admin monitoring.",
     )
     app.state.sessions, app.state.chat, app.state.memory = sessions, service, memory
+    app.state.streaming = StreamingService(service)
+    app.state.expression = service.expression
     app.state.proposals = ProposalService(
         sessions,
         OllamaExtractor(settings) if settings.provider == "ollama" else provider,
@@ -238,6 +254,10 @@ def create_app(settings=None, provider=None, sessions=None):
         app.state.proposals,
         service.capacity,
     )
+    app.state.learning = LearningService(
+        sessions, app.state.proposals, app.state.consolidation, settings.learning_threshold
+    )
+    service.learning = app.state.learning
 
     @app.middleware("http")
     async def monitoring_cache(request: HttpRequest, call_next):
@@ -257,6 +277,11 @@ def create_app(settings=None, provider=None, sessions=None):
                 or "/episodes" in request.url.path
                 or "/episode-contexts" in request.url.path
                 or "/consolidation-jobs" in request.url.path
+                or "/expression" in request.url.path
+                or "/preferences/" in request.url.path
+                or "/learning" in request.url.path
+                or "/stream" in request.url.path
+                or request.url.path.endswith("/cancel")
             )
         ):
             response.headers["Cache-Control"] = "no-store"
@@ -307,6 +332,13 @@ def create_app(settings=None, provider=None, sessions=None):
     app.include_router(proposal_router(app.state.proposals, current_user, error_responses))
     app.include_router(agent_router(app.state.agents, current_user, error_responses))
     app.include_router(consolidation_router(app.state.consolidation, current_user, error_responses))
+    app.include_router(expression_router(app.state.expression, current_user, error_responses))
+    app.include_router(learning_router(app.state.learning, current_user, error_responses))
+    from ada.stream_api import stream_router
+
+    app.include_router(
+        stream_router(app.state.streaming, current_user, error_responses, ChatInput, RequestOutput)
+    )
 
     def owned_conversation(db, owner, conversation_id):
         row = db.scalar(
@@ -342,6 +374,12 @@ def create_app(settings=None, provider=None, sessions=None):
     @app.get("/v1/capabilities", response_model=CapabilitiesOutput, responses=error_responses(401))
     def capabilities(owner: str = Depends(current_user)):
         return {
+            "stream_protocol": "ada-stream-v1" if app.state.streaming.available else "unsupported",
+            "generation_cancellation": app.state.streaming.available,
+            "interaction_learning": LEARNING_VERSION,
+            "interaction_preferences": "explicit_settings_v1",
+            "session_expression": EXPRESSION_POLICY_VERSION,
+            "automatic_affect_inference": False,
             "api_version": "v1",
             "episodes": "source_linked_v1",
             "consolidation_jobs": "bounded_jobs_v1",
@@ -369,7 +407,7 @@ def create_app(settings=None, provider=None, sessions=None):
             "entity_resolution": "explicit_aliases_v1",
             "entity_writes": True,
             "chat": True,
-            "streaming": False,
+            "streaming": app.state.streaming.available,
             "tools": False,
             "structured_memory": True,
             "memory_writes": "explicit_user_assertions",
@@ -465,6 +503,7 @@ def create_app(settings=None, provider=None, sessions=None):
             )
             db.add(row)
             db.flush()
+            service.expression.bind_new(db, row)
             return public_conversation(row)
 
     @app.get(

@@ -6,7 +6,10 @@ from ada import (  # noqa: F401
     consolidation_models,  # noqa: F401
     embedding_models,
     entity_models,
+    expression_models,
+    learning_models,
     proposal_models,
+    stream_models,
 )
 from ada.config import Settings
 from ada.models import Base

@@ -29,6 +29,9 @@ import androidx.activity.SystemBarStyle
 import androidx.compose.ui.platform.LocalFocusManager
 
 class MainActivity : ComponentActivity() {
+    private var chatModel: ChatViewModel? = null
+    override fun onStart() { super.onStart(); chatModel?.observeForeground(true) }
+    override fun onStop() { chatModel?.observeForeground(false); super.onStop() }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
@@ -39,6 +42,7 @@ class MainActivity : ComponentActivity() {
                 ChatViewModel(HttpAdaApi(), AndroidSessionStore(applicationContext), BuildConfig.DEBUG)
                     .also { it.restore() } as T
         })[ChatViewModel::class.java]
+        chatModel = viewModel
         setContent {
             val preferences = remember { AppearancePreferences(applicationContext) }
             var appearance by remember { mutableStateOf(preferences.load()) }

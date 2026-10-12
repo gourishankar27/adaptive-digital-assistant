@@ -152,7 +152,7 @@ Monitoring selects columns/JSON scalar counts rather than private ORM snapshots.
 It preserves composite owner/request identity and unrecorded metrics as null.
 Polling, query windows, pagination and audit rows/age are bounded. Provider model-list
 probes are serialized/cached, response/time bounded and run outside DB transactions;
-they never generate. Current readiness validates supported head 0008. Admission shows the
+they never generate. Current readiness validates supported head 0013. Admission shows the
 actual process semaphore, with one worker; GPU/throughput remain unknown. See
 [ADMIN-MONITORING.md](ADMIN-MONITORING.md) for allowlists, failure/audit semantics,
 retention and installation. Phase 05 introduces no account impersonation.
@@ -211,8 +211,8 @@ requires reconnect; logout/account switching clears private recovery and caches.
 Drafts and loaded history/source cards otherwise stay in ViewModel memory.
 Source cards and retrieval details come from the same owned request snapshot;
 they are not reconstructed from current claims. Polling is bounded, 401 stops
-recovery, and there is no cancellation, streaming or
-device inference. Existing server authority and released schema remain intact.
+recovery. Phase 04 itself did not add cancellation, streaming or
+device inference; Phase 16 adds the stream/Stop flow below. Existing server authority and released schema remain intact.
 
 Phase 07 adds a MemoryController owned by the authenticated chat ViewModel. Its
 scope/mode/date/page and source-detail state is fenced by verified server/owner
@@ -379,3 +379,70 @@ old prompts or chat input. Proposal jobs submit only pending Phase 11 suggestion
 rebuild jobs replace only scoped lexical projections. No approval, deletion or
 valid-time rewrite is permitted. Android v7 journals restore by GET; admin exposes
 only bounded job metadata. See [the policy](EPISODES-AND-CONSOLIDATION.md).
+
+## Phase 14 explicit expression policy
+
+Migration 0011 adds owner-target preferences and immutable settings receipts,
+frozen conversation bindings, one bounded current session per conversation and
+nullable request expression snapshots. Explicit precedence is saved personality,
+account, scope, profile, then conversation. Changes to defaults apply only to new
+conversations; an explicit conversation update adopts reviewed settings for future
+replies and conflicts with in-flight chat. Original personality/system prompts,
+request fingerprints and failed/completed replay remain intact.
+
+The separate ada-expression-v1 overlay retains baseline v4/current and v3 claim
+retrieval. Its fixed 800-byte budget keeps style choices independent of evidence
+allocation. Opt-in session vectors have native integer ranges, bounded reviewed
+changes, deterministic decay, expiry and explicit disable/reset. Normal model
+output never writes state. Model vectors remain untrusted proposals until an
+authenticated explicit review; there is no mood classifier or learned relationship
+profile. Minimal receipts retain reason codes/source request IDs, not psychological
+explanations. Expression never changes ownership, trust, ranking or tool policy.
+Android Settings uses encrypted v8 exact-key recovery; restore only reads. See
+[policy](INTERACTION-PREFERENCES-AND-AFFECT.md) for limits and compatibility.
+
+## Phase 15 interaction learning and continuity
+
+Migration 0012 adds owner/scope-constrained consent, immutable selected-source
+observations, tentative enum-based suggestions, reviewed learned defaults and
+minimal exact-key receipts. Owner row locks serialize consent/reset, review and
+fresh request selection. No new provider call, index, cache or worker is created.
+Observations retain source trust and policy lineage; deduplicated independent
+completed user interactions reach a configurable review gate, never automatic
+promotion. Weak guesses expire and cannot create rules. Explicit settings override
+learned defaults. Optional account reuse contains no project/history text and
+requires both originating and destination scope consent.
+
+Opt-in continuity revalidates scoped/time-authorized episode source lineage and
+selects exact original excerpts; generated summaries do not enter ordinary chat.
+Factual retrieval keeps its conflict/ranking rules and first access to the evidence
+budget. C source cards, uncertainty/omissions and learned policy/receipts freeze in
+nullable request snapshots. v3/v4 baselines, personality snapshots, fingerprints
+and failed/completed replay are preserved. Reset erases live learned state and
+suppresses future reuse; minimal audit and immutable historical requests remain.
+Android journal v9 preserves v1–v8 and restores by GET only. Admin exposes aggregate
+operation counts, never private relationship profiles. See
+[the Phase 15 policy](INTERACTION-LEARNING-AND-CONTINUITY.md).
+
+## Phase 16 durable streaming and cancellation
+
+Migration 0013 adds composite owner/request/attempt checkpoints and sequenced
+owned events without altering Request status or payload fingerprints. ChatService
+shares its exact reservation/context builder across legacy and streaming paths.
+The native adapter yields bounded NDJSON outside transactions; short delta writes
+and HTTP sends provide backpressure. A shared process semaphore covers the entire
+provider iterator lifetime, including shutdown. One Uvicorn worker is required.
+
+Publication and Stop serialize on conversation/request/attempt locks. Durable
+intent wins if it commits first; completed publication otherwise wins. Instance,
+attempt and request fences reject late chunks. Final response/source event,
+revision and terminal event commit once. Restart and failed publication become
+interrupted; operator recovery reconciles rich stream state while a live provider
+keeps admission. Disconnect is observation loss, not generation cancellation.
+
+Android uses bearer-authenticated OkHttp SSE and GET checkpoint replacement under
+verified identity/generation guards. Its v9 encrypted pending payload stays intact;
+no automatic POST or Stop on restoration. Only canonical final RequestOutput
+constructs source cards. Admin queries five state/time/sequence fields, with no
+private deltas or cancellation control. Event retention is count-bounded; 24-hour
+cursor expiry is not physical erasure. See [the policy](STREAMING-AND-CANCELLATION.md).

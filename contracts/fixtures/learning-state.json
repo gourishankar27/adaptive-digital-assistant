@@ -1,0 +1,154 @@
+{
+  "config": {
+    "scope_id": "00000000-0000-0000-0000-000000000003",
+    "revision": 1,
+    "epoch": 0,
+    "status": "enrolled",
+    "continuity_enabled": false,
+    "policy_version": "ada-learning-v1",
+    "threshold": 3
+  },
+  "observations": [
+    {
+      "id": "00000000-0000-0000-0000-000000000018",
+      "owner_id": "00000000-0000-0000-0000-000000000001",
+      "scope_id": "00000000-0000-0000-0000-000000000003",
+      "source_request_id": "00000000-0000-0000-0000-00000000001e",
+      "source": {
+        "source_version_id": "00000000-0000-0000-0000-00000000001f",
+        "version": 1,
+        "content_hash": "3059f0cb0beaa2a5e619fc79cf237e755d44fc4e26dff527082c237beaca6991",
+        "span_start": 0,
+        "span_end": 19
+      },
+      "evidence": {
+        "source_id": "00000000-0000-0000-0000-00000000001f",
+        "source_version": 1,
+        "source_origin": "chat_event",
+        "trust_class": "user_explicit",
+        "evidence": {
+          "source_version_id": "00000000-0000-0000-0000-00000000001f",
+          "span_start": 0,
+          "span_end": 19,
+          "quote": "Concise plans help.",
+          "content_hash": "3059f0cb0beaa2a5e619fc79cf237e755d44fc4e26dff527082c237beaca6991"
+        }
+      },
+      "values": {
+        "verbosity": "concise",
+        "initiative": null,
+        "formality": null,
+        "humor": null,
+        "cadence": null
+      },
+      "confidence_class": "repeated_observation",
+      "interpretation_trust": "unreviewed_interpretation",
+      "extraction_version": "ada-learning-v1",
+      "purpose": "interaction_preference",
+      "created_at": 1791417600000,
+      "expires_at": 1799193600000
+    },
+    {
+      "id": "00000000-0000-0000-0000-00000000001b",
+      "owner_id": "00000000-0000-0000-0000-000000000001",
+      "scope_id": "00000000-0000-0000-0000-000000000003",
+      "source_request_id": "00000000-0000-0000-0000-000000000020",
+      "source": {
+        "source_version_id": "00000000-0000-0000-0000-000000000021",
+        "version": 1,
+        "content_hash": "267b257ce37ac4aa1c449e27d6fae9bde048fe484f6c095fde4fc1a8179f91ab",
+        "span_start": 0,
+        "span_end": 28
+      },
+      "evidence": {
+        "source_id": "00000000-0000-0000-0000-000000000021",
+        "source_version": 1,
+        "source_origin": "chat_event",
+        "trust_class": "user_explicit",
+        "evidence": {
+          "source_version_id": "00000000-0000-0000-0000-000000000021",
+          "span_start": 0,
+          "span_end": 28,
+          "quote": "Brief coding replies please.",
+          "content_hash": "267b257ce37ac4aa1c449e27d6fae9bde048fe484f6c095fde4fc1a8179f91ab"
+        }
+      },
+      "values": {
+        "verbosity": "concise",
+        "initiative": null,
+        "formality": null,
+        "humor": null,
+        "cadence": null
+      },
+      "confidence_class": "repeated_observation",
+      "interpretation_trust": "unreviewed_interpretation",
+      "extraction_version": "ada-learning-v1",
+      "purpose": "interaction_preference",
+      "created_at": 1791417600000,
+      "expires_at": 1799193600000
+    },
+    {
+      "id": "00000000-0000-0000-0000-00000000001d",
+      "owner_id": "00000000-0000-0000-0000-000000000001",
+      "scope_id": "00000000-0000-0000-0000-000000000003",
+      "source_request_id": "00000000-0000-0000-0000-000000000022",
+      "source": {
+        "source_version_id": "00000000-0000-0000-0000-000000000023",
+        "version": 1,
+        "content_hash": "83b30182a0de35f3fba193e73a1d1e3f7cbbe598ddd9fc66d9de4afeb958b572",
+        "span_start": 0,
+        "span_end": 33
+      },
+      "evidence": {
+        "source_id": "00000000-0000-0000-0000-000000000023",
+        "source_version": 1,
+        "source_origin": "chat_event",
+        "trust_class": "user_explicit",
+        "evidence": {
+          "source_version_id": "00000000-0000-0000-0000-000000000023",
+          "span_start": 0,
+          "span_end": 33,
+          "quote": "Compact review explanations work.",
+          "content_hash": "83b30182a0de35f3fba193e73a1d1e3f7cbbe598ddd9fc66d9de4afeb958b572"
+        }
+      },
+      "values": {
+        "verbosity": "concise",
+        "initiative": null,
+        "formality": null,
+        "humor": null,
+        "cadence": null
+      },
+      "confidence_class": "repeated_observation",
+      "interpretation_trust": "unreviewed_interpretation",
+      "extraction_version": "ada-learning-v1",
+      "purpose": "interaction_preference",
+      "created_at": 1791417600000,
+      "expires_at": 1799193600000
+    }
+  ],
+  "proposals": [
+    {
+      "id": "00000000-0000-0000-0000-000000000019",
+      "revision": 3,
+      "values": {
+        "verbosity": "concise",
+        "initiative": null,
+        "formality": null,
+        "humor": null,
+        "cadence": null
+      },
+      "status": "pending",
+      "independent_count": 3,
+      "eligible": true,
+      "observations": [
+        "00000000-0000-0000-0000-000000000018",
+        "00000000-0000-0000-0000-00000000001b",
+        "00000000-0000-0000-0000-00000000001d"
+      ],
+      "expires_at": 1791417600000,
+      "trust_class": "unreviewed_interpretation"
+    }
+  ],
+  "learned": []
+}

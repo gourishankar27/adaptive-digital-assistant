@@ -29,11 +29,15 @@ class ChatViewModel(
     val proposals = ProposalController(api, store, viewModelScope, { expire() })
     val agents = AgentController(api, store, viewModelScope, { expire() })
     val episodes = EpisodeController(api, store, viewModelScope, { expire() })
+    val expression = ExpressionController(api, store, viewModelScope, { expire() })
+    val learning = LearningController(api, store, viewModelScope, { expire() })
     private var credential: ConnectionCredential? = null
     private var identity: SessionIdentity? = null
     private var generation = 0L
     private val jobs = mutableSetOf<Job>()
     private var pollJob: Job? = null
+    private var streamJob: Job? = null
+    private var foreground = true
     private val storage = Mutex()
     private var cleanupJob: Job? = null
     private var cleanupFailed = false
@@ -44,7 +48,26 @@ class ChatViewModel(
     private data class Draft(val text: String = "", val memory: Boolean = true, val at: String = "", val documents: Boolean = false)
 
     init { require(pollDelaysMs.isNotEmpty() && pollDelaysMs.size <= 12 && pollDelaysMs.all { it in 0..60_000 }) }
-    private fun update(block: (ChatState) -> ChatState) { mutableState.value = block(mutableState.value) }
+    private fun update(block: (ChatState) -> ChatState) {
+        val previous = mutableState.value.destination
+        val previousConversation = mutableState.value.conversation?.id
+        mutableState.value = block(mutableState.value)
+        val next = mutableState.value
+        val conversationChanged = previousConversation != next.conversation?.id
+        if (previous == ChatDestination.Chat && (next.destination != ChatDestination.Chat || conversationChanged)) {
+            streamJob?.cancel()
+            mutableState.value = next.copy(streamConnected = false)
+        }
+        if ((previous != ChatDestination.Chat || conversationChanged) && next.destination == ChatDestination.Chat &&
+            next.conversation?.id == next.pending?.message?.conversationId && foreground && next.pending != null) {
+            connectStream()
+        }
+    }
+    fun observeForeground(visible: Boolean) {
+        foreground = visible
+        if (!visible) { streamJob?.cancel(); update { it.copy(streamConnected = false) } }
+        else if (state.value.destination == ChatDestination.Chat && state.value.pending != null) reconcile()
+    }
     private fun launchWork(block: suspend () -> Unit): Job {
         val launchedEpoch = generation
         return viewModelScope.launch {
@@ -68,6 +91,8 @@ class ChatViewModel(
         proposals.reset()
         agents.reset()
         episodes.reset()
+        expression.reset()
+        learning.reset()
         generation++; selection++; sourceSelection++
         jobs.toList().forEach { it.cancel() }; jobs.clear(); pollJob = null
         credential = null; identity = null; drafts.clear(); retryNotBefore = 0
@@ -185,6 +210,8 @@ class ChatViewModel(
         proposals.setVerifiedSession(connection, verified, features)
         agents.setVerifiedSession(connection, verified, features)
         episodes.setVerifiedSession(connection, verified, features)
+        expression.setVerifiedSession(connection, verified, features)
+        learning.setVerifiedSession(connection, verified, features)
         update { it.copy(connecting = false, account = AccountSummary(normalized, user.id, user.name, features.provider, features.model),
             capabilities = features, destination = ChatDestination.Conversations,
             fault = null, notice = null,
@@ -499,6 +526,34 @@ class ChatViewModel(
         val connection = credential ?: return
         if (!current(epoch) || identity != message.identity) return
         update { it.copy(pending = PendingState(message, PendingPhase.Submitting), fault = null) }
+        if (state.value.capabilities?.hasStreaming() == true) {
+            when (val streamed = api.submitStream(connection, message.conversationId, message.body)) {
+                is ApiResult.Success -> {
+                    if (!current(epoch) || identity != message.identity) return
+                    try { streamed.value.validate(message.body.request_id, message.conversationId) }
+                    catch (_: Exception) { update { it.copy(pending = PendingState(message, PendingPhase.Unknown), fault = ApiFailure.IncompatibleContract) }; return }
+                    update { it.copy(stream = streamed.value, stopping = streamed.value.stream_state == "cancel_requested") }
+                    consume(streamed.value.result, message, epoch, false)
+                    connectStream()
+                }
+                is ApiResult.Failure -> {
+                    if (!current(epoch)) return
+                    failure(streamed, epoch); if (!current(epoch)) return
+                    if (streamed.reason == ApiFailure.TooLarge || streamed.reason == ApiFailure.Validation) {
+                        storage.withLock { if (current(epoch)) store.removePending(message.identity, message.body.request_id) }
+                        if (!current(epoch)) return
+                        update { it.copy(pending = null, stream = null, stopping = false, draft = message.body.content, notice = "The input was rejected. Edit the draft before submitting a new request.") }
+                    } else {
+                        val phase = if (streamed.reason == ApiFailure.Conflict) PendingPhase.Conflict else PendingPhase.Unknown
+                        update { it.copy(pending = PendingState(message, phase, failure = streamed.reason, code = streamed.code), notice = "Check the original request before retrying. A lost stream submission has an unknown outcome.") }
+                        val wait = (streamed.reason as? ApiFailure.Busy)?.retryAfterSeconds
+                        if (wait != null) retryNotBefore = deadline(wait)
+                        if (streamed.code != "idempotency_key_reused") reconcile()
+                    }
+                }
+            }
+            return
+        }
         when (val result = api.send(connection, message.conversationId, message.body)) {
             is ApiResult.Success -> consume(result.value, message, epoch)
             is ApiResult.Failure -> {
@@ -530,7 +585,7 @@ class ChatViewModel(
         val now = System.currentTimeMillis()
         return if (seconds > (Long.MAX_VALUE - now) / 1000) Long.MAX_VALUE else now + seconds.coerceAtLeast(0) * 1000
     }
-    private suspend fun consume(response: RequestDto, message: PendingMessage, epoch: Long) {
+    private suspend fun consume(response: RequestDto, message: PendingMessage, epoch: Long, startReconcile: Boolean = true) {
         if (!current(epoch)) return
         val conflictCode = mutableState.value.pending?.code
         if (response.request_id != message.body.request_id || response.conversation_id != message.conversationId) {
@@ -551,20 +606,108 @@ class ChatViewModel(
                     return
                 }
                 if (!current(epoch)) return
-                update { it.copy(pending = null, fault = null, notice = null) }
+                update { it.copy(pending = null, stream = null, streamConnected = false, stopping = false, fault = null, notice = null) }
                 if (mutableState.value.conversation?.id == message.conversationId) refreshEvents()
                 refreshConversations()
             }
             ObservedRequestState.Failed -> update { it.copy(pending = PendingState(message,
                 if (conflictCode == "retry_history_changed") PendingPhase.Conflict else PendingPhase.Failed, response, code = conflictCode),
                 notice = if (conflictCode == "retry_history_changed") "The conversation changed, so this failed request cannot be retried with its old context. Refresh history and consciously start a new message."
-                    else "Generation failed. Retry uses the original message, request ID and options.") }
+                    else if (response.error_code == "request_cancelled") "Generation stopped. Any partial text is incomplete. Retry uses the original snapshot and request ID."
+                    else "Generation failed. Retry uses the original message, request ID and options.", stopping = false) }
             ObservedRequestState.Running -> update { it.copy(pending = PendingState(message, PendingPhase.Running, response, code = conflictCode), notice = "ADA is generating. Leaving this screen stops no server work.") }
             ObservedRequestState.Unknown -> update { it.copy(pending = PendingState(message, PendingPhase.Unknown, response, code = conflictCode), notice = "The server reported an unfamiliar request state. Keep the original ID and check again.") }
         }
-        if (response.observedState in listOf(ObservedRequestState.Running, ObservedRequestState.Unknown)) reconcile()
+        if (startReconcile && response.observedState in listOf(ObservedRequestState.Running, ObservedRequestState.Unknown)) reconcile()
     }
     fun reconcile() {
+        if (state.value.pending?.code == "idempotency_key_reused") return
+        if (state.value.capabilities?.hasStreaming() == true) { connectStream(); return }
+        legacyReconcile()
+    }
+    private fun connectStream() {
+        if (streamJob?.isActive == true || state.value.capabilities?.hasStreaming() != true) return
+        if (state.value.pending?.code == "idempotency_key_reused") return
+        val message = state.value.pending?.message ?: return
+        val connection = credential ?: return
+        val epoch = generation
+        // A restore can read terminal state while another screen is visible, but never attaches a background observer.
+        streamJob = launchWork {
+            for (attempt in 0..3) {
+                val pause = maxOf(if (attempt > 0) 1000L shl (attempt - 1) else 0L, (retryNotBefore - System.currentTimeMillis()).coerceAtLeast(0))
+                if (pause > 60_000) { update { it.copy(notice = "Wait before checking the original stream again.") }; return@launchWork }
+                if (pause > 0) delay(pause)
+                if (!current(epoch) || identity != message.identity || state.value.pending?.message?.body?.request_id != message.body.request_id) return@launchWork
+                val snapshot = when (val checked = api.streamStatus(connection, message.body.request_id)) {
+                    is ApiResult.Success -> checked.value
+                    is ApiResult.Failure -> {
+                        failure(checked, epoch); if (!current(epoch)) return@launchWork
+                        (checked.reason as? ApiFailure.Busy)?.retryAfterSeconds?.let { retryNotBefore = deadline(it) }
+                        if (checked.reason == ApiFailure.NotFound) { legacyReconcile(); return@launchWork }
+                        update { it.copy(streamConnected = false, notice = "Stream connection lost. Checking keeps the original request; it does not resubmit.") }
+                        if (checked.reason !in setOf(ApiFailure.Timeout, ApiFailure.Unreachable)) return@launchWork
+                        continue
+                    }
+                }
+                snapshot.validate(message.body.request_id, message.conversationId)
+                update { it.copy(stream = snapshot, stopping = snapshot.stream_state == "cancel_requested") }
+                consume(snapshot.result, message, epoch, false)
+                if (snapshot.result.status != "running") return@launchWork
+                if (!snapshot.available) { legacyReconcile(); return@launchWork }
+                if (!foreground || state.value.destination != ChatDestination.Chat || state.value.conversation?.id != message.conversationId) return@launchWork
+                val accumulator = StreamAccumulator(snapshot)
+                update { it.copy(streamConnected = true, notice = "Receiving a provisional reply. Source cards are confirmed only when it completes.") }
+                var reconnect = false
+                try {
+                    api.streamEvents(connection, message.body.request_id, snapshot.attempt, snapshot.sequence).collect { event ->
+                        if (!current(epoch) || identity != message.identity) return@collect
+                        when(event) {
+                            is ApiResult.Success -> {
+                                accumulator.accept(event.value)
+                                update { it.copy(stream = snapshot.copy(sequence = accumulator.sequence, provisional = accumulator.text, stream_state = accumulator.state), stopping = accumulator.state == "cancel_requested") }
+                            }
+                            is ApiResult.Failure -> {
+                                failure(event, epoch)
+                                (event.reason as? ApiFailure.Busy)?.retryAfterSeconds?.let { retryNotBefore = deadline(it) }
+                                if (event.reason == ApiFailure.Unauthorized || event.reason == ApiFailure.Forbidden) throw CancellationException()
+                                reconnect = true
+                            }
+                        }
+                    }
+                } catch (_: StreamGap) { reconnect = true }
+                finally { if (current(epoch)) update { it.copy(streamConnected = false) } }
+                // Terminal publication is authoritative; no partial event constructs a RequestDto or citations.
+                if (current(epoch) && accumulator.state !in setOf("running", "cancel_requested")) {
+                    when(val terminal = api.streamStatus(connection, message.body.request_id)) {
+                        is ApiResult.Success -> { terminal.value.validate(message.body.request_id, message.conversationId); update { it.copy(stream = terminal.value, stopping = false) }; consume(terminal.value.result, message, epoch, false) }
+                        is ApiResult.Failure -> { failure(terminal, epoch); reconnect = true }
+                    }
+                    if (!reconnect) return@launchWork
+                }
+            }
+            if (current(epoch) && state.value.pending != null) update { it.copy(streamConnected = false, notice = "Reconnect paused. Check the saved request to resume; no new message was sent.") }
+        }
+    }
+    fun stopGeneration() {
+        val stream = state.value.stream ?: return
+        val message = state.value.pending?.message ?: return
+        val connection = credential ?: return
+        if (state.value.capabilities?.hasStreaming() != true || !stream.available || stream.request_id != message.body.request_id || stream.stream_state != "running" || state.value.stopping || identity != message.identity) return
+        val epoch = generation
+        update { it.copy(stopping = true, notice = "Requesting Stop. Capacity remains occupied until the provider stops.") }
+        launchWork {
+            when(val receipt = api.cancelGeneration(connection, stream.request_id, stream.attempt)) {
+                is ApiResult.Success -> {
+                    if (!current(epoch) || identity != message.identity) return@launchWork
+                    require(receipt.value.request_id == stream.request_id && receipt.value.attempt == stream.attempt && receipt.value.outcome in setOf("requested", "already_terminal"))
+                    update { it.copy(notice = if (receipt.value.outcome == "requested") "Stop requested; waiting for provider shutdown." else "The request already ended. Checking its original result.") }
+                    reconcile()
+                }
+                is ApiResult.Failure -> { failure(receipt, epoch); if (current(epoch)) update { it.copy(stopping = false, notice = "Stop delivery is unknown. Check the original request; repeating Stop targets only this attempt.") }; reconcile() }
+            }
+        }
+    }
+    private fun legacyReconcile() {
         if (pollJob?.isActive == true) return
         if (mutableState.value.pending?.code == "idempotency_key_reused") return
         val message = mutableState.value.pending?.message ?: return
@@ -582,7 +725,7 @@ class ChatViewModel(
                 if (!current(epoch) || identity != message.identity || mutableState.value.pending?.message?.body?.request_id != message.body.request_id) return@launchWork
                 when (val result = api.request(connection, message.body.request_id)) {
                     is ApiResult.Success -> {
-                        consume(result.value, message, epoch)
+                        consume(result.value, message, epoch, false)
                         if (!current(epoch) || mutableState.value.pending == null || mutableState.value.pending?.phase in listOf(PendingPhase.Failed, PendingPhase.Conflict, PendingPhase.Blocked)) return@launchWork
                     }
                     is ApiResult.Failure -> {
@@ -617,7 +760,7 @@ class ChatViewModel(
                 return@launchWork
             }
             if (!current(epoch)) return@launchWork
-            update { it.copy(pending = null, submittedMessages = it.submittedMessages - pending.message.body.request_id,
+            update { it.copy(pending = null, stream = null, streamConnected = false, stopping = false, submittedMessages = it.submittedMessages - pending.message.body.request_id,
                 draft = if (it.conversation?.id == pending.message.conversationId && it.draft.isEmpty()) pending.message.body.content else it.draft,
                 notice = "The previous request was not canceled or rewritten. Edit the draft and Send to consciously create a new request ID.") }
             saveDraft()

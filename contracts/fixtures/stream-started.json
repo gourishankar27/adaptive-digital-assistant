@@ -1,0 +1,26 @@
+{
+  "request_id": "00000000-0000-0000-0000-000000000027",
+  "conversation_id": "00000000-0000-0000-0000-000000000004",
+  "attempt": 1,
+  "available": true,
+  "stream_state": "running",
+  "sequence": 1,
+  "replay_after": 0,
+  "provisional": "",
+  "result": {
+    "request_id": "00000000-0000-0000-0000-000000000027",
+    "conversation_id": "00000000-0000-0000-0000-000000000004",
+    "status": "running",
+    "response": null,
+    "error_code": null,
+    "attempt": 1,
+    "provider": "recording",
+    "model": "test-v1",
+    "input_tokens": null,
+    "output_tokens": null,
+    "citations": [],
+    "document_citations": [],
+    "citation_warnings": [],
+    "continuity_citations": []
+  }
+}

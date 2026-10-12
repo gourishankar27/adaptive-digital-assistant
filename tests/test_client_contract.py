@@ -62,6 +62,8 @@ def assert_schema(value, schema, document):
         for key, item in value.items():
             if key in properties:
                 assert_schema(item, properties[key], document)
+            elif isinstance(schema.get("additionalProperties"), dict):
+                assert_schema(item, schema["additionalProperties"], document)
     elif expected == "array":
         for item in value:
             assert_schema(item, schema.get("items", {}), document)
@@ -91,7 +93,12 @@ def write_synthetic_fixtures(cases):
 
     def sanitize(value, key=""):
         if isinstance(value, dict):
-            return {k: sanitize(v, k) for k, v in value.items()}
+            result = {k: sanitize(v, k) for k, v in value.items()}
+            if type(value.get("created_at")) is int and type(value.get("expires_at")) is int:
+                result["expires_at"] = (
+                    result["created_at"] + value["expires_at"] - value["created_at"]
+                )
+            return result
         if isinstance(value, list):
             return [sanitize(v, key) for v in value]
         if isinstance(value, str):
@@ -100,7 +107,11 @@ def write_synthetic_fixtures(cases):
             except ValueError:
                 return value
             return ids.setdefault(value, str(UUID(int=len(ids) + 1)))
-        if key in ("created_at", "as_of") and type(value) is int and value > 1_760_000_000_000:
+        if (
+            key in ("created_at", "as_of", "expires_at")
+            and type(value) is int
+            and value > 1_760_000_000_000
+        ):
             return 1_791_417_600_000
         if key == "retrieval_ms":
             return 0
@@ -472,6 +483,265 @@ def test_actual_responses_match_export(harness):
     )
     assert extended["budget"]["snapshot_extension"] == 7
     assert all(item["snapshot_extension"] == "retained" for item in extended["candidates"])
+    preference_key = str(uuid4())
+    expression_receipt = call(
+        "expression-preference-receipt",
+        "/v1/preferences/{kind}/{target_id}",
+        "post",
+        actual=f"/v1/preferences/conversation/{cid}",
+        status=201,
+        json={
+            "operation_id": preference_key,
+            "expected_revision": 0,
+            "values": {"verbosity": "concise", "humor": "none"},
+            "dynamic_enabled": True,
+        },
+    )
+    call(
+        "preferences-current",
+        "/v1/preferences/{kind}/{target_id}",
+        actual=f"/v1/preferences/conversation/{cid}",
+    )
+    expression = call(
+        "expression-current",
+        "/v1/conversations/{conversation_id}/expression",
+        actual=f"/v1/conversations/{cid}/expression",
+    )
+    call(
+        "expression-receipt",
+        "/v1/expression-receipts/{operation_id}",
+        actual=f"/v1/expression-receipts/{preference_key}",
+    )
+    call(
+        "expression-request-legacy",
+        "/v1/requests/{request_id}/expression",
+        actual=f"/v1/requests/{rid}/expression",
+    )
+    expression_rid = str(uuid4())
+    call(
+        "expression-chat",
+        "/v1/conversations/{conversation_id}/messages",
+        "post",
+        actual=f"/v1/conversations/{cid}/messages",
+        json={
+            "request_id": expression_rid,
+            "content": "Synthetic expression follow-up",
+            "use_memory": False,
+        },
+    )
+    call(
+        "expression-request-current",
+        "/v1/requests/{request_id}/expression",
+        actual=f"/v1/requests/{expression_rid}/expression",
+    )
+    call(
+        "expression-signal-receipt",
+        "/v1/conversations/{conversation_id}/expression/signals",
+        "post",
+        actual=f"/v1/conversations/{cid}/expression/signals",
+        status=201,
+        json={
+            "operation_id": str(uuid4()),
+            "session_id": expression["session_id"],
+            "source_request_id": expression_rid,
+            "reviewed": True,
+            "reason": "reviewed_model_signal",
+            "vector": {"warmth": 100},
+        },
+    )
+    call(
+        "expression-reset-receipt",
+        "/v1/conversations/{conversation_id}/expression/reset",
+        "post",
+        actual=f"/v1/conversations/{cid}/expression/reset",
+        status=201,
+        json={"operation_id": str(uuid4()), "session_id": expression["session_id"]},
+    )
+    assert expression_receipt["expression"]["preferences"]["verbosity"] == "concise"
+    learning_key = str(uuid4())
+    call(
+        "learning-config-receipt",
+        "/v1/scopes/{scope_id}/learning/config",
+        "post",
+        actual=f"/v1/scopes/{sid}/learning/config",
+        status=201,
+        json={"operation_id": learning_key, "expected_revision": 0, "status": "enrolled"},
+    )
+    for i, content in enumerate(
+        ("Concise plans help.", "Brief coding replies please.", "Compact review explanations work.")
+    ):
+        reply = h["client"].post(
+            f"/v1/conversations/{cid}/messages",
+            headers=h["a"],
+            json={"request_id": str(uuid4()), "content": content},
+        )
+        assert reply.status_code == 200
+        events = h["client"].get(f"/v1/conversations/{cid}/events", headers=h["a"]).json()
+        event = next(
+            x
+            for x in events
+            if x["request_id"] == reply.json()["request_id"] and x["role"] == "user"
+        )
+        source = (
+            h["client"]
+            .get(f"/v1/source-versions/{event['source_version_id']}", headers=h["a"])
+            .json()
+        )
+        call(
+            f"learning-observation-{i + 1}",
+            "/v1/scopes/{scope_id}/learning/observations",
+            "post",
+            actual=f"/v1/scopes/{sid}/learning/observations",
+            status=201,
+            json={
+                "operation_id": str(uuid4()),
+                "source": {
+                    "source_version_id": source["id"],
+                    "version": source["version"],
+                    "content_hash": source["content_hash"],
+                    "span_start": 0,
+                    "span_end": len(source["content"]),
+                },
+                "values": {"verbosity": "concise"},
+                "confidence_class": "repeated_observation",
+            },
+        )
+    learned = call(
+        "learning-state", "/v1/scopes/{scope_id}/learning", actual=f"/v1/scopes/{sid}/learning"
+    )
+    proposal = learned["proposals"][0]
+    assert proposal["eligible"] and proposal["independent_count"] == 3
+    review_key = str(uuid4())
+    call(
+        "learning-review-receipt",
+        "/v1/scopes/{scope_id}/learning/reviews",
+        "post",
+        actual=f"/v1/scopes/{sid}/learning/reviews",
+        status=201,
+        json={
+            "operation_id": review_key,
+            "proposal_id": proposal["id"],
+            "expected_revision": proposal["revision"],
+            "decision": "approve",
+            "account_wide": False,
+            "reviewed": True,
+        },
+    )
+    call(
+        "learning-receipt",
+        "/v1/learning-receipts/{operation_id}",
+        actual=f"/v1/learning-receipts/{review_key}",
+    )
+    call(
+        "learning-state-approved",
+        "/v1/scopes/{scope_id}/learning",
+        actual=f"/v1/scopes/{sid}/learning",
+    )
+    call(
+        "learning-request-legacy",
+        "/v1/requests/{request_id}/learning",
+        actual=f"/v1/requests/{rid}/learning",
+    )
+    call(
+        "learning-request",
+        "/v1/requests/{request_id}/learning",
+        actual=f"/v1/requests/{reply.json()['request_id']}/learning",
+    )
+    call(
+        "learning-reset-receipt",
+        "/v1/scopes/{scope_id}/learning/reset",
+        "post",
+        actual=f"/v1/scopes/{sid}/learning/reset",
+        status=201,
+        json={"operation_id": str(uuid4()), "expected_revision": 1},
+    )
+    call(
+        "learning-state-reset",
+        "/v1/scopes/{scope_id}/learning",
+        actual=f"/v1/scopes/{sid}/learning",
+    )
+    import threading
+    import time
+
+    gate = threading.Event()
+
+    class ContractStream(type(h["provider"])):
+        def stream(self, messages, cancel):
+            if messages[-1]["content"] == "Synthetic complete stream":
+                yield "Synthetic completed stream."
+                yield Completion("Synthetic completed stream.", self.model, 10, 5)
+            else:
+                gate.wait(5)
+                yield "Synthetic provisional [M"
+                cancel.wait(5)
+
+    h["app"].state.chat.provider = ContractStream()
+    call("capabilities-streaming", "/v1/capabilities")
+    stream_id = str(uuid4())
+    call(
+        "stream-started",
+        "/v1/conversations/{conversation_id}/stream-requests",
+        "post",
+        actual=f"/v1/conversations/{cid}/stream-requests",
+        status=202,
+        json={"request_id": stream_id, "content": "Synthetic stream checkpoint"},
+    )
+    gate.set()
+    deadline = time.monotonic() + 5
+    while time.monotonic() < deadline:
+        state = h["client"].get(f"/v1/requests/{stream_id}/stream-status", headers=h["a"]).json()
+        if state["provisional"]:
+            break
+        time.sleep(0.01)
+    assert state["provisional"]
+    call(
+        "stream-current",
+        "/v1/requests/{request_id}/stream-status",
+        actual=f"/v1/requests/{stream_id}/stream-status",
+    )
+    call(
+        "stream-cancel-receipt",
+        "/v1/requests/{request_id}/cancel",
+        "post",
+        actual=f"/v1/requests/{stream_id}/cancel",
+        json={"attempt": 1},
+    )
+    deadline = time.monotonic() + 5
+    while time.monotonic() < deadline:
+        state = h["client"].get(f"/v1/requests/{stream_id}/stream-status", headers=h["a"]).json()
+        if state["stream_state"] == "cancelled":
+            break
+        time.sleep(0.01)
+    assert state["stream_state"] == "cancelled"
+    call(
+        "stream-cancelled",
+        "/v1/requests/{request_id}/stream-status",
+        actual=f"/v1/requests/{stream_id}/stream-status",
+    )
+    call("request-cancelled", "/v1/requests/{request_id}", actual=f"/v1/requests/{stream_id}")
+    call(
+        "stream-legacy",
+        "/v1/requests/{request_id}/stream-status",
+        actual=f"/v1/requests/{rid}/stream-status",
+    )
+    complete_id = str(uuid4())
+    h["client"].post(
+        f"/v1/conversations/{cid}/stream-requests",
+        headers=h["a"],
+        json={"request_id": complete_id, "content": "Synthetic complete stream"},
+    )
+    deadline = time.monotonic() + 5
+    while time.monotonic() < deadline:
+        state = h["client"].get(f"/v1/requests/{complete_id}/stream-status", headers=h["a"]).json()
+        if state["stream_state"] == "completed":
+            break
+        time.sleep(0.01)
+    assert state["stream_state"] == "completed"
+    call(
+        "stream-completed",
+        "/v1/requests/{request_id}/stream-status",
+        actual=f"/v1/requests/{complete_id}/stream-status",
+    )
     if os.environ.get("ADA_UPDATE_CONTRACT_FIXTURES") == "1" and h["backend"] == "sqlite":
         write_synthetic_fixtures(cases)
 

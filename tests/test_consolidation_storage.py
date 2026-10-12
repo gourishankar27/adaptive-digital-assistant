@@ -136,8 +136,10 @@ def test_populated_upgrade_old_replay_schema_check_and_preflight(harness):
     c, _ = make_conversation(h)
     saved = send(h, c).json()
     command.downgrade(h["config"], "0009")
-    assert send(h, c, request_id=saved["request_id"]).json() == saved
+    # Current source requires its new nullable request column. Verify historical
+    # completed replay after upgrading the populated database, not on an old head.
     command.upgrade(h["config"], "head")
+    assert send(h, c, request_id=saved["request_id"]).json() == saved
     command.check(h["config"])
     s, n, body, service, provider = prepared(h)
     enqueue(h, s, body)

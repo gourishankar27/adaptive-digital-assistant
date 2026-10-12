@@ -1,0 +1,14 @@
+{
+  "config": {
+    "scope_id": "00000000-0000-0000-0000-000000000003",
+    "revision": 2,
+    "epoch": 1,
+    "status": "off",
+    "continuity_enabled": false,
+    "policy_version": "ada-learning-v1",
+    "threshold": 3
+  },
+  "observations": [],
+  "proposals": [],
+  "learned": []
+}

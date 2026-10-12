@@ -1,4 +1,4 @@
-# ADA Android chat, memory, documents, identities and read-only tools (Phase 12)
+# ADA Android chat, memory, tools, episodes and interaction learning (Phase 16)
 
 This Compose/Material 3 app verifies an issued ADA bearer credential with real
 `GET /v1/me` and `GET /v1/capabilities`, then provides owned conversation
@@ -6,8 +6,11 @@ selection/creation, paginated history, complete chat replies, exact-request
 recovery and source cards. Three light/dark palettes and system-scaled typography
 remain available. Phase 07 adds owned memory browsing, exact evidence selection,
 explicit Remember/correction previews and encrypted write recovery, plus new
-static personality profiles. Existing profile editing, automatic extraction,
-streaming, voice, external writes and device inference remain later selected phases.
+static personality profiles. Phase 16 adds incremental replies, durable stream
+recovery and explicit Stop. Existing profile editing, automatic extraction,
+voice, external writes and device inference remain later selected phases.
+Phase 14 adds separately scoped interaction preferences and opt-in bounded session
+tone under Settings; saved personality profiles remain unchanged.
 Phase 08 adds owned UTF-8 text/Markdown import, immutable version/status/chunk
 reads, explicit encrypted upload recovery and request-frozen imported source cards.
 
@@ -38,6 +41,24 @@ Oxford Blue. Appearance preferences contain only the palette key and a boolean;
 credentials and ADA data remain outside this store. Android backups stay disabled.
 Colors use [Material 3 semantic roles](https://developer.android.com/develop/ui/compose/designsystems/material3)
 and do not follow dynamic wallpaper colors, so the selected palette remains consistent.
+
+## Interaction preferences and session tone
+
+Settings distinguishes this conversation, its knowledge scope, its chat style,
+and deliberately account-wide defaults. Defaults apply to new conversations;
+reviewed conversation changes apply to future replies without rewriting saved
+personality, prompts or request snapshots. Explicit preferences override temporary
+session tone. Tone is off by default, bounded, decaying and expiring; the user can
+disable/reset it or explicitly request a gentler/more focused next turn.
+
+Expression journal v8 encrypts the exact operation before HTTP, reads its original
+receipt after restart and never automatically submits. v1–v7 remain readable.
+An unknown outcome offers check/same-key retry/local discard. Account/server
+switching clears private state. The real API requires migration 0011 and advertised
+expression-v1 capabilities. There is no automatic mood inference or psychological
+score. See [policy](../../docs/INTERACTION-PREFERENCES-AND-AFFECT.md) and
+[actual checks/targets](../../plans/STATUS.md). Emulator-only verification:
+`./scripts/verify-expression-emulator.ps1 -Device emulator-5556`.
 
 ## Reproducible tools
 
@@ -143,7 +164,8 @@ messages, stops at a rejected token and never substitutes fixtures.
 Typed error DTOs describe code or validation-list envelopes for contract tests.
 A transport timeout is an unknown transport outcome, not a persisted request
 failure. Chat recovery queries the original request ID with bounded polling and
-respects numeric/HTTP-date Retry-After. It does not stream or cancel generation.
+respects numeric/HTTP-date Retry-After. This legacy polling path does not stream or cancel generation; Phase 16 uses
+the optional stream contract described below.
 
 ## Conversations, recovery and sources
 
@@ -578,3 +600,59 @@ HTTP, generated source inspection, staged force-stop recovery and strict cold
 launch on a task-owned emulator only. It keeps newly created fixture directories
 inside ignored workspace storage. See [policy](../../docs/EPISODES-AND-CONSOLIDATION.md)
 and STATUS/WORKLOG for actual runs and physical-phone/release limits.
+
+## Phase 15 reviewed learning and continuity
+
+Open a conversation, then Settings → Interaction learning and continuity. Choose
+scope consent, optionally enable source-linked continuity, select completed user
+messages and review tentative wording suggestions. The configurable default gate
+requires three distinct interactions, never retries/copies or weak guesses.
+Approve/edit/reject is explicit. Account reuse is a separate choice carrying only
+wording enums into other opted-in scopes. Pause stops reuse; reset deletes live
+learned state and discloses retained audit/original sources/historical replay.
+
+Version 0.15.0-learning/versionCode 10 uses encrypted journal v9 with v1–v8
+compatibility. Exact learning operations are saved before HTTP; restart checks
+receipts only, with explicit check/identical retry/discard. Approved original
+evidence remains inspectable until reset. C source cards belong to the original
+reply and keep source trust, uncertainty and bounded omissions. Generated episode
+summaries remain separate navigation. No automatic classifier or bond score exists.
+
+Run `scripts/verify-learning-emulator.ps1 -Device emulator-5556` for disposable
+actual HTTP review/source inspection, process-stop receipt recovery and strict
+cold launch. Use the pinned JDK and normal Gradle gates above. Source head **0012**
+installation is separate; physical Samsung S24 FE/Android 16, release HTTPS,
+TalkBack/network and native-model quality/resource checks remain target work. See
+[policy](../../docs/INTERACTION-LEARNING-AND-CONTINUITY.md) and STATUS/WORKLOG.
+
+## Phase 16 incremental replies and Stop
+
+Version **0.16.0-streaming**, versionCode **11**, adds bearer-authenticated OkHttp
+SSE only when the server advertises `ada-stream-v1` and generation cancellation.
+Older servers retain legacy chat/polling. Source installation needs **0013**;
+the application database was not upgraded by this implementation.
+
+Chat labels partial text provisional/incomplete; partial citation labels and links
+never create source cards. Stop sends the original owned request/attempt and shows
+cancel requested until canonical terminal status. Cancelled requests remain
+outside completed assistant history and offer an explicit same-payload retry.
+Leaving Chat, switching conversations or backgrounding only detaches the observer.
+Returning/foregrounding uses GET of the same request and reconnects after its
+checkpoint. Duplicates are ignored; gaps/expired cursors replace partial text from
+GET. No reconnect or restart automatically submits or cancels generation.
+
+The encrypted record remains **v9**, retaining v1–v8 compatibility; its existing
+exact PendingMessage suffices for stream recovery. Identity/server changes and
+401 clear private state; bounded reconnect/backpressure and Retry-After apply.
+Run normal unit/lint/debug gates and:
+
+```powershell
+.\scripts\verify-streaming-emulator.ps1 -Device emulator-5556
+```
+
+The script uses an explicit delayed synthetic provider on 18765, five focused
+HTTP UI cases, two actual force-stop recovery stages and strict cold launch.
+Compact 900x500/240 dpi/1.5x font verification is recorded separately. Real-model
+measurements, native GPU acknowledgement limits, retained partial-text policy and
+remaining S24 FE/Android16/HTTPS/TalkBack gates are in
+[the policy](../../docs/STREAMING-AND-CANCELLATION.md) and STATUS/WORKLOG.

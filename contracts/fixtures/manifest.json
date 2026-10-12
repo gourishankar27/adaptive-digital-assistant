@@ -290,6 +290,180 @@
       "path": "/v1/requests/{request_id}/retrieval",
       "method": "get",
       "status": 200
+    },
+    {
+      "file": "expression-preference-receipt.json",
+      "path": "/v1/preferences/{kind}/{target_id}",
+      "method": "post",
+      "status": 201
+    },
+    {
+      "file": "preferences-current.json",
+      "path": "/v1/preferences/{kind}/{target_id}",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "expression-current.json",
+      "path": "/v1/conversations/{conversation_id}/expression",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "expression-receipt.json",
+      "path": "/v1/expression-receipts/{operation_id}",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "expression-request-legacy.json",
+      "path": "/v1/requests/{request_id}/expression",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "expression-chat.json",
+      "path": "/v1/conversations/{conversation_id}/messages",
+      "method": "post",
+      "status": 200
+    },
+    {
+      "file": "expression-request-current.json",
+      "path": "/v1/requests/{request_id}/expression",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "expression-signal-receipt.json",
+      "path": "/v1/conversations/{conversation_id}/expression/signals",
+      "method": "post",
+      "status": 201
+    },
+    {
+      "file": "expression-reset-receipt.json",
+      "path": "/v1/conversations/{conversation_id}/expression/reset",
+      "method": "post",
+      "status": 201
+    },
+    {
+      "file": "learning-config-receipt.json",
+      "path": "/v1/scopes/{scope_id}/learning/config",
+      "method": "post",
+      "status": 201
+    },
+    {
+      "file": "learning-observation-1.json",
+      "path": "/v1/scopes/{scope_id}/learning/observations",
+      "method": "post",
+      "status": 201
+    },
+    {
+      "file": "learning-observation-2.json",
+      "path": "/v1/scopes/{scope_id}/learning/observations",
+      "method": "post",
+      "status": 201
+    },
+    {
+      "file": "learning-observation-3.json",
+      "path": "/v1/scopes/{scope_id}/learning/observations",
+      "method": "post",
+      "status": 201
+    },
+    {
+      "file": "learning-state.json",
+      "path": "/v1/scopes/{scope_id}/learning",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "learning-review-receipt.json",
+      "path": "/v1/scopes/{scope_id}/learning/reviews",
+      "method": "post",
+      "status": 201
+    },
+    {
+      "file": "learning-receipt.json",
+      "path": "/v1/learning-receipts/{operation_id}",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "learning-state-approved.json",
+      "path": "/v1/scopes/{scope_id}/learning",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "learning-request-legacy.json",
+      "path": "/v1/requests/{request_id}/learning",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "learning-request.json",
+      "path": "/v1/requests/{request_id}/learning",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "learning-reset-receipt.json",
+      "path": "/v1/scopes/{scope_id}/learning/reset",
+      "method": "post",
+      "status": 201
+    },
+    {
+      "file": "learning-state-reset.json",
+      "path": "/v1/scopes/{scope_id}/learning",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "capabilities-streaming.json",
+      "path": "/v1/capabilities",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "stream-started.json",
+      "path": "/v1/conversations/{conversation_id}/stream-requests",
+      "method": "post",
+      "status": 202
+    },
+    {
+      "file": "stream-current.json",
+      "path": "/v1/requests/{request_id}/stream-status",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "stream-cancel-receipt.json",
+      "path": "/v1/requests/{request_id}/cancel",
+      "method": "post",
+      "status": 200
+    },
+    {
+      "file": "stream-cancelled.json",
+      "path": "/v1/requests/{request_id}/stream-status",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "request-cancelled.json",
+      "path": "/v1/requests/{request_id}",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "stream-legacy.json",
+      "path": "/v1/requests/{request_id}/stream-status",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "stream-completed.json",
+      "path": "/v1/requests/{request_id}/stream-status",
+      "method": "get",
+      "status": 200
     }
   ]
 }

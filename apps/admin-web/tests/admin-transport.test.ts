@@ -5,6 +5,13 @@ import { amount, timestamp } from '../src/monitor-query';
 import { detail, otherOwner, overview, owner, requestId } from './mock-admin';
 const wire = (value: unknown) => JSON.stringify(value, (_, v) => typeof v === 'bigint' ? Number(v) : v);
 describe('monitoring allowlist and lossless adapter', () => {
+  it('projects measured stream state without private deltas or receipts', () => {
+    const safe = decodeDetail({ ...detail, stream: { state: 'cancel_requested', sequence: 18, replay_after: 0, created_at: 9223372036854775807n, finished_at: null, provisional: 'private', messages: ['private'], cancel_receipt: 'private' } });
+    expect(safe.stream?.state).toBe('cancel_requested'); expect(safe.stream?.sequence).toBe(18);
+    expect(safe.stream?.created_at).toBe(9223372036854775807n);
+    expect(JSON.stringify(safe.stream, (_, value) => typeof value === 'bigint' ? value.toString() : value)).not.toContain('private');
+    expect(decodeDetail(detail).stream).toBeNull();
+  });
   it('projects maintenance metadata, preserves times and excludes generated/private input', () => {
     const job = { id: requestId, owner_id: owner, scope_id: requestId, kind: 'episode', status: 'queued', checkpoint: 'reserved', version: 'consolidation-v1', attempt: 0, created_at: 9223372036854775807n, started_at: null, finished_at: null, elapsed_ms: null, input: 'private', snapshot: 'private', summary: 'private' };
     const safe = decodeOverview({ ...overview, consolidation_job_counts: { queued: 1, running: 0, completed: 0, failed: 0, stale: 0, quotes: ['private'] }, consolidation_jobs: [job] });

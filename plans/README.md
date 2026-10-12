@@ -19,6 +19,12 @@ read-only tools, bounded separate agent runs and explicit approval/receipt recov
 Phase 13 adds source-linked generated episodes and bounded durable consolidation
 jobs, explicit Android history/recovery and read-only admin job metadata. Later
 backend features remain planned.
+Phase 14 adds explicit scoped preferences and opt-in bounded session tone,
+request-frozen expression snapshots and Android Settings/receipt recovery.
+Phase 15 adds opt-in selected-source interaction observations, explicit reviewed
+learned defaults, source-linked continuity and Android consent/review/reset.
+Phase 16 adds durable incremental replies, checkpoint/reconnect recovery, explicit
+Stop and admin stream metadata. Automatic affect inference remains deferred.
 The Windows/PostgreSQL rerun closes the 02A fixture gate;
 see STATUS/WORKLOG for preserved historical and current evidence.
 

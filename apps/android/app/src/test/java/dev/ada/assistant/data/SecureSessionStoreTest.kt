@@ -37,15 +37,53 @@ private class MemorySessionKeys : SessionKeys {
 }
 
 class SecureSessionStoreTest {
+    @Test fun realV8CiphertextUpgradesAndLearningJournalIsEncryptedAndIdentityBound() = runTest {
+        val disk = MemorySessionDisk(); val keys = MemorySessionKeys(); val s = store(disk, keys)
+        s.saveCredential(credential()); s.savePending(message())
+        val cipher = AesGcmSessionCipher(keys)
+        val previous = cipher.decrypt(disk.bytes!!).toString(Charsets.UTF_8).replace("\"version\":9", "\"version\":8").replace(",\"learningJournal\":null", "")
+        assertTrue(previous.contains("\"version\":8")); disk.bytes = cipher.encrypt(previous.toByteArray())
+        val restored = store(disk, keys); assertEquals(message(), restored.pending(identity))
+        val key = UUID.randomUUID(); val journal = LearningJournal(identity, UUID.randomUUID(), key, "config", adaJson.encodeToString(LearningConfigWriteDto(key, 0, "enrolled")))
+        restored.saveLearningJournal(journal); assertEquals(journal, store(disk, keys).learningJournal(identity))
+        assertFalse(disk.bytes!!.toString(Charsets.UTF_8).contains(key.toString()))
+        restored.saveCredential(credential(token = "synthetic-rotation")); assertEquals(journal, restored.learningJournal(identity))
+        restored.saveCredential(credential(SessionIdentity(identity.server, UUID.randomUUID()))); assertNull(restored.learningJournal(identity))
+    }
+    @Test fun realV7CiphertextUpgradesAndExpressionReservationStaysIdentityBound() = runTest {
+        val disk = MemorySessionDisk(); val keys = MemorySessionKeys(); val s = store(disk, keys)
+        s.saveCredential(credential()); s.savePending(message())
+        val cipher = AesGcmSessionCipher(keys)
+        val old = cipher.decrypt(disk.bytes!!).toString(Charsets.UTF_8).replace("\"version\":9", "\"version\":7").replace(",\"expressionJournal\":null", "").replace(",\"learningJournal\":null", "")
+        assertTrue(old.contains("\"version\":7")); disk.bytes = cipher.encrypt(old.toByteArray())
+        val restored = store(disk, keys); assertEquals(message(), restored.pending(identity))
+        val id = UUID.randomUUID()
+        val journal = ExpressionJournal(identity, id, "preferences", "account", identity.owner,
+            adaJson.encodeToString(PreferenceWriteDto(id, 0, PreferenceValuesDto(verbosity = "concise"))))
+        restored.saveExpressionJournal(journal)
+        assertEquals(journal, store(disk, keys).expressionJournal(identity))
+        restored.saveCredential(credential(token = "synthetic-rotated"))
+        assertEquals(journal, restored.expressionJournal(identity))
+        restored.saveCredential(StoredCredential(SessionIdentity(identity.server, UUID.randomUUID()), "synthetic-other"))
+        assertNull(restored.expressionJournal(identity)); assertNull(restored.pending(identity))
+    }
+    @Test fun forgedExpressionAuthorityAndUnknownFieldsNeverReachEncryptedDisk() = runTest {
+        val disk = MemorySessionDisk(); val keys = MemorySessionKeys(); val s = store(disk, keys); s.saveCredential(credential())
+        val id = UUID.randomUUID()
+        val body = """{"operation_id":"$id","expected_revision":0,"values":{"admin":true}}"""
+        try { s.saveExpressionJournal(ExpressionJournal(identity, id, "preferences", "account", identity.owner, body)); fail("forged permission accepted") }
+        catch (_: SessionStorageException) { }
+        assertNull(s.expressionJournal(identity))
+    }
     @Test fun realV6CiphertextRemainsReadableAndUpgradesWithoutLosingChat() = runTest {
         val disk = MemorySessionDisk(); val keys = MemorySessionKeys(); val s = store(disk, keys)
         s.saveCredential(credential()); s.savePending(message())
         val cipher = AesGcmSessionCipher(keys)
-        val old = cipher.decrypt(disk.bytes!!).toString(Charsets.UTF_8).replace("\"version\":7", "\"version\":6").replace(",\"consolidationJournal\":null", "")
+        val old = cipher.decrypt(disk.bytes!!).toString(Charsets.UTF_8).replace("\"version\":9", "\"version\":6").replace(",\"consolidationJournal\":null", "").replace(",\"expressionJournal\":null", "").replace(",\"learningJournal\":null", "")
         assertTrue(old.contains("\"version\":6")); disk.bytes = cipher.encrypt(old.toByteArray())
         assertEquals(message(), store(disk, keys).pending(identity))
         s.saveCredential(credential(token = "synthetic-rotated"))
-        assertEquals(message(), s.pending(identity)); assertTrue(cipher.decrypt(disk.bytes!!).toString(Charsets.UTF_8).contains("\"version\":7"))
+        assertEquals(message(), s.pending(identity)); assertTrue(cipher.decrypt(disk.bytes!!).toString(Charsets.UTF_8).contains("\"version\":9"))
     }
     @Test fun consolidationReservationSurvivesEncryptedRestartAndTokenRotation() = runTest {
         val disk = MemorySessionDisk(); val keys = MemorySessionKeys(); val s = store(disk, keys)

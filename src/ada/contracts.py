@@ -23,6 +23,12 @@ class UserOutput(BaseModel):
 
 
 class CapabilitiesOutput(BaseModel):
+    stream_protocol: str = "unsupported"
+    generation_cancellation: bool = False
+    interaction_learning: str = "unsupported"
+    interaction_preferences: str = "unsupported"
+    session_expression: str = "unsupported"
+    automatic_affect_inference: bool = False
     episodes: str = "unsupported"
     consolidation_jobs: str = "unsupported"
     consolidation_generation: bool = False

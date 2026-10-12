@@ -383,7 +383,7 @@ private fun ConversationScreen(state: ChatState, vm: ChatViewModel, typing: Bool
                             Column(Modifier.padding(AdaSpacing.medium), verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
                                 Text("ADA", style = MaterialTheme.typography.labelLarge)
                                 SafeChatText(response.response)
-                                val labels = Regex("\\[(M[1-9][0-9]*)]").findAll(response.response).map { it.groupValues[1] }.distinct().toList()
+                                val labels = Regex("\\[([MDC][1-9][0-9]*)]").findAll(response.response).map { it.groupValues[1] }.distinct().toList()
                                 labels.forEach { label ->
                                     TextButton(onClick = { vm.openSources(requestId, label) }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("source-chip-$label")) { Text("Source [$label]") }
                                 }
@@ -457,7 +457,7 @@ private fun EventCard(event: EventDto, state: ChatState, vm: ChatViewModel) {
             )
             SafeChatText(event.content)
             if (event.role == "assistant") {
-                val labels = remember(event.content) { Regex("\\[([MD][1-9][0-9]*)]").findAll(event.content).map { it.groupValues[1] }.distinct().toList() }
+                val labels = remember(event.content) { Regex("\\[([MDC][1-9][0-9]*)]").findAll(event.content).map { it.groupValues[1] }.distinct().toList() }
                 labels.forEach { label ->
                     TextButton(
                         onClick = { vm.openSources(event.request_id, label) },
@@ -466,7 +466,7 @@ private fun EventCard(event: EventDto, state: ChatState, vm: ChatViewModel) {
                 }
                 if (labels.isEmpty()) TextButton(onClick = { vm.openSources(event.request_id) }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Sources for this reply") }
                 val known = state.sources[event.request_id]
-                if (known?.request_id == event.request_id && labels.any { label -> known.citations.none { it.label == label } && known.document_citations.none { it.label == label } }) Text("Some source labels are unavailable for this saved reply.", style = MaterialTheme.typography.bodySmall)
+                if (known?.request_id == event.request_id && labels.any { label -> known.citations.none { it.label == label } && known.document_citations.none { it.label == label } && known.continuity_citations.none { it.label == label } }) Text("Some source labels are unavailable for this saved reply.", style = MaterialTheme.typography.bodySmall)
             }
         }
     }
@@ -495,6 +495,17 @@ private fun PendingPanel(state: ChatState, vm: ChatViewModel, maximumHeight: Dp,
     Surface(color = MaterialTheme.colorScheme.surfaceContainerHighest) {
         Column(Modifier.fillMaxWidth().then(scrolling).padding(AdaSpacing.medium), verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
             Text(title, style = MaterialTheme.typography.titleSmall, modifier = Modifier.testTag("pending-status"))
+            state.stream?.takeIf { it.request_id == pending.message.body.request_id }?.let { progress ->
+                if (progress.provisional.isNotEmpty()) {
+                    Text(if (progress.stream_state in setOf("cancelled", "failed", "interrupted")) "Incomplete reply" else "Provisional reply", style = MaterialTheme.typography.labelLarge)
+                    SafeChatText(progress.provisional, links = false)
+                }
+                if (progress.stream_state in setOf("running", "cancel_requested") && progress.available) {
+                    Text(if (state.stopping || progress.stream_state == "cancel_requested") "Stop requested; waiting for shutdown" else if (state.streamConnected) "Receiving reply" else "Observer detached; Check request to reconnect")
+                    Button(onClick = vm::stopGeneration, enabled = progress.stream_state == "running" && !state.stopping,
+                        modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("stop-generation")) { Text("Stop") }
+                }
+            }
             if (pending.phase in setOf(PendingPhase.Journaling, PendingPhase.Submitting, PendingPhase.Running, PendingPhase.Unknown)) {
                 LinearProgressIndicator(Modifier.fillMaxWidth().testTag("pending-progress").semantics {
                     contentDescription = if (pending.phase == PendingPhase.Unknown) "Request outcome unresolved; check the original request" else title
@@ -588,14 +599,23 @@ private fun SourcesScreen(state: ChatState, vm: ChatViewModel) {
     val request = id?.let { state.sources[it] }?.takeIf { it.request_id == id }
     val cards = request?.citations.orEmpty().filter { state.sourceLabel == null || it.label == state.sourceLabel }
     val documents = request?.document_citations.orEmpty().filter { state.sourceLabel == null || it.label == state.sourceLabel }
+    val continuity = request?.continuity_citations.orEmpty().filter { state.sourceLabel == null || it.label == state.sourceLabel }
     LazyColumn(Modifier.fillMaxSize().testTag("sources-list"), contentPadding = androidx.compose.foundation.layout.PaddingValues(AdaSpacing.medium), verticalArrangement = Arrangement.spacedBy(AdaSpacing.medium)) {
         item { BackButton(vm::back); ScreenHeading("Sources", "These cards belong to this saved reply, with the original quotes and source versions."); StateFeedback(state) }
         if (state.sourceLoading) item { BusyIndicator("Loading sources for this reply") }
-        if (!state.sourceLoading && request != null && cards.isEmpty() && documents.isEmpty()) item {
+        if (!state.sourceLoading && request != null && cards.isEmpty() && documents.isEmpty() && continuity.isEmpty()) item {
             StatusCard("Source unavailable", if (state.sourceLabel != null) "This label has no source card for the saved reply. It may refer to an older request without a recorded trace or an unknown label." else "No source cards are attached to this saved reply. Older requests may have no retrieval trace.")
         }
         items(cards, key = { "${it.label}:${it.claim_id}" }) { card -> ChatSourceCard(card, checkNotNull(id)) }
         items(documents, key = { "${it.label}:${it.chunk_id}" }) { card -> DocumentSourceCard(card, checkNotNull(id)) }
+        items(continuity, key = { "${it.label}:${it.episode_id}" }) { card ->
+            Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(AdaSpacing.medium)) {
+                Text("[${card.label}] Continuity source · ${card.trust_class}", style = MaterialTheme.typography.titleMedium)
+                Text("Exact original excerpt selected through a generated episode. A reference is not verified recollection or proof; summaries remain generated navigation.")
+                if (card.omitted_source_count > 0) Text("Some original episode sources were omitted from this bounded selection.")
+                SafeChatText(card.evidence.quote, links = false)
+            } }
+        }
         if (!state.sourceLoading && request == null && id != null) item {
             TextButton(onClick = { vm.openSources(id, state.sourceLabel) }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Try loading sources again") }
         }
@@ -641,7 +661,7 @@ private fun AccountSettingsScreen(state: ChatState, vm: ChatViewModel, openSetti
     var replacement by remember(state.account?.owner, state.account?.server) { mutableStateOf("") }
     val focus = LocalFocusManager.current
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(AdaSpacing.large), verticalArrangement = Arrangement.spacedBy(AdaSpacing.medium)) {
-        ScreenHeading("Settings", "Your connection and the way ADA looks on this device.")
+        ScreenHeading("Settings", "Your connection, appearance and interaction preferences.")
         StateFeedback(state)
         state.account?.let { account ->
             Card(Modifier.fillMaxWidth()) {
@@ -656,6 +676,10 @@ private fun AccountSettingsScreen(state: ChatState, vm: ChatViewModel, openSetti
         Text("Choose Oxford Blue, Dark Red or Olive Green in light or dark mode. Text follows the system font size.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         HorizontalDivider()
         SettingsProfiles(state, vm)
+        HorizontalDivider()
+        ExpressionSettings(vm.expression, state.conversation?.id)
+        HorizontalDivider()
+        LearningSettings(vm.learning, state)
         state.account?.let { account ->
             HorizontalDivider()
             Text("Replace this account’s token", style = MaterialTheme.typography.titleMedium)
@@ -674,7 +698,7 @@ private fun AccountSettingsScreen(state: ChatState, vm: ChatViewModel, openSetti
         }
         Text("Account and server changes clear local conversations, sources, drafts and pending requests. A request already submitted may continue on the server.", style = MaterialTheme.typography.bodyMedium)
         Button(onClick = vm::logout, modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("logout")) { Text("Log out / change server") }
-        Text("Voice, tools and automatic memory extraction are not available in this version.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text("Voice and automatic memory extraction are not available in this version.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
