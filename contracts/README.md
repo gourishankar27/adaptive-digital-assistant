@@ -16,7 +16,8 @@ disabled by default; see
 Existing CLI/user clients
 use the same field names, statuses and retry fingerprints. Phase 16 adds optional
 durable streaming/Stop without changing legacy request enums.
-PDF/OCR, device inference and enrollment remain absent. The monitoring dashboard
+PDF/OCR, local language-model inference and enrollment remain absent. Phase 17
+adds only explicit on-device speech input and optional offline TTS. The monitoring dashboard
 is implemented in Phase 06.
 
 All `/v1/` operations require a bearer credential. Ownership comes from the
@@ -256,3 +257,12 @@ legacy failed cancellation. Existing fixture payloads remain byte-identical exce
 current capabilities/readiness and the expanded manifest. Paths serialize with
 forward slashes on Windows. See
 [the policy](../docs/STREAMING-AND-CANCELLATION.md) for bounds and retry/race rules.
+
+
+Phase17 adds head0014 and three owner-authenticated reviewed-voice routes, typed
+original/generated and reviewed/endorsed lineage, plus optional voice_input and
+voice_audio_uploads capabilities. All old paths/schemas retain their contracts;
+only capability fields are additive. Existing synthetic fixture payloads are
+preserved except capabilities/readiness. Three new HTTP-captured voice fixtures
+show a typed submission and truthful provenance; server audio/hash are absent.
+See [the voice policy](../docs/VOICE-INTERFACE.md).

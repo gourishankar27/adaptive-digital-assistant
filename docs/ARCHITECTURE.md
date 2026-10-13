@@ -152,7 +152,7 @@ Monitoring selects columns/JSON scalar counts rather than private ORM snapshots.
 It preserves composite owner/request identity and unrecorded metrics as null.
 Polling, query windows, pagination and audit rows/age are bounded. Provider model-list
 probes are serialized/cached, response/time bounded and run outside DB transactions;
-they never generate. Current readiness validates supported head 0013. Admission shows the
+they never generate. Current readiness validates supported head 0014. Admission shows the
 actual process semaphore, with one worker; GPU/throughput remain unknown. See
 [ADMIN-MONITORING.md](ADMIN-MONITORING.md) for allowlists, failure/audit semantics,
 retention and installation. Phase 05 introduces no account impersonation.
@@ -446,3 +446,26 @@ no automatic POST or Stop on restoration. Only canonical final RequestOutput
 constructs source cards. Admin queries five state/time/sequence fields, with no
 private deltas or cancellation control. Event retention is count-bounded; 24-hour
 cursor expiry is not physical erasure. See [the policy](STREAMING-AND-CANCELLATION.md).
+
+
+## Phase 17 reviewed voice and independent playback
+
+Migration 0014 adds immutable voice_inputs with composite owner/request/
+conversation/scope constraints and an exact endorsed event/source-version link.
+POST voice-requests requires explicit approval, original generated transcript,
+client-reported on-device engine/platform/language/duration metadata and the old
+chat options. Its fingerprint extends the old fingerprint in a separate domain;
+ordinary text fingerprints and completed replay remain identical. Original ASR
+text has generated-interpretation provenance and enters neither retrieved
+candidates nor model context. Only approved wording creates user-explicit
+conversational evidence. No audio/provider call runs in the registration
+transaction; there is no server audio storage or ASR in this phase.
+
+The native controller uses an API31+ on-device-only factory, API33+ installed
+language preflight, runtime microphone permission, bounded recording and fenced
+callbacks. Keystore journal v10 keeps review separate, then atomically consumes
+an approved draft into the exact pending request before POST. Restores read only;
+old journal versions remain supported. Local installed offline TTS reads owned
+completed reply text and owns separate focus/route/lifecycle/stop controls. It
+never stops server generation. See [VOICE-INTERFACE.md](VOICE-INTERFACE.md) for
+limits, absent audio hashes, retention and remaining physical-device gates.

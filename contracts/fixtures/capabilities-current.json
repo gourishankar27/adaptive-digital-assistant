@@ -1,4 +1,6 @@
 {
+  "voice_input": "unsupported",
+  "voice_audio_uploads": false,
   "stream_protocol": "unsupported",
   "generation_cancellation": false,
   "interaction_learning": "ada-learning-v1",

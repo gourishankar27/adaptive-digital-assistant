@@ -20,6 +20,10 @@ private val conversation = adaJson.decodeFromString<ConversationDto>(fixture("co
 private val capabilities = adaJson.decodeFromString<CapabilitiesDto>(fixture("capabilities-current.json"))
 
 private class MemorySessionStore : SessionStore {
+    var voice: VoiceDraft? = null
+    override suspend fun voiceDraft(identity: SessionIdentity) = voice?.takeIf { it.identity == identity }
+    override suspend fun saveVoiceDraft(draft: VoiceDraft) { if (failJournal) throw SessionStorageException(); voice = draft }
+    override suspend fun removeVoiceDraft(identity: SessionIdentity, transcript: UUID) { if (voice?.identity == identity && voice?.transcript?.transcript_id == transcript) voice = null }
     var credential: StoredCredential? = null
     var journal: PendingMessage? = null
     var failJournal = false
@@ -40,6 +44,10 @@ private class MemorySessionStore : SessionStore {
     override suspend fun savePending(message: PendingMessage) {
         journalGate?.await()
         if (failJournal) error("Synthetic storage failure")
+        if (message.voiceTranscript != null && journal == null) {
+            check(voice?.approved == true && voice?.reviewedText == message.body.content && voice?.transcript == message.voiceTranscript)
+            voice = null
+        }
         journal = message; writes += "journal"
     }
     override suspend fun removePending(identity: SessionIdentity, requestId: UUID) {
@@ -54,6 +62,17 @@ private fun unsupportedChatApi(): AdaApi = java.lang.reflect.Proxy.newProxyInsta
 ) { _, method, _ -> error("Unexpected test call: ${method.name}") } as AdaApi
 
 private class ChatApiMock(val store: MemorySessionStore) : AdaApi by unsupportedChatApi() {
+    val voicePosts = mutableListOf<ReviewedVoiceInputDto>()
+    var voiceReject = false
+    override suspend fun voiceInputs(connection: ConnectionCredential, conversation: UUID) = ApiResult.Success(emptyList<VoiceLineageDto>())
+    override suspend fun submitVoice(connection: ConnectionCredential, conversation: UUID, body: ReviewedVoiceInputDto): ApiResult<StreamStatusDto> {
+        assertEquals(body, ReviewedVoiceInputDto.from(store.journal!!)); assertNull(store.voice)
+        voicePosts += body
+        if (voiceReject) return ApiResult.Failure(ApiFailure.Validation)
+        val result = completed(body.request_id).copy(status = "running", response = null)
+        streamSnapshot = StreamStatusDto(body.request_id, conversation, result.attempt, true, "running", 1, 0, "", result)
+        return ApiResult.Success(streamSnapshot!!)
+    }
     var streamSnapshot: StreamStatusDto? = null
     val streamChannel = Channel<ApiResult<StreamEventDto>>(Channel.UNLIMITED)
     var detached = 0
@@ -132,9 +151,50 @@ private fun journal(identity: SessionIdentity) = PendingMessage(identity, conver
 class ChatViewModelTest {
     @Before fun setup() { Dispatchers.setMain(StandardTestDispatcher()) }
     @After fun cleanup() { Dispatchers.resetMain() }
+    private suspend fun TestScope.voiceReady(): Triple<ChatViewModel, ChatApiMock, MemorySessionStore> {
+        val (vm, api, store) = ready(streaming = true)
+        val features = api.features.copy(voice_input = VOICE_PROTOCOL)
+        api.features = features
+        vm.voice.setVerifiedSession(ConnectionCredential.parse("http://localhost:8000", "synthetic-test-token", true)!!, store.credential!!.identity, features)
+        vm.voice.context(conversation, true, false); runCurrent()
+        val transcript = TranscriptInputDto(UUID.randomUUID(), "android_on_device", "Android synthetic test", "en-US", 2000, "Original generated cattle")
+        vm.voice.rejected(PendingMessage(store.credential!!.identity, conversation.id, ChatInputDto(UUID.randomUUID(), "Reviewed kettle"), transcript, conversation.scope_id))
+        runCurrent(); vm.voice.approve(true); runCurrent()
+        return Triple(vm, api, store)
+    }
+    @Test fun reviewedVoiceJournalPrecedesPostAndDuplicateSendUsesOneRequest() = runTest {
+        val (vm, api, store) = voiceReady()
+        vm.sendReviewedVoice(); vm.sendReviewedVoice(); runCurrent()
+        assertEquals(1, api.voicePosts.size); assertTrue(api.sent.isEmpty()); assertEquals(0, api.streamPosts)
+        val saved = store.journal!!; assertEquals(saved.body.request_id, api.voicePosts.single().request_id)
+        assertEquals("Original generated cattle", api.voicePosts.single().transcript.original_text)
+        assertEquals("Reviewed kettle", api.voicePosts.single().content); assertNull(store.voice)
+        vm.voice.stopPlayback(); assertTrue(api.stops.isEmpty()); assertNotNull(vm.state.value.pending)
+        vm.observeForeground(false); runCurrent()
+    }
+    @Test fun reviewedVoiceStorageFailureAndMissingCapabilityNeverUseTextFallback() = runTest {
+        val (vm, api, store) = voiceReady(); store.failJournal = true
+        vm.sendReviewedVoice(); runCurrent(); assertTrue(api.voicePosts.isEmpty()); assertNotNull(vm.voice.state.value.draft)
+        store.failJournal = false
+        val reserved = PendingMessage(store.credential!!.identity, conversation.id, ChatInputDto(UUID.randomUUID(), "Reviewed kettle"), store.voice!!.transcript, conversation.scope_id)
+        vm.disconnect(); runCurrent()
+        store.credential = StoredCredential(reserved.identity, "synthetic-test-token"); store.journal = reserved
+        api.features = api.features.copy(voice_input = "unsupported", streaming = false)
+        vm.restore(); runCurrent(); vm.openConversation(conversation.id); runCurrent()
+        assertTrue(api.voicePosts.isEmpty()); assertTrue(api.sent.isEmpty()); assertEquals(0, api.streamPosts)
+        vm.observeForeground(false)
+    }
+    @Test fun rejectedVoiceReturnsToSeparateUnapprovedReviewInsteadOfPlainComposer() = runTest {
+        val (vm, api, store) = voiceReady(); api.voiceReject = true
+        vm.updateDraft("Independent typed draft"); vm.sendReviewedVoice(); runCurrent()
+        assertNull(store.journal); assertNotNull(store.voice); assertFalse(store.voice!!.approved)
+        assertEquals("Independent typed draft", vm.state.value.draft)
+        assertEquals("Original generated cattle", vm.voice.state.value.draft!!.transcript.original_text)
+        assertNull(vm.voice.approvedDraft()); vm.observeForeground(false)
+    }
     private suspend fun TestScope.ready(store: MemorySessionStore = MemorySessionStore(), streaming: Boolean = false): Triple<ChatViewModel, ChatApiMock, MemorySessionStore> {
         val api = ChatApiMock(store)
-        if (streaming) api.features = api.features.copy(streaming = true, generation_cancellation = true, stream_protocol = "ada-stream-v1")
+        if (streaming) api.features = api.features.copy(streaming = true, generation_cancellation = true, stream_protocol = "ada-stream-v1", voice_input = VOICE_PROTOCOL)
         val vm = ChatViewModel(api, store, true, pollDelaysMs = listOf(0, 1, 2))
         vm.connect("http://localhost:8000", "synthetic-test-token"); advanceUntilIdle()
         vm.openConversation(conversation.id); advanceUntilIdle()

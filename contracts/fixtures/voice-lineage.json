@@ -1,0 +1,22 @@
+{
+  "request_id": "00000000-0000-0000-0000-000000000029",
+  "conversation_id": "00000000-0000-0000-0000-000000000004",
+  "scope_id": "00000000-0000-0000-0000-000000000003",
+  "transcript_id": "00000000-0000-0000-0000-00000000002a",
+  "engine_id": "android_on_device",
+  "engine_version": "Android 16 API 36 (client reported)",
+  "engine_metadata": "client_reported",
+  "language": "en-US",
+  "duration_ms": 3200,
+  "original_text": "Generated synthetic cattle \ud83e\uded6 wording",
+  "original_hash": "3e1e1a508db3d60b3b81bc48c65dc4494c544d4568654f7e11148c7466f59302",
+  "original_origin": "asr_generated",
+  "original_trust": "generated_interpretation",
+  "reviewed_text": "Reviewed synthetic kettle \ud83e\uded6 wording",
+  "reviewed_hash": "5b8aadb063fa220def6ed871272e5233cf183cfaceb0e7fbbb61fb8f2e79cb58",
+  "reviewed_origin": "user_reviewed",
+  "endorsement_source_version_id": "00000000-0000-0000-0000-00000000002b",
+  "approved_at": 1791417600000,
+  "audio_storage": "not_received_by_server",
+  "audio_sha256": null
+}

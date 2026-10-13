@@ -7934,6 +7934,338 @@
         }
       }
     },
+    "/v1/conversations/{conversation_id}/voice-requests": {
+      "post": {
+        "tags": [
+          "voice"
+        ],
+        "summary": "Submit",
+        "operationId": "submit_v1_conversations__conversation_id__voice_requests_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Conversation Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewedVoiceInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StreamStatus"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/requests/{request_id}/voice-input": {
+      "get": {
+        "tags": [
+          "voice"
+        ],
+        "summary": "Get",
+        "operationId": "get_v1_requests__request_id__voice_input_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceLineageOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/conversations/{conversation_id}/voice-inputs": {
+      "get": {
+        "tags": [
+          "voice"
+        ],
+        "summary": "List Inputs",
+        "operationId": "list_inputs_v1_conversations__conversation_id__voice_inputs_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Conversation Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "default": 25,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100000,
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VoiceLineageOutput"
+                  },
+                  "title": "Response List Inputs V1 Conversations  Conversation Id  Voice Inputs Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health/live": {
       "get": {
         "summary": "Live",
@@ -11350,6 +11682,16 @@
       },
       "CapabilitiesOutput": {
         "properties": {
+          "voice_input": {
+            "type": "string",
+            "title": "Voice Input",
+            "default": "unsupported"
+          },
+          "voice_audio_uploads": {
+            "type": "boolean",
+            "title": "Voice Audio Uploads",
+            "default": false
+          },
           "stream_protocol": {
             "type": "string",
             "title": "Stream Protocol",
@@ -16403,6 +16745,60 @@
         ],
         "title": "ReviewProvenance"
       },
+      "ReviewedVoiceInput": {
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Request Id"
+          },
+          "content": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Content"
+          },
+          "as_of": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "use_memory": {
+            "type": "boolean",
+            "title": "Use Memory",
+            "default": true
+          },
+          "use_documents": {
+            "type": "boolean",
+            "title": "Use Documents",
+            "default": false
+          },
+          "transcript": {
+            "$ref": "#/components/schemas/TranscriptInput"
+          },
+          "review": {
+            "type": "string",
+            "const": "approve",
+            "title": "Review"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "request_id",
+          "content",
+          "transcript",
+          "review"
+        ],
+        "title": "ReviewedVoiceInput"
+      },
       "ScopeInput": {
         "properties": {
           "name": {
@@ -17401,6 +17797,57 @@
         ],
         "title": "TraceOutput"
       },
+      "TranscriptInput": {
+        "properties": {
+          "transcript_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Transcript Id"
+          },
+          "engine_id": {
+            "type": "string",
+            "const": "android_on_device",
+            "title": "Engine Id"
+          },
+          "engine_version": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^[\\x20-\\x7e]+$",
+            "title": "Engine Version"
+          },
+          "language": {
+            "type": "string",
+            "maxLength": 35,
+            "minLength": 2,
+            "pattern": "^[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8}){0,4}$",
+            "title": "Language"
+          },
+          "duration_ms": {
+            "type": "integer",
+            "maximum": 60000.0,
+            "minimum": 1.0,
+            "title": "Duration Ms"
+          },
+          "original_text": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Original Text"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "transcript_id",
+          "engine_id",
+          "engine_version",
+          "language",
+          "duration_ms",
+          "original_text"
+        ],
+        "title": "TranscriptInput"
+      },
       "UserOutput": {
         "properties": {
           "id": {
@@ -17477,6 +17924,124 @@
           "msg"
         ],
         "title": "ValidationIssueOutput"
+      },
+      "VoiceLineageOutput": {
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Request Id"
+          },
+          "conversation_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Conversation Id"
+          },
+          "scope_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Scope Id"
+          },
+          "transcript_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Transcript Id"
+          },
+          "engine_id": {
+            "type": "string",
+            "title": "Engine Id"
+          },
+          "engine_version": {
+            "type": "string",
+            "title": "Engine Version"
+          },
+          "engine_metadata": {
+            "type": "string",
+            "const": "client_reported",
+            "title": "Engine Metadata",
+            "default": "client_reported"
+          },
+          "language": {
+            "type": "string",
+            "title": "Language"
+          },
+          "duration_ms": {
+            "type": "integer",
+            "title": "Duration Ms"
+          },
+          "original_text": {
+            "type": "string",
+            "title": "Original Text"
+          },
+          "original_hash": {
+            "type": "string",
+            "title": "Original Hash"
+          },
+          "original_origin": {
+            "type": "string",
+            "const": "asr_generated",
+            "title": "Original Origin",
+            "default": "asr_generated"
+          },
+          "original_trust": {
+            "type": "string",
+            "const": "generated_interpretation",
+            "title": "Original Trust",
+            "default": "generated_interpretation"
+          },
+          "reviewed_text": {
+            "type": "string",
+            "title": "Reviewed Text"
+          },
+          "reviewed_hash": {
+            "type": "string",
+            "title": "Reviewed Hash"
+          },
+          "reviewed_origin": {
+            "type": "string",
+            "const": "user_reviewed",
+            "title": "Reviewed Origin",
+            "default": "user_reviewed"
+          },
+          "endorsement_source_version_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Endorsement Source Version Id"
+          },
+          "approved_at": {
+            "type": "integer",
+            "format": "int64",
+            "title": "Approved At"
+          },
+          "audio_storage": {
+            "type": "string",
+            "const": "not_received_by_server",
+            "title": "Audio Storage",
+            "default": "not_received_by_server"
+          },
+          "audio_sha256": {
+            "type": "null",
+            "title": "Audio Sha256"
+          }
+        },
+        "type": "object",
+        "required": [
+          "request_id",
+          "conversation_id",
+          "scope_id",
+          "transcript_id",
+          "engine_id",
+          "engine_version",
+          "language",
+          "duration_ms",
+          "original_text",
+          "original_hash",
+          "reviewed_text",
+          "reviewed_hash",
+          "endorsement_source_version_id",
+          "approved_at"
+        ],
+        "title": "VoiceLineageOutput"
       }
     },
     "securitySchemes": {

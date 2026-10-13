@@ -339,3 +339,24 @@ not deletion; checkpoints/terminal history remain retained, and no account/backu
 erasure policy is implemented here. Local HTTP iterator shutdown is observable,
 remote Ollama GPU-stop acknowledgement is not. See
 [the policy](../docs/STREAMING-AND-CANCELLATION.md).
+
+
+## Phase 17: on-device-only ASR and explicit reviewed endorsement
+
+Choose Android SpeechRecognizer.createOnDeviceSpeechRecognizer on API31+, with
+installed-language preflight on API33+, rather than adding server ASR or a generic
+recognizer whose privacy behavior differs. Default to the user's selected en-US.
+No model download/network fallback/audio upload is implicit. Text stays available
+on older/unsupported devices. Offline availability is a platform capability, not
+an accuracy/resource/battery guarantee; validate the S24 FE separately.
+
+Preserve generated original text in immutable voice lineage. Require review and
+approved wording before a normal user-explicit event is created. Bind original
+metadata into a separate request-fingerprint domain without altering plain text
+fingerprints, prompts, retrieval or completed replay. Android encrypted v10
+atomically consumes approval into the exact pending request. Restoration reads
+only; TTS plays completed safe text with independent stop/focus/route handling.
+Metadata describes the client-reported platform, not an attested ASR binary or
+recording; no server audio hash exists. Retention is private durable lineage,
+bounded at1000 owner records, with no deletion/erasure claim. See
+[the policy](../docs/VOICE-INTERFACE.md) and its primary Android references.

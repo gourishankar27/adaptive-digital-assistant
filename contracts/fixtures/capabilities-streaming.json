@@ -1,4 +1,6 @@
 {
+  "voice_input": "ada-reviewed-voice-v1",
+  "voice_audio_uploads": false,
   "stream_protocol": "ada-stream-v1",
   "generation_cancellation": true,
   "interaction_learning": "ada-learning-v1",

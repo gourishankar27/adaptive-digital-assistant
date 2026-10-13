@@ -108,7 +108,7 @@ def write_synthetic_fixtures(cases):
                 return value
             return ids.setdefault(value, str(UUID(int=len(ids) + 1)))
         if (
-            key in ("created_at", "as_of", "expires_at")
+            key in ("created_at", "as_of", "expires_at", "approved_at")
             and type(value) is int
             and value > 1_760_000_000_000
         ):
@@ -667,7 +667,10 @@ def test_actual_responses_match_export(harness):
 
     class ContractStream(type(h["provider"])):
         def stream(self, messages, cancel):
-            if messages[-1]["content"] == "Synthetic complete stream":
+            if messages[-1]["content"] in (
+                "Synthetic complete stream",
+                "Reviewed synthetic kettle 🫖 wording",
+            ):
                 yield "Synthetic completed stream."
                 yield Completion("Synthetic completed stream.", self.model, 10, 5)
             else:
@@ -741,6 +744,44 @@ def test_actual_responses_match_export(harness):
         "stream-completed",
         "/v1/requests/{request_id}/stream-status",
         actual=f"/v1/requests/{complete_id}/stream-status",
+    )
+    voice_id = str(uuid4())
+    call(
+        "voice-started",
+        "/v1/conversations/{conversation_id}/voice-requests",
+        "post",
+        status=202,
+        actual=f"/v1/conversations/{cid}/voice-requests",
+        json={
+            "request_id": voice_id,
+            "content": "Reviewed synthetic kettle 🫖 wording",
+            "review": "approve",
+            "transcript": {
+                "transcript_id": str(uuid4()),
+                "engine_id": "android_on_device",
+                "engine_version": "Android 16 API 36 (client reported)",
+                "language": "en-US",
+                "duration_ms": 3200,
+                "original_text": "Generated synthetic cattle 🫖 wording",
+            },
+        },
+    )
+    deadline = time.monotonic() + 5
+    while time.monotonic() < deadline:
+        state = h["client"].get(f"/v1/requests/{voice_id}/stream-status", headers=h["a"]).json()
+        if state["stream_state"] == "completed":
+            break
+        time.sleep(0.01)
+    assert state["stream_state"] == "completed"
+    call(
+        "voice-lineage",
+        "/v1/requests/{request_id}/voice-input",
+        actual=f"/v1/requests/{voice_id}/voice-input",
+    )
+    call(
+        "voice-inputs",
+        "/v1/conversations/{conversation_id}/voice-inputs",
+        actual=f"/v1/conversations/{cid}/voice-inputs",
     )
     if os.environ.get("ADA_UPDATE_CONTRACT_FIXTURES") == "1" and h["backend"] == "sqlite":
         write_synthetic_fixtures(cases)

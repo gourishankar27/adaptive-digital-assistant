@@ -30,6 +30,9 @@ import androidx.compose.ui.platform.LocalFocusManager
 
 class MainActivity : ComponentActivity() {
     private var chatModel: ChatViewModel? = null
+    override fun onResume() { super.onResume(); chatModel?.voice?.observeForeground(true) }
+    override fun onPause() { chatModel?.voice?.observeForeground(false); super.onPause() }
+    override fun onDestroy() { chatModel?.voice?.detachAudio(); super.onDestroy() }
     override fun onStart() { super.onStart(); chatModel?.observeForeground(true) }
     override fun onStop() { chatModel?.observeForeground(false); super.onStop() }
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,10 +42,11 @@ class MainActivity : ComponentActivity() {
         val viewModel = ViewModelProvider(this, object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T =
-                ChatViewModel(HttpAdaApi(), AndroidSessionStore(applicationContext), BuildConfig.DEBUG)
+                ChatViewModel(HttpAdaApi(), AndroidSessionStore(applicationContext), BuildConfig.DEBUG, voiceClock = android.os.SystemClock::elapsedRealtime)
                     .also { it.restore() } as T
         })[ChatViewModel::class.java]
         chatModel = viewModel
+        viewModel.voice.attachAudio(dev.ada.assistant.audio.AndroidSpeechCapture(this), dev.ada.assistant.audio.AndroidSpeechPlayback(this))
         setContent {
             val preferences = remember { AppearancePreferences(applicationContext) }
             var appearance by remember { mutableStateOf(preferences.load()) }
@@ -58,6 +62,7 @@ class MainActivity : ComponentActivity() {
                     Box(Modifier.padding(insets).consumeWindowInsets(insets)) {
                         ChatApp(viewModel) {
                             focus.clearFocus()
+                            viewModel.voice.observeForeground(false)
                             settingsOpen = true
                         }
                     }
@@ -65,7 +70,7 @@ class MainActivity : ComponentActivity() {
                 if (settingsOpen) AppearanceSettingsDialog(appearance, change = {
                     preferences.save(it)
                     appearance = it
-                }, close = { settingsOpen = false })
+                }, close = { settingsOpen = false; viewModel.voice.observeForeground(true) })
             }
         }
     }

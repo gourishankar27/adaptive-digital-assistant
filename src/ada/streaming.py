@@ -91,12 +91,13 @@ class StreamingService:
         db.flush()
         self._event(db, row, "started", {"legacy_status": "running"})
 
-    def submit(self, owner, cid, rid, content, **options):
+    def submit(self, owner, cid, rid, content, *, register=None, **options):
         fingerprint = request_fingerprint(
             content,
             options.get("as_of"),
             options.get("use_memory", True),
             options.get("use_documents", False),
+            options.get("input_binding"),
         )
         with self.lock:
             if self.closing or not self.available:
@@ -115,8 +116,14 @@ class StreamingService:
                 raise ServiceError(503, "generation_capacity_busy")
             transferred = False
             try:
+
+                def registration(db, request):
+                    self.register(db, request)
+                    if register is not None:
+                        register(db, request)
+
                 attempt, messages, completed = self.chat.reserve(
-                    owner, cid, rid, content, register=self.register, **options
+                    owner, cid, rid, content, register=registration, **options
                 )
                 if completed is not None:
                     return self.status(owner, rid)

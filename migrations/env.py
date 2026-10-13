@@ -10,6 +10,7 @@ from ada import (  # noqa: F401
     learning_models,
     proposal_models,
     stream_models,
+    voice_models,
 )
 from ada.config import Settings
 from ada.models import Base

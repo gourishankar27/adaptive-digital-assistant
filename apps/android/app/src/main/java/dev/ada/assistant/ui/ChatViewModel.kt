@@ -20,6 +20,7 @@ import kotlinx.coroutines.sync.withLock
 class ChatViewModel(
     private val api: AdaApi, private val store: SessionStore, private val allowDebugHttp: Boolean,
     private val pollDelaysMs: List<Long> = listOf(0, 1000, 2000, 4000, 8000, 16000),
+    private val voiceClock: () -> Long = System::currentTimeMillis,
 ) : ViewModel() {
     private val mutableState = MutableStateFlow(ChatState())
     val state = mutableState.asStateFlow()
@@ -31,6 +32,7 @@ class ChatViewModel(
     val episodes = EpisodeController(api, store, viewModelScope, { expire() })
     val expression = ExpressionController(api, store, viewModelScope, { expire() })
     val learning = LearningController(api, store, viewModelScope, { expire() })
+    val voice = VoiceController(api, store, viewModelScope, { expire() }, voiceClock)
     private var credential: ConnectionCredential? = null
     private var identity: SessionIdentity? = null
     private var generation = 0L
@@ -53,6 +55,7 @@ class ChatViewModel(
         val previousConversation = mutableState.value.conversation?.id
         mutableState.value = block(mutableState.value)
         val next = mutableState.value
+        voice.context(next.conversation, next.destination == ChatDestination.Chat, next.pending != null)
         val conversationChanged = previousConversation != next.conversation?.id
         if (previous == ChatDestination.Chat && (next.destination != ChatDestination.Chat || conversationChanged)) {
             streamJob?.cancel()
@@ -65,6 +68,7 @@ class ChatViewModel(
     }
     fun observeForeground(visible: Boolean) {
         foreground = visible
+        voice.observeForeground(visible)
         if (!visible) { streamJob?.cancel(); update { it.copy(streamConnected = false) } }
         else if (state.value.destination == ChatDestination.Chat && state.value.pending != null) reconcile()
     }
@@ -85,6 +89,7 @@ class ChatViewModel(
     }
     private fun current(epoch: Long) = epoch == generation
     private fun resetMemory() {
+        voice.reset()
         memory.reset()
         documents.reset()
         entities.reset()
@@ -204,6 +209,7 @@ class ChatViewModel(
         }
         if (!current(epoch)) return
         credential = connection; identity = verified
+        voice.setVerifiedSession(connection, verified, features)
         memory.setVerifiedSession(connection, verified, features)
         documents.setVerifiedSession(connection, verified, features)
         entities.setVerifiedSession(connection, verified, features)
@@ -479,12 +485,15 @@ class ChatViewModel(
         require(utc.atOffset(java.time.ZoneOffset.UTC).year in 1..9999)
         return utc.toString()
     }
-    fun send() {
+    fun send() { if (!voice.captureActive) sendInput() }
+    fun sendReviewedVoice() { voice.approvedDraft()?.let { sendInput(it) } }
+    private fun sendInput(voiceDraft: VoiceDraft? = null) {
         val current = mutableState.value
         val verified = identity ?: return
         val row = current.conversation ?: return
         if (current.pending != null || current.capabilities?.chat != true) return
-        val content = current.draft
+        if (voiceDraft != null && (current.capabilities?.hasVoiceInput() != true || voiceDraft.identity != verified || voiceDraft.conversationId != row.id || voiceDraft.scopeId != row.scope_id)) return
+        val content = voiceDraft?.reviewedText ?: current.draft
         if ((current.useMemory && current.capabilities?.memory_in_chat != true) ||
             (current.useDocuments && (!current.useMemory || current.capabilities?.document_retrieval != true || !current.capabilities.document_citations || row.prompt_version != "ada-baseline-v4")) ||
             (current.asOf.isNotBlank() && current.capabilities?.historical_memory_queries != true)) { invalidDraft(); return }
@@ -492,7 +501,7 @@ class ChatViewModel(
             catch (_: IllegalArgumentException) { invalidDraft(); return }
         if (content.isBlank() || content.codePointCount(0, content.length) > 4000 || content.contains('\u0000') ||
             !validUnicode(content)) { invalidDraft(); return }
-        val message = PendingMessage(verified, row.id, ChatInputDto(UUID.randomUUID(), content, at, current.useMemory, current.useDocuments))
+        val message = PendingMessage(verified, row.id, ChatInputDto(UUID.randomUUID(), content, at, current.useMemory, current.useDocuments), voiceDraft?.transcript, voiceDraft?.scopeId)
         // Reserve synchronously before starting a coroutine so a second tap cannot race persistence.
         update { it.copy(pending = PendingState(message, PendingPhase.Journaling), fault = null, notice = null) }
         val epoch = generation
@@ -504,7 +513,8 @@ class ChatViewModel(
                 return@launchWork
             }
             if (!current(epoch)) return@launchWork
-            if (drafts[row.id] == Draft(current.draft, current.useMemory, current.asOf, current.useDocuments)) {
+            voiceDraft?.let { voice.sent(it.transcript.transcript_id) }
+            if (voiceDraft == null && drafts[row.id] == Draft(current.draft, current.useMemory, current.asOf, current.useDocuments)) {
                 drafts[row.id] = Draft("", current.useMemory, current.asOf, current.useDocuments)
                 if (mutableState.value.conversation?.id == row.id && mutableState.value.draft == content) update { it.copy(draft = "") }
             }
@@ -526,8 +536,12 @@ class ChatViewModel(
         val connection = credential ?: return
         if (!current(epoch) || identity != message.identity) return
         update { it.copy(pending = PendingState(message, PendingPhase.Submitting), fault = null) }
+        if (message.voiceTranscript != null && state.value.capabilities?.hasVoiceInput() != true) {
+            update { it.copy(pending = PendingState(message, PendingPhase.Blocked), fault = ApiFailure.IncompatibleContract, notice = "This server does not support reviewed voice input. Keep the original request for recovery.") }; return
+        }
         if (state.value.capabilities?.hasStreaming() == true) {
-            when (val streamed = api.submitStream(connection, message.conversationId, message.body)) {
+            val submission = if (message.voiceTranscript != null) api.submitVoice(connection, message.conversationId, ReviewedVoiceInputDto.from(message)) else api.submitStream(connection, message.conversationId, message.body)
+            when (val streamed = submission) {
                 is ApiResult.Success -> {
                     if (!current(epoch) || identity != message.identity) return
                     try { streamed.value.validate(message.body.request_id, message.conversationId) }
@@ -542,7 +556,8 @@ class ChatViewModel(
                     if (streamed.reason == ApiFailure.TooLarge || streamed.reason == ApiFailure.Validation) {
                         storage.withLock { if (current(epoch)) store.removePending(message.identity, message.body.request_id) }
                         if (!current(epoch)) return
-                        update { it.copy(pending = null, stream = null, stopping = false, draft = message.body.content, notice = "The input was rejected. Edit the draft before submitting a new request.") }
+                        if (message.voiceTranscript != null) voice.rejected(message)
+                        update { it.copy(pending = null, stream = null, stopping = false, draft = if (message.voiceTranscript == null) message.body.content else it.draft, notice = if (streamed.code == "voice_history_limit") "The server voice history limit was reached. Discard the voice draft or keep it for review; text entry remains available." else "The input was rejected. Edit and approve the review draft before submitting a new request.") }
                     } else {
                         val phase = if (streamed.reason == ApiFailure.Conflict) PendingPhase.Conflict else PendingPhase.Unknown
                         update { it.copy(pending = PendingState(message, phase, failure = streamed.reason, code = streamed.code), notice = "Check the original request before retrying. A lost stream submission has an unknown outcome.") }
@@ -607,6 +622,7 @@ class ChatViewModel(
                 }
                 if (!current(epoch)) return
                 update { it.copy(pending = null, stream = null, streamConnected = false, stopping = false, fault = null, notice = null) }
+                if (message.voiceTranscript != null) voice.refreshHistory()
                 if (mutableState.value.conversation?.id == message.conversationId) refreshEvents()
                 refreshConversations()
             }

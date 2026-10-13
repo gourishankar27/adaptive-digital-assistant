@@ -1,6 +1,6 @@
 # Current ADA baseline
 
-Recorded 2026-10-12 UTC (2026-10-11 in America/Phoenix). Read current source and tests before implementing a phase;
+Recorded 2026-10-12 UTC (2026-10-12 in America/Phoenix). Read current source and tests before implementing a phase;
 this file is a planning snapshot, not a permanent claim about the repository.
 
 ## Implemented
@@ -16,7 +16,7 @@ facts/preferences/decisions and transactional valid-time corrections.
 Phase 2 added full-text/subject retrieval, a whole-prompt byte budget, exact
 evidence checks, source labels and durable per-request retrieval snapshots.
 
-Migrations 0001–0012 remain unchanged by Phase 16; current head is 0013. Baseline v4 is
+Migrations 0001–0013 remain unchanged by Phase 17; current head is 0014. Baseline v4 is
 current for new conversations. v3 retains claim retrieval; earlier conversations
 retain their saved prompt until explicitly upgraded.
 
@@ -42,7 +42,8 @@ OpenAPI, including sanitized errors and retrieval details.
 Legacy chat returns a complete response. Phase 16 adds authenticated durable
 streaming/checkpoint recovery and explicit generation cancellation. There is no
 automatic memory extraction, PDF/OCR, external write executor,
-voice interface or local mobile model. Static warmth/style
+or local mobile language model. Phase 17 adds explicit on-device Android voice input
+with separate review/endorsement lineage and optional offline TTS. Static warmth/style
 configuration exists. Phase 14 adds opt-in bounded session expression; automatic
 affect inference remains unimplemented. Phase 15 adds opted-in reviewed interaction
 preferences and exact source-linked continuity, with reset and retained replay.
@@ -343,3 +344,21 @@ actual skips and pending installation/physical verification are in STATUS/WORKLO
 The fresh application read still observes 0005; it was not migrated. One worker,
 count-bounded private stream retention and separate cursor expiry remain limits.
 See [the policy](../docs/STREAMING-AND-CANCELLATION.md). Stop at Phase 16.
+
+## Phase 17 implemented boundary
+
+Head 0014 adds immutable reviewed-voice lineage, with generated original ASR text
+kept separate from approved user evidence. The Android 0.17.0-voice app uses only
+on-device SpeechRecognizer on supported API31+ devices, defaults to en-US and
+checks installed language support. Record/stop/discard and encrypted v10 review
+are explicit; approval is required before one exact voice request is journaled.
+GET-only recovery, frozen retries and owned Phase16 cancellation are reused.
+There is no server audio/ASR, audio hash, system/network fallback or model download.
+Only installed offline TTS voices read completed safe reply text. Playback stop,
+focus/device interruptions and backgrounding never implicitly cancel generation.
+
+See [the policy](../docs/VOICE-INTERFACE.md). S24 FE/Android16 physical audio,
+en-US availability/quality, offline audio, resources/battery, permission dialogs,
+headsets/calls, older APIs, release HTTPS and manual accessibility remain target
+verification. A fresh read found the configured application database at 0005;
+it was not installed/upgraded. Stop at Phase17; no later phase or deployment.

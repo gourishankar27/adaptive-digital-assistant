@@ -23,6 +23,8 @@ class UserOutput(BaseModel):
 
 
 class CapabilitiesOutput(BaseModel):
+    voice_input: str = "unsupported"
+    voice_audio_uploads: bool = False
     stream_protocol: str = "unsupported"
     generation_cancellation: bool = False
     interaction_learning: str = "unsupported"

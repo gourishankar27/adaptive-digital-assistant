@@ -1596,3 +1596,119 @@ were stopped. No task fixture HTTP18763–18765 or isolated web5174 listeners re
 The pre-existing user Vite5173/PID636 and PostgreSQL5432 were retained. Prior blocked
 synthetic artifacts and new ignored validation evidence retained. No unresolved
 local check failure; intended installation and target/retention gates remain.
+
+
+## 2026-10-12 — Phase 17 explicit Android voice input/output
+
+Scope: only plans/phase-17-voice-interface.md, no later phase/deployment. Read root
+and scoped rules, README/architecture/current state/standards/workflow/status,
+plans README and the requested phase. Inspected clean source at 18690f0, migrations,
+OpenAPI 86 paths/122 schemas and 76 fixture payloads plus manifest. Final inventory
+is 79 payloads plus manifest. Captured protected hashes before editing. Phases 04/16 were
+implemented; target installation/device gates from those phases remain distinct.
+User confirmed English(en-US); it is the recording default, with selectable,
+validated language tags. S24 FE/Android 16 remains the intended physical target.
+
+Decision: Android API 31+ on-device SpeechRecognizer only, API 33+ installed-language
+support preflight, no model download/system-network fallback/server audio. Primary
+SpeechRecognizer/RecognitionSupport/RecognizerIntent/TTS/Voice/audio-focus/noisy
+broadcast documentation informed the choice; links and support/resource/privacy
+limits are in [VOICE-INTERFACE.md](../docs/VOICE-INTERFACE.md). SDK/platform version
+and elapsed duration are client reported, not an attested binary/audio provenance.
+No app audio file/buffer or server hash is manufactured.
+
+Changes: additive0014 typed immutable owner/scope/request/capture lineage with
+separate generated original text and exact endorsed user event/source; compatible
+review-required POST and owned GET/list routes. A separate fingerprint domain
+binds original metadata and old chat options, preserving old completed replay.
+Reservations/lineage are atomic and inference remains outside transactions;
+quota/foreign keys/duplicate capture/approval/downgrade errors fail closed. No
+ASR original is factual memory or model context. Old migrations/prompts unchanged.
+
+Android0.17.0-voice (versionCode 12) adds record/check/transcribe/review states,
+runtime denial/permanent-denial/unavailable states, editable original-preserving
+review, explicit approval and encrypted v10 atomic pending commit. Old journals
+remain readable. Recording is bounded at 60s with 15s setup/final deadlines and
+lifecycle/audio fences. Unconfirmed background saves recover on resume; recovery
+blocks recording and another conversation's saved draft offers Open/discard.
+Normal text composition remains independent. Rejected voice never drops into
+plain authored text; old servers cannot enable or fallback the voice write path.
+Optional installed offline TTS reads fresh completed safe replies, with bounded
+Unicode-safe utterances, voices/speeds and separate Stop/focus/noisy/device/pause
+handling. Server generation retains explicit Phase 16 Stop.
+
+Validation actually run (logs/artifacts ignored under .pytest_cache/phase17):
+
+- Baseline SQLite+PG 18.6:639 passed/23 skipped/one existing warning, 579.88s; Ruff 138
+  files; Android baseline 194 units/lint/debug build; web contracts/55 units.
+- Server initial red:2 missing-route failures. Journal initial red:2 absent-store
+  failures. First invariant set 52 passed/2 failures caused by a test using an
+  incomplete Request composite key; corrected the assertion. Voice+streaming 79
+  passed/1 expected SQLite skip. Populated 0013→0014, Alembic check, old replay,
+  native FKs, guarded downgrade, authorization/admin separation, corruption,
+  approval/malformed metadata, atomic quota rollback, concurrent differing input,
+  cancel/retry and original-vs-reviewed model context are covered.
+- Fixture export initially failed for the new test helper call signature, then
+  for a synthetic provider branch that intentionally waits on non-completion
+  content. Corrected test arguments and bounded completion fixture branch; export
+  passed. Preserved old payload bytes except capabilities/readiness; added three
+  schema-checked HTTP voice payloads. Final suite checks SQLite and PostgreSQL.
+- First full suite 694 passed/23 skips/one failure, 683.92s: PostgreSQL hybrid fixture
+  fallback 1/13 rather than its zero-fallback expectation, with integrity/ownership
+  passing. No retrieval implementation or expected assertion changed. Focused
+  hybrid+voice 59 passed 54.11s, repeated full 695 passed/23 skips 645.99s. Skips15
+  SQLite lock copies/6 opt-in native agent copies/2 opt-in native health copies;
+  PostgreSQL lock/schema cases ran. Existing Starlette/httpx warning unchanged.
+- Final Ruff/format 144 files, compileall and diff whitespace passed. Compatibility
+  audit: all 86 old paths identical; only two optional capability properties change
+  among 122 old schemas ; 3 new routes/3 new schemas.22 protected hashes unchanged.
+- Android compile/test fixes were test-class name collisions, a MockWebServer
+  IPv6 credential fixture and an incorrect source API method name. Initial lint
+  caught GET_DEVICES_ALL's annotation; used the input/output flag union. Removed
+  the new URI/KTX lint warning. Final 211 units passed, 0 skipped; lint 0 errors/14
+  existing pinned-dependency warnings; debug/test APKs passed. v9/v10, foreign
+  scope, interrupted save and recovered-draft/old-server gates are covered.
+- Final normal emulator suite 7 passed, 0 skips; final compact 900×500/240dpi/font1.5
+  voice suite 2 passed, 0 skips;4 actual force-stop prepare/resume stages passed.
+  Explicit synthetic capture/playback adapters exercise real HTTP/Compose/
+  Keystore/review/lineage and independent generation Stop; actual activity pause
+  and late callback rejection are asserted. Native factory probe reports
+  Available on Android 17/API 37; en-US pack/recognition/audio quality was not tested.
+  Final actual cold launch Status:ok/COLD,TotalTime2517 ms. Restored geometry/font.
+- Web pinned isolated npm ci passed 13s (270 packages, 0 audit findings); root clean
+  install skipped to preserve the existing user Vite installation. DTO freshness,
+  typecheck/lint,55 units 18.72s, production build and Chromium installation passed;
+  six real PG-backed Chromium checks 27.4s on build preview 5174. Temporary test
+  config first failed because Node refuses type stripping under node_modules,
+  then because server cwd was the config directory; moved it under ignored build
+  and set explicit cwd. Final browser run passed. Locks/wrappers unchanged.
+- Updated privacy/user/architecture/current-state/decision/contract documentation,
+  requested phase checkpoint record and status; UTF-8/local-link checks passed.
+
+Remaining target work: S24 FE/Android 16 physical mic/speaker/headsets, installed
+on-device en-US and speech samples/corrections, airplane-mode ASR/TTS, Android
+permission dialogs/revocation, real focus/calls/Bluetooth/noisy-route handling,
+latency/resources/battery, older API 26/31/33, release HTTPS/manual accessibility
+and retained transcript/account/backup policy. Server audio decoding/malformed
+file/provider ASR checks are inapplicable to this no-audio route; forbidden audio
+JSON and text/metadata limits are tested. Native real-model opt-ins were skipped;
+only a generation-free read confirmed installed configured native model. Fresh
+configured application read observed 0005; no application migration was performed.
+
+Cleanup 11:44 UTC: 0 remaining disposable PG schemas. Only own PG 55417/emulator 5556
+stopped; own fixture HTTP 18763/18765/web 5174 absent. User PG 5432/PID 8868 untouched;
+no user Vite 5173 stop command issued (final inventory found no listener). Prior
+records and ignored validation evidence preserved. No unresolved local check
+failure after the recorded reruns; target readiness remains pending. Stop at Phase 17.
+
+
+Final Phase 17 audit — 2026-10-12 11:55 UTC (04:55 America/Phoenix):
+The final UI audit made typed Send react to the observed voice phase; a nonempty
+independent typed draft stays disabled during recording. Final 211-unit/lint/
+debug/test-APK checks passed. Focused real-HTTP voice UI checks passed again:
+two normal and two compact/font150% cases, including that reactive control and
+actual activity pause. Final snapshot cold launch Status:ok/COLD, 2797 ms. Earlier
+checks and timing records above remain evidence of their own runs. Eleven changed
+Markdown files passed UTF-8/local-link checks; Ruff 144 files, protected 22 hashes,
+old contracts/fixture compatibility and whitespace passed. The last task-owned
+emulator was stopped again; PG 55417 remains stopped. No later phase/deployment.

@@ -65,6 +65,9 @@ sealed interface ApiFailure {
 
 /** Every method is an existing ADA route; no enrollment/admin/cancellation API is invented. */
 interface AdaApi {
+    suspend fun submitVoice(connection: ConnectionCredential, conversation: UUID, body: ReviewedVoiceInputDto): ApiResult<StreamStatusDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun voiceInputs(connection: ConnectionCredential, conversation: UUID): ApiResult<List<VoiceLineageDto>> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun voiceInput(connection: ConnectionCredential, request: UUID): ApiResult<VoiceLineageDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
     suspend fun submitStream(connection: ConnectionCredential, conversation: UUID, body: ChatInputDto): ApiResult<StreamStatusDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
     suspend fun streamStatus(connection: ConnectionCredential, id: UUID): ApiResult<StreamStatusDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
     suspend fun cancelGeneration(connection: ConnectionCredential, id: UUID, attempt: Int): ApiResult<CancelReceiptDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
@@ -130,6 +133,9 @@ interface AdaApi {
 }
 
 class HttpAdaApi(callTimeoutMillis: Long = 65_000) : AdaApi {
+    override suspend fun submitVoice(connection: ConnectionCredential, conversation: UUID, body: ReviewedVoiceInputDto) = call<StreamStatusDto>(connection, "conversations/$conversation/voice-requests", adaJson.encodeToString(body))
+    override suspend fun voiceInputs(connection: ConnectionCredential, conversation: UUID) = call<List<VoiceLineageDto>>(connection, "conversations/$conversation/voice-inputs")
+    override suspend fun voiceInput(connection: ConnectionCredential, request: UUID) = call<VoiceLineageDto>(connection, "requests/$request/voice-input")
     override suspend fun submitStream(connection: ConnectionCredential, conversation: UUID, body: ChatInputDto) = call<StreamStatusDto>(connection, "conversations/$conversation/stream-requests", adaJson.encodeToString(body))
     override suspend fun streamStatus(connection: ConnectionCredential, id: UUID) = call<StreamStatusDto>(connection, "requests/$id/stream-status")
     override suspend fun cancelGeneration(connection: ConnectionCredential, id: UUID, attempt: Int) = call<CancelReceiptDto>(connection, "requests/$id/cancel", adaJson.encodeToString(CancelInputDto(attempt)))
@@ -289,6 +295,7 @@ class HttpAdaApi(callTimeoutMillis: Long = 65_000) : AdaApi {
     private val safeErrorCodes = setOf(
         "attempt_superseded", "stream_cursor_expired", "invalid_stream_cursor", "streaming_unavailable", "stream_history_limit", "stream_observer_capacity_busy", "request_cancelled", "response_too_large",
         "preference_revision_changed", "expression_session_changed", "expression_signal_stale", "expression_requires_prompt_upgrade", "expression_receipt_limit",
+        "voice_input_not_found", "voice_history_limit", "voice_lineage_unavailable",
         "idempotency_key_reused", "retry_history_changed", "request_in_progress", "conversation_busy",
         "request_conflict", "request_superseded", "unsupported_prompt_upgrade", "message_exceeds_context_budget",
         "provider_unavailable", "model_not_found", "provider_timeout", "invalid_response", "interrupted",

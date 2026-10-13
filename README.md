@@ -49,7 +49,7 @@ index rebuild and exact semantic ranking alongside the original baseline.
 not establish real-model benefit. See
 [EMBEDDINGS-AND-HYBRID-RETRIEVAL.md](docs/EMBEDDINGS-AND-HYBRID-RETRIEVAL.md)
 for bounds, fallback, activation/evaluation and installation. Current source
-requires head 0013 after Phase 16; the application database was not migrated by these phases.
+requires head 0014 after Phase 17; the application database was not migrated by these phases.
 
 Phase 11 adds migration **0008**, selected-source model suggestions, a private
 Android review inbox and explicit accept/edit/reject receipts. Acceptance creates
@@ -317,3 +317,20 @@ contract. Admin adds measured stream metadata only. Legacy API/CLI chat remains
 available. See [the stream policy](docs/STREAMING-AND-CANCELLATION.md) for races,
 capacity, limits, cursor expiry and retained private partial text. No application
 migration, voice, later phase or deployment is included.
+
+
+## Phase 17 reviewed Android voice
+
+Android **0.17.0-voice** adds explicit on-device recording on supported Android
+12+ devices, en-US by default, editable generated transcripts and required
+approval before Send. Migration **0014** stores original ASR interpretation
+separately from the approved event/source endorsement. No audio is uploaded or
+retained by the app. The encrypted v10 journal reserves one exact voice request
+before POST; restore reads and never automatically sends a reviewed draft.
+
+Optional installed offline TTS voices read completed safe replies with voice,
+speed and independent Stop playback controls. Text chat remains available without
+microphone permission, an ASR engine or TTS. See [the voice policy](docs/VOICE-INTERFACE.md)
+for engine/language requirements, client-reported provenance, retention and target
+checks. The intended S24 FE/Android16 audio/quality/battery checks and application
+installation remain pending. No later phase or deployment is included.

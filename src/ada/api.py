@@ -339,6 +339,11 @@ def create_app(settings=None, provider=None, sessions=None):
     app.include_router(
         stream_router(app.state.streaming, current_user, error_responses, ChatInput, RequestOutput)
     )
+    from ada.voice import VoiceService
+    from ada.voice_api import voice_router
+
+    app.state.voice = VoiceService(app.state.streaming)
+    app.include_router(voice_router(app.state.voice, current_user, error_responses, ChatInput))
 
     def owned_conversation(db, owner, conversation_id):
         row = db.scalar(
@@ -376,6 +381,10 @@ def create_app(settings=None, provider=None, sessions=None):
         return {
             "stream_protocol": "ada-stream-v1" if app.state.streaming.available else "unsupported",
             "generation_cancellation": app.state.streaming.available,
+            "voice_input": "ada-reviewed-voice-v1"
+            if app.state.streaming.available
+            else "unsupported",
+            "voice_audio_uploads": False,
             "interaction_learning": LEARNING_VERSION,
             "interaction_preferences": "explicit_settings_v1",
             "session_expression": EXPRESSION_POLICY_VERSION,

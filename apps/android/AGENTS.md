@@ -18,7 +18,11 @@ facts/tools/admin; C source cards retain original trust and request snapshots.
 Phase 16 adds authenticated incremental replies, owned explicit Stop and GET-only
 stream recovery. Detaching/backgrounding never implicitly cancels generation.
 Partial text is provisional and cannot construct citation cards or assistant history.
-Voice, external writes and automatic extraction remain later phases.
+Phase 17 adds on-device push-to-talk, explicitly approved transcript lineage,
+encrypted v10 draft/pending recovery and independent offline reply playback.
+Unreviewed ASR never uses the plain message route. Stop input/playback on pause,
+navigation, identity/audio interruptions; never automatically cancel generation.
+External writes and automatic extraction remain later phases.
 
 - Production repositories inject AdaApi and use authenticated ADA HTTP only.
   Mock transports and fixture data belong under test/androidTest, never main.

@@ -1092,6 +1092,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/conversations/{conversation_id}/voice-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit */
+        post: operations["submit_v1_conversations__conversation_id__voice_requests_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/requests/{request_id}/voice-input": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get */
+        get: operations["get_v1_requests__request_id__voice_input_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/conversations/{conversation_id}/voice-inputs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Inputs */
+        get: operations["list_inputs_v1_conversations__conversation_id__voice_inputs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health/live": {
         parameters: {
             query?: never;
@@ -2071,6 +2122,16 @@ export interface components {
         };
         /** CapabilitiesOutput */
         CapabilitiesOutput: {
+            /**
+             * Voice Input
+             * @default unsupported
+             */
+            voice_input: string;
+            /**
+             * Voice Audio Uploads
+             * @default false
+             */
+            voice_audio_uploads: boolean;
             /**
              * Stream Protocol
              * @default unsupported
@@ -4337,6 +4398,34 @@ export interface components {
             /** Support */
             support: components["schemas"]["SupportingEvidence"][];
         };
+        /** ReviewedVoiceInput */
+        ReviewedVoiceInput: {
+            /**
+             * Request Id
+             * Format: uuid
+             */
+            request_id: string;
+            /** Content */
+            content: string;
+            /** As Of */
+            as_of?: string | null;
+            /**
+             * Use Memory
+             * @default true
+             */
+            use_memory: boolean;
+            /**
+             * Use Documents
+             * @default false
+             */
+            use_documents: boolean;
+            transcript: components["schemas"]["TranscriptInput"];
+            /**
+             * Review
+             * @constant
+             */
+            review: "approve";
+        };
         /** ScopeInput */
         ScopeInput: {
             /** Name */
@@ -4789,6 +4878,27 @@ export interface components {
              */
             created_at: bigint;
         };
+        /** TranscriptInput */
+        TranscriptInput: {
+            /**
+             * Transcript Id
+             * Format: uuid
+             */
+            transcript_id: string;
+            /**
+             * Engine Id
+             * @constant
+             */
+            engine_id: "android_on_device";
+            /** Engine Version */
+            engine_version: string;
+            /** Language */
+            language: string;
+            /** Duration Ms */
+            duration_ms: number;
+            /** Original Text */
+            original_text: string;
+        };
         /** UserOutput */
         UserOutput: {
             /**
@@ -4812,6 +4922,87 @@ export interface components {
             loc: (string | number)[];
             /** Msg */
             msg: string;
+        };
+        /** VoiceLineageOutput */
+        VoiceLineageOutput: {
+            /**
+             * Request Id
+             * Format: uuid
+             */
+            request_id: string;
+            /**
+             * Conversation Id
+             * Format: uuid
+             */
+            conversation_id: string;
+            /**
+             * Scope Id
+             * Format: uuid
+             */
+            scope_id: string;
+            /**
+             * Transcript Id
+             * Format: uuid
+             */
+            transcript_id: string;
+            /** Engine Id */
+            engine_id: string;
+            /** Engine Version */
+            engine_version: string;
+            /**
+             * Engine Metadata
+             * @default client_reported
+             * @constant
+             */
+            engine_metadata: "client_reported";
+            /** Language */
+            language: string;
+            /** Duration Ms */
+            duration_ms: number;
+            /** Original Text */
+            original_text: string;
+            /** Original Hash */
+            original_hash: string;
+            /**
+             * Original Origin
+             * @default asr_generated
+             * @constant
+             */
+            original_origin: "asr_generated";
+            /**
+             * Original Trust
+             * @default generated_interpretation
+             * @constant
+             */
+            original_trust: "generated_interpretation";
+            /** Reviewed Text */
+            reviewed_text: string;
+            /** Reviewed Hash */
+            reviewed_hash: string;
+            /**
+             * Reviewed Origin
+             * @default user_reviewed
+             * @constant
+             */
+            reviewed_origin: "user_reviewed";
+            /**
+             * Endorsement Source Version Id
+             * Format: uuid
+             */
+            endorsement_source_version_id: string;
+            /**
+             * Approved At
+             * Format: int64
+             */
+            approved_at: bigint;
+            /**
+             * Audio Storage
+             * @default not_received_by_server
+             * @constant
+             */
+            audio_storage: "not_received_by_server";
+            /** Audio Sha256 */
+            audio_sha256?: null;
         };
     };
     responses: never;
@@ -10345,6 +10536,241 @@ export interface operations {
                 };
                 content: {
                     "text/event-stream": string;
+                };
+            };
+            /** @description Sanitized error code */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized validation issues or error code; input is omitted */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+        };
+    };
+    submit_v1_conversations__conversation_id__voice_requests_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewedVoiceInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StreamStatus"];
+                };
+            };
+            /** @description Sanitized error code */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized validation issues or error code; input is omitted */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+        };
+    };
+    get_v1_requests__request_id__voice_input_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VoiceLineageOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized validation issues or error code; input is omitted */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+        };
+    };
+    list_inputs_v1_conversations__conversation_id__voice_inputs_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                conversation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VoiceLineageOutput"][];
                 };
             };
             /** @description Sanitized error code */

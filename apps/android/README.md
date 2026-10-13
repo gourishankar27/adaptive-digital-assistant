@@ -1,4 +1,4 @@
-# ADA Android chat, memory, tools, episodes and interaction learning (Phase 16)
+# ADA Android chat, memory, tools, episodes and interaction learning (Phase 17)
 
 This Compose/Material 3 app verifies an issued ADA bearer credential with real
 `GET /v1/me` and `GET /v1/capabilities`, then provides owned conversation
@@ -8,7 +8,8 @@ remain available. Phase 07 adds owned memory browsing, exact evidence selection,
 explicit Remember/correction previews and encrypted write recovery, plus new
 static personality profiles. Phase 16 adds incremental replies, durable stream
 recovery and explicit Stop. Existing profile editing, automatic extraction,
-voice, external writes and device inference remain later selected phases.
+external writes and local language-model inference remain later selected phases.
+Phase 17 adds reviewed on-device voice input and independent offline TTS.
 Phase 14 adds separately scoped interaction preferences and opt-in bounded session
 tone under Settings; saved personality profiles remain unchanged.
 Phase 08 adds owned UTF-8 text/Markdown import, immutable version/status/chunk
@@ -656,3 +657,31 @@ Compact 900x500/240 dpi/1.5x font verification is recorded separately. Real-mode
 measurements, native GPU acknowledgement limits, retained partial-text policy and
 remaining S24 FE/Android16/HTTPS/TalkBack gates are in
 [the policy](../../docs/STREAMING-AND-CANCELLATION.md) and STATUS/WORKLOG.
+
+
+## Phase 17 explicit voice
+
+Expand Voice controls in an owned conversation. Record requests microphone
+permission only at that action; en-US is the default selected recognition tag.
+Android12+ needs an installed on-device engine; API33+ also checks installed
+language support. There is no network recognizer fallback or audio upload.
+Stop/discard and a 60-second limit bound capture. Navigation, activity pause,
+audio focus/device interruption and account changes cancel it.
+
+Edit generated words in the separate review field and explicitly approve before
+Send reviewed voice. The original stays generated interpretation; approved text
+becomes user-reviewed endorsement lineage. Keystore journal v10 consumes the
+approved draft and reserves one exact voice request atomically. Restore never
+sends a draft or changes the pending ID. Versions1–9 remain readable. A rejected
+voice input returns to unapproved review without replacing a typed composer draft.
+
+Read reply uses a fresh owned completed response and installed offline TTS voices;
+choose voice/speed and Stop playback independently of Stop generation. No partial
+reply, original ASR record, raw source card or debug trace is passed to playback. See
+[VOICE-INTERFACE.md](../../docs/VOICE-INTERFACE.md) for privacy, platform metadata,
+limits, source inspection, retention and required physical audio checks.
+
+`./scripts/verify-voice-emulator.ps1` runs real HTTP/Compose/Keystore flows with
+explicit synthetic capture/playback adapters, and draft/pending force-stop stages.
+`-UiOnly` selects the two voice UI tests. It is not a physical ASR/TTS quality test.
+Actual normal/compact checks and target gates are recorded in root STATUS/WORKLOG.

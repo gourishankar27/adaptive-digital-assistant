@@ -57,7 +57,12 @@ def public_request(row: Request, trace=None) -> dict:
     }
 
 
-def request_fingerprint(content, as_of, use_memory, use_documents=False):
+def request_fingerprint(content, as_of, use_memory, use_documents=False, input_binding=None):
+    if input_binding is not None:
+        legacy = request_fingerprint(content, as_of, use_memory, use_documents)
+        return hashlib.sha256(
+            b"\0ada-reviewed-voice-v1\0" + legacy.encode() + input_binding.encode()
+        ).hexdigest()
     if use_documents:
         canonical = json.dumps(
             {
@@ -278,9 +283,10 @@ class ChatService:
         use_memory=True,
         use_documents=False,
         register=None,
+        input_binding=None,
     ):
         """Reserve a frozen attempt under already-acquired process admission."""
-        fingerprint = request_fingerprint(content, as_of, use_memory, use_documents)
+        fingerprint = request_fingerprint(content, as_of, use_memory, use_documents, input_binding)
         # Validate private identity before embedding, outside the reservation
         # transaction. Failed/running retries never refresh their evidence.
         prepared = None

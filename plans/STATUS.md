@@ -1,6 +1,6 @@
 # Phase status
 
-Recorded 2026-10-12 UTC (2026-10-11 in America/Phoenix). Update after implementation and verification.
+Recorded 2026-10-12 UTC (2026-10-12 in America/Phoenix). Update after implementation and verification.
 “Planned” means a specification exists, not that code or a working UI exists.
 
 | Phase | Status | Evidence / next gate |
@@ -21,7 +21,7 @@ Recorded 2026-10-12 UTC (2026-10-11 in America/Phoenix). Update after implementa
 | 14 | Implemented; local exit gates passed; target verification pending | Head 0011, explicit account/scope/profile/conversation preferences, immutable exact receipts, opt-in bounded session tone and frozen request expression. Full PostgreSQL 18/SQLite 562 passed/21 skips; final affected 74 passed/3 skips; Android 174 units and emulator HTTP/force-stop/cold launch; web 54 units/six PostgreSQL Chromium cases. Intended installation, S24 FE/Android 16, HTTPS/accessibility and native-model wording/performance remain. No Phase 15 or deployment. |
 | 15 | Implemented; local verification passed; target verification pending | Head 0012, opt-in selected-interaction observations, independent evidence/review, scoped learned defaults and bounded source-linked continuity. Full PostgreSQL/SQLite 587 passed/22 skips; final affected 172 passed/6 skips; Android 186 units and real HTTP review/recovery/source-card flows; web 54 units/six PostgreSQL Chromium cases. Intended installation, physical S24 FE/Android 16, HTTPS/accessibility, representative preference accuracy, native-model wording and retention policy remain. No later phase or deployment. |
 | 16 | Implemented; local verification passed; target installation/device checks remain | Head 0013, durable owned stream/checkpoint/SSE, exact-attempt Stop and fenced terminal publication; Android 0.16.0-streaming and admin metadata. Full PostgreSQL/SQLite 631 passed/23 skips, final affected 92 passed/2 skips plus two real TCP slow-observer checks; Android 194 units, portrait/compact HTTP UI and force-stop/cold launch; web 55 units/six PG Chromium cases; real Ollama completion/Stop/legacy follow-up. Application 0005 installation to 0013, S24 FE/Android16, HTTPS/manual accessibility/load and retention policy remain. No later phase or deployment. |
-| 17 | Planned | Phases 04/16; explicit audio/transcript boundaries. |
+| 17 | Checkpoints implemented; local verification passed; physical audio/installation gates remain | Head 0014, owner-bound original ASR/reviewed endorsement lineage, exact voice fingerprints; Android 0.17.0-voice on-device-only input, en-US default, encrypted v10 review/recovery and independent offline TTS. Final PostgreSQL/SQLite 695 passed/23 expected skips; Ruff/format144 files. Android 211 units, seven normal/two compact emulator checks, four force-stop stages and cold launch; web 55 units/six PG Chromium cases. Application 0005→0014 installation, S24 FE/Android16 real audio/offline/en-US/headset/focus/resource/battery, older APIs, HTTPS/manual accessibility and retention verification remain. No later phase or deployment. |
 | 18 | Planned | Phases 05/06 and installed feature inventory; recovery/deletion/device credentials. |
 | 19 | Conditional plan | Phases 12/18 plus measured device or selected integration requirements. |
 
@@ -32,7 +32,8 @@ Phase 05 now supplies server admin authorization and monitoring metadata.
 Phase 06 now supplies the read-only web dashboard. Phase 07 now supplies Android
 explicit memory and new static personality profiles. Phase 08 now supplies bounded
 text/Markdown ingestion and imported document retrieval. Phase 16 adds durable
-streaming and explicit Stop; Phases 17–19 remain planned. The separately requested admin repair installed 0004 and an exact
+streaming and explicit Stop; Phase 17 adds reviewed Android voice and separate
+playback. Phases 18–19 remain planned. The separately requested admin repair installed 0004 and an exact
 account grant. At the Phase 08 boundary, application migration 0005 was pending.
 The final Phase 09 read-only check observed application head 0005 and one active
 grant for the selected account; Phase 09 has not migrated it. Current source needs
@@ -1686,3 +1687,111 @@ were stopped. No task fixture HTTP18763–18765 or isolated web5174 listeners re
 The pre-existing user Vite5173/PID636 and PostgreSQL5432 were retained. Prior blocked
 synthetic artifacts and new ignored validation evidence retained. No unresolved
 local check failure; intended installation and target/retention gates remain.
+
+
+## Phase 17 — explicit Android voice input and output
+
+Recorded 2026-10-12 11:44 UTC (04:44 America/Phoenix). Scope only Phase 17;
+Phases 04/16 prerequisites were present in current source, exported contracts and
+passing baseline tests. Initial worktree was clean at 18690f0. No later phase,
+application migration, server deployment or external message was performed.
+
+Implemented all four code checkpoints: explicit record/stop/discard and runtime
+permission/availability states; on-device-only ASR selection from primary Android
+docs with en-US default/selectable installed language checks; separately encrypted
+original/reviewed approval followed by typed owned submission and immutable
+endorsement lineage; installed offline TTS with completed safe text, voice/speed
+and independent focus/device/noisy-output/lifecycle/Stop playback handling.
+Audio is not retained by the app or sent to ADA. Platform metadata/duration are
+client reported; no server audio hash or attested recognizer binary is claimed.
+Original ASR is generated interpretation and never enters model context/factual
+memory. Approval creates only a normal user-explicit turn with user-reviewed
+lineage. Text, frozen snapshots, plain fingerprints and existing source contracts
+remain intact. See [VOICE-INTERFACE.md](../docs/VOICE-INTERFACE.md).
+
+Migration 0014 adds composite owner/request/conversation/scope/endorsement foreign
+keys, unique owner/capture IDs, bounded metadata and guarded downgrade. Voice
+history is capped at 1, 000 per owner, with immutable retained original text and no
+new deletion/erasure policy. Android v10 atomically consumes the approved draft
+into the exact pending request before POST; v1–v9 remain readable. Recovery reads
+only. Background saves are checked on resume; draft loading blocks new capture,
+and another conversation's saved draft offers Open/discard. Rejected voice returns
+to unapproved review, preserving an independent typed draft. Unsupported servers
+cannot fall back to authored-text submission. Stop playback does not cancel a
+request; Phase 16 Stop/retry/fencing/capacity rules are reused.
+
+Checks actually run:
+
+- Baseline: full SQLite + disposable PostgreSQL 18.6 **639 passed, 23 skipped**
+  (579.88s), Ruff lint/format 138 files; fresh Android unit/lint/debug build and web
+  contracts/55 units. Previous Phase 16 evidence remains unchanged.
+- Initial boundary checks: backend reviewed route **2 failed** before implementation
+  (missing route); encrypted journal **2 failed** before v10 storage. Subsequent
+  voice/streaming checks **79 passed,1 expected SQLite lock skip** (67.26s).
+- First full implementation suite: **694 passed, 23 skipped,1 failed** (683.92s).
+  The existing PostgreSQL hybrid evaluation measured fallback 1/13 where its test
+  expects zero; ownership/exact-evidence assertions passed. No retrieval code or
+  evaluation assertion was changed. Focused hybrid+voice rerun **59 passed**
+  (54.11s), then a second full run **695 passed, 23 skipped** (645.99s).
+- The23 skips are15 SQLite-native-row-lock copies,6 pre-existing opt-in native
+  agent probe copies and2 opt-in Ollama-health copies. All PostgreSQL native lock/
+  schema copies ran. Existing Starlette/httpx deprecation warning remains.
+- Final Ruff lint/format **144 files**, compileall and whitespace checks passed.
+  Actual HTTP/schema fixture generation passed. All86 old OpenAPI paths and122
+  existing schemas retain their contracts except two optional capability fields;
+  three routes/three schemas added. All22 protected migration/prompt/lock/wrapper/
+  Phase 18–19 hashes unchanged. 79 synthetic HTTP fixture payloads; only two old
+  capabilities and readiness payloads changed, with old history payloads preserved.
+- Android **211 unit tests, 0 failures/0 skips**; testDebugUnitTest, lintDebug,
+  assembleDebug and assembleDebugAndroidTest passed. Lint0 errors/14 existing
+  dependency-version warnings. Tests cover encrypted approval/commit failure,
+  released v9 read, identity/scope changes, draft recovery/load races, permission
+  states, language/hardware errors, duration/setup/final deadlines, edit approval,
+  duplicate Send, old-server gating, safe completed playback and late callbacks.
+- API 37/Android 17 disposable emulator: **7 normal HTTP/Compose/Keystore checks**
+  (four existing memory checks, two voice checks and native availability),
+  **2 voice checks at 900×500/240dpi/150% font**, and **4 successful actual force-stop
+  stages** for saved review and exact submitted request. No skips/failures. Final
+  voice checks include actual activity pause/resume. Synthetic capture/playback
+  adapters are explicit; real HTTP/source lineage, Android permission plumbing,
+  production controller and Keystore are exercised. A separate native factory
+  availability probe reported Available; it did not record speech or prove en-US
+  installation. Final cold launch Status:ok/COLD,2517 ms (emulator smoke only).
+- Web: pinned npm ci in an isolated workspace (270 packages, 0 audit findings),
+  generated DTO freshness, typecheck, lint, **55 units**, production build and
+  pinned Chromium installation passed; **6 PostgreSQL-backed Chromium checks**
+  passed against that build on private test port 5174 (27.4s). Root clean npm ci was
+  not run because the existing user Vite installation was in use at baseline.
+  Dependency locks unchanged; no web voice controls were added. Known dependency
+  deprecation/NO_COLOR warnings remain.
+
+Remaining verification and skips are deliberate: no real microphone/speaker/
+headset or en-US speech samples, airplane-mode ASR/TTS, real permission dialog/
+revocation matrix, hardware focus/call/Bluetooth/noisy-route behavior, CPU/RAM/
+battery or transcription accuracy was measured. Check the intended S24 FE/Android 16
+and older API 26/31/33 devices, TalkBack/keyboard, release HTTPS and retained private
+transcript/backup policy before claiming target readiness. No server audio decode/
+malformed-file/ASR-provider test applies: the server accepts no audio; forbidden
+JSON audio fields and engine/size/duration/Unicode limits are tested. Inherited
+model timeout/cancellation checks ran; native agent/health opt-ins were skipped
+as noted. A fresh read found configured application revision 0005 and the configured
+native model installed; no new real-model inference or application upgrade ran.
+Install the supported chain through 0014 separately when authorized.
+
+Cleanup: disposable PostgreSQL fixture schemas counted zero; task-owned PG 55417
+and emulator 5556 were stopped. No task HTTP 18763/18765 or web 5174 listeners remain.
+The pre-existing PostgreSQL 5432/PID 8868 was untouched. No stop was issued for the
+user's Vite 5173; the final listener inventory found it absent. Prior validation
+records/artifacts and new ignored synthetic evidence are retained. Stop at Phase 17.
+
+
+Final Phase 17 audit — 2026-10-12 11:55 UTC (04:55 America/Phoenix):
+The final UI audit made typed Send react to the observed voice phase; a nonempty
+independent typed draft stays disabled during recording. Final 211-unit/lint/
+debug/test-APK checks passed. Focused real-HTTP voice UI checks passed again:
+two normal and two compact/font150% cases, including that reactive control and
+actual activity pause. Final snapshot cold launch Status:ok/COLD, 2797 ms. Earlier
+checks and timing records above remain evidence of their own runs. Eleven changed
+Markdown files passed UTF-8/local-link checks; Ruff 144 files, protected 22 hashes,
+old contracts/fixture compatibility and whitespace passed. The last task-owned
+emulator was stopped again; PG 55417 remains stopped. No later phase/deployment.

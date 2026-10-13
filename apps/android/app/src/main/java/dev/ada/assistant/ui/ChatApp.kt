@@ -383,6 +383,7 @@ private fun ConversationScreen(state: ChatState, vm: ChatViewModel, typing: Bool
                             Column(Modifier.padding(AdaSpacing.medium), verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
                                 Text("ADA", style = MaterialTheme.typography.labelLarge)
                                 SafeChatText(response.response)
+                                ReadReplyButton(vm, requestId)
                                 val labels = Regex("\\[([MDC][1-9][0-9]*)]").findAll(response.response).map { it.groupValues[1] }.distinct().toList()
                                 labels.forEach { label ->
                                     TextButton(onClick = { vm.openSources(requestId, label) }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("source-chip-$label")) { Text("Source [$label]") }
@@ -455,7 +456,9 @@ private fun EventCard(event: EventDto, state: ChatState, vm: ChatViewModel) {
                 when (event.request_status) { "running" -> "Request still running"; "failed" -> "Request did not complete"; else -> "Request status is not recognized" },
                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            if (user) TextButton(onClick = { vm.openSources(event.request_id) }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Input and reply sources") }
             SafeChatText(event.content)
+            if (event.role == "assistant" && event.request_status == "completed") ReadReplyButton(vm, event.request_id)
             if (event.role == "assistant") {
                 val labels = remember(event.content) { Regex("\\[([MDC][1-9][0-9]*)]").findAll(event.content).map { it.groupValues[1] }.distinct().toList() }
                 labels.forEach { label ->
@@ -494,6 +497,7 @@ private fun PendingPanel(state: ChatState, vm: ChatViewModel, maximumHeight: Dp,
     }
     Surface(color = MaterialTheme.colorScheme.surfaceContainerHighest) {
         Column(Modifier.fillMaxWidth().then(scrolling).padding(AdaSpacing.medium), verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
+            if (pending.message.voiceTranscript != null) Text("Reviewed voice input · original transcript retained separately")
             Text(title, style = MaterialTheme.typography.titleSmall, modifier = Modifier.testTag("pending-status"))
             state.stream?.takeIf { it.request_id == pending.message.body.request_id }?.let { progress ->
                 if (progress.provisional.isNotEmpty()) {
@@ -552,9 +556,11 @@ private fun Composer(state: ChatState, vm: ChatViewModel, maximumHeight: Dp) {
     val focus = LocalFocusManager.current
     val count = state.draft.codePointCount(0, state.draft.length)
     val reserved = state.pending != null
-    val canSend = !reserved && state.draft.isNotBlank() && count <= 4000 && state.capabilities?.chat == true
+    val voiceState by vm.voice.state.collectAsStateWithLifecycle()
+    val canSend = voiceState.phase !in setOf(VoicePhase.Permission, VoicePhase.Checking, VoicePhase.Recording, VoicePhase.Transcribing) && !reserved && state.draft.isNotBlank() && count <= 4000 && state.capabilities?.chat == true
     Surface(color = MaterialTheme.colorScheme.surface, shadowElevation = 2.dp) {
         Column(Modifier.fillMaxWidth().heightIn(max = maximumHeight).verticalScroll(rememberScrollState()).padding(horizontal = AdaSpacing.medium, vertical = AdaSpacing.small), verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
+            VoicePanel(vm)
             if (advanced) {
                 if (state.capabilities?.memory_in_chat == true) Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(state.useMemory, vm::updateMemory, enabled = !reserved, modifier = Modifier.semantics { contentDescription = "Use saved memory in this message" })
@@ -596,12 +602,15 @@ private fun Composer(state: ChatState, vm: ChatViewModel, maximumHeight: Dp) {
 @Composable
 private fun SourcesScreen(state: ChatState, vm: ChatViewModel) {
     val id = state.sourceRequestId
+    val voice by vm.voice.state.collectAsStateWithLifecycle()
+    androidx.compose.runtime.LaunchedEffect(id) { id?.let(vm.voice::inspectLineage) }
     val request = id?.let { state.sources[it] }?.takeIf { it.request_id == id }
     val cards = request?.citations.orEmpty().filter { state.sourceLabel == null || it.label == state.sourceLabel }
     val documents = request?.document_citations.orEmpty().filter { state.sourceLabel == null || it.label == state.sourceLabel }
     val continuity = request?.continuity_citations.orEmpty().filter { state.sourceLabel == null || it.label == state.sourceLabel }
     LazyColumn(Modifier.fillMaxSize().testTag("sources-list"), contentPadding = androidx.compose.foundation.layout.PaddingValues(AdaSpacing.medium), verticalArrangement = Arrangement.spacedBy(AdaSpacing.medium)) {
         item { BackButton(vm::back); ScreenHeading("Sources", "These cards belong to this saved reply, with the original quotes and source versions."); StateFeedback(state) }
+        voice.lineage?.takeIf { it.request_id == id }?.let { row -> item { VoiceLineageCard(row) } }
         if (state.sourceLoading) item { BusyIndicator("Loading sources for this reply") }
         if (!state.sourceLoading && request != null && cards.isEmpty() && documents.isEmpty() && continuity.isEmpty()) item {
             StatusCard("Source unavailable", if (state.sourceLabel != null) "This label has no source card for the saved reply. It may refer to an older request without a recorded trace or an unknown label." else "No source cards are attached to this saved reply. Older requests may have no retrieval trace.")

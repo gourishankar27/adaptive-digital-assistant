@@ -1,6 +1,7 @@
 # Phase 17 — explicit Android voice input and output
 
-Status: planned. Prerequisites: Phases 04 and 16.
+Status: checkpoints implemented; local verification recorded in STATUS/WORKLOG;
+physical audio and target installation verification remain. Prerequisites: Phases 04 and 16.
 Apply STANDARDS and CODEX-WORKFLOW. Voice is an optional input/output mode; text
 chat and source access remain complete without microphone permission.
 
@@ -66,3 +67,21 @@ behavior and engine availability rather than unsupported guarantees.
 Exit with an explicit record→review→send flow and optional controllable playback.
 No background listening, unreviewed transcript memory or implicit external upload.
 Update privacy/user documentation, capabilities and actual validation evidence.
+
+
+## Implemented checkpoints
+
+- [x] User-initiated microphone capture, duration/stop/discard, runtime permission
+      states and bounded lifecycle/audio interruption handling.
+- [x] On-device-only ASR selection using primary Android documentation; en-US
+      default and selectable validated language; no server audio or fallback.
+- [x] Separate encrypted review/approval and immutable generated original lineage;
+      typed owned submission, atomic exact-request recovery and old-contract replay.
+- [x] Optional installed offline TTS, completed safe text, voice/speed/focus/device
+      handling and Stop playback independent of Stop generation.
+- [ ] Physical S24 FE/Android16 mic/speaker/headset/language/offline/resource/battery
+      checks, older APIs, release HTTPS/manual accessibility and intended migration.
+
+Implementation/policy: [VOICE-INTERFACE.md](../docs/VOICE-INTERFACE.md). Tests use
+real HTTP/Keystore and explicitly synthetic audio adapters where identified;
+platform availability is separate from actual microphone/language quality.

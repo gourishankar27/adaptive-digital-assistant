@@ -464,6 +464,24 @@
       "path": "/v1/requests/{request_id}/stream-status",
       "method": "get",
       "status": 200
+    },
+    {
+      "file": "voice-started.json",
+      "path": "/v1/conversations/{conversation_id}/voice-requests",
+      "method": "post",
+      "status": 202
+    },
+    {
+      "file": "voice-lineage.json",
+      "path": "/v1/requests/{request_id}/voice-input",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "voice-inputs.json",
+      "path": "/v1/conversations/{conversation_id}/voice-inputs",
+      "method": "get",
+      "status": 200
     }
   ]
 }
