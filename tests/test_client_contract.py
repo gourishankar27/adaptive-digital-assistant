@@ -783,6 +783,55 @@ def test_actual_responses_match_export(harness):
         "/v1/conversations/{conversation_id}/voice-inputs",
         actual=f"/v1/conversations/{cid}/voice-inputs",
     )
+    # Security fixtures use a separate synthetic owner; preserve all earlier snapshots.
+    from ada.auth import create_user
+
+    security_owner, security_token = create_user(h["sessions"], "Synthetic security fixture")
+    h["a"] = {"Authorization": "Bearer " + security_token}
+    h["a_id"] = security_owner
+    h["settings"].device_enrollment_enabled = True
+    h["settings"].deletion_worker_enabled = True  # Explicit manual processing in this test.
+    call("security-status", "/v1/security/status")
+    issue_body = {"operation_id": str(uuid4()), "label": "Synthetic fixture device"}
+    issued = h["client"].post("/v1/security/credentials", headers=h["a"], json=issue_body)
+    if issued.status_code != 201:
+        raise AssertionError("Synthetic credential enrollment failed")
+    call("credential-replay", "/v1/security/credentials", "post", json=issue_body)
+    key = issued.json()["credential"]["id"]
+    call("device-credentials", "/v1/security/credentials")
+    rotate_body = {"operation_id": str(uuid4()), "label": "Synthetic rotated device"}
+    rotated = h["client"].post(
+        f"/v1/security/credentials/{key}/rotate", headers=h["a"], json=rotate_body
+    )
+    if rotated.status_code != 201:
+        raise AssertionError("Synthetic credential rotation failed")
+    call(
+        "credential-rotation-replay",
+        "/v1/security/credentials/{credential_id}/rotate",
+        "post",
+        actual=f"/v1/security/credentials/{key}/rotate",
+        json=rotate_body,
+    )
+    call(
+        "credential-revoked",
+        "/v1/security/credentials/{credential_id}/revoke",
+        "post",
+        actual=f"/v1/security/credentials/{rotated.json()['credential']['id']}/revoke",
+    )
+    preview = call("deletion-preview", "/v1/security/deletion-previews", "post", status=201)
+    deletion_body = {
+        "job_id": str(uuid4()),
+        "preview_id": preview["id"],
+        "confirmation": "erase_saved_content",
+    }
+    call("deletion-queued", "/v1/security/deletions", "post", status=202, json=deletion_body)
+    h["app"].state.deletion.process_one()
+    call(
+        "deletion-completed",
+        "/v1/security/deletions/{job_id}",
+        actual=f"/v1/security/deletions/{deletion_body['job_id']}",
+    )
+    call("deletion-history", "/v1/security/deletions")
     if os.environ.get("ADA_UPDATE_CONTRACT_FIXTURES") == "1" and h["backend"] == "sqlite":
         write_synthetic_fixtures(cases)
 

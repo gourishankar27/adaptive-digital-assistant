@@ -16,7 +16,7 @@ class StreamingRecoveryPrepareTest {
     @Test fun reserveAndSubmitBeforeActualForceStop() {
         assumeTrue(InstrumentationRegistry.getArguments().getString("adaStreamingRecovery") == "true")
         val token = File(InstrumentationRegistry.getInstrumentation().targetContext.filesDir, "foundation-test-token").readText().trim()
-        val c = ConnectionCredential.parse("http://10.0.2.2:18765", token, true)!!; val api = HttpAdaApi()
+        val c = ConnectionCredential.parse(dev.ada.assistant.fixtureOrigin(), token, true)!!; val api = HttpAdaApi()
         val key = UUID.randomUUID()
         runBlocking {
             val owner = (api.me(c) as ApiResult.Success).value.id

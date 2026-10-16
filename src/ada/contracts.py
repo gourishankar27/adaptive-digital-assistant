@@ -20,9 +20,12 @@ class ReadyOutput(BaseModel):
 class UserOutput(BaseModel):
     id: UUID
     name: str
+    data_epoch: int = Field(default=0, ge=0)
 
 
 class CapabilitiesOutput(BaseModel):
+    device_credentials: str = "unsupported"
+    private_deletion: str = "unsupported"
     voice_input: str = "unsupported"
     voice_audio_uploads: bool = False
     stream_protocol: str = "unsupported"

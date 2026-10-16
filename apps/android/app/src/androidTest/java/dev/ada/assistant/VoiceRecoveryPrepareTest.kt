@@ -16,7 +16,7 @@ class VoiceRecoveryPrepareTest {
     private fun prepare(submit: Boolean) {
         assumeTrue(InstrumentationRegistry.getArguments().getString("adaVoiceRecovery") == "true")
         val token = File(InstrumentationRegistry.getInstrumentation().targetContext.filesDir, "foundation-test-token").readText().trim()
-        val c = ConnectionCredential.parse("http://10.0.2.2:18765", token, true)!!; val api = HttpAdaApi()
+        val c = ConnectionCredential.parse(dev.ada.assistant.fixtureOrigin(), token, true)!!; val api = HttpAdaApi()
         val transcript = TranscriptInputDto(UUID.randomUUID(), "android_on_device", "Explicit recovery test adapter", "en-US", 2000, "Original generated recovery cattle")
         val key = UUID.randomUUID()
         runBlocking {

@@ -36,6 +36,7 @@ export function normalizeServer(value: string): string {
 export class HttpAdaApi implements AdaApi {
   private token: string;
   private active = new Set<AbortController>();
+  private privacyEpoch?: string;
   constructor(readonly server: string, token: string, private transport: FetchTransport = (input, init) => globalThis.fetch(input, init), private timeoutMs = 10000) {
     normalizeServer(server);
     if (!token.trim() || token.trim().length > 200 || /[\r\n]/.test(token)) throw new ContractError();
@@ -78,6 +79,15 @@ export class HttpAdaApi implements AdaApi {
         const code = await unavailableCode(response);
         if (controller.signal.aborted && response.status !== 401) throw new DOMException('Cancelled', 'AbortError');
         throw new AdaError(httpFailure(response.status, retryAfter(response.headers.get('Retry-After')), code));
+      }
+      const privacyEpoch = response.headers.get('X-ADA-Privacy-Epoch');
+      if (privacyEpoch !== null) {
+        if (!/^[0-9]{1,20}$/.test(privacyEpoch)) throw new ContractError();
+        if (this.privacyEpoch !== undefined && this.privacyEpoch !== privacyEpoch) {
+          this.disconnect();
+          throw new AdaError({ kind: 'authentication', message: 'Saved content changed. Sign in again to clear monitoring caches and refresh.', outcome: 'unavailable' });
+        }
+        this.privacyEpoch = privacyEpoch;
       }
       if (!response.headers.get('Content-Type')?.toLowerCase().includes('application/json')) throw new ContractError();
       const result = decode(parseWire(await response.text()));

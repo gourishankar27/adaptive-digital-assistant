@@ -37,6 +37,9 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(80), unique=True)
     token_hash: Mapped[str] = mapped_column(String(64), unique=True)
     created_at: Mapped[int] = mapped_column(BigInteger, default=now_ms)
+    data_revision: Mapped[int] = mapped_column(BigInteger, default=0, server_default=text("0"))
+    data_epoch: Mapped[int] = mapped_column(BigInteger, default=0, server_default=text("0"))
+    deletion_job_id: Mapped[str | None] = mapped_column(String(36))
 
 
 class Personality(Base):

@@ -89,12 +89,15 @@ class AndroidSpeechCapture(private val context: Context) : SpeechCapture {
 }
 
 /** Foreground-only transient audio focus. Route changes and focus loss never auto-resume. */
-internal class AudioSession(private val context: Context, private val interrupted: () -> Unit) {
+internal class AudioSession(private val context: Context, private val diagnostic: ((String) -> Unit)? = null, private val interrupted: () -> Unit) {
     private val manager = context.getSystemService(AudioManager::class.java)
     private val handler = Handler(Looper.getMainLooper())
     private var active = false
     private var routes = emptySet<Int>()
     private var receiverRegistered = false
+    private var devicesRegistered = false
+    private var focus: AudioFocusRequest? = null
+    private val lease = FocusLease()
     private val noisy = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (active && intent?.action == AudioManager.ACTION_AUDIO_BECOMING_NOISY) interrupted()
@@ -108,25 +111,44 @@ internal class AudioSession(private val context: Context, private val interrupte
             if (active && current != routes) interrupted()
         }
     }
-    private val focus = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
-        .setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build())
-        .setOnAudioFocusChangeListener({ change -> if (active && change < 0) interrupted() }, handler)
-        .setWillPauseWhenDucked(true).build()
     fun acquire(): Boolean {
         release()
-        if (manager.requestAudioFocus(focus) != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) return false
-        active = true; routes = (manager.getDevices(AudioManager.GET_DEVICES_INPUTS) + manager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)).map { it.id }.toSet()
-        manager.registerAudioDeviceCallback(deviceCallback, handler)
-        ContextCompat.registerReceiver(context, noisy, IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY), ContextCompat.RECEIVER_NOT_EXPORTED)
-        receiverRegistered = true
-        return true
+        val generation = lease.begin()
+        val request = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
+            .setAudioAttributes(speechAudioAttributes())
+            .setOnAudioFocusChangeListener({ change ->
+                if (active && lease.accepts(generation) && change < 0) {
+                    diagnostic?.invoke(when (change) {
+                        AudioManager.AUDIOFOCUS_LOSS -> "focus_loss"
+                        AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> "focus_transient_loss"
+                        else -> "focus_duck_loss"
+                    })
+                    interrupted()
+                }
+            }, handler).setWillPauseWhenDucked(true).build()
+        focus = request
+        try {
+            if (manager.requestAudioFocus(request) != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+                diagnostic?.invoke("focus_request_rejected")
+                release(); return false
+            }
+            diagnostic?.invoke("focus_request_granted")
+            active = true
+            routes = (manager.getDevices(AudioManager.GET_DEVICES_INPUTS) + manager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)).map { it.id }.toSet()
+            manager.registerAudioDeviceCallback(deviceCallback, handler); devicesRegistered = true
+            ContextCompat.registerReceiver(context, noisy, IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY), ContextCompat.RECEIVER_NOT_EXPORTED)
+            receiverRegistered = true
+            return true
+        } catch (_: Exception) { release(); return false }
     }
     fun release() {
-        if (active) {
-            active = false
-            manager.unregisterAudioDeviceCallback(deviceCallback)
-            if (receiverRegistered) { context.unregisterReceiver(noisy); receiverRegistered = false }
-            manager.abandonAudioFocusRequest(focus)
-        }
+        active = false; lease.end()
+        if (devicesRegistered) { devicesRegistered = false; try { manager.unregisterAudioDeviceCallback(deviceCallback) } catch (_: Exception) { } }
+        if (receiverRegistered) { receiverRegistered = false; try { context.unregisterReceiver(noisy) } catch (_: Exception) { } }
+        val previous = focus; focus = null
+        if (previous != null) try { manager.abandonAudioFocusRequest(previous) } catch (_: Exception) { }
     }
 }
+
+internal fun speechAudioAttributes(): AudioAttributes = AudioAttributes.Builder()
+    .setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build()

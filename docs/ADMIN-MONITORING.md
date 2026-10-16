@@ -14,11 +14,14 @@ run the migration from the repository root when installing this change:
 .\.venv\Scripts\python.exe -m alembic check
 ```
 
-The current supported head is **0007**. Admin monitoring was introduced by
+The current supported head is **0015**. For the complete current installation
+and admin login procedure, see [HOW-TO-USE-ADA](HOW-TO-USE-ADA.md).
+Admin monitoring was introduced by
 migration **0004**, which adds empty `admin_grants`, metadata audit/state tables
 and request-monitoring indexes. Phase 08 adds document ingestion in **0005**;
 Phase 09 adds explicit scoped identity in **0006**. Running the current source
-requires 0007 for readiness after Phase 10 adds its discardable embedding index.
+requires **0015** for readiness; **0007** introduced Phase 10's discardable
+embedding index, with the later released migrations following it.
 Embeddings remain disabled by default. It preserves populated users,
 credential hashes, requests, prompts and retrieval snapshots. Released migrations
 0001–0003 stay unchanged. Neither migration nor startup grants an account access.

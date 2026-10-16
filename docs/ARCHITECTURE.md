@@ -152,7 +152,7 @@ Monitoring selects columns/JSON scalar counts rather than private ORM snapshots.
 It preserves composite owner/request identity and unrecorded metrics as null.
 Polling, query windows, pagination and audit rows/age are bounded. Provider model-list
 probes are serialized/cached, response/time bounded and run outside DB transactions;
-they never generate. Current readiness validates supported head 0014. Admission shows the
+they never generate. Current readiness validates supported head 0015. Admission shows the
 actual process semaphore, with one worker; GPU/throughput remain unknown. See
 [ADMIN-MONITORING.md](ADMIN-MONITORING.md) for allowlists, failure/audit semantics,
 retention and installation. Phase 05 introduces no account impersonation.
@@ -469,3 +469,44 @@ old journal versions remain supported. Local installed offline TTS reads owned
 completed reply text and owns separate focus/route/lifecycle/stop controls. It
 never stops server generation. See [VOICE-INTERFACE.md](VOICE-INTERFACE.md) for
 limits, absent audio hashes, retention and remaining physical-device gates.
+
+
+## Phase18 security and recovery
+
+Migration0015 adds digest-only owner device credentials, explicit erasure preview/job
+metadata, UUID request tombstones and account content revision/epoch fields. Legacy
+CLI tokens remain compatible; owner-authenticated enrollment is configured off by
+default. Rotation/revocation never grants an admin role. Fresh authorization fences
+response delivery and every SSE batch; admitted generation may finish durably.
+
+A single-process middleware bounds owner rates, HTTP admission, actual body bytes,
+delivery time and JSON depth. It reserves a content revision before each ordinary
+private POST and keeps one worker. Security metadata reads are explicitly allowlisted;
+completion receipts remain readable across content-epoch changes while bearer
+revocation still denies them. Admin routes retain metadata-only SQL projection and
+receive a privacy epoch to invalidate monitoring caches after erasure.
+
+The chosen retention policy is explicit owner deletion. Preview inventories all45
+installed owner-content tables and rejects active private publishers. Confirmation
+binds a fresh preview to a durable job UUID. A leased worker deletes the dependency
+graph, creates UUID-only tombstones and advances the account epoch in one transaction.
+Native SQLite FTS/PostgreSQL projections are included. Account/credential/grant/minimal
+operation metadata remains; backups/offline copies are disclosed. Explicit erasure
+is the sole new exception to saved completed replay, which then returns410.
+
+Android v11 Keystore journals retain v1–v10 reads, reserve security UUIDs before POST
+and discard private journals when the verified epoch changes. Reopening performs
+GET-only reconciliation; a one-time issue secret cannot be recovered from its digest.
+Android settings offer enrollment/rotation/revoke and preview/confirmed erasure.
+The read-only web dashboard accepts these bearer tokens and clears on revocation or
+privacy-epoch changes without persisting authentication/private query data.
+
+Portable encrypted PostgreSQL recovery uses an exported snapshot, custom dump,
+row-count/hash manifest and current separately encrypted deletion ledger. Restore
+accepts only a nonexistent isolated ada_restore_* database, verifies original rows,
+quarantines all restored credentials and reapplies later erasure/tombstones. Immutable
+source/snapshot/receipt history survives unless explicitly deleted. Configuration
+allowlist is separate from credentials/private keys. The selected destination is
+%LOCALAPPDATA%/ADA/backups. See [the operational runbook](SECURITY-AND-OPERATIONS.md).
+No live backup, application migration, erasure, service publication or Phase19 work
+is implied by these source changes.

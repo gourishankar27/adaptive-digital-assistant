@@ -1,4 +1,6 @@
 {
+  "device_credentials": "ada-device-credentials-v1",
+  "private_deletion": "ada-private-deletion-v1",
   "voice_input": "ada-reviewed-voice-v1",
   "voice_audio_uploads": false,
   "stream_protocol": "ada-stream-v1",

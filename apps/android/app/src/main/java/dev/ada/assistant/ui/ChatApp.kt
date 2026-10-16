@@ -689,6 +689,8 @@ private fun AccountSettingsScreen(state: ChatState, vm: ChatViewModel, openSetti
         ExpressionSettings(vm.expression, state.conversation?.id)
         HorizontalDivider()
         LearningSettings(vm.learning, state)
+        HorizontalDivider()
+        SecuritySettings(vm.security)
         state.account?.let { account ->
             HorizontalDivider()
             Text("Replace this account’s token", style = MaterialTheme.typography.titleMedium)
@@ -707,7 +709,7 @@ private fun AccountSettingsScreen(state: ChatState, vm: ChatViewModel, openSetti
         }
         Text("Account and server changes clear local conversations, sources, drafts and pending requests. A request already submitted may continue on the server.", style = MaterialTheme.typography.bodyMedium)
         Button(onClick = vm::logout, modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("logout")) { Text("Log out / change server") }
-        Text("Voice and automatic memory extraction are not available in this version.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text("Voice uses installed on-device services. Memory extraction requires explicit review.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

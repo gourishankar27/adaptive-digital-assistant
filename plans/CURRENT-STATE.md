@@ -16,7 +16,7 @@ facts/preferences/decisions and transactional valid-time corrections.
 Phase 2 added full-text/subject retrieval, a whole-prompt byte budget, exact
 evidence checks, source labels and durable per-request retrieval snapshots.
 
-Migrations 0001–0013 remain unchanged by Phase 17; current head is 0014. Baseline v4 is
+Migrations 0001–0014 remain unchanged by Phase18; current head is 0015. Baseline v4 is
 current for new conversations. v3 retains claim retrieval; earlier conversations
 retain their saved prompt until explicitly upgraded.
 
@@ -362,3 +362,35 @@ en-US availability/quality, offline audio, resources/battery, permission dialogs
 headsets/calls, older APIs, release HTTPS and manual accessibility remain target
 verification. A fresh read found the configured application database at 0005;
 it was not installed/upgraded. Stop at Phase17; no later phase or deployment.
+
+## Phase 17-A physical audit boundary — 2026-10-13 UTC
+
+Samsung S24 FE/Android16 now has partial target evidence: installed en-US, actual
+quiet/offline recognition, offline speaker/rates, capture/playback lifecycle,
+owned HTTP lineage, Keystore/force-stop recovery and portrait/landscape font150%.
+The existing implementation loses the recording intent across actual permission
+dialogs. A separate foreground UID received audio focus while the isolated native
+playback interruption callback did not fire; root cause/audible behavior remain
+to investigate. [Phase 17-A](phase-17-a-s24-fe-validation-and-hardening.md) plans
+these changes and a portable physical runner. No product code/contract/schema
+was changed. Battery, speech-service resources, representative noise/accent
+quality, accessories/calls, older APIs, release HTTPS/manual accessibility and
+intended installation remain pending. Historical configured database 0005 was
+not refreshed or migrated in this audit. Phases18–19 remain planned.
+
+
+## Phase18 implementation — 2026-10-14 UTC
+
+Supported head0015 adds configured digest-only device lifecycle, owner rate/body/
+HTTP bounds, explicit retain-until-owner-deletion policy, all45-table saved-content
+preview/confirmed leased erasure with tombstones/epochs, Android v11 recovery/settings
+and admin privacy cache fencing. One Uvicorn worker remains required. Legacy tokens,
+old prompts/requests, source trust and released0001–0014 migrations are preserved.
+AES256-GCM/scrypt backups use the selected local folder and a consistent PostgreSQL
+snapshot; isolated new-database restoration validates hashes and quarantines tokens,
+then reconciles a current encrypted deletion ledger. Concrete runbooks and target
+verification are in [SECURITY-AND-OPERATIONS](../docs/SECURITY-AND-OPERATIONS.md).
+Phase17-A permission/focus lifecycle hardening and a separate-package physical runner
+are implemented; new physical outcomes and unresolved gates are recorded in STATUS.
+Prior phone/audit evidence above is historical. Phase19 remains unimplemented and
+no live database backup/migration/deletion or deployment occurred in this task.

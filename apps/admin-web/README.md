@@ -5,6 +5,10 @@ provider/limit configuration, server-filtered request pages, composite owner/req
 detail and audit metadata. All six enabled reads use existing `/v1/admin` routes.
 No raw chats, source quotes, prompts or operational write controls are exposed.
 
+For the complete current server/account/client walkthrough, see
+[HOW-TO-USE-ADA](../../docs/HOW-TO-USE-ADA.md). The current Phase18 source requires
+database head **0015**; historical Phase 05/08 installation evidence below is preserved.
+
 ## Windows setup and checks
 
 Use pinned Node **24.12.0**, npm **11.6.2**, package-lock.json and the root Python
@@ -48,9 +52,9 @@ Browser recording, traces, screenshots and video are disabled.
 
 ## Run with an existing backend
 
-The backend must have the current schema head **0005** and an explicit monitoring
+The backend must have the current schema head **0015** and an explicit monitoring
 grant for your account UUID. Admin monitoring was introduced by migration **0004**;
-the Phase 08 source now requires **0005** for readiness. See
+the current Phase18 source requires **0015** for readiness. See
 [ADMIN-MONITORING.md](../../docs/ADMIN-MONITORING.md).
 Phase 06 implementation does not migrate the application DB or grant real accounts.
 Start ADA with root `scripts/start.ps1` (loopback :8000, one worker), then:
@@ -97,10 +101,11 @@ stop ADA and run from the repository root:
 .\scripts\start.ps1
 ```
 
-Use the current repository's required head **0005**. The reported login failure
+Use the current repository's required head **0015**. The reported login failure
 was repaired by separately installing **0004** and granting the user-selected
 account against the pre-Phase 08 backend. That repair does not install Phase 08:
-running the new source requires a separately authorized **0005** installation.
+Phase 08 required a separately authorized **0005** installation; the current
+source requires the complete supported chain through **0015**.
 Restart Vite if its proxy target changed, then sign in again. A subsequent
 **Access denied** means the account needs an explicit local `grant-admin` using its
 UUID as described in [ADMIN-MONITORING.md](../../docs/ADMIN-MONITORING.md). Applying
@@ -206,3 +211,15 @@ hashes and source quotes. Current grant enforcement, audited reads, same-origin
 HTTP and in-memory credentials are unchanged. This is monitoring only; no admin
 job controls or cross-owner episode reads exist. Older servers remain supported.
 See [policy](../../docs/EPISODES-AND-CONSOLIDATION.md) and [checks](../../plans/STATUS.md).
+
+
+## Phase18 credential and privacy recovery
+
+The dashboard accepts owner device credentials while retaining server-enforced
+monitoring grants and memory-only sign-in. Authentication loss clears transport,
+queries and rendered monitoring state. A server privacy-epoch change also requires
+fresh sign-in and drops query caches. No enrollment/deletion writes are added to the
+read-only dashboard; use Android Settings or the owner security APIs. The selected
+private HTTPS topology and encrypted restore/deletion policy are documented in
+[SECURITY-AND-OPERATIONS](../../docs/SECURITY-AND-OPERATIONS.md). Existing loopback
+same-origin development remains supported. No publication occurred.

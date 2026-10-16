@@ -21,7 +21,7 @@ class StreamingUiHttpTest {
     private lateinit var vm: ChatViewModel
     @Test fun provisionalObserverDetachStopAndExactCancelledRetryOverHttp() {
         val file = File(InstrumentationRegistry.getInstrumentation().targetContext.filesDir, "foundation-test-token"); assumeTrue(file.isFile)
-        val token = file.readText().trim(); val c = ConnectionCredential.parse("http://10.0.2.2:18765", token, true)!!; val api = HttpAdaApi()
+        val token = file.readText().trim(); val c = ConnectionCredential.parse(dev.ada.assistant.fixtureOrigin(), token, true)!!; val api = HttpAdaApi()
         val profile = runBlocking { success(api.personalities(c)).first() }
         val conversation = runBlocking { success(api.createConversation(c, ConversationInputDto(profile.id, "Synthetic stream UI"))) }
         vm = ViewModelProvider(compose.activity)[ChatViewModel::class.java]
@@ -30,7 +30,6 @@ class StreamingUiHttpTest {
         compose.runOnIdle { vm.updateDraft("Synthetic streaming UI turn"); vm.send() }
         compose.waitUntil(20_000) { vm.state.value.stream?.provisional?.isNotEmpty() == true }
         val id = vm.state.value.pending!!.message.body.request_id
-        compose.onNodeWithTag("chat-history").performScrollToNode(hasText("Provisional reply"))
         compose.onNodeWithText("Provisional reply").performScrollTo().assertIsDisplayed()
         assertTrue(vm.state.value.sources.isEmpty())
         compose.runOnIdle { vm.navigate(ChatDestination.Settings) }
@@ -38,7 +37,6 @@ class StreamingUiHttpTest {
         assertEquals("running", runBlocking { success(api.streamStatus(c, id)) }.stream_state)
         compose.runOnIdle { vm.navigate(ChatDestination.Chat) }
         compose.waitUntil(20_000) { vm.state.value.streamConnected }
-        compose.onNodeWithTag("chat-history").performScrollToNode(hasTestTag("stop-generation"))
         compose.onNodeWithTag("stop-generation").performScrollTo().performClick()
         compose.waitUntil(20_000) { vm.state.value.pending?.response?.error_code == "request_cancelled" }
         val terminal = runBlocking { success(api.streamStatus(c, id)) }
@@ -47,7 +45,6 @@ class StreamingUiHttpTest {
         assertEquals(1, runBlocking { success(api.events(c, conversation.id)) }.count { it.request_id == id })
         val receipt = runBlocking { success(api.cancelGeneration(c, id, 1)) }
         assertEquals(receipt, runBlocking { success(api.cancelGeneration(c, id, 1)) })
-        compose.onNodeWithTag("chat-history").performScrollToNode(hasText("Incomplete reply"))
         compose.onNodeWithText("Incomplete reply").performScrollTo().assertIsDisplayed()
         compose.runOnIdle { vm.retry() }
         compose.waitUntil(20_000) { vm.state.value.stream?.attempt == 2 }

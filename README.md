@@ -3,9 +3,19 @@ Python/FastAPI on your Windows laptop, with PostgreSQL and a configurable Ollama
 model. Accounts share model weights. Personality, history and memory remain
 private to each authenticated user.
 
+For the complete current developer walkthrough, read
+[HOW-TO-USE-ADA](docs/HOW-TO-USE-ADA.md): fresh setup or upgrade to head **0015**,
+Android/USB and admin login, feature use, daily startup and troubleshooting.
+
 Already running Phase 1? Start with [the upgrade guide](docs/UPGRADE-PHASE2.md).
 It includes installation into your existing project and the prompt upgrade for
 conversation `11b492c2-2667-44a3-bd9c-9a532f63c00f`.
+
+Phase18 adds digest-only device credentials, explicit saved-content deletion and
+encrypted PostgreSQL recovery. Read [SECURITY-AND-OPERATIONS](docs/SECURITY-AND-OPERATIONS.md)
+and [VOICE-VALIDATION](docs/VOICE-VALIDATION.md). Enrollment and erasure processing
+are opt-in; content is retained until explicit owner deletion. One worker remains
+required. No application database migration or deployment is performed by a checkout.
 
 ## Implemented server and clients
 
@@ -49,7 +59,7 @@ index rebuild and exact semantic ranking alongside the original baseline.
 not establish real-model benefit. See
 [EMBEDDINGS-AND-HYBRID-RETRIEVAL.md](docs/EMBEDDINGS-AND-HYBRID-RETRIEVAL.md)
 for bounds, fallback, activation/evaluation and installation. Current source
-requires head 0014 after Phase 17; the application database was not migrated by these phases.
+requires head 0015 after Phase 18; the application database was not migrated by these phases.
 
 Phase 11 adds migration **0008**, selected-source model suggestions, a private
 Android review inbox and explicit accept/edit/reject receipts. Acceptance creates

@@ -266,3 +266,14 @@ only capability fields are additive. Existing synthetic fixture payloads are
 preserved except capabilities/readiness. Three new HTTP-captured voice fixtures
 show a typed submission and truthful provenance; server audio/hash are absent.
 See [the voice policy](../docs/VOICE-INTERFACE.md).
+
+
+Phase18 adds head0015 and seven security path templates for owner status,
+credential list/enroll/rotate/revoke and saved-content preview/job list/confirm/status.
+Original89 paths and125 schemas remain; only UserOutput.data_epoch and two capability
+properties are additive with defaults. Private routes document bounded middleware
+errors without changing existing request shapes, origin/trust enums or snapshots.
+Explicit owner-confirmed erasure returns410 for old requests, a documented exception
+to normal completed replay. Security receipts contain counts/UUID metadata, never
+private evidence text or stored plaintext tokens. Issuance returns its secret once;
+exact replay returns token:null. See [security and operations](../docs/SECURITY-AND-OPERATIONS.md).

@@ -22,7 +22,7 @@ class VoiceUiHttpTest {
     private val output = InstrumentedVoicePlayback()
     private fun connect(): Pair<HttpAdaApi, ConnectionCredential> {
         val file = File(InstrumentationRegistry.getInstrumentation().targetContext.filesDir, "foundation-test-token"); assumeTrue(file.isFile)
-        val token = file.readText().trim(); val c = ConnectionCredential.parse("http://10.0.2.2:18765", token, true)!!
+        val token = file.readText().trim(); val c = ConnectionCredential.parse(dev.ada.assistant.fixtureOrigin(), token, true)!!
         val api = HttpAdaApi(); val profile = runBlocking { (api.personalities(c) as ApiResult.Success).value.first() }
         val conversation = runBlocking { (api.createConversation(c, ConversationInputDto(profile.id, "Synthetic voice UI")) as ApiResult.Success).value }
         vm = ViewModelProvider(compose.activity)[ChatViewModel::class.java]
@@ -48,12 +48,21 @@ class VoiceUiHttpTest {
         compose.waitUntil(5000) { vm.voice.state.value.draft != null && !vm.voice.state.value.saving }
         compose.onNodeWithTag("voice-send").performScrollTo().assertIsNotEnabled()
         compose.onNodeWithTag("voice-review").performScrollTo().performTextReplacement("Reviewed synthetic kettle 🫖 wording")
+        // Finish the IME/edit journal before interacting with a relocated approval control.
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        compose.waitUntil(10_000) { vm.voice.state.value.draft?.reviewedText == "Reviewed synthetic kettle 🫖 wording" && !vm.voice.state.value.saving }
         compose.runOnIdle { compose.activity.window.decorView.clearFocus() }
         compose.onNodeWithTag("voice-approve").performScrollTo().performClick()
+        compose.onNodeWithTag("voice-approve").assertIsOn()
         compose.waitUntil(5000) { vm.voice.approvedDraft() != null }
         val original = vm.voice.state.value.draft!!.transcript
-        compose.onNodeWithTag("voice-send").performScrollTo().performClick()
-        compose.waitUntil(20_000) { vm.state.value.submittedMessages.isNotEmpty() && vm.state.value.pending == null }
+        compose.onNodeWithTag("voice-send").performScrollTo().assertIsEnabled().performClick()
+        try {
+            compose.waitUntil(20_000) { vm.state.value.submittedMessages.isNotEmpty() && vm.state.value.pending == null }
+        } catch (_: androidx.compose.ui.test.ComposeTimeoutException) {
+            val chat = vm.state.value; val voice = vm.voice.state.value
+            fail("Reviewed Send state: pending=${chat.pending?.phase}, failure=${chat.pending?.failure?.javaClass?.simpleName}, fault=${chat.fault?.javaClass?.simpleName}, reserved=${chat.submittedMessages.size}, voice=${voice.phase}, approved=${voice.draft?.approved}, saving=${voice.saving}")
+        }
         val id = vm.state.value.submittedMessages.keys.last()
         val lineage = runBlocking { (api.voiceInput(c, id) as ApiResult.Success).value }
         assertEquals(original.original_text, lineage.original_text); assertEquals("generated_interpretation", lineage.original_trust)

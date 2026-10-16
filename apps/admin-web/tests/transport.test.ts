@@ -16,6 +16,14 @@ const origin = 'http://localhost:3000';
 beforeEach(() => { window.history.replaceState(null, '', '/'); });
 
 describe('existing contract compatibility', () => {
+  it('clears transport access when the server reports a privacy epoch change', async () => {
+    const responses = [json({ id: ownerA, name: 'Synthetic operator' }, 200, { 'X-ADA-Privacy-Epoch': '0' }),
+      json({ id: ownerA, name: 'Synthetic operator' }, 200, { 'X-ADA-Privacy-Epoch': '1' })];
+    const api = new HttpAdaApi(origin, 'synthetic', async () => responses.shift()!);
+    await api.me();
+    await expect(api.me()).rejects.toMatchObject({ failure: { kind: 'authentication' } });
+    await expect(api.me()).rejects.toMatchObject({ failure: { kind: 'authentication' } });
+  });
   it('decodes captured current and missing-trace requests, preserving request-owned source mapping', () => {
     const present = decodeRequest(parseWire(fixtureText('request-current')));
     expect(present.request_id).toBe(current.request_id);

@@ -60,6 +60,49 @@ class VoiceControllerTest {
         c.context(voiceConversation, true, false); runCurrent()
         return Rig(c, api, store, recorder, player)
     }
+    @Test fun ownPermissionDialogDefersGrantUntilTheSameHostResumes() = runTest {
+        val (c, _, store, input) = ready()
+        assertTrue(c.requestRecording()); c.permissionDialogLaunched()
+        c.observeForeground(false); c.permissionResult(true)
+        assertEquals(VoicePhase.Permission,c.state.value.phase)
+        assertEquals(0,input.starts); assertNull(store.draft)
+        c.observeForeground(true)
+        assertEquals(1,input.starts); assertEquals(VoicePhase.Checking,c.state.value.phase)
+        c.reset()
+    }
+    @Test fun ownDialogDenialAndPermanentDenialAreNotLostOnPause() = runTest {
+        for (permanent in listOf(false,true)) {
+            val (c, _, store, input) = ready()
+            c.requestRecording(); c.permissionDialogLaunched(); c.observeForeground(false)
+            c.permissionResult(false,permanent); c.observeForeground(true)
+            assertEquals(VoicePhase.Denied,c.state.value.phase)
+            assertEquals(permanent,c.state.value.permissionPermanent)
+            assertEquals(0,input.starts); assertNull(store.draft); c.reset()
+        }
+    }
+    @Test fun stoppedHostAndChangedOwnerFencePermissionResults() = runTest {
+        val (c, _, _, input) = ready()
+        c.requestRecording(); c.permissionDialogLaunched(); c.observeForeground(false)
+        c.permissionHostStopped(); c.permissionResult(true); c.observeForeground(true)
+        assertEquals(VoicePhase.Interrupted,c.state.value.phase); assertEquals(0,input.starts)
+        c.requestRecording(); c.permissionDialogLaunched(); c.reset()
+        c.permissionResult(true); c.observeForeground(true); assertEquals(0,input.starts)
+        c.reset()
+    }
+    @Test fun navigationAndPendingTurnFencePermissionWithoutStartingCapture() = runTest {
+        val (c, _, _, input) = ready()
+        c.requestRecording(); c.permissionDialogLaunched(); c.observeForeground(false)
+        c.context(voiceConversation,false,false); c.permissionResult(true); c.observeForeground(true)
+        assertEquals(0,input.starts); assertEquals(VoicePhase.Interrupted,c.state.value.phase)
+        c.context(voiceConversation,true,false); c.requestRecording(); c.permissionDialogLaunched()
+        c.context(voiceConversation,true,true); c.permissionResult(true)
+        assertEquals(0,input.starts); c.reset()
+    }
+    @Test fun ordinaryPauseWithoutOwnDialogStillCancelsPermissionIntent() = runTest {
+        val (c, _, _, input) = ready()
+        c.requestRecording(); c.observeForeground(false); c.permissionResult(true); c.observeForeground(true)
+        assertEquals(VoicePhase.Interrupted,c.state.value.phase); assertEquals(0,input.starts); c.reset()
+    }
     @Test fun savedDraftInAnotherConversationBlocksCaptureUntilOpenedOrDiscarded() = runTest {
         val (c, _, store, input) = ready()
         c.requestRecording(); c.permissionResult(true); input.callback!!.result("Generated owned draft"); runCurrent()

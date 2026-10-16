@@ -1,0 +1,15 @@
+{
+  "owner_id": "00000000-0000-0000-0000-00000000002c",
+  "current_credential_id": null,
+  "legacy_credential": true,
+  "enrollment_enabled": true,
+  "deletion_worker_enabled": true,
+  "data_epoch": 0,
+  "retention": "until_explicit_owner_deletion",
+  "telemetry": {
+    "active_http_operations": 1,
+    "rejected_http_operations": 0,
+    "scope": "owner_in_single_process",
+    "workers_supported": 1
+  }
+}

@@ -15,7 +15,6 @@ from sqlalchemy.exc import SQLAlchemyError
 from ada.agent_api import agent_router
 from ada.agent_provider import OllamaAgentProvider
 from ada.agents import AgentService, UnavailableAgentProvider
-from ada.auth import token_hash
 from ada.config import Settings
 from ada.consolidation import ConsolidationService, UnavailableConsolidator
 from ada.consolidation_api import consolidation_router
@@ -33,6 +32,7 @@ from ada.contracts import (
     ValidationErrorOutput,
 )
 from ada.db import connect
+from ada.deletion import DeletionService
 from ada.document_api import document_router
 from ada.documents import MAX_UPLOAD_BYTES
 from ada.entity_api import entity_router
@@ -83,6 +83,9 @@ from ada.retrieval import (
     retrieve,
 )
 from ada.schema import SCHEMA_HEAD
+from ada.security import CredentialService
+from ada.security_api import security_router
+from ada.security_gate import SecurityGate, SecurityMiddleware
 from ada.semantic import RebuildOutput
 from ada.service import ChatService, ServiceError, public_request
 from ada.stream_provider import StreamingOllamaProvider
@@ -187,6 +190,7 @@ class TraceOutput(RetrievalOutput):
 
 def error_responses(*statuses):
     """Describe implemented failures without changing exception handlers."""
+    statuses = set(statuses) | {408, 410, 413, 415, 429, 503}
     return {
         status: {
             "model": ValidationErrorOutput if status == 422 else ErrorOutput,
@@ -217,11 +221,13 @@ def create_app(settings=None, provider=None, sessions=None):
             pass  # Readiness reports an unavailable/unmigrated database; no fabricated recovery.
         if settings.consolidation_worker_enabled:
             app.state.consolidation.start()
+        app.state.deletion.start()
         try:
             yield
         finally:
             app.state.streaming.stop()
             app.state.consolidation.stop()
+            app.state.deletion.stop()
             if engine is not None:
                 engine.dispose()
 
@@ -232,6 +238,12 @@ def create_app(settings=None, provider=None, sessions=None):
         description="Scoped memory retrieval, cited chat, durable evidence traces and explicitly granted admin monitoring.",
     )
     app.state.sessions, app.state.chat, app.state.memory = sessions, service, memory
+    app.state.security = CredentialService(sessions, settings)
+    app.state.security_gate = SecurityGate(settings)
+    app.state.deletion = DeletionService(sessions, settings, app.state.security_gate)
+    app.add_middleware(
+        SecurityMiddleware, credentials=app.state.security, gate=app.state.security_gate
+    )
     app.state.streaming = StreamingService(service)
     app.state.expression = service.expression
     app.state.proposals = ProposalService(
@@ -317,13 +329,7 @@ def create_app(settings=None, provider=None, sessions=None):
             )
         if len(credentials.credentials) > 200:
             raise HTTPException(401, "invalid_token")
-        with sessions() as db:
-            user_id = db.scalar(
-                select(User.id).where(User.token_hash == token_hash(credentials.credentials))
-            )
-            if user_id is None:
-                raise HTTPException(401, "invalid_token", headers={"WWW-Authenticate": "Bearer"})
-            return user_id
+        return app.state.security.authenticate(credentials.credentials).owner
 
     app.state.admin = Monitoring(sessions, settings, provider, service)
     app.include_router(admin_router(app.state.admin, current_user))
@@ -334,6 +340,15 @@ def create_app(settings=None, provider=None, sessions=None):
     app.include_router(consolidation_router(app.state.consolidation, current_user, error_responses))
     app.include_router(expression_router(app.state.expression, current_user, error_responses))
     app.include_router(learning_router(app.state.learning, current_user, error_responses))
+    app.include_router(
+        security_router(
+            app.state.security,
+            app.state.deletion,
+            app.state.security_gate,
+            current_user,
+            error_responses,
+        )
+    )
     from ada.stream_api import stream_router
 
     app.include_router(
@@ -374,11 +389,13 @@ def create_app(settings=None, provider=None, sessions=None):
     def me(owner: str = Depends(current_user)):
         with sessions() as db:
             row = db.get(User, owner)
-            return {"id": row.id, "name": row.name}
+            return {"id": row.id, "name": row.name, "data_epoch": row.data_epoch}
 
     @app.get("/v1/capabilities", response_model=CapabilitiesOutput, responses=error_responses(401))
     def capabilities(owner: str = Depends(current_user)):
         return {
+            "device_credentials": "ada-device-credentials-v1",
+            "private_deletion": "ada-private-deletion-v1",
             "stream_protocol": "ada-stream-v1" if app.state.streaming.available else "unsupported",
             "generation_cancellation": app.state.streaming.available,
             "voice_input": "ada-reviewed-voice-v1"

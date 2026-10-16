@@ -174,6 +174,7 @@ def main():
     parser.add_argument("--port", type=int, default=18763)
     parser.add_argument("--android-chat-fixtures", action="store_true")
     parser.add_argument("--workspace-temp", action="store_true")
+    parser.add_argument("--security-fixtures", action="store_true")
     args = parser.parse_args()
     if not 1 <= args.port <= 65535:
         parser.error("port must be between 1 and 65535")
@@ -198,7 +199,13 @@ def main():
                 owner = user.id
             if args.android_chat_fixtures:
                 seed_android_chat(sessions, owner)
-            settings = Settings(database_url=database_url, provider="fake", max_parallel=1)
+            settings = Settings(
+                database_url=database_url,
+                provider="fake",
+                max_parallel=1,
+                device_enrollment_enabled=args.security_fixtures,
+                deletion_worker_enabled=args.security_fixtures,
+            )
             provider = AndroidChatProvider() if args.android_chat_fixtures else FakeProvider()
             app = create_app(settings, provider, sessions)
             if args.android_chat_fixtures:

@@ -60,6 +60,7 @@ are designs until implemented and exported in OpenAPI. The existing
 | 15 | [phase-15-relationship-learning-and-continuity.md](phase-15-relationship-learning-and-continuity.md) | Opt-in preference learning and evidence-based continuity | 11, 13, 14 |
 | 16 | [phase-16-streaming-and-cancellation.md](phase-16-streaming-and-cancellation.md) | Durable incremental replies and explicit generation cancellation | 04; 06 for monitoring |
 | 17 | [phase-17-voice-interface.md](phase-17-voice-interface.md) | User-controlled voice input/output on Android | 04, 16 |
+| 17-A | [phase-17-a-s24-fe-validation-and-hardening.md](phase-17-a-s24-fe-validation-and-hardening.md) | Planned permission/focus hardening and portable physical verification after the S24 FE audit | 17 |
 | 18 | [phase-18-security-and-operations.md](phase-18-security-and-operations.md) | Device credentials, deletion/retention, recovery and shared capacity | 05, 06; whichever feature phases exist |
 | 19 | [phase-19-edge-and-external-integrations.md](phase-19-edge-and-external-integrations.md) | Optional local mobile models and selected integrations | 12, 18; measured device requirements |
 

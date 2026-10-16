@@ -55,6 +55,8 @@ class VoiceController(private val api: AdaApi, private val store: SessionStore,
     private var started = 0L; private var checkingStarted = 0L; private var stoppedAt = 0L
     private var timer: Job? = null; private var saver: Job? = null; private var playerJob: Job? = null
     private var recoveryNeeded = false
+    private var permissionDialog = false
+    private var permissionDecision: Pair<Boolean, Boolean>? = null
     private fun update(f: (VoiceState) -> VoiceState) { mutable.value = f(state.value) }
     private fun current(e: Long, s: Long) = e == epoch && s == selection && identity != null
     fun attachAudio(recorder: SpeechCapture, player: SpeechPlayback) {
@@ -75,6 +77,7 @@ class VoiceController(private val api: AdaApi, private val store: SessionStore,
     }
     fun context(row: ConversationDto?, show: Boolean, hasPending: Boolean) {
         pending = hasPending
+        if (hasPending && state.value.phase == VoicePhase.Permission) interruptCapture()
         if (!show && visible) { interruptCapture(); stopPlayback() }
         visible = show
         if (conversation == row?.id && scopeId == row?.scope_id) {
@@ -111,20 +114,34 @@ class VoiceController(private val api: AdaApi, private val store: SessionStore,
     fun observeForeground(active: Boolean) {
         foreground = active
         if (!active) {
-            interruptCapture(); stopPlayback()
+            if (!(permissionDialog && state.value.phase == VoicePhase.Permission)) interruptCapture()
+            stopPlayback()
             if (state.value.saving) { recoveryNeeded = true; saver?.cancel(); update { it.copy(draft = null, saving = false, phase = VoicePhase.Interrupted, notice = "The voice draft was hidden while storage was finishing. Reopen this conversation to check the encrypted saved draft. Nothing was sent.") } }
         }
         if (active && recoveryNeeded && visible) restoreDraft()
+        if (active) permissionDecision?.let { permissionResult(it.first,it.second) }
     }
+    /** The OS prompt may pause this same visible activity; it is not microphone capture. */
+    fun permissionDialogLaunched() {
+        if (state.value.phase == VoicePhase.Permission && foreground && visible && identity != null && !pending) permissionDialog = true
+    }
+    /** A stopped activity is a real departure, including Home while the prompt is open. */
+    fun permissionHostStopped() { if (state.value.phase == VoicePhase.Permission) interruptCapture() }
     val captureActive get() = state.value.phase in setOf(VoicePhase.Permission, VoicePhase.Checking, VoicePhase.Recording, VoicePhase.Transcribing)
     fun requestRecording(): Boolean {
         if (!state.value.enabled || identity == null || conversation == null || !visible || !foreground || pending || state.value.draftLoading || state.value.fault == ApiFailure.IncompatibleContract || state.value.draft != null || state.value.savedDraftConversation != null || recoveryNeeded || captureActive) return false
         if (input?.availability != SpeechAvailability.Available) { update { it.copy(phase = VoicePhase.Unavailable, notice = "On-device speech input is unavailable. Text entry remains available.") }; return false }
         if (!voiceLanguageValid(state.value.language)) { update { it.copy(fault = ApiFailure.Validation, notice = "Choose a valid language tag, such as en-US or hi-IN.") }; return false }
+        permissionDialog = false; permissionDecision = null
         captureKey++; stopPlayback(); update { it.copy(phase = VoicePhase.Permission, fault = null, notice = null, durationMs = 0) }; return true
     }
     fun permissionResult(granted: Boolean, permanent: Boolean = false) {
-        if (state.value.phase != VoicePhase.Permission || !foreground || !visible || identity == null) return
+        if (state.value.phase != VoicePhase.Permission || !visible || identity == null || pending || !state.value.enabled) return
+        if (!foreground) {
+            if (permissionDialog) permissionDecision = granted to permanent
+            return
+        }
+        permissionDialog = false; permissionDecision = null
         if (!granted) { update { it.copy(phase = VoicePhase.Denied, permissionPermanent = permanent, notice = if (permanent) "Microphone access is blocked. Enable it in Android app settings or type your message." else "Microphone access was denied. You can retry or type your message.") }; return }
         val recorder = input ?: return; val verified = identity ?: return
         val cid = conversation ?: return; val sid = scopeId ?: return
@@ -177,6 +194,7 @@ class VoiceController(private val api: AdaApi, private val store: SessionStore,
         stoppedAt = now(); update { it.copy(phase = VoicePhase.Transcribing, notice = "Recording stopped; finishing the transcript") }; input?.stop()
     }
     private fun interruptCapture() {
+        permissionDialog = false; permissionDecision = null
         val active = captureActive; captureKey++; timer?.cancel(); input?.cancel()
         if (active) update { it.copy(phase = VoicePhase.Interrupted, notice = "Recording was discarded after leaving the recording screen or an interruption.") }
     }

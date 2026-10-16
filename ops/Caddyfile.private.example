@@ -1,0 +1,29 @@
+# Template only. Supply a system-trusted certificate and restrict inbound 443
+# to the selected private network before any separately authorized installation.
+{
+    admin off
+    auto_https disable_redirects
+}
+
+https://{$ADA_PRIVATE_HOST} {
+    tls {$ADA_TLS_CERT} {$ADA_TLS_KEY}
+    header {
+        Cache-Control "no-store"
+        Referrer-Policy "no-referrer"
+        X-Content-Type-Options "nosniff"
+    }
+    @api path /v1/* /health/* /docs /docs/* /openapi.json
+    handle @api {
+        reverse_proxy 127.0.0.1:8000 {
+            flush_interval -1
+        }
+    }
+    handle_path /admin/* {
+        root * {$ADA_ADMIN_DIST}
+        try_files {path} /index.html
+        file_server
+    }
+    handle {
+        respond "Not found" 404
+    }
+}

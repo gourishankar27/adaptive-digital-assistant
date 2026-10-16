@@ -9,6 +9,7 @@ from ada import (  # noqa: F401
     expression_models,
     learning_models,
     proposal_models,
+    security_models,
     stream_models,
     voice_models,
 )

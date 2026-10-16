@@ -18,7 +18,7 @@ class VoiceRecoveryResumeTest {
     private fun setup(): Triple<ChatViewModel, HttpAdaApi, ConnectionCredential> {
         assumeTrue(InstrumentationRegistry.getArguments().getString("adaVoiceRecovery") == "true")
         val token = File(InstrumentationRegistry.getInstrumentation().targetContext.filesDir, "foundation-test-token").readText().trim()
-        val c = ConnectionCredential.parse("http://10.0.2.2:18765", token, true)!!
+        val c = ConnectionCredential.parse(dev.ada.assistant.fixtureOrigin(), token, true)!!
         val vm = ViewModelProvider(compose.activity)[ChatViewModel::class.java]
         compose.waitUntil(20_000) { vm.state.value.account != null }
         return Triple(vm, HttpAdaApi(), c)

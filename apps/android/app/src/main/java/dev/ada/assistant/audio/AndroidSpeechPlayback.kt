@@ -10,7 +10,7 @@ import dev.ada.assistant.ui.SpeechVoice
 import java.util.UUID
 
 /** Only installed voices that do not require a network connection are offered. */
-class AndroidSpeechPlayback(context: Context) : SpeechPlayback {
+class AndroidSpeechPlayback(context: Context, private val diagnostic: ((String) -> Unit)? = null) : SpeechPlayback {
     private val handler = Handler(Looper.getMainLooper())
     private val app = context.applicationContext
     private var engine: TextToSpeech? = null
@@ -18,7 +18,7 @@ class AndroidSpeechPlayback(context: Context) : SpeechPlayback {
     private var callback: ((String?) -> Unit)? = null
     private var key = 0L
     private var closed = false
-    private val audio = AudioSession(context) { finish("Playback was interrupted. Tap Read reply to start again.") }
+    private val audio = AudioSession(context, diagnostic) { finish("Playback was interrupted. Tap Read reply to start again.") }
     override fun initialize(ready: (List<SpeechVoice>) -> Unit) {
         engine = TextToSpeech(app) { result -> handler.post {
             if (closed) return@post
@@ -26,7 +26,9 @@ class AndroidSpeechPlayback(context: Context) : SpeechPlayback {
             if (result != TextToSpeech.SUCCESS || tts == null) { ready(emptyList()); return@post }
             try {
                 voices = tts.voices.orEmpty().filter { !it.isNetworkConnectionRequired && TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED !in it.features.orEmpty() }.associateBy { it.name }
-                tts.setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build())
+                if (tts.setAudioAttributes(speechAudioAttributes()) != TextToSpeech.SUCCESS) {
+                    voices = emptyMap(); ready(emptyList()); return@post
+                }
                 ready(voices.values.sortedBy { it.name }.map { SpeechVoice(it.name, "${it.locale.toLanguageTag()} · ${it.name}", it.locale.toLanguageTag()) })
             } catch (_: Exception) { voices = emptyMap(); ready(emptyList()) }
         } }
@@ -40,7 +42,7 @@ class AndroidSpeechPlayback(context: Context) : SpeechPlayback {
             val run = key; val id = UUID.randomUUID().toString()
             val chunks = speechChunks(text, TextToSpeech.getMaxSpeechInputLength().coerceAtMost(4000))
             tts.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-                override fun onStart(utteranceId: String?) = Unit
+                override fun onStart(utteranceId: String?) { handler.post { if (run == key && utteranceId?.startsWith("$id-") == true) diagnostic?.invoke("utterance_started") } }
                 override fun onDone(utteranceId: String?) { handler.post { if (run == key && utteranceId == "$id-${chunks.lastIndex}") finish(null) } }
                 @Deprecated("Platform callback") override fun onError(utteranceId: String?) { handler.post { if (run == key) finish("Playback failed. Text remains available.") } }
                 override fun onError(utteranceId: String?, errorCode: Int) { onError(utteranceId) }

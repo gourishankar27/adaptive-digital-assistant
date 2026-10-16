@@ -34,7 +34,7 @@ class MainActivity : ComponentActivity() {
     override fun onPause() { chatModel?.voice?.observeForeground(false); super.onPause() }
     override fun onDestroy() { chatModel?.voice?.detachAudio(); super.onDestroy() }
     override fun onStart() { super.onStart(); chatModel?.observeForeground(true) }
-    override fun onStop() { chatModel?.observeForeground(false); super.onStop() }
+    override fun onStop() { chatModel?.voice?.permissionHostStopped(); chatModel?.observeForeground(false); super.onStop() }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)

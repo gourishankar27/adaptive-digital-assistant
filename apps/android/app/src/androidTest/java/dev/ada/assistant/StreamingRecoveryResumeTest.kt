@@ -19,7 +19,7 @@ class StreamingRecoveryResumeTest {
         assumeTrue(InstrumentationRegistry.getArguments().getString("adaStreamingRecovery") == "true")
         val key = UUID.fromString(InstrumentationRegistry.getArguments().getString("expectedStreamKey"))
         val token = File(InstrumentationRegistry.getInstrumentation().targetContext.filesDir, "foundation-test-token").readText().trim()
-        val c = ConnectionCredential.parse("http://10.0.2.2:18765", token, true)!!; val api = HttpAdaApi()
+        val c = ConnectionCredential.parse(dev.ada.assistant.fixtureOrigin(), token, true)!!; val api = HttpAdaApi()
         val request = runBlocking { (api.request(c, key) as ApiResult.Success).value }
         val vm = ViewModelProvider(compose.activity)[ChatViewModel::class.java]
         compose.waitUntil(20_000) { vm.state.value.account != null }

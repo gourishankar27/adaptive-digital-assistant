@@ -49,7 +49,11 @@ import java.util.UUID
             Button(onClick = {
                 if (vm.voice.requestRecording()) {
                     if (context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) vm.voice.permissionResult(true)
-                    else permissions.launch(Manifest.permission.RECORD_AUDIO)
+                    else {
+                        vm.voice.permissionDialogLaunched()
+                        try { permissions.launch(Manifest.permission.RECORD_AUDIO) }
+                        catch (_: Exception) { vm.voice.discard() }
+                    }
                 }
             }, enabled = chat.pending == null && !state.saving && !state.draftLoading && state.savedDraftConversation == null, modifier = Modifier.heightIn(min = 48.dp).testTag("voice-record")) { Text("Record voice") }
         }

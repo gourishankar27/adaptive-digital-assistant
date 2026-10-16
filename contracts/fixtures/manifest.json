@@ -482,6 +482,60 @@
       "path": "/v1/conversations/{conversation_id}/voice-inputs",
       "method": "get",
       "status": 200
+    },
+    {
+      "file": "security-status.json",
+      "path": "/v1/security/status",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "credential-replay.json",
+      "path": "/v1/security/credentials",
+      "method": "post",
+      "status": 200
+    },
+    {
+      "file": "device-credentials.json",
+      "path": "/v1/security/credentials",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "credential-rotation-replay.json",
+      "path": "/v1/security/credentials/{credential_id}/rotate",
+      "method": "post",
+      "status": 200
+    },
+    {
+      "file": "credential-revoked.json",
+      "path": "/v1/security/credentials/{credential_id}/revoke",
+      "method": "post",
+      "status": 200
+    },
+    {
+      "file": "deletion-preview.json",
+      "path": "/v1/security/deletion-previews",
+      "method": "post",
+      "status": 201
+    },
+    {
+      "file": "deletion-queued.json",
+      "path": "/v1/security/deletions",
+      "method": "post",
+      "status": 202
+    },
+    {
+      "file": "deletion-completed.json",
+      "path": "/v1/security/deletions/{job_id}",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "deletion-history.json",
+      "path": "/v1/security/deletions",
+      "method": "get",
+      "status": 200
     }
   ]
 }

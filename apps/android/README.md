@@ -1,5 +1,8 @@
 # ADA Android chat, memory, tools, episodes and interaction learning (Phase 17)
 
+For the step-by-step current installation, USB connection, feature instructions
+and known phone issues, see [HOW-TO-USE-ADA](../../docs/HOW-TO-USE-ADA.md).
+
 This Compose/Material 3 app verifies an issued ADA bearer credential with real
 `GET /v1/me` and `GET /v1/capabilities`, then provides owned conversation
 selection/creation, paginated history, complete chat replies, exact-request
@@ -78,7 +81,9 @@ score. See [policy](../../docs/INTERACTION-PREFERENCES-AND-AFFECT.md) and
 
 The application ID is `dev.ada.assistant` (`dev.ada.assistant.debug` for debug).
 The user's Samsung S24 FE runs Android 16, which meets minSdk 26. Physical-phone
-installation and behavior are still unverified. The catalog pins all direct
+basic audio/HTTP/recovery/font behavior was partly verified in the 2026-10-13 UTC
+audit; permission/focus hardening and remaining target gates are tracked in
+[Phase 17-A](../../plans/phase-17-a-s24-fe-validation-and-hardening.md). The catalog pins all direct
 dependencies, while settings/buildscript/app Gradle lockfiles pin resolved
 dependencies. No dynamic version or automatic JDK download is used. Gradle checks
 the runtime major version; explicitly select the pinned JDK instead of Android
@@ -685,3 +690,21 @@ limits, source inspection, retention and required physical audio checks.
 explicit synthetic capture/playback adapters, and draft/pending force-stop stages.
 `-UiOnly` selects the two voice UI tests. It is not a physical ASR/TTS quality test.
 Actual normal/compact checks and target gates are recorded in root STATUS/WORKLOG.
+
+
+## Phase18 devices and privacy
+
+Source0.18.0-security/versionCode13 adds Settings → Devices and saved content.
+Enrollment and explicit deletion processing require server opt-in at head0015;
+legacy bearer tokens still connect. One-time device secrets remain masked/in-memory
+until explicitly installed through verified same-owner encrypted storage. v11
+journals preserve v1–v10 reads and fence all private recovery by content epoch.
+Revocation/epoch changes clear cached state; a lost issue secret needs independent
+credential/CLI recovery. Reopening checks saved security operation IDs by GET only.
+See [security and operations](../../docs/SECURITY-AND-OPERATIONS.md).
+
+Use [VOICE-VALIDATION](../../docs/VOICE-VALIDATION.md) and
+`scripts/verify-physical.ps1` for selected-device/user0 isolated APK/loopback checks.
+The normal debug application is preserved. The debug native focus probe and separate
+focus-fixture module use public synthetic speech only and are not release features.
+Never run concurrent Gradle builds against the same Android output directories.

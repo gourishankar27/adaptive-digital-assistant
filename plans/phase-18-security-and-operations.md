@@ -1,6 +1,13 @@
 # Phase 18 — device credentials, recovery and operational hardening
 
-Status: planned. Prerequisites: Phases 05/06 and an inventory of whichever feature
+Status: **Checkpoints A–D implemented in source; validation paused by the user on
+2026-10-14 UTC. Not declared fully verified or deployed.** Migration0015,
+owner-bound credentials, bounded single-worker requests, encrypted isolated
+recovery, explicit confirmed erasure and client recovery are implemented.
+Actual checks, failures corrected and remaining gates are in
+[STATUS](STATUS.md) and [WORKLOG](WORKLOG.md); operational steps are in
+[SECURITY-AND-OPERATIONS](../docs/SECURITY-AND-OPERATIONS.md).
+Prerequisites: Phases 05/06 and an inventory of whichever feature
 phases are actually installed. This phase can be brought forward when exposure
 or reliability needs require it. Apply STANDARDS and CODEX-WORKFLOW.
 

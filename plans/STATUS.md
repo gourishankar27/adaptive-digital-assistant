@@ -21,8 +21,9 @@ Recorded 2026-10-12 UTC (2026-10-12 in America/Phoenix). Update after implementa
 | 14 | Implemented; local exit gates passed; target verification pending | Head 0011, explicit account/scope/profile/conversation preferences, immutable exact receipts, opt-in bounded session tone and frozen request expression. Full PostgreSQL 18/SQLite 562 passed/21 skips; final affected 74 passed/3 skips; Android 174 units and emulator HTTP/force-stop/cold launch; web 54 units/six PostgreSQL Chromium cases. Intended installation, S24 FE/Android 16, HTTPS/accessibility and native-model wording/performance remain. No Phase 15 or deployment. |
 | 15 | Implemented; local verification passed; target verification pending | Head 0012, opt-in selected-interaction observations, independent evidence/review, scoped learned defaults and bounded source-linked continuity. Full PostgreSQL/SQLite 587 passed/22 skips; final affected 172 passed/6 skips; Android 186 units and real HTTP review/recovery/source-card flows; web 54 units/six PostgreSQL Chromium cases. Intended installation, physical S24 FE/Android 16, HTTPS/accessibility, representative preference accuracy, native-model wording and retention policy remain. No later phase or deployment. |
 | 16 | Implemented; local verification passed; target installation/device checks remain | Head 0013, durable owned stream/checkpoint/SSE, exact-attempt Stop and fenced terminal publication; Android 0.16.0-streaming and admin metadata. Full PostgreSQL/SQLite 631 passed/23 skips, final affected 92 passed/2 skips plus two real TCP slow-observer checks; Android 194 units, portrait/compact HTTP UI and force-stop/cold launch; web 55 units/six PG Chromium cases; real Ollama completion/Stop/legacy follow-up. Application 0005 installation to 0013, S24 FE/Android16, HTTPS/manual accessibility/load and retention policy remain. No later phase or deployment. |
-| 17 | Checkpoints implemented; local verification passed; physical audio/installation gates remain | Head 0014, owner-bound original ASR/reviewed endorsement lineage, exact voice fingerprints; Android 0.17.0-voice on-device-only input, en-US default, encrypted v10 review/recovery and independent offline TTS. Final PostgreSQL/SQLite 695 passed/23 expected skips; Ruff/format144 files. Android 211 units, seven normal/two compact emulator checks, four force-stop stages and cold launch; web 55 units/six PG Chromium cases. Application 0005→0014 installation, S24 FE/Android16 real audio/offline/en-US/headset/focus/resource/battery, older APIs, HTTPS/manual accessibility and retention verification remain. No later phase or deployment. |
-| 18 | Planned | Phases 05/06 and installed feature inventory; recovery/deletion/device credentials. |
+| 17 | Implemented; partial S24 FE verification; permission/focus issues require 17-A | Head 0014, owner-bound original ASR/reviewed endorsement lineage, exact voice fingerprints; Android 0.17.0-voice on-device-only input, en-US default, encrypted v10 review/recovery and independent offline TTS. Final PostgreSQL/SQLite 695 passed/23 expected skips; Ruff/format144 files. Android 211 units, seven normal/two compact emulator checks, four force-stop stages and cold launch; web 55 units/six PG Chromium cases. Historical local results above are preserved; current S24 FE quiet/offline audio, speaker/lifecycle, recovery and font checks are recorded in the audit below. Permission/focus hardening, portable physical tests, intended installation, service resources/battery, accessories/calls, older APIs and HTTPS/manual accessibility/retention remain. No later phase or deployment. |
+| 17-A | Hardening implemented; testing paused by user | Permission lifecycle fencing, per-request audio focus leases and isolated physical runner implemented. New API36 phone OS-dialog/HTTP/Keystore/force-stop checks passed; native full-focus loss/interruption callback observed, but audible stopping remains unconfirmed. Resume the separate native focus trials and remaining target matrix; see checkpoint below. |
+| 18 | A–D implemented in source; validation paused by user | Head0015, digest-only device lifecycle, owner rate/body/admission bounds, encrypted PostgreSQL recovery drill, confirmed all-content erasure, Android v11 journals/settings and admin privacy cache fencing. Full backend747passed/23skipped, affected62passed/1skip, Android224units, six Chromium cases and API36/37 isolated checks recorded below. Final audit/remaining target gates are open; no deployment or live migration/erasure. |
 | 19 | Conditional plan | Phases 12/18 plus measured device or selected integration requirements. |
 
 Phase 02A's Windows fixture gate is closed. Phase 03's foundation builds and
@@ -33,11 +34,11 @@ Phase 06 now supplies the read-only web dashboard. Phase 07 now supplies Android
 explicit memory and new static personality profiles. Phase 08 now supplies bounded
 text/Markdown ingestion and imported document retrieval. Phase 16 adds durable
 streaming and explicit Stop; Phase 17 adds reviewed Android voice and separate
-playback. Phases 18–19 remain planned. The separately requested admin repair installed 0004 and an exact
+playback. Phase18 is implemented in source with verification still open; Phase19 remains planned. The separately requested admin repair installed 0004 and an exact
 account grant. At the Phase 08 boundary, application migration 0005 was pending.
 The final Phase 09 read-only check observed application head 0005 and one active
 grant for the selected account; Phase 09 has not migrated it. Current source needs
-0013 before operational use. Phase 09 supplies explicit scoped identities and
+0015 before operational use. Phase 09 supplies explicit scoped identities and
 the Android review/editor. Phase 10 supplies optional exact hybrid retrieval,
 deliberately disabled pending real-model measurements. Phase 11 adds explicit
 selected-source proposals/review, while automatic extraction remains off. No deployment was performed.
@@ -1795,3 +1796,295 @@ checks and timing records above remain evidence of their own runs. Eleven change
 Markdown files passed UTF-8/local-link checks; Ruff 144 files, protected 22 hashes,
 old contracts/fixture compatibility and whitespace passed. The last task-owned
 emulator was stopped again; PG 55417 remains stopped. No later phase/deployment.
+
+
+## Phase 17-A — S24 FE physical audit — 2026-10-13 UTC
+
+Scope: user-requested physical testing and a **planned** follow-up only, at source
+`2c242d1`. Read root/client/plans rules, README, architecture, current state,
+standards/workflow/status and Phase17; inspected implementation, migrations,
+OpenAPI and existing test baseline. No production code, API, prompt, migration,
+lockfile or dependency change; no intended database upgrade or deployment.
+[Phase 17-A](phase-17-a-s24-fe-validation-and-hardening.md) is planned, not implemented.
+
+Target: connected Samsung S24 FE/SM-S721U1, Android16/API36, primary user0,
+1080×2340/450dpi. Installed user's `dev.ada.assistant.debug` v12/0.17.0-voice
+was preserved, including RECORD_AUDIO=false. Separately installed validation
+app/runner used identical production Kotlin, changed test package/label and
+127.0.0.1 test origins over USB reverse. Only synthetic owned disposable SQLite
+head0014/fake-model HTTP was used. No production account data, raw speech,
+credential or private quote was included in diagnostics/plans. Secure Folder
+user151 was not accessed; generic package inventory's permission error was handled
+by explicitly scoping subsequent package operations to user0.
+
+Actual checks:
+
+- `pytest tests/test_voice.py tests/test_streaming.py -q`: **40 passed,42 skipped**,
+  29.19s, existing Starlette/httpx warning.41 skips were unavailable PostgreSQL
+  fixture copies;1 was a SQLite native-row-lock copy. Full PostgreSQL/web/native
+  model suites were not rerun for this documentation-only audit. Prior Phase17
+  695/23 and browser results above remain historical evidence.
+- Isolated unchanged-code Android `testDebugUnitTest lintDebug assembleDebug
+  assembleDebugAndroidTest`: **211 units,0 failures/0 skips**, build110s,
+  lint0 errors/14 existing dependency-version warnings. First isolated build
+  failed for missing SDK location; copied the ignored local SDK configuration,
+  then passed. Additional diagnostic runner/focus-fixture builds passed offline.
+- Native inventory **1 passed** (2.72s): microphone hardware, on-device factory,
+  en-US installed,15 eligible offline TTS voices/10 en-US. Availability alone
+  was not used as a quality pass.
+- Actual microphone R1 produced review/no-send but user was not ready; exclude
+  its mismatch from accuracy. R2 **1 passed** (19.498s): controlled quiet8-word
+  sample,0 word errors,ready386ms/result7625ms/capture7238ms. R3 airplane mode,
+  Wi-Fi/mobile data off **1 passed** (29.953s): same controlled sample,0 word
+  errors,ready504ms/result5825ms/capture5276ms. User confirmed exact quiet samples.
+  Both checked no event before approval, actual reviewed owned HTTP submission,
+  original generated interpretation/edited endorsement, absent audio hash and
+  one lineage record despite duplicate Send. No transcript text was emitted.
+- Real installed offline TTS/rates/Stop/owned completed reply/activity pause:
+  **1 passed** (25.586s). Public sentence durations0.75/1/1.25/1.5× were
+  **5589/4664/3758/3157ms**. User confirmed clear audio, rates and stopping.
+  Native Stop suppresses late completion; actual pause stops completed-reply
+  playback and resume does not restart it. Same-UID focus probe in that passing
+  run was explicitly inconclusive, not a focus pass.
+- Native capture interruption/missing language and adapted streaming UI:
+  **2 passed** (18.587s). Actual pause/resume/navigation discard with0 events and
+  no recovered draft; missing installed language safe error. First temporary
+  capture test failed because it did not re-expand controls after Settings;
+  correcting that test setup passed on unchanged production code.
+- Initial selected physical regression16 tests: **13 passed,1 skipped,2 failed**
+  (61.476s). Foundation invalid-token check needed its explicit integration flag;
+  one voice provisional wait timed out; streaming locator searched compact
+  history instead of noncompact pending panel. Flag-enabled retry **4 passed,
+  1 failed** (19.919s): voice2/foundation2 passed; streaming locator failed again.
+  Layout-independent locators subsequently passed on unchanged app. Initial
+  timeout remains recorded as a flaky run; no invented product cause or fix.
+  Six actual Keystore tests, four memory UI tests and platform probe passed.
+- Actual force-stop recovery **4 stages passed**: edited review draft prepare/
+  resume1.156/2.120s, submitted exact request prepare/resume1.194/7.051s.
+  Recovery reads the original state; it does not auto-send a new request.
+- Font150% portrait **5 passed** (36.277s): voice2/streaming1/foundation2.
+  Font150% landscape **2 voice checks passed** (8.442s). Palette selection/
+  persistence included. These are synthetic-driver UI checks, not TalkBack QA.
+- Actual first-grant/denial assertions failed: verified OS choices result in
+  `Interrupted`, losing the pending permission action. Repeated verified Deny
+  reproduced false permission/rationale=true/Interrupted. Some later repeated
+  denial attempts had no verified Deny click and unexpected granted permission;
+  permanent-denial matrix remains **inconclusive**, not passed. Earlier dialog
+  synchronization/external UI dump/synthetic setup-timeout attempts remain
+  harness evidence, not extra product defects.
+- Two combined separate-UID native focus probes failed; initial same-UID probe
+  also failed an inapplicable assumption. Final isolated probe **1 failed**
+  (6.489s): competitor confirmed focus granted/windowFocus=true but no native
+  playback interruption callback. Investigate engine/listener coordination and
+  audible behavior; ordinary activity-background stopping passed separately.
+- Cold debug launches Status:ok/COLD **575ms**, final **538ms**. One foreground
+  post-launch app snapshot PSS120751KiB/RSS217965KiB/swap584KiB; app idle CPU
+  **4 ticks/~2s**, tick frequency not measured. These exclude recognition/TTS
+  service costs and do not establish peak audio resource use. USB charging=true;
+  battery47% initially/64% at later reading, temperature36.2/39.7C. No battery
+  drain or speech-attributable thermal claim is possible under charging.
+- Fresh fixture `/openapi.json` exactly matched committed OpenAPI:89 paths,
+  125 schemas,3 voice routes. Protected353 production/contract/lock files hash
+  identical. Ruff lint/format for `src tests scripts migrations` **144 files**
+  passed; broader `.` invocation also passed (198 files including local artifacts).
+
+Required changes:17A-01 permission action/lifecycle fencing;17A-02 investigate
+and resolve native focus interruption;17A-03 portable non-destructive physical
+runner, verified dialog actions, layout-independent locators and resource protocol.
+The plan also lists remaining noisy/representative speech, native duration/deadline,
+revocation/permanent denial, headset/Bluetooth/noisy-route/call, service CPU/RAM,
+unplugged battery, older API26/31/33, manual TalkBack/keyboard, release HTTPS,
+intended head0014 installation and retained transcript/backup checks. No headset
+was available; user selected the phone microphone. Server audio decode/malformed
+file/provider-ASR tests remain inapplicable: no audio-upload route exists.
+Historical configured DB0005 was not freshly queried or migrated here.
+
+Cleanup: restored airplane0/Wi-Fi1/mobile-data1/font1.0/rotation0/auto-rotation0;
+Bluetooth remained1. Only owned fixture18767 process and USB reverse18764/18765
+were removed. Validation app, runner and separate focus fixture were uninstalled
+for user0, removing their test credentials/local drafts. User ADA version and
+microphone permission are unchanged. Ignored sanitized evidence is retained.
+Phase17 is partially target-verified with unresolved failures;17-A is planned.
+
+
+Audit closeout — 2026-10-13 07:44 UTC (00:44 America/Phoenix):
+Seven changed/new Markdown files passed UTF-8 and53 local-link checks;
+protected353 files remain byte-identical to the pre-audit baseline at2c242d1.
+Git whitespace check passed. Fresh cleanup verification found no validation
+packages, owned reverse18764/18765 mappings or fixture18767 listener; all modified
+phone settings matched the recorded originals. Prior records remain preserved.
+No production fix, intended database migration, later phase or deployment.
+
+
+## Developer how-to guide — 2026-10-13 — documentation only
+
+Added [HOW-TO-USE-ADA](../docs/HOW-TO-USE-ADA.md) with step-by-step Windows tool
+setup/clone, fresh PostgreSQL/Ollama/API installation, existing-data backup/upgrade,
+account/token/admin grants, USB/emulator Android build/login, same-origin admin
+proxy/login, implemented feature workflows, CLI examples, daily startup/shutdown,
+troubleshooting and developer verification. Linked it from the root and client
+READMEs; corrected current admin setup requirements to head0014 while preserving
+historical phase/repair evidence. Phone permission/focus workarounds and pending
+17-A gates are explicit. No product behavior, contract, migration or dependency
+change; prior uncommitted audit documents/evidence preserved.
+
+Checks actually run at source2c242d1: focused `pytest tests/test_memory_cli.py
+ tests/test_upgrade_installer.py tests/test_client_contract.py -q` **8passed,
+3skipped**,3.26s; all3 skips are missing `ADA_TEST_DATABASE_URL` PostgreSQL copies.
+Existing Starlette/httpx deprecation warning remains. Ruff lint/format **144files**
+passed. Actual CLI help checked main/chat/grant-admin/scopes create/memory remember/
+correct/list/search/upgrade-prompt/recover-stale/rotate-token. `alembic heads`
+reported0014; compared the source readiness constant and exported `/v1/me` fields.
+All **48PowerShell examples** passed native AST syntax parsing without execution;
+14 contents anchors, UTF-8 and135 local links across12 changed/new Markdown files
+(including prior audit edits) passed.415 protected implementation/test/contract/
+wrapper/lock files byte-identical; git diff contains Markdown only, whitespace clean.
+
+Official Git/Python/Docker/Ollama/Temurin/Node/Android install/device/CLI and Compose
+copy references were browsed and linked near their instructions. Pins/defaults are
+repository requirements, not claims of universal model availability/performance.
+Initial local validators needed explicit UTF-8 on Windows and support for indented
+Markdown fences; corrected validators passed with no guide syntax defect.
+
+Skipped: full PostgreSQL/backend/client build/browser/device/native inference and
+fresh-install walkthrough; documentation changes require no product rebuild or
+real application mutation. Setup/dependency installs/model pulls, doctor/current
+against the configured database, backup/migration/account/grant changes and service
+startup were **documented, not performed**. Intended runtime/HTTPS installation and
+17-A fixes remain pending. No deployment or later-phase implementation.
+
+
+Documentation closeout — 2026-10-13 08:42 UTC (01:42 America/Phoenix):
+Final UTF-8/local-link check passed12 Markdown files/136 local links (including
+preserved prior audit edits);415 protected implementation/contract/test/wrapper/
+lock hashes unchanged and whitespace check passed. Guide is linked from the main
+and client READMEs. No runtime setup, application migration or deployment performed.
+
+## Phase17-A + Phase18 checkpoint — 2026-10-14 UTC — testing paused by user
+
+Source: working tree based on `2c242d1`; earlier uncommitted documentation/audit
+work preserved. User authorized Phase17-A fixes followed by Phase18 only. The
+user stopped testing to disconnect the S24 FE and intends to resume tomorrow.
+This is a saved checkpoint, **not a claim that all exit gates are complete**.
+Phase19 is unimplemented. No deployment, intended database migration, live backup,
+private account erasure or normal Android app installation was performed.
+
+Implemented checkpoint evidence:
+
+- 17A-01: preserve a foreground, same-context recording intent across its own
+  permission dialog; cancel on real background/context departure, denial or stale
+  callbacks. Five new failure cases preceded the fix. Real first-grant and
+  repeated/permanent-denial dialog checks passed on the isolated API36 phone and
+  API37 emulator. Settings-return and active native microphone revocation remain
+  target checks, distinct from these synthetic-capture permission tests.
+- 17A-02: exact per-acquisition focus leases reject abandoned callbacks; native
+  speech/media attributes and loss/duck handling stop playback without resuming.
+  Debug-only validation probes use public synthetic speech and a separate UID.
+  User confirmed clear speaker output and explicit Stop. Latest tightly staged
+  full-focus trial recorded native start, fixture launch, focus-transient-loss
+  and adapter interruption (about6.6s after start), plus a new granted full-focus
+  result from the fixture. The user reported speech continuing in the fixture;
+  whether it stopped after a delay was **not confirmed before testing stopped**.
+  Do not call this a completed audible interruption pass. Earlier stale/no-overlap
+  requests are inconclusive; historical failed probes remain recorded above.
+- 17A-03: explicit selected-device/user0 runner, separate validation app IDs and
+  label, injected USB-loopback HTTP origin, APK-ID guard before install, verified
+  OS-dialog actions, layout-independent locators, explicit IME preconditions and
+  owned cleanup. Normal ADA app/data/permissions were preserved.
+- 18A: migration0015 adds digest-only owner credentials with labels, issue/expiry/
+  last-use/revocation, configured enrollment, atomic rotation and exact operation
+  replay. Legacy CLI tokens remain compatible. Fresh response/SSE authorization
+  stops revoked delivery; admitted work may complete durably. Android Settings
+  and encrypted v11 journals retain v1–v10 reads and GET-only recovery. Admin
+  access remains server-granted; no device/name/personality can grant a role.
+- 18B: one worker, bounded per-owner/global HTTP admission, read/write rates,
+  actual body bytes/deadline/depth, sanitized fixed failures and bounded telemetry.
+  Loopback start script and private VPN + supplied trusted HTTPS certificate
+  Caddy example/runbook added. No extra inference/job process or shared multiworker
+  admission claim. Only scoped cryptography dependency additions; locks preserved.
+- 18C: AES256-GCM/scrypt encrypted backup to selected
+  `%LOCALAPPDATA%/ADA/backups`, exported PostgreSQL snapshot, dump +54-table
+  row/hash manifest, allowlisted config and separate current deletion ledger.
+  Isolated new `ada_restore_*` targets only; restored credentials quarantined,
+  later owner erasure/tombstones reconciled. Populated54-table drill checked
+  source hashes, original replay/citations, jobs and revocation. Latest completed
+  drill measured backup0.516s/restore1.25s on a small native PG18 fixture, not a
+  production recovery objective. Data loss boundary is the exported committed
+  snapshot plus the latest supplied deletion ledger; no live backup was taken.
+- 18D: selected policy is retain until explicit owner deletion, no age expiry.
+  Fresh preview/revision/count confirmation, durable UUID job, bounded leases/
+  retries and atomic dependency erasure cover all45 installed private-content
+  tables and search projections. UUID-only request tombstones return410; account,
+  credentials/grants and minimal operation metadata remain. Android epoch changes
+  clear private journals/controllers; admin privacy epoch clears caches. Backups
+  and offline clients may retain copies; erasure cannot promise remote wiping.
+
+Checks actually run (preserve failures and provenance):
+
+- Initial SQLite baseline382passed/336skipped; dedicated PG18 voice/stream baseline
+  81passed/1SQLite-lock skip. Baseline Android build was mostly cached, not a new
+  full unit execution. First PG invocation named a nonexistent test and ran none.
+- New permission regressions initially3failed, then13focused tests passed. Initial
+  security invariants9failed/9skipped, then implemented paths passed and expanded
+  PostgreSQL/graph/recovery suites passed. First full server run11failed/736passed/
+  23skipped; fixed admin SQL overfetch, preflight downgrade guards and isolated
+  recovery fixture assumptions. Subsequent complete PG18/SQLite suite **747passed,
+  23skipped,1warning in978.20s**. This precedes final narrow refinements; affected
+  security/recovery/contracts then **62passed,1skip,1warning in112.80s**. A further
+  standalone recovery-import inventory regression check was added at closeout;
+  its last affected run is recorded separately when completed, not assumed here.
+- Full server skips remain the suite's deliberate SQLite locking/provider/optional
+  fixture limits; they are not new passes. Existing Starlette/httpx deprecation
+  warning remains. Native PG18 exercised real schema, populated migration,
+  concurrency, deletion rollback/lease fencing and isolated restore.
+- Ruff lint/format **154files passed** after final standalone-import test formatting.
+- Latest Android normal-package unit/lint/debug/instrumentation/unsigned-release
+  and separate fixture build **BUILD SUCCESSFUL38s**,161tasks27executed; prior
+  full unit report **224passed,0failed,0skipped**. A late wording edit briefly
+  failed compilation due to UUID-to-Text types; explicit string conversion fixed
+  the rerun. Earlier fixture-version, MockWebServer host and Windows concurrent
+  Gradle file-lock failures were corrected; no conflicting APK was installed.
+- Isolated API37 emulator:8HTTP/Compose checks, two real OS-dialog cases, two actual
+  force-stop prepare/resume pairs (four stages), and SecurityUI HTTP/Keystore flow
+  passed. Phone API36 retry:8checks43.148s, first grant3.238s, repeated/permanent
+  denial2.607s, same four force-stop stages and SecurityUI6.295s passed. Initial
+  phone attempt failed window-focus preconditions before the user unlocked it.
+  OS-dialog suites use synthetic capture; they are not native ASR quality tests.
+- Web npm clean install/typecheck/lint/build and contract generation/check passed;
+  **56unit tests passed**. Final full PG-backed Chromium rerun **6passed25.5s**.
+  Earlier full run had one refresh-focus failure (5passed/1failed); focused retry
+  passed before this clean full rerun. First E2E fixture timeout used the wrong
+  database environment variable and was corrected.
+- Python lock audit:0known vulnerabilities/41dependencies; npm audit:0findings/
+  295dependencies. These are audit-time findings, not a security guarantee.
+- Exported contract now96paths/132schemas (baseline89/125), with nine additional
+  synthetic credential/deletion fixtures (88total). Existing request schemas and
+  enums retained; UserOutput data_epoch defaults0 and capability additions default
+  unsupported. One-time issue secrets are never captured in contract fixtures.
+  Final protected-file/fixture-byte/newline and documentation audits remain open.
+
+Cleanup before phone disconnect: temporary physical validation app/test and separate
+focus fixture uninstalled for user0; owned USB reverse19820 and fixture listener
+removed. Read-only check confirmed normal ADA debug versionCode12 unchanged.
+Owned read-only emulator stopped. Phone settings/private profiles were not changed.
+The disposable PG18 server remains only while the already-started affected suite
+finishes; its cleanup/result is recorded below. No new testing is authorized by
+this checkpoint until the user resumes.
+
+Remaining verification: confirm audible full/transient/duck interruption with
+fresh granted overlapping focus and timing (not merely callback); settings-return/
+active native revoke, calls/headsets/noisy routes when available, representative
+speech/native duration/deadlines, service resource/unplugged battery measurements,
+older API26–33 and manual TalkBack/IME. Phase18 still needs final source/contract/
+protected-history/doc audit and Caddy syntax/actual private HTTPS validation.
+Intended installation, real data sizing/capacity and live operations remain separate
+scope; none is implied by successful disposable fixtures. Retain historical device
+and native-model evidence rather than presenting it as new Phase18 validation.
+Resume from these open gates; do not implement Phase19 or deploy.
+
+Pause closeout — 2026-10-14 10:36 UTC: the affected suite already running when
+pause was requested completed **63passed,1skipped,1warning in130.00s**, including
+standalone recovery inventory registration. No further suite was started. The
+owned disposable PostgreSQL18 loopback55418 server was shut down with pg_ctl
+using its checked task-owned data path/port; no configured application service
+was stopped. Native audio overlap/audible-stop confirmation remains open.

@@ -10,3 +10,4 @@ check(JavaVersion.current() == JavaVersion.VERSION_21) {
     "Use the pinned JDK 21 runtime (.java-version); Android Studio's default JBR may differ."
 }
 include(":app")
+include(":focus-fixture")

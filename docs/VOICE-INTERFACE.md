@@ -3,8 +3,9 @@
 Phase 17 adds optional push-to-talk and reply playback. Text chat, source access,
 ownership, prompts, factual memory and tool approvals keep their existing rules.
 The default recognition language is **English (en-US)**. The S24 FE/Android 16
-is the intended phone; its engine, language pack and audio behavior still need
-physical-device verification. No background listening, wake word, voice cloning,
+is the intended phone; its installed en-US engine and basic quiet/offline audio
+were observed in the physical audit below. Hardening and remaining target checks
+are tracked in Phase 17-A. No background listening, wake word, voice cloning,
 emotion inference or external transcription service is configured.
 
 ## Engine choice and support
@@ -172,3 +173,20 @@ voices/speeds; background/process interruption; API 26/31/33 compatibility;
 TalkBack/keyboard/font zoom; release HTTPS; repeated-use resource/battery and
 retention/installation review. Record actual measurements and misrecognitions.
 Stop at Phase 17; no later phase or deployment is included.
+
+## Physical audit update — 2026-10-13 UTC
+
+The S24 FE/Android16 now reports installed on-device en-US and eligible offline
+TTS voices. Two controlled quiet samples, including airplane mode with Wi-Fi/data
+off, matched all eight expected words. Native speaker rates and explicit/background
+stopping, reviewed HTTP lineage, recovery and font150% checks are recorded in
+[STATUS](../plans/STATUS.md). This small sample is not representative accuracy.
+
+Actual first-grant and denial dialogs exposed a recording-intent lifecycle defect.
+A separate foreground focus holder received OS focus, but the isolated native
+playback interruption callback was absent. Background playback stopping passed
+separately; audible/call focus behavior and root cause remain unresolved.
+[Phase 17-A](../plans/phase-17-a-s24-fe-validation-and-hardening.md) records planned
+hardening and all remaining gates. The behavior described earlier is the intended
+implemented contract; these target failures prevent a readiness claim. No product
+fix, application migration or deployment was performed by this audit.

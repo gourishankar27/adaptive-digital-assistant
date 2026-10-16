@@ -7,13 +7,10 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Header, Query, Request
 from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPAuthorizationCredentials
-from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.background import BackgroundTask
 
-from ada.auth import token_hash
 from ada.errors import ServiceError
-from ada.models import User
 from ada.stream_contracts import CancelInput, CancelReceipt, StreamEventOutput, StreamStatus
 
 
@@ -99,14 +96,16 @@ def stream_router(service, current_user, error_responses, chat_input, request_ou
             try:
                 while not await request.is_disconnected():
                     # Fresh principal check at each bounded batch/heartbeat, including token rotation.
-                    with service.sessions() as db:
-                        valid = db.scalar(
-                            select(User.id).where(
-                                User.id == owner,
-                                User.token_hash == token_hash(credential.credentials),
-                            )
+                    try:
+                        valid = (
+                            request.app.state.security.authenticate(
+                                credential.credentials, touch=False
+                            ).owner
+                            == owner
                         )
-                    if valid is None:
+                    except ServiceError:
+                        valid = False
+                    if not valid:
                         yield 'event: access_lost\ndata: {"detail":"invalid_token"}\n\n'
                         return
                     try:

@@ -33,6 +33,9 @@ class ChatViewModel(
     val expression = ExpressionController(api, store, viewModelScope, { expire() })
     val learning = LearningController(api, store, viewModelScope, { expire() })
     val voice = VoiceController(api, store, viewModelScope, { expire() }, voiceClock)
+    val security = SecurityController(api, store, viewModelScope, { expire() },
+        { server, token -> rotateCredential(server, token) },
+        { expire(null, "Saved server content was deleted. Local private recovery data was cleared. Backups and offline devices may retain copies.") })
     private var credential: ConnectionCredential? = null
     private var identity: SessionIdentity? = null
     private var generation = 0L
@@ -71,6 +74,7 @@ class ChatViewModel(
         voice.observeForeground(visible)
         if (!visible) { streamJob?.cancel(); update { it.copy(streamConnected = false) } }
         else if (state.value.destination == ChatDestination.Chat && state.value.pending != null) reconcile()
+        if (visible && credential != null) sessionWork { c, epoch -> value(api.me(c), epoch) }
     }
     private fun launchWork(block: suspend () -> Unit): Job {
         val launchedEpoch = generation
@@ -89,6 +93,7 @@ class ChatViewModel(
     }
     private fun current(epoch: Long) = epoch == generation
     private fun resetMemory() {
+        security.reset()
         voice.reset()
         memory.reset()
         documents.reset()
@@ -186,6 +191,8 @@ class ChatViewModel(
             if (store.readCredential()?.identity?.server?.let { it != normalized } == true) store.clear()
         }
         val user = value(api.me(connection), epoch) ?: return
+        if (user.data_epoch < 0) { expire(ApiFailure.IncompatibleContract); return }
+        connection.dataEpoch = user.data_epoch
         if (!current(epoch)) return
         if (expectedOwner != null && user.id != expectedOwner) {
             expire(ApiFailure.Unauthorized, "The stored account does not match this token. Connect again; old recovery data was cleared.")
@@ -200,7 +207,7 @@ class ChatViewModel(
         val savedPending = try {
             storage.withLock {
                 if (!current(epoch)) return
-                store.saveCredential(StoredCredential(verified, token))
+                store.saveCredential(StoredCredential(verified, token, user.data_epoch))
                 store.pending(verified)
             }
         } catch (_: Exception) {
@@ -218,6 +225,7 @@ class ChatViewModel(
         episodes.setVerifiedSession(connection, verified, features)
         expression.setVerifiedSession(connection, verified, features)
         learning.setVerifiedSession(connection, verified, features)
+        security.setVerifiedSession(connection, verified, features)
         update { it.copy(connecting = false, account = AccountSummary(normalized, user.id, user.name, features.provider, features.model),
             capabilities = features, destination = ChatDestination.Conversations,
             fault = null, notice = null,

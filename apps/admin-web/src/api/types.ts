@@ -3,7 +3,7 @@ import type { components } from './generated';
 // Generated schemas cover every actual route, including currently deferred UI writes.
 export type { components, paths, operations } from './generated';
 export type Dto<Name extends keyof components['schemas']> = components['schemas'][Name];
-export type User = Dto<'UserOutput'>;
+export type User = Pick<Dto<'UserOutput'>, 'id' | 'name'> & { data_epoch?: number };
 export type Capabilities = Pick<Dto<'CapabilitiesOutput'>, 'api_version' | 'authority' | 'provider' | 'model' | 'chat' | 'streaming' | 'tools'> &
   Partial<Omit<Dto<'CapabilitiesOutput'>, 'api_version' | 'authority' | 'provider' | 'model' | 'chat' | 'streaming' | 'tools' | 'memory_writes' | 'memory_retrieval'>> & {
     memory_writes?: string; memory_retrieval?: string;

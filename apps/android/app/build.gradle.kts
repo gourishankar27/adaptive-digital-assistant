@@ -13,11 +13,16 @@ android {
     compileSdk = 36
     buildToolsVersion = "35.0.0"
     defaultConfig {
-        applicationId = "dev.ada.assistant"
+        val validationId = providers.gradleProperty("adaValidationApplicationId").orNull
+        require(validationId == null || validationId.matches(Regex("dev\\.ada\\.validation\\.[a-z][a-z0-9_]{0,30}"))) {
+            "Validation builds must use a separate dev.ada.validation.* application ID"
+        }
+        applicationId = validationId ?: "dev.ada.assistant"
+        manifestPlaceholders["adaAppLabel"] = if (validationId == null) "ADA" else "ADA validation"
         minSdk = 26
         targetSdk = 36
-        versionCode = 12
-        versionName = "0.17.0-voice"
+        versionCode = 13
+        versionName = "0.18.0-security"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

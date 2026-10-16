@@ -1,7 +1,7 @@
 # Phase 17 — explicit Android voice input and output
 
-Status: checkpoints implemented; local verification recorded in STATUS/WORKLOG;
-physical audio and target installation verification remain. Prerequisites: Phases 04 and 16.
+Status: checkpoints implemented; local and partial physical verification recorded
+in STATUS/WORKLOG; permission/focus hardening and remaining target gates need Phase 17-A. Prerequisites: Phases 04 and 16.
 Apply STANDARDS and CODEX-WORKFLOW. Voice is an optional input/output mode; text
 chat and source access remain complete without microphone permission.
 
@@ -85,3 +85,13 @@ Update privacy/user documentation, capabilities and actual validation evidence.
 Implementation/policy: [VOICE-INTERFACE.md](../docs/VOICE-INTERFACE.md). Tests use
 real HTTP/Keystore and explicitly synthetic audio adapters where identified;
 platform availability is separate from actual microphone/language quality.
+
+## S24 FE audit follow-up — 2026-10-13 UTC
+
+Physical en-US recognition, airplane-mode recognition/TTS, speaker rates,
+recording/playback lifecycle, owned review/lineage, Keystore/force-stop recovery
+and font150% checks are now partially verified. Real permission dialogs exposed
+a lost recording action; a verified separate-UID native focus probe also failed
+its interruption assertion. See [Phase 17-A](phase-17-a-s24-fe-validation-and-hardening.md)
+for planned fixes, exact evidence and remaining gates. The physical verification
+checkbox above remains open; no fixes, intended migration or deployment occurred.

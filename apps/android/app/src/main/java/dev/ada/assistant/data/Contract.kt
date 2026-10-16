@@ -33,7 +33,7 @@ object UuidSerializer : KSerializer<UUID> {
 val adaJson = Json { ignoreUnknownKeys = true; explicitNulls = false; encodeDefaults = true }
 
 // Wire enums are strings so future values remain visible and cannot be silently coerced.
-@Serializable data class MeDto(val id: UUID, val name: String)
+@Serializable data class MeDto(val id: UUID, val name: String, val data_epoch: Long = 0)
 @Serializable data class CapabilitiesDto(
     val api_version: String, val chat: Boolean, val streaming: Boolean, val tools: Boolean,
     val structured_memory: Boolean, val memory_writes: String, val memory_in_chat: Boolean,
@@ -54,6 +54,7 @@ val adaJson = Json { ignoreUnknownKeys = true; explicitNulls = false; encodeDefa
     val interaction_learning: String = "unsupported",
     val stream_protocol: String = "unsupported", val generation_cancellation: Boolean = false,
     val voice_input: String = "unsupported", val voice_audio_uploads: Boolean = false,
+    val device_credentials: String = "unsupported", val private_deletion: String = "unsupported",
 )
 @Serializable data class PersonalitySnapshotDto(
     val name: String, val style: String, val warmth: String, val detail: String,

@@ -18,6 +18,11 @@ class Settings(BaseSettings):
     memory_bytes: int = Field(default=2200, ge=0, le=12000)
     retrieval_limit: int = Field(default=8, ge=1, le=16)
     consolidation_worker_enabled: bool = True
+    device_enrollment_enabled: bool = False
+    deletion_worker_enabled: bool = False
+    private_read_limit_per_minute: int = Field(default=2400, ge=1, le=10000)
+    private_write_limit_per_minute: int = Field(default=600, ge=1, le=5000)
+    private_max_body_bytes: int = Field(default=524288, ge=262144, le=1048576)
     learning_threshold: int = Field(default=3, ge=3, le=10)
     embedding_enabled: bool = False
     embedding_model: Literal["embeddinggemma:300m"] = "embeddinggemma:300m"
