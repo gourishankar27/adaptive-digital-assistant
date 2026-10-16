@@ -708,3 +708,18 @@ Use [VOICE-VALIDATION](../../docs/VOICE-VALIDATION.md) and
 The normal debug application is preserved. The debug native focus probe and separate
 focus-fixture module use public synthetic speech only and are not release features.
 Never run concurrent Gradle builds against the same Android output directories.
+
+## Phase 20 verification
+
+The source app remains versionCode13/0.18.0-security; no runtime Android behavior
+changed. Phase20 re-exercised the current build on an owned read-only API37 emulator.
+Three strict cold launches passed; fresh224unit tests, lint/debug/instrumentation/
+unsigned-release builds passed. HTTP/OS-dialog/recovery/security evidence and
+intermittent failures are preserved in root STATUS/WORKLOG; no physical pass is
+claimed. Safe streaming diagnostics contain fixed codes/states/counts only.
+
+The isolated selected-device runner accepts `-RecoveryOnly` to skip the HTTP/dialog
+suite and exercise both actual force-stop prepare/resume pairs plus SecurityUI.
+It now emits stage results before a failure; exact UUIDs are metadata, not tokens.
+Always select an authorized isolated emulator/device explicitly. Never use a normal
+app ID, reset a user's app or run concurrent Gradle builds to reproduce these checks.

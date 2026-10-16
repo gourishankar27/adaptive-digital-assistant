@@ -1,7 +1,20 @@
 # Current ADA baseline
 
-Recorded 2026-10-12 UTC (2026-10-12 in America/Phoenix). Read current source and tests before implementing a phase;
+Current overview reconciled for Phase 20 on 2026-10-16 America/Phoenix; dated
+validation records below retain their own dates. Read current source and tests before implementing a phase;
 this file is a planning snapshot, not a permanent claim about the repository.
+
+Separately authorized local installation check, 2026-10-16: configured Docker
+PostgreSQL17.11 on loopback5433 was freshly observed at **0015**, all54tables;
+`upgrade head` was a no-op and `alembic check` found no drift. API8000, built admin
+preview5173 and Ollama11434 are running on loopback. A synthetic real-model chat,
+completed replay and authenticated monitoring checks passed; fixture account/data
+were removed and existing records/credentials checked unchanged. This closes the
+local schema-installation gap, not physical/remote/reliability gates. No reset,
+new migration, credential rotation, network exposure or later feature was added.
+See [database administration](../docs/DATABASE-ADMINISTRATION-WINDOWS.md) and the
+dated STATUS/WORKLOG follow-up. The Phase20 test-only/no-live-operation record
+below remains evidence of that earlier execution boundary.
 
 ## Implemented
 
@@ -255,9 +268,9 @@ Capabilities distinguish selected-source proposals and explicit review from
 still-disabled automatic extraction. Real qwen3.8:27b extraction and separately
 labeled fixture evaluation ran on synthetic evidence; independent representative
 quality evaluation remains pending. Read STATUS/WORKLOG for actual check counts.
-The configured application remains at observed 0005, needs head 0008 installation,
-and was not migrated. Semantic retrieval remains disabled by default. No later
-phase or deployment is implemented.
+The Phase11 record observed application head0005 and did not install0008.
+It is historical, not a current DB query. Semantic retrieval remains disabled
+by default; current source/installation requirements are in the overview and STATUS.
 
 ## Phase 12 selected tool execution
 
@@ -267,8 +280,8 @@ short fenced transactions, shared admission, bounded context/steps/time/calls an
 durable receipts preserve historical plain chat. Model/provider calls occur outside
 transactions. Recovery records unknown and never repeats ambiguous execution.
 Android's Tools screen uses encrypted journal v6 (v1–v5 readable) and GET-only
-restore; admin gets closed state counts only. Current application remains observed
-0005; 0009 is not installed there. See
+restore; admin gets closed state counts only. Phase12 observed0005 without installing
+0009; this is historical evidence. See
 [the phase policy](../docs/TOOLS-AND-AGENT-LOOP.md) and actual checks in STATUS/WORKLOG.
 
 ## Phase 13 implemented boundary
@@ -341,7 +354,7 @@ navigation/conversation/background transitions and restores by GET under journal
 v9. Admin exposes measured metadata only. Native Ollama completion/Stop and legacy
 follow-up were measured separately from fake TCP/emulator fixtures. Local gates,
 actual skips and pending installation/physical verification are in STATUS/WORKLOG.
-The fresh application read still observes 0005; it was not migrated. One worker,
+The Phase16 fresh read observed0005 without migration; it is not a Phase20 query. One worker,
 count-bounded private stream retention and separate cursor expiry remain limits.
 See [the policy](../docs/STREAMING-AND-CANCELLATION.md). Stop at Phase 16.
 
@@ -360,8 +373,8 @@ focus/device interruptions and backgrounding never implicitly cancel generation.
 See [the policy](../docs/VOICE-INTERFACE.md). S24 FE/Android16 physical audio,
 en-US availability/quality, offline audio, resources/battery, permission dialogs,
 headsets/calls, older APIs, release HTTPS and manual accessibility remain target
-verification. A fresh read found the configured application database at 0005;
-it was not installed/upgraded. Stop at Phase17; no later phase or deployment.
+verification. The Phase17 fresh read found0005 without installation/upgrade;
+it is historical evidence. That milestone stopped at17 without deployment.
 
 ## Phase 17-A physical audit boundary — 2026-10-13 UTC
 
@@ -394,3 +407,15 @@ Phase17-A permission/focus lifecycle hardening and a separate-package physical r
 are implemented; new physical outcomes and unresolved gates are recorded in STATUS.
 Prior phone/audit evidence above is historical. Phase19 remains unimplemented and
 no live database backup/migration/deletion or deployment occurred in this task.
+
+## Phase 20 current boundary — 2026-10-16
+
+Operational/evaluation tooling adds a separate encrypted schema0005 backup and
+isolated quarantined restore, explicit0005/0015 inventory policy, binary-major
+preflight and a frozen cross-feature scorecard. Current API/schema/prompts remain
+0015/unchanged. Caddy template root-admin redirect was reproduced/fixed and lab TLS
+routing validated. Current-build emulator cold launches, client/server baselines
+and documented intermittent failures are in STATUS/WORKLOG; they do not rewrite
+historical runs. No actual application database was queried, backed up or migrated.
+No physical phone, iOS, deployment or Phase21+ implementation. See
+[release readiness](../docs/RELEASE-READINESS.md) for the concrete installation gate.

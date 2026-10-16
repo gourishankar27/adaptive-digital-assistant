@@ -53,3 +53,53 @@ Do not present a framework recommendation as evidence that an ADA app works.
 Repository OpenAPI/admin contracts and actual tests define the exposed metadata,
 permission, paging and timing semantics. These references do not establish an
 ADA deployment or manual accessibility result.
+
+## Phase 20 onward planning references — checked 2026-10-16
+
+Primary documentation was read for the planning review, not as proof of an ADA
+installation or device benchmark. Recheck versions, terms, licenses and syntax at
+implementation time. No package/model was selected, downloaded or installed here.
+
+- [Tailscale Serve](https://tailscale.com/docs/features/tailscale-serve) and
+  [Serve CLI](https://tailscale.com/docs/reference/tailscale-cli/serve): private
+  tailnet access to a loopback service; distinguish public Funnel, preserve ADA
+  account authentication and test the actual Windows topology.
+- [Tailscale HTTPS](https://tailscale.com/docs/how-to/set-up-https-certificates):
+  MagicDNS/certificate setup and public certificate-name transparency; hostnames
+  should not contain private names. No tailnet enrollment was performed.
+- OWASP [Password Storage](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html)
+  and [Authentication](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html):
+  adaptive password hashing, TLS, generic errors and bounded verification attempts.
+  The exact Argon2id parameters must be measured on the target, not guessed from
+  existing SHA-256 random-token verifiers.
+- OWASP [Session Management](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html):
+  secure cookie/session handling, renewal, revocation and CSRF considerations.
+  New password sessions are distinct from a claim that tokens disappear internally.
+- OWASP [SSRF Prevention](https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html)
+  and [LLM Prompt Injection Prevention](https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html):
+  application/network target restrictions and untrusted-content handling; prompts
+  alone cannot provide safe network authority or prevent all disclosure.
+- Microsoft [Task Scheduler](https://learn.microsoft.com/en-us/windows/win32/taskschd/task-scheduler-start-page)
+  and [boot triggers](https://learn.microsoft.com/en-us/windows/win32/taskschd/boot-trigger-example--scripting-):
+  supported startup building blocks. Actual pre-login provider/GPU, Docker/service
+  readiness, account secret access and restart behavior still require host trials.
+- [sherpa-onnx Android](https://k2-fsa.github.io/sherpa/onnx/android/index.html),
+  [runtime license](https://github.com/k2-fsa/sherpa-onnx/blob/master/LICENSE),
+  [whisper.cpp](https://github.com/ggml-org/whisper.cpp) and
+  [Kokoro model card](https://huggingface.co/hexgrad/Kokoro-82M): candidate speech
+  tooling/model research. Runtime and exact model/voice/phonemizer licenses are
+  separate checks. No source establishes quality, latency or battery use on S24 FE.
+
+## Phase 20 implementation references — checked 2026-10-16
+
+- PostgreSQL18 [pg_dump](https://www.postgresql.org/docs/18/app-pgdump.html) and
+  [SQL dump recovery](https://www.postgresql.org/docs/18/backup-dump.html): consistent
+  snapshots, custom dump/restore and cross-version limits. ADA deliberately tests
+  matching client/server major versions; upstream's broader possibilities are not
+  automatically accepted by the operational tool.
+- Caddy [CLI validation/adaptation](https://caddyserver.com/docs/command-line) and
+  [official2.11.7 release](https://github.com/caddyserver/caddy/releases/tag/v2.11.7):
+  actual template validation and loopback proxy laboratory. Official Windows archive
+  was verified using the release's **SHA512**, recorded in ops/validation-tools.json.
+  Initial SHA256 assumption was rejected before binary execution, then corrected to
+  the published algorithm. No service or system CA was installed.

@@ -6,6 +6,11 @@ Use [HOW-TO-USE-ADA](HOW-TO-USE-ADA.md) for the existing development setup.
 The selected policy is **retain private content until explicit owner deletion**.
 The selected encrypted backup directory is **`%LOCALAPPDATA%/ADA/backups`**.
 
+Phase 20 adds a separate0005 pre-upgrade recovery tool and explicit supported
+inventory/tool-major checks. Current0015 artifacts stay compatible. Follow
+[RELEASE-READINESS](RELEASE-READINESS.md) for the applicable path and tested
+installation checklist; do not use this0015-only backup command unchanged on0005.
+
 ## Installation and compatibility
 
 1. Keep the existing `.env` private; never paste it into a ticket, plan or log.

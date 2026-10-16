@@ -1,0 +1,43 @@
+{
+  "version": "ada-quality-baseline-v1",
+  "datasets": {
+    "retrieval": {
+      "path": "evaluations/retrieval-v1.json",
+      "sha256": "953785e484ac6bd32d2d6db37df50a52a7b1dde961b85ee7efdc8f77374d473b",
+      "split": "development"
+    },
+    "documents": {
+      "path": "evaluations/document-retrieval-v1.json",
+      "sha256": "ba0beca69f06f1867f937471046f13d87e6ee66acd77868a5b151e0d7f3f326f",
+      "split": "development"
+    },
+    "hybrid": {
+      "path": "evaluations/hybrid-retrieval-v1.json",
+      "sha256": "682f78c823e99c6bb10f06e4463990514e6d3fba11cad6d72122ae8676e2e8e4",
+      "split": "development"
+    },
+    "extraction": {
+      "path": "evaluations/memory-extraction-v1.json",
+      "sha256": "e56a49d108a7877915424656f0c3b91ab06417e4feed5100a5a026f3251346f2",
+      "split": "development"
+    },
+    "episodes": {
+      "path": "evaluations/episode-summary-v1.json",
+      "sha256": "abc3f21f3cc05367c28718a687bd49b0e3a60acd94254e636d5e4c9ca5748670",
+      "split": "development"
+    },
+    "heldout": {
+      "path": "evaluations/quality-heldout-v1.json",
+      "sha256": "657a0ff72d08f3ad24d54b6b72bc3f9054c2d4db57f8d7082015b00b29022d59",
+      "split": "heldout"
+    }
+  },
+  "review_rubric": {
+    "answer_usefulness": "Owner/reviewer task completion; not fixture completion",
+    "citation_entailment": "Check each factual sentence against its exact cited original source; source mapping alone is insufficient",
+    "justified_uncertainty": "Preserve unknown, tentative and conflicting assertions; clarify ambiguous dates",
+    "correction_success": "Current versus historical correction behavior is measured in deterministic heldout cases",
+    "followup_helpfulness": "Not implemented; future curiosity evaluation remains unassessed",
+    "latency_resources": "Measured execution/Python allocation only; no production or GPU claim"
+  }
+}

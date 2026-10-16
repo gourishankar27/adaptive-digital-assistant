@@ -1,6 +1,6 @@
 # How to use ADA — developer setup and everyday operation
 
-Updated **14 October 2026**, for Phase18 source and database head **0015**.
+Updated **16 October 2026**, for Phase 20 readiness tooling and database head **0015**.
 This guide covers the implemented server, Android app and admin dashboard through
 Phase18. Phase17-A hardening is implemented with remaining physical audio gates;
 Phase19 remains conditional and unimplemented. See [security and operations](SECURITY-AND-OPERATIONS.md)
@@ -10,6 +10,12 @@ Use this guide for the current end-to-end setup. Older phase documents describe
 their own historical migration requirements; they are not instructions to stop a
 current installation at 0004, 0005 or 0007. Check the actual head whenever you change
 source versions. Writing this guide did not install, migrate or deploy anything.
+
+For the separately authorized 2026-10-16 local startup and the actual Docker
+database port5433, see [Windows database administration](DATABASE-ADMINISTRATION-WINDOWS.md).
+That single guide covers database access, supported edits, migrations, encrypted
+recovery, optional reset and daily service startup. The fresh database check found
+head0015 already installed; earlier0005 observations remain historical.
 
 ## Contents
 
@@ -349,8 +355,11 @@ It stores verified encrypted artifacts under `%LOCALAPPDATA%/ADA/backups`, uses 
 separately protected passphrase and rehearses recovery into a new isolated database.
 Use PostgreSQL client binaries matching the intended server major version. A raw
 `pg_dump` file or `pg_restore --list` result alone is not the selected recovery procedure.
-For an older installation below0015, use its previously verified protected backup
-procedure before migration; the new tool requires installed0015 and does not upgrade it.
+For an installation at0005, Phase 20 now provides a separate encrypted pre-upgrade
+tool and isolated restore/upgrade rehearsal in [RELEASE-READINESS](RELEASE-READINESS.md).
+The normal Phase18 tool still requires0015. Other older heads need their own
+previously verified protected recovery procedure before migration; no tool upgrades
+the source merely to make a backup possible. Verify the actual head privately.
 Do not overwrite live databases or delete the existing Docker volume during a drill.
 
 ### Refresh dependencies and migrate

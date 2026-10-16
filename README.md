@@ -7,6 +7,14 @@ For the complete current developer walkthrough, read
 [HOW-TO-USE-ADA](docs/HOW-TO-USE-ADA.md): fresh setup or upgrade to head **0015**,
 Android/USB and admin login, feature use, daily startup and troubleshooting.
 
+For step-by-step Windows database access, queries, supported changes, migration,
+encrypted recovery and an optional reset, read
+[DATABASE-ADMINISTRATION-WINDOWS](docs/DATABASE-ADMINISTRATION-WINDOWS.md).
+The separately authorized local startup on 2026-10-16 verified the configured
+Docker database already at **0015** on **127.0.0.1:5433**, then started the API,
+Ollama and built admin preview. No reset or existing credential change was needed;
+the dated installation checks and remaining gates are in [STATUS](plans/STATUS.md).
+
 Already running Phase 1? Start with [the upgrade guide](docs/UPGRADE-PHASE2.md).
 It includes installation into your existing project and the prompt upgrade for
 conversation `11b492c2-2667-44a3-bd9c-9a532f63c00f`.
@@ -16,6 +24,15 @@ encrypted PostgreSQL recovery. Read [SECURITY-AND-OPERATIONS](docs/SECURITY-AND-
 and [VOICE-VALIDATION](docs/VOICE-VALIDATION.md). Enrollment and erasure processing
 are opt-in; content is retained until explicit owner deletion. One worker remains
 required. No application database migration or deployment is performed by a checkout.
+
+Future development proposals, starting at Phase 20, are in
+[the roadmap](plans/FUTURE-ROADMAP.md). Password login, public web research,
+scheduled curiosity, idle reflection and new speech models are planned features,
+not current capabilities.
+
+Phase 20's [release-readiness guide](docs/RELEASE-READINESS.md) covers the separate
+encrypted schema-0005 recovery tool, current recovery policy, frozen quality
+scorecard and a tested installation checklist. No live upgrade is implied.
 
 ## Implemented server and clients
 
@@ -69,8 +86,9 @@ unreviewed proposals never enter factual retrieval. Optional versioned
 Admin overview adds operational counts only. Automatic extraction/approval stays
 off. See [MEMORY-PROPOSALS-AND-REVIEW.md](docs/MEMORY-PROPOSALS-AND-REVIEW.md)
 for API, bounds, migration, recovery and real-versus-fixture evaluation limits.
-The configured application remains at observed 0005; installation of head 0008
-and physical S24 FE/Android 16 checks are pending. No deployment occurred.
+The Phase 11 record observed application head0005 without migrating it; that is
+historical evidence, not a fresh live-state check. Current source needs0015;
+intended installation and remaining physical checks are separate. No deployment occurred.
 
 ## New Windows installation
 
@@ -266,8 +284,9 @@ encrypted journal v6 restores without automatic submission. Admin shows aggregat
 run counts only. Normal chat, saved v3/v4 prompts and completed replay are unchanged.
 No shell, external write, automatic approval or schedule is implemented. See
 [TOOLS-AND-AGENT-LOOP.md](docs/TOOLS-AND-AGENT-LOOP.md) for routes, versions,
-bounds, compatibility and verification. Application head 0005 remains unchanged;
-explicit installation of head 0009 and target-phone verification are pending.
+bounds, compatibility and verification. Phase12 recorded application head0005
+without installation; this phase summary is historical, not a current DB query.
+Current installation requirements and remaining target gates are in STATUS.
 
 ## Phase 13 episodes and consolidation
 

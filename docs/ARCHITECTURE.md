@@ -1,8 +1,20 @@
 # ADA architecture decisions
 
-Status: persistent chat, explicit memory, claim/document retrieval and explicit admin monitoring.
+Current source: schema **0015**, with private chat/memory/documents, reviewed tools,
+consolidation, preferences/continuity, streaming, Android voice and security/
+operations. Phase 20 adds recovery/evaluation tooling and readiness evidence;
+it does not install the application or implement later roadmap features. Dated
+phase sections below retain their original validation and installation boundaries.
 
 ## Deployment
+
+Separately authorized local operation on 2026-10-16 freshly verified the configured
+Docker PostgreSQL17.11 database at head0015 (54tables), with no pending migration.
+The loopback API, Ollama and built admin preview were started and checked against
+it; existing accounts/credentials/history were preserved. This is ordinary local
+process hosting, without a Windows service, remote HTTPS or supervised restart.
+See [Windows database administration](DATABASE-ADMINISTRATION-WINDOWS.md) and
+[STATUS](../plans/STATUS.md) for commands, evidence and remaining release gates.
 
 One Windows host runs the Python API, Ollama, and PostgreSQL. One Uvicorn worker
 serves multiple users. The API limits in-flight inference with a process-local
@@ -36,7 +48,7 @@ constraints, not PostgreSQL row-level security. The database administrator and s
 operator remain trusted. RLS is a future defense-in-depth decision before a less
 trusted deployment.
 
-Alembic migrations 0001–0004 are immutable snapshots. Add new migrations; never
+Alembic migrations 0001–0015 are released snapshots. Add new migrations; never
 replace them with `Base.metadata.create_all()` at server startup. Migrations are explicit.
 Events and evidence versions are append-oriented through application code. This release does not install
 database triggers preventing operator edits. Trust labels distinguish user words
@@ -61,8 +73,9 @@ Corrections insert the new claim and close/link the old one atomically. Current 
 historical queries use both validity bounds, including future-dated replacements.
 The explicit writer never calls a language model inside or outside its transaction.
 
-One source version per claim is supported in this milestone. Canonical entities,
-multiple evidence links, sharing, semantic validation and general contradiction
+One original user evidence version supports an explicit claim. Phase 09 adds scoped
+canonical identities/links; Phase 11 adds reviewed endorsements with separate
+original support. Sharing, general semantic validation and contradiction
 resolution remain deferred. Retrieval conservatively groups different valid values
 in the same normalized subject/predicate slot. The database/server operator is trusted; API immutability and
 hash checks do not prevent an administrator changing the database.
@@ -87,8 +100,8 @@ cannot complete after that state change or after a retry changed the attempt.
 Crash cases: before reservation -> no request; after reservation -> explicit
 interrupted request for recovery; after completion before delivery -> the same ID
 returns the stored answer. Model computation may repeat after a crash. This is not
-an exactly-once external side-effect mechanism. Tool executions will need their own
-intent/authorization/receipt protocol before tools are enabled.
+an exactly-once external side-effect mechanism. Phase 12's separate read-only runs
+have their own intent/approval/receipt protocol; general external writes remain absent.
 
 ## Context
 
@@ -104,7 +117,8 @@ must confirm token use and latency. No summary is silently substituted.
 The adapter receives only the selected conversation and its authorized scoped evidence.
 Ollama has no ADA user state;
 each call sends full selected messages. Clients never supply system roles. The model
-is not a security boundary. External tools are absent. Permanent claims are written
+is not a security boundary. General external/network tools are absent; the separate
+Phase 12 registry supports calculator and owned memory/source reads. Permanent claims are written
 only through authenticated, explicit memory operations; chat has no memory tool.
 
 Migration 0003 backfills the rebuildable search projection and adds PostgreSQL GIN /
@@ -127,8 +141,9 @@ source mapping does not verify the model's generated claim.
 ## Security and observability
 
 Local administration issues 256-bit random bearer tokens and stores hashes. Tokens
-are revocable by rotation; no passwords, public signup, OIDC, or device enrollment
-are implemented. Use HTTPS/encrypted transport for remote clients. Keep Ollama and
+are revocable by rotation. Phase 18 adds digest-only owner device enrollment,
+rotation/expiry/revocation with enrollment disabled by default. Passwords, public
+signup and OIDC are not implemented. Use HTTPS/encrypted transport for remote clients. Keep Ollama and
 the database inaccessible to clients. CORS is not enabled. No secrets or request
 bodies are intentionally logged; start script disables HTTP access logs.
 

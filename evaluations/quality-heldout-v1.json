@@ -1,0 +1,23 @@
+{
+  "version": "quality-heldout-retrieval-v1",
+  "as_of": "2026-01-01T00:00:00Z",
+  "provenance": "Entirely public synthetic regression holdout. Frozen before Phase23 tuning; not evidence of unseen training data or representative personal quality.",
+  "claims": [
+    {"key":"old_route","subject":"KESTREL42","predicate":"route","value":"harbor","quote":"Public synthetic KESTREL42 uses the harbor route."},
+    {"key":"new_route","supersedes":"old_route","value":"meadow","quote":"Public synthetic KESTREL42 now uses the meadow route.","valid_from":"2025-09-01T00:00:00Z"},
+    {"key":"unicode","subject":"Zoë","predicate":"beverage","value":"café","quote":"😀 Public synthetic Zoë prefers café. é"},
+    {"key":"other_scope","scope":"other","subject":"KESTREL42","predicate":"route","value":"sapphire","quote":"Another synthetic project's KESTREL42 route is sapphire."},
+    {"key":"other_owner","scope":"bob","subject":"hidden","predicate":"route","value":"tangerine","quote":"Another synthetic owner's route is tangerine."},
+    {"key":"future","subject":"KESTREL42","predicate":"future","value":"sunflower","quote":"Public synthetic future route is sunflower.","valid_from":"2035-01-01T00:00:00Z"}
+  ],
+  "queries": [
+    {"key":"heldout-current-correction","query":"KESTREL42 route","expected":["new_route"]},
+    {"key":"heldout-historical-correction","query":"KESTREL42 route","as_of":"2025-08-01T00:00:00Z","expected":["old_route"]},
+    {"key":"heldout-unicode-evidence","query":"Zoë beverage","expected":["unicode"]},
+    {"key":"heldout-wrong-scope","query":"sapphire","expected":[]},
+    {"key":"heldout-wrong-owner","query":"tangerine","expected":[]},
+    {"key":"heldout-future","query":"sunflower","expected":[]},
+    {"key":"heldout-no-evidence","query":"amethyst telescope","expected":[]},
+    {"key":"heldout-ambiguous-time","query":"Which route last week?","natural_time":true,"expected":[],"time_mode":"needs_date"}
+  ]
+}

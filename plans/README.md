@@ -60,9 +60,29 @@ are designs until implemented and exported in OpenAPI. The existing
 | 15 | [phase-15-relationship-learning-and-continuity.md](phase-15-relationship-learning-and-continuity.md) | Opt-in preference learning and evidence-based continuity | 11, 13, 14 |
 | 16 | [phase-16-streaming-and-cancellation.md](phase-16-streaming-and-cancellation.md) | Durable incremental replies and explicit generation cancellation | 04; 06 for monitoring |
 | 17 | [phase-17-voice-interface.md](phase-17-voice-interface.md) | User-controlled voice input/output on Android | 04, 16 |
-| 17-A | [phase-17-a-s24-fe-validation-and-hardening.md](phase-17-a-s24-fe-validation-and-hardening.md) | Planned permission/focus hardening and portable physical verification after the S24 FE audit | 17 |
+| 17-A | [phase-17-a-s24-fe-validation-and-hardening.md](phase-17-a-s24-fe-validation-and-hardening.md) | Implemented hardening/portable runner; physical voice gates remain open | 17 |
 | 18 | [phase-18-security-and-operations.md](phase-18-security-and-operations.md) | Device credentials, deletion/retention, recovery and shared capacity | 05, 06; whichever feature phases exist |
 | 19 | [phase-19-edge-and-external-integrations.md](phase-19-edge-and-external-integrations.md) | Optional local mobile models and selected integrations | 12, 18; measured device requirements |
+| 20 | [phase-20-release-readiness-and-quality-baseline.md](phase-20-release-readiness-and-quality-baseline.md) | Implemented: separate legacy recovery, frozen scorecard and local readiness baseline; limits in STATUS | Source through 18 |
+| 21 | [phase-21-private-network-connectivity.md](phase-21-private-network-connectivity.md) | Proposed: trusted Tailscale/LAN HTTPS and connection setup | 20 transport audit; 18 |
+| 22 | [phase-22-password-login-and-sessions.md](phase-22-password-login-and-sessions.md) | Proposed: username/password on both clients, revocable sessions | 20; 21 before remote use |
+| 23 | [phase-23-answer-quality-and-memory-relevance.md](phase-23-answer-quality-and-memory-relevance.md) | Proposed: measured recall, dates, context and correction improvements | 20; existing memory features |
+| 24 | [phase-24-secure-web-research.md](phase-24-secure-web-research.md) | Proposed: approved public research, isolated egress and saved web citations | 20, 12, 18 |
+| 25 | [phase-25-conversational-curiosity.md](phase-25-conversational-curiosity.md) | Proposed: personal follow-up questions, topic controls and later inbox | 20, 14/15; 23 preferred |
+| 26 | [phase-26-always-on-operations-and-recovery.md](phase-26-always-on-operations-and-recovery.md) | Proposed: supervised laptop service and unattended encrypted recovery | 20, 18; 21 for remote reachability |
+| 27 | [phase-27-durable-scheduling-and-reminders.md](phase-27-durable-scheduling-and-reminders.md) | Proposed: consented schedules, private inbox and controlled notifications | 26 operational gate; 13/18 |
+| 28 | [phase-28-idle-reflection-and-dream-review.md](phase-28-idle-reflection-and-dream-review.md) | Proposed: bounded idle summaries, reports and question drafts | 23, 25, 26, 27 |
+| 29 | [phase-29-natural-local-speech.md](phase-29-natural-local-speech.md) | Proposed: speech-model study; physical activation separately gated | 17/17-A source; later device evidence |
+| 30 | [phase-30-projects-and-personal-follow-through.md](phase-30-projects-and-personal-follow-through.md) | Optional proposal: reviewed goals, next actions and useful briefs | 23; 27 only for reminders |
+| 31 | [phase-31-pdf-ingestion-and-document-expansion.md](phase-31-pdf-ingestion-and-document-expansion.md) | Optional proposal: bounded text-PDF extraction; OCR separately gated | 08, 20; 23 evaluation |
+
+For the 2026-10-16 planning proposal, start with
+[FUTURE-ROADMAP](FUTURE-ROADMAP.md). It reviews the original
+[gap list](GAPS-AND-FUTURE-PLANS.md), records corrections/additional prerequisites
+and maps all original gaps. Physical-Android validation and iOS are excluded
+from this review. Phase 19 remains conditional; new work starts at 20 without
+renumbering or implementing prior optional milestones. These rows are plans,
+not implementation authorization or claims of new capabilities.
 
 Phase 04 stops at chat and source inspection. A separately selected Phase 07 can
 add user memory management; Phase 05 supplies authorization/metadata and a separately

@@ -144,11 +144,13 @@ accents, noisy-room performance, sustained latency or battery efficiency.
 
 ## Remaining verification checkpoints
 
-- [ ] Implement and physically recheck 17A-01, including reliable permanent-denial
-      and active permission-revocation/settings-return cases.
+- [x] Implement 17A-01 permission-intent/lifecycle fencing; Phase18 recorded real
+      OS-dialog grant/repeated-denial evidence with synthetic capture.
+- [ ] Complete native active permission-revocation/settings-return target cases.
 - [ ] Resolve 17A-02 with verified OS focus and audible-output evidence; test call,
       duck and noisy-route interruption when appropriate hardware is available.
-- [ ] Implement the bounded physical runner/test portability changes in 17A-03.
+- [x] Implement the bounded runner/test portability changes in17A-03; Phase20 adds
+      focused recovery mode and safe stage diagnostics, tested on an owned emulator.
 - [ ] Expand en-US samples across speakers/noise/corrections; measure recognition
       setup, endpoint and final latency independently. Physically reach or explain
       the 60-second cap and setup/final deadline paths. Existing unit bounds are

@@ -1954,3 +1954,317 @@ Next eligible checkpoint: resume remaining17-A/18 verification from this saved
 state when user is ready. Recreate only disposable fixtures/validation packages;
 collect a fresh overlapping granted focus trial and human audible observation.
 Do not restart implementation or proceed toPhase19.
+
+
+### 2026-10-15 — gap audit + future planning (documentation only) — working tree based on2c242d1
+
+Scope: read-only audit of all plans/ documents versus source, tests, contracts,
+migrations and clients, plus a user-requested future-planning record.
+Documentation only; no implementation, installation or deployment authorized or
+performed. Session ran at clean HEAD fa2cbba (child of 2c242d1); the working
+tree was left with only the three documentation changes below.
+
+Changed behavior/files: created plans/GAPS-AND-FUTURE-PLANS.md (29 gaps
+G-01…G-29, 13 future-plan proposals F-0…F-12, recommended sequencing, log
+conventions); appended short pointer sections to plans/STATUS.md and this
+WORKLOG entry. No product behavior change.
+
+Data/API/prompt changes: none. No migrations, contracts, fixtures, prompts,
+locks, wrappers or dependencies touched; released 0001–0015 and the exported
+OpenAPI are unchanged by this session.
+
+Checks actually run and results (all read-only):
+
+- Read all plans/ documents (phase-02a…19, README, CURRENT-STATE, STANDARDS,
+  CODEX-WORKFLOW, STATUS, WORKLOG, DECISIONS, SOURCES, UI-SPEC), root README,
+  root and plans AGENTS.md, and docs/ARCHITECTURE.md.
+- Glob migrations/versions confirmed all 15 files 0001–0015
+  (0001_phase_0 … 0015_security_and_operations).
+- Glob/read src/ada module inventory confirmed per-phase modules: documents,
+  entities, embeddings/semantic, proposals, agents+tools, consolidation,
+  expression, learning, streaming, voice, security plus models/contracts/api
+  files.
+- Read src/ada/api.py capabilities block (lines 394–454): shared_scopes false,
+  edge_inference false, automatic_affect_inference false,
+  automatic_memory_extraction false, voice_audio_uploads false, tools false,
+  agent_registry calculator/memory_lookup/source_lookup,
+  document_ingestion text_markdown_v1, semantic_retrieval config-dependent
+  (disabled by default), device_credentials ada-device-credentials-v1,
+  private_deletion ada-private-deletion-v1.
+- Grep "password" in src/ada: matches only in operations.py backup-encryption
+  helpers (seal/unseal/scrypt/backup/restore); no account password
+  authentication exists.
+- Grep scheduler/idle/dream (case-insensitive) in src/ada: no matches except
+  IDLE_MS in expression.py (30-minute session-tone expiry constant); no
+  scheduler, idle detection or dreaming code.
+- Tool registry grep: calculator/memory_lookup/source_lookup only.
+- Read scripts/start.ps1: loopback-only bind (ValidateSet 127.0.0.1/::1),
+  exactly one Uvicorn worker, no access log.
+- Read apps/android/app/build.gradle.kts: versionCode 13 / 0.18.0-security.
+- Confirmed OpenAPI 96 paths/132 schemas per the 2026-10-14 entry above (not
+  re-exported in this session).
+- Citation checks: README.md and docs/PHASE2-RETRIEVAL.md document the "as of
+  YYYY-MM-DD" date-parsing contract (G-18); the Phase 19B durable-schedule
+  requirement was confirmed verbatim in
+  plans/phase-19-edge-and-external-integrations.md (G-25).
+- Git: HEAD fa2cbba, parent 2c242d1, working tree clean at session start.
+
+Checks skipped/blocked and reason: no test suite rerun (documentation-only
+session, no code changed); no live database query (installation is separately
+authorized work, not part of this session); no device, browser or model
+evidence collected.
+
+Windows/PostgreSQL/device/model evidence: none new.
+
+Remaining issues: none from this session — all findings are logged in
+plans/GAPS-AND-FUTURE-PLANS.md.
+
+Next eligible checkpoint: F-0 (close known gaps, including the authorized
+installation) or a user-selected F-xx, upon explicit selection.
+
+### 2026-10-16 — future roadmap review — source fa2cbba — documentation only
+
+Scope: evaluate GAPS-AND-FUTURE-PLANS against actual source and propose future
+plans starting at Phase 20. Exclude connected-Android and iOS validation. No
+implementation, deployment or live installation. Preserved preexisting STATUS/
+WORKLOG edits, the original gap audit and unrelated workspace files.
+
+Changed behavior/files: no product behavior. Added FUTURE-ROADMAP and twelve
+phase files 20–31: readiness/evaluation, private HTTPS, password sessions, answer
+relevance, approved web research, conversational curiosity, always-on recovery,
+durable schedules, idle reflection, local speech study, optional projects and
+PDFs. Linked plans/root README; appended sources/decisions/status and this log.
+Original 29 gaps mapped, dated corrections added, G-30–G-40 left Open. Phase 19
+remains conditional; no old milestone renumbered or retroactively marked complete.
+
+Data/API/prompt changes: none. Proposed password login preserves existing token
+compatibility while hiding manual token handling from ordinary clients; admin
+grants remain server-controlled. Web research needs exact disclosure approval,
+network isolation and private saved citations. Curiosity can begin with generic
+questions, with grounded premises for personalized ones; it is not automatic
+memory/profile creation. Dreaming reuses explicit jobs behind new consent and
+bounded scheduling/foreground priority. Preserve retain-until-owner-deletion and
+require every new schema to extend erasure/backup/authority quarantine.
+
+Inspection/checks actually run: read root/plans instructions and requested docs;
+inspected phase statuses/checklists/deferrals, actual auth/security middleware,
+backup/restore, inventory, tools/agents, consolidation/proposals, config/capabilities,
+Android HTTPS-origin parsing/security config and web bearer transport. Parsed
+existing OpenAPI: 96 paths/132 schemas; enumerated 15 migrations, head constant
+0015. Read representative security/recovery tests and evaluation script inventory;
+no test executions or OpenAPI regeneration. Saved 525 tracked-file hashes before
+editing for a planning-scope comparison. An initial multi-file documentation patch
+failed context verification and applied nothing; corrected patch succeeded.
+
+Primary documentation browsed: Tailscale Serve/HTTPS, OWASP password/auth/session,
+SSRF/prompt injection, Windows Task Scheduler and candidate local speech runtime/
+model sources. References saved in SOURCES. These support proposed design choices,
+not installed functionality or on-device benchmarks. No dependency/model download.
+
+Checks skipped and reason: pytest/Ruff/application builds/PG/browser/model/device
+suites not rerun because product source/tests/contracts remain unchanged. No
+configured DB, account/secret, VPN, host settings or phone was accessed. Historical
+0005 is not a fresh live-state observation. Detailed documentation/protected-file
+validation follows in the closeout entry; no old test counts are presented as new.
+
+User choices: laptop kept plugged in/awake initially; all three curiosity channels
+(active chat, inbox, occasional initiated conversations/notifications). No automatic
+live activation or chosen notification provider. Daily task shortlist, provider
+selection/fees, exact topic/hours and deployment window remain future preferences.
+
+Remaining issues: Phase 18 final audits/target gates are still open; this review
+adds actionable plans rather than claiming those checks complete. Especially close
+legacy backup-before-upgrade, future-head recovery, unattended secret access,
+foreground fairness, quotas and pre-auth password throttles before enabling the
+corresponding features. Physical speech activation and iOS remain deferred.
+Next eligible checkpoint: select Phase 20, or another independent proposed phase
+only with its actual prerequisite evidence. No implementation is authorized by
+these documents.
+
+Planning closeout — 2026-10-16 America/Phoenix: UTF-8/local-link validation passed
+20 changed/new Markdown documents and 122 local links. Twelve proposed phases
+20–31 have unique numbering, checkpoints, interfaces, failure tests and exits;
+all 29 prior gaps mapped, eleven added risks remain Open. 519 tracked files outside
+six intentionally edited tracked documents match their pre-review SHA-256 hashes,
+including implementation/tests/contracts/migrations/prompts/dependency locks.
+Unrelated preexisting files preserved. Git diff whitespace check passed, with
+informational Windows LF→CRLF notices only. First documentation validator identified
+an implicit rather than labeled failure-test section in optional Phase 30; heading
+clarified and rerun passed. No pytest/Ruff/client/device/model execution, live
+installation, account mutation or deployment performed. This closes the planning
+request, not any future implementation or historical Phase 18 validation gate.
+
+### 2026-10-16 — Phase20 readiness/recovery/evaluation — base fa2cbba
+
+Scope: only phase-20-release-readiness-and-quality-baseline; read required docs,
+source/OpenAPI/tests and preserve prior uncommitted roadmap/unrelated work.
+No live installation/deployment, physical Android/iOS or later-phase feature work.
+
+Changed behavior/files: separate ada.legacy_recovery encrypted0005 operator tool;
+ada.recovery_policy reviewed0005/0015 table inventories; operations preflight for
+matching PG major/known tables and stronger malformed manifest rejection. Existing
+0015 format remains supported. Added invariant/failure/native legacy drill tests.
+Added evaluate_quality runner, frozen canonical corpus manifest/new8-case heldout
+and saved public aggregate scorecard, reusing five existing evaluation programs.
+Added actual Caddy-template/CA-verified loopback proxy lab and pinned validation
+binary metadata; reproduced/fixed bare `/admin`404 with308redirect to `/admin/`.
+Android runtime untouched: safe streaming failure diagnostics and bounded
+-RecoveryOnly/stage output added to the isolated runner. Reconciled current docs/
+17-A implementation boxes versus dated target evidence, added RELEASE-READINESS,
+updated how-to/security references, gap dispositions and open G-41. No new migration,
+API/capability/schema/prompt, dependencies/lockfile or installed application version.
+
+Checks actually run: baseline recovery/schema/client-contract11passed33.17s,
+Ruff154files and source/export equality96paths/132schemas. Initial Android build
+passed13s mostly cached. New recovery failures3failed/2passed/1native skip before
+features; quality3failed/1PGskip before runner. Native recovery9passed27.10s.
+Expanded native run1failed/21passed exposed non-citing fake seed; corrected to a
+public M1-citing fixture (not a runtime change), then22passed66.46s. Added import/
+lint issue corrected. Full PG18.6/SQLite760passed/24skipped/1warning1019.24s; final
+focused23passed/1warning81.70s after final tests/assertions (the full run preceded
+those additions). Skip breakdown16SQLite native-lock/concurrency variants and
+8opt-in live-Ollama metadata/tool probes; PG variants ran. Starlette/httpx warning
+retained. Ruff160files passed; CLI help and syntax/documentation audit below.
+
+Native PostgreSQL evidence: isolated new cluster loopback55420 only. Populated
+legacy19-table source with claim/document/source/cited request; encrypted backup,
+new isolated restore and quarantine, injected mid-upgrade transactional failure
+rolled back to0005, retry upgraded to0015 with no drift and original cited replay/
+source hashes. Wrong passphrase creates no target; unknown table/head/format,
+simulated binary-major mismatch/full-disk error, inconsistent encrypted manifest
+and existing/unsafe targets refused. Restored tokens remain invalid even on
+post-restore hash failure. Original0005 source/credential unchanged. Latest legacy
+backup0.594s/restore0.859s (19tables/1request); current populated54-table recovery
+backup0.765s/restore1.312s with original replay/revocation/latest deletion ledger.
+These are small fixture timings, not production recovery promises.
+
+Quality evidence: ran all5existing adapters plus heldout on disposable stores;
+extraction adapter remains SQLite, labeled accurately. Claim recall/MRR@5=.8667,
+documents1.0, heldout recall/MRR/exact evidence1.0, zero known isolation/negative
+failures. Other fixture gold/vector/marker results are not real-model quality.
+Frozen corpus hashes are canonical across Windows CRLF and reject native/traversal
+paths. Aggregate reports contain case IDs/counts/metrics/model identity, no private
+inputs; semantic usefulness/citation entailment/uncertainty/follow-up remain null
+with rubric. Saved scorecard records actual run time/source and resource limits.
+No model download/semantic activation/prompt upgrade or private corpus use.
+
+Android/web evidence: fresh rerun224units0failed0skipped55s; final lint/debug/
+instrumentation/unsigned release passed64s (123tasks31executed). Owned read-only
+API37 emulator strict cold launches3371/2683/2332ms Status:ok/COLD. First2HTTP
+attempts failed stream-provisional timeout; diagnostics showedMissing/NotFound.
+Instrumented retry8passed55.072s plusOSgrant6.955s and denial/permanent6.379s.
+Combined force-stop resume failed without useful stage output; focused recovery
+runner then passed4prepare/resume checks across2actual force-stops and SecurityUI
+7.812s. Earlier failures retained; G-41Open, no production Android fix claimed.
+All audio drivers synthetic except native availability; no physical/device audio
+or older-API claim. Web npmci/contracts/typecheck/lint/build passed,56units6.91s,
+production Chromium6passed23.3s on PG. No credentialed recordings. Python audit
+0known/41deps and npm0findings/295deps, no-deps/hash-lock/deprecation notices kept.
+
+Proxy evidence: official Caddy2.11.7 archive SHA512 verified and pin recorded;
+initial SHA256 assumption failed before execution. Actual template validation plus
+isolated TLS routing/auth forwarding/JSON404/admin redirect/nested SPA/SSE and
+untrusted-CA/wrong-host rejection passed. Tightened negative harness assertions
+needed direct TLS instead of HTTP exception-wrapper introspection; corrected.
+Test CA trusted per-process only, synthetic upstream, no system trust or live ADA
+connection. Real server auth/isolation is separately covered by PG/browser tests.
+
+Skips/limits: no maintained0005 server checkout in history (0004 then0006), so
+matching old-server HTTP remains unverified; frozen schema/current forward replay
+is demonstrated. Local model endpoint unavailable, no new real-model inference.
+Manual screen-reader, actual trusted private HTTPS, intended live installation,
+real sizing/capacity and physical/iOS gates remain separate. Preserve selected
+retain-until-owner-deletion and 256MiB/retained quotas; no scheduler/pruning/new
+runtime features. G-41 emulator intermittency needs controlled-load tracing before
+operational release. Do not infer a fixed product from passed retries.
+
+Cleanup: task-owned validation apps/test packages and USB reverse19822 removed;
+read-only emulator5582 stopped. Verified owned PG data path/port55420 before stop;
+startup controller held by Windows descendant-waiting stopped separately. No own
+18420/19420/19822/55420 listener remained. Prior historical synthetic evidence kept;
+no broad cleanup. Normal phone/data/profiles, user services/.env/live DB/grants/
+credentials/firewall/VPN/trust store unchanged. No deployment/commit/external
+message. Next eligible work: selected follow-up release verification or a separately
+chosen later phase with its actual prerequisites; no automatic continuation.
+
+Phase20 closeout — 2026-10-16 America/Phoenix: documentation UTF-8/205local links
+passed across27Markdown files;66PowerShell examples and runner parsed without
+execution.509tracked files outside16intentional tracked edits byte-identical to
+the initial working tree, including all released migrations, contracts/fixtures,
+prompts, locks and Android production source.12later-phase files (19,21–31) also
+byte-identical. Prior planning/unrelated changes preserved. Whitespace passed;
+Windows LF→CRLF notices informational. Code contract remains96paths/132schemas,
+head0015; no deployment, live query/migration/backup, physical client or later
+implementation. Final run artifacts remain ignored under .pytest_cache/phase20;
+saved public scorecard is evaluations/quality-baseline-results-v1.json. All owned
+services/emulator/resources cleaned up as described above. Phase20 tooling and
+baseline delivered with recorded remaining release gates; stop here.
+
+### 2026-10-16 — separately authorized local operation and DB guide — fa2cbba + Phase20 tree
+
+Scope: user explicitly requested database changes/deployment, allowing a reset
+if needed, and one step-by-step Windows database guide. Inspection found the
+configured Docker PostgreSQL17.11 application database already at0015/54tables
+on127.0.0.1:5433. No pending migration or destructive reset was necessary.
+
+Changed behavior/files: started one current-source loopback API8000 worker,
+Ollama11434 with installed qwen3.8:27b, and the freshly built admin preview5173.
+Existing healthy Compose db remained running; native PostgreSQL5432 untouched.
+Added docs/DATABASE-ADMINISTRATION-WINDOWS.md with access, safe queries, account
+commands, migrations, matching17 recovery-client prerequisite, encrypted backup/
+isolated restore, transaction practice, guarded optional reset and daily operation.
+Linked it from README/HOW-TO/architecture/current state; refreshed G-01 with actual
+installation evidence while preserving the original audit and Phase20 history.
+
+Data/API/prompt changes: no schema/API/prompt/source-runtime change, `.env` edit,
+model pull, existing credential rotation or existing grant change. No-op Alembic
+upgrade and no-drift check completed on the verified intended target. Two original
+accounts and all existing saved records retained. Device enrollment, erasure
+worker, embeddings and consolidation settings preserved. Only ephemeral synthetic
+validation account/content/grant writes plus normal monitoring audits occurred.
+
+Checks actually run/results: Docker pg_isready and safe SQL metadata/head checks,
+doctor, API live/ready200 and unauthenticated me401 passed. Through the built
+preview proxy, synthetic authenticated me/capabilities, ordinary admin403,
+explicit grant then five monitoring reads200, personality/conversation creation,
+real Ollama chat and identical completed replay passed. First real generation
+18.359s; final full rerun2.297s, two events. Initial final event-count assertion
+failed because the one-off harness assumed an object instead of the contracted
+list; fixed that harness and reran, with no product change. Both temporary owners,
+their exact content/grants removed transactionally; original users/credential/
+grant/history/source rows compared unchanged. Minimal monitoring audits retained.
+
+Focused pytest schema/client/admin/admin-HTTP:37passed/2skipped/1warning46.31s,
+SQLite plus disposable schemas in Docker17 ada_phase2_test. Two opt-in real-model
+metadata probes then explicitly enabled:2passed/1warning2.00s, no generation.
+Ruff lint/format160files passed. npm contract freshness/typecheck/build passed.
+Guide's synthetic temporary-table practice ran against live PostgreSQL17 and
+rolled back completely. New guide's commands were checked against source CLI
+interfaces; destructive examples were not executed. Runtime smoke metadata only
+is in ignored .pytest_cache/local-install; no secrets/content in reports. Runtime
+process logs are local under %LOCALAPPDATA%/ADA/logs, API access logging disabled.
+
+Checks skipped/limits: no actual live encrypted backup/restore, reset, pending
+migration or GUI pgAdmin trial. Live PG17 needs matching Windows17 recovery
+clients (only18 installed) and a separately retained passphrase before the backup
+CLI can run; no new key/artifact was created. No full-suite repetition after the
+earlier Phase20 evidence for this docs/operator-only work. No physical/iOS,
+manual accessibility, remote HTTPS/LAN/VPN, firewall/trust change, unattended
+service/scheduler, sustained-load or semantic-quality claim. G-06/G-09/G-41 stay
+open. Ordinary process hosting is not Phase26 supervision or Phase21 connectivity.
+
+Windows evidence: Docker port5433, API8000, preview5173 and Ollama11434 all remain
+private/loopback. Services intentionally left running for user access, with
+startup/shutdown instructions in the guide; not installed as auto-start services.
+Remaining target verification and the local G-01 closure are detailed in STATUS.
+Stop at this authorized operational follow-up; no later feature or commit.
+
+Closeout:8UTF-8 documents/108local links and24new-guide PowerShell AST examples
+passed. Windows18 psql queried live17 using protected environment, proving the
+optional Windows query route while leaving recovery's17-tool requirement intact.
+Final health/ready200, previewHTML200, unauthenticated proxy401, live OpenAPI exact
+equality and zero leftover temporary owners passed; original counts2/3/4/14/27/
+27/27(users/personalities/conversations/requests/events/sources/versions). Git
+whitespace passed with informational existing LF→CRLF notices. Reset/restore
+examples were parsed/reviewed, not executed; the tested temporary-table changes
+were rolled back. Local services intentionally remain running for user access.

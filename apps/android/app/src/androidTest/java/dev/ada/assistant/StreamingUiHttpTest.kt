@@ -10,6 +10,9 @@ import dev.ada.assistant.ui.ChatDestination
 import java.io.File
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Assume.assumeTrue
@@ -27,8 +30,17 @@ class StreamingUiHttpTest {
         vm = ViewModelProvider(compose.activity)[ChatViewModel::class.java]
         compose.runOnIdle { vm.connect(c.server.toString(), token) }; compose.waitUntil(20_000) { vm.state.value.account != null }
         compose.runOnIdle { vm.openConversation(conversation.id) }; compose.waitUntil(20_000) { vm.state.value.conversation?.id == conversation.id && !vm.state.value.events.loading }
+        val failures = mutableSetOf<String>()
+        val observer = CoroutineScope(Dispatchers.Unconfined).launch {
+            vm.state.collect { state -> state.pending?.failure?.let { failures += "${it.javaClass.simpleName}:${state.pending?.code}" } }
+        }
         compose.runOnIdle { vm.updateDraft("Synthetic streaming UI turn"); vm.send() }
-        compose.waitUntil(20_000) { vm.state.value.stream?.provisional?.isNotEmpty() == true }
+        try {
+            compose.waitUntil(20_000) { vm.state.value.stream?.provisional?.isNotEmpty() == true }
+        } catch (error: ComposeTimeoutException) {
+            val state = vm.state.value
+            throw AssertionError("Synthetic streaming probe timed out: pending=${state.pending?.phase}, stream=${state.stream?.stream_state}, provisionalChars=${state.stream?.provisional?.length ?: 0}, fault=${state.fault?.javaClass?.simpleName}, observedFailures=$failures", error)
+        } finally { observer.cancel() }
         val id = vm.state.value.pending!!.message.body.request_id
         compose.onNodeWithText("Provisional reply").performScrollTo().assertIsDisplayed()
         assertTrue(vm.state.value.sources.isEmpty())

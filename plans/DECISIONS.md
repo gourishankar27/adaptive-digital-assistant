@@ -360,3 +360,44 @@ Metadata describes the client-reported platform, not an attested ASR binary or
 recording; no server audio hash exists. Retention is private durable lineage,
 bounded at1000 owner records, with no deletion/erasure claim. See
 [the policy](../docs/VOICE-INTERFACE.md) and its primary Android references.
+
+## Phase 20 onward planning choices — 2026-10-16 — proposed, not implemented
+
+The owner selected the existing Windows laptop kept plugged in and awake as the
+initial availability target, and wants all three curiosity channels: active chat,
+a later inbox and occasional initiated conversations/notifications. Implement
+chat/inbox before durable scheduled delivery; channel/topic/hours controls and
+consent remain explicit. This is not permission to enable live automation.
+
+Password login should remove manual bearer handling from ordinary Android/admin
+sign-in while retaining internal revocable sessions and legacy compatibility.
+Private HTTPS fronts a loopback API; neither LAN/Tailscale identity nor a username
+confers an ADA admin grant. Keep the existing retain-until-owner-deletion policy.
+
+The proposal separates evaluation/relevance, public research, curiosity, host
+supervision, durable schedules and bounded idle artifacts. An optional text LLM
+is not a substitute for ASR/TTS; exact speech runtime/model selection awaits
+measurement. Original conditional Phase 19 is not renumbered or declared complete.
+See [FUTURE-ROADMAP](FUTURE-ROADMAP.md) for the phase graph and unresolved choices.
+
+## Phase 20 recovery and validation boundaries — 2026-10-16
+
+Use a separate `ada-postgres-legacy-0005-v1` tool/artifact for pre-upgrade protection;
+keep current `ada-postgres-backup-v1` semantics at0015. Do not widen accepted heads
+without reviewed table inventory, populated migration, source/replay and authority
+quarantine tests. Unknown actual tables/owner models fail closed. Matching PostgreSQL
+major versions are the conservative rehearsed policy; it is narrower than all
+upstream-supported combinations. No migration/API/prompt/dependency upgrade is needed.
+
+The legacy copy always remains isolated with unusable restored tokens. Old snapshots
+cannot bypass newer erasure: reconcile an authoritative current ledger through the
+current-format restore flow before serving; missing history is a blocker. No live
+migration, restore, backup or service start was performed. No standalone0005 source
+checkout exists in available history, so schema/forward replay evidence is not
+misrepresented as an old-server HTTP run.
+
+The proxy lab uses a per-process trusted test CA and explicit loopback addresses.
+It does not establish Android system trust or remote deployment. `/admin` redirects
+to `/admin/`; other server contracts are unchanged. The quality baseline freezes
+public corpus digests and reports unassessed semantic grades honestly; fixture
+precision/markers cannot establish personal usefulness or citation entailment.

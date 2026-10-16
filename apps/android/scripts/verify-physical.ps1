@@ -2,6 +2,7 @@ param(
     [Parameter(Mandatory)][string]$Device,
     [ValidateRange(19000,19999)][int]$Port = 19818,
     [switch]$IncludePermissionDialogs,
+    [switch]$RecoveryOnly,
     [switch]$NativeFocusProbe
 )
 $ErrorActionPreference = 'Stop'
@@ -64,6 +65,7 @@ try {
     $adaPipe.StandardInput.Write($adaSecret); $adaPipe.StandardInput.Close(); $adaPipe.WaitForExit()
     if ($adaPipe.ExitCode -ne 0) { throw 'App-private credential provisioning failed' }
     $adaPipe.Dispose(); $adaSecret = $null
+    if (-not $RecoveryOnly) {
     $adaClasses = 'dev.ada.assistant.VoicePlatformAvailabilityTest,dev.ada.assistant.VoiceUiHttpTest,dev.ada.assistant.StreamingUiHttpTest,dev.ada.assistant.MemoryUiSmokeTest'
     $adaResult = Invoke-AdaAdb -Arguments @('shell','am','instrument','--user','0','-w','-e','adaTestOrigin',$adaOrigin,'-e','class',$adaClasses,"$adaTestPackage/androidx.test.runner.AndroidJUnitRunner")
     $adaResult | Write-Output
@@ -78,16 +80,19 @@ try {
             if (($adaPermissionResult -join "`n") -notmatch 'OK \(1 test\)') { throw 'Verified OS permission-dialog case failed' }
         }
     }
+    }
     foreach ($adaStage in @(
         @{ Prepare='saveEditedDraftBeforeActualForceStop'; Resume='editedDraftRestoresForReviewWithoutAutomaticSubmission'; Key='voiceDraftKey' },
         @{ Prepare='reserveAndSubmitReviewedVoiceBeforeActualForceStop'; Resume='originalReviewedRequestRestoresByGetAndDoesNotAllocateANewTurn'; Key='voiceRequestKey' }
     )) {
         $adaPrepared = Invoke-AdaAdb -Arguments @('shell','am','instrument','--user','0','-w','-e','adaTestOrigin',$adaOrigin,'-e','adaVoiceRecovery','true','-e','class',"dev.ada.assistant.VoiceRecoveryPrepareTest#$($adaStage.Prepare)","$adaTestPackage/androidx.test.runner.AndroidJUnitRunner")
+        $adaPrepared | Write-Output
         if (($adaPrepared -join "`n") -notmatch 'OK \(1 test\)') { throw 'Force-stop preparation failed' }
         $adaKey = [regex]::Match(($adaPrepared -join "`n"), "$($adaStage.Key)=([0-9a-f-]{36})")
         if (-not $adaKey.Success) { throw 'Prepared recovery ID was not reported' }
         Invoke-AdaAdb -Arguments @('shell','am','force-stop','--user','0',$adaPackage) | Out-Null
         $adaResumed = Invoke-AdaAdb -Arguments @('shell','am','instrument','--user','0','-w','-e','adaTestOrigin',$adaOrigin,'-e','adaVoiceRecovery','true','-e','expectedVoiceKey',$adaKey.Groups[1].Value,'-e','class',"dev.ada.assistant.VoiceRecoveryResumeTest#$($adaStage.Resume)","$adaTestPackage/androidx.test.runner.AndroidJUnitRunner")
+        $adaResumed | Write-Output
         if (($adaResumed -join "`n") -notmatch 'OK \(1 test\)') { throw 'Force-stop recovery failed' }
         Write-Output 'Exact voice recovery stage passed after actual force-stop'
     }

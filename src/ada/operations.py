@@ -153,6 +153,17 @@ def pg_tool(binary, arguments, environment, input_bytes=None):
     return b"".join(chunks)
 
 
+def check_pg_tools(conn, pg_bin, environment):
+    """Conservative rehearsal policy: client tools and server have the same major."""
+    major = int(conn.execute(text("SHOW server_version_num")).scalar_one()) // 10000
+    for name in ("pg_dump", "pg_restore"):
+        binary = Path(pg_bin) / (name + (".exe" if os.name == "nt" else ""))
+        version = pg_tool(binary, ["--version"], environment).decode("ascii", errors="replace")
+        match = re.search(r"PostgreSQL\) (\d+)(?:\.|\s)", version)
+        if not match or int(match[1]) != major:
+            raise RecoveryError("PostgreSQL client/server major versions must match")
+
+
 def database_inventory(conn):
     result = {}
     preparer = conn.dialect.identifier_preparer
@@ -203,6 +214,10 @@ def backup(url, pg_bin, destination, password, settings):
                 head = conn.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
                 if head != "0015":
                     raise RecoveryError("Backup requires installed schema head 0015")
+                from ada.recovery_policy import validate_inventory
+
+                validate_inventory(head, inspect(conn).get_table_names(schema="public"))
+                check_pg_tools(conn, pg_bin, pg_environment(url))
                 snapshot = conn.execute(text("SELECT pg_export_snapshot()")).scalar_one()
                 inventory = database_inventory(conn)
                 dump = pg_tool(
@@ -278,9 +293,12 @@ def unpack(payload):
             manifest = json.loads(archive.read("manifest.json"))
             dump = archive.read("database.dump")
         if (
-            manifest["format"] != "ada-postgres-backup-v1"
-            or manifest["head"] != "0015"
-            or (hashlib.sha256(dump).hexdigest() != manifest["dump_sha256"])
+            not isinstance(manifest, dict)
+            or manifest.get("format") != "ada-postgres-backup-v1"
+            or manifest.get("head") != "0015"
+            or not isinstance(manifest.get("tables"), dict)
+            or type(manifest.get("snapshot_at")) is not int
+            or (hashlib.sha256(dump).hexdigest() != manifest.get("dump_sha256"))
         ):
             raise RecoveryError("Backup completeness/integrity check failed")
         return manifest, dump
@@ -291,6 +309,9 @@ def unpack(payload):
 def restore(url, pg_bin, target_database, artifact, ledger_path, password):
     start = time.monotonic()
     manifest, dump = unpack(read_artifact(artifact, password))
+    from ada.recovery_policy import validate_inventory
+
+    validate_inventory(manifest["head"], manifest["tables"])
     try:
         ledger = json.loads(read_artifact(ledger_path, password))
         if (
@@ -309,6 +330,7 @@ def restore(url, pg_bin, target_database, artifact, ledger_path, password):
     admin = create_engine(source.set(database="postgres"), isolation_level="AUTOCOMMIT")
     try:
         with admin.connect() as conn:
+            check_pg_tools(conn, pg_bin, pg_environment(url))
             if conn.execute(
                 text("SELECT 1 FROM pg_database WHERE datname=:name"), {"name": target_database}
             ).first():
