@@ -57,6 +57,8 @@ private fun unsupportedMemoryApi(): AdaApi = java.lang.reflect.Proxy.newProxyIns
     AdaApi::class.java.classLoader, arrayOf(AdaApi::class.java),
 ) { _, method, _ -> error("Unexpected test call: ${method.name}") } as AdaApi
 private class MemoryWriteApi(val store: MemoryWriteStore) : AdaApi by unsupportedMemoryApi() {
+    var windowCall: suspend () -> ApiResult<WindowRetrievalDto> = { ApiResult.Failure(ApiFailure.NotFound) }
+    override suspend fun retrieveWindow(connection: ConnectionCredential, scope: UUID, body: WindowRetrieveInputDto) = windowCall()
     val notes = mutableListOf<NoteInputDto>(); val writes = mutableListOf<ClaimInputDto>()
     val corrections = mutableListOf<SupersedeInputDto>()
     val rows = mutableMapOf<UUID, ClaimDto>(); val sourceRows = mutableMapOf<UUID, SourceVersionDto>()
@@ -92,6 +94,23 @@ private class MemoryWriteApi(val store: MemoryWriteStore) : AdaApi by unsupporte
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class MemoryControllerTest {
+    @Test fun lateWindowCannotRepopulateAfterIdentityResetOrScopeSelection() = runTest {
+        val store = MemoryWriteStore(); val api = MemoryWriteApi(store)
+        val c = MemoryController(api, store, this) {}
+        c.setVerifiedSession(memoryConnection, memoryIdentity, memoryFeatures.copy(calendar_windows = "ada-time-window-v1"))
+        advanceUntilIdle(); c.activate(); advanceUntilIdle()
+        val late = CompletableDeferred<ApiResult<WindowRetrievalDto>>()
+        api.windowCall = { withContext(NonCancellable) { late.await() } }
+        c.retrieveWindow("Mira beverage", "yesterday", "America/Phoenix", "2025-06-02T12:00:00-07:00"); runCurrent()
+        c.selectScope(memoryScope)
+        val result = WindowRetrievalDto("ada-window-retrieval-v1", TimeResolutionDto("ada-time-window-v1", "resolved", "explicit_calendar_window", "valid_time_overlap_current_recorded_state"), guidance = "Public fixture")
+        late.complete(ApiResult.Success(result)); advanceUntilIdle(); assertNull(c.state.value.window)
+        val afterReset = CompletableDeferred<ApiResult<WindowRetrievalDto>>()
+        api.windowCall = { withContext(NonCancellable) { afterReset.await() } }
+        c.retrieveWindow("Mira beverage", "yesterday", "America/Phoenix", "2025-06-02T12:00:00-07:00"); runCurrent(); c.reset()
+        afterReset.complete(ApiResult.Success(result)); advanceUntilIdle()
+        assertNull(c.state.value.window); assertFalse(c.state.value.windowsEnabled)
+    }
     @Before fun setup() { Dispatchers.setMain(StandardTestDispatcher()) }
     @After fun cleanup() { Dispatchers.resetMain() }
     private fun TestScope.ready(store: MemoryWriteStore = MemoryWriteStore()): Triple<MemoryController, MemoryWriteApi, MemoryWriteStore> {

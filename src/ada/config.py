@@ -19,6 +19,10 @@ class Settings(BaseSettings):
     retrieval_limit: int = Field(default=8, ge=1, le=16)
     consolidation_worker_enabled: bool = True
     device_enrollment_enabled: bool = False
+    browser_origin: str | None = None
+    session_access_seconds: int = Field(default=900, ge=60, le=3600)
+    session_absolute_seconds: int = Field(default=2592000, ge=3600, le=7776000)
+    session_idle_seconds: int = Field(default=604800, ge=600, le=2592000)
     deletion_worker_enabled: bool = False
     private_read_limit_per_minute: int = Field(default=2400, ge=1, le=10000)
     private_write_limit_per_minute: int = Field(default=600, ge=1, le=5000)
@@ -36,6 +40,21 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def fits_context(self):
+        if self.browser_origin is not None:
+            from urllib.parse import urlsplit
+
+            origin = urlsplit(self.browser_origin)
+            if (
+                origin.scheme != "https"
+                or not origin.netloc
+                or origin.username
+                or origin.password
+                or origin.path
+                or origin.query
+                or origin.fragment
+                or self.browser_origin != f"https://{origin.netloc}"
+            ):
+                raise ValueError("browser_origin must be an exact HTTPS origin without a path")
         if self.prompt_bytes + self.output_tokens + 512 > self.context_tokens:
             raise ValueError("prompt_bytes + output_tokens + 512 must fit context_tokens")
         return self

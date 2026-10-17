@@ -42,13 +42,15 @@ data class SessionIdentity(val server: String, val owner: UUID) {
 }
 
 @Serializable
-class StoredCredential(val identity: SessionIdentity, val token: String, val dataEpoch: Long = 0) {
+class StoredCredential(val identity: SessionIdentity, val token: String, val dataEpoch: Long = 0, val passwordSession: Boolean = false) {
     init {
         require(ConnectionCredential.parse(identity.server, token, true) != null) { "Invalid stored credential" }
         require(dataEpoch >= 0)
     }
     override fun toString() = "StoredCredential(redacted)"
 }
+
+/** In password mode token contains ONLY rotating refresh material; access stays in memory. */
 
 /** Immutable exact reservation; changing an option/content requires a consciously new request. */
 @Serializable
@@ -129,13 +131,13 @@ class SessionTokenStorageAdapter(private val sessions: SessionStore) : SecureTok
     override suspend fun save(server: String, owner: UUID, token: String) =
         sessions.saveCredential(StoredCredential(SessionIdentity(server, owner), token))
     override suspend fun load(server: String, owner: UUID): String? =
-        sessions.readCredential()?.takeIf { it.identity == SessionIdentity(server, owner) }?.token
+        sessions.readCredential()?.takeIf { !it.passwordSession && it.identity == SessionIdentity(server, owner) }?.token
     override suspend fun clear() = sessions.clear()
 }
 
 @Serializable
 private data class PersistedSession(
-    val version: Int = 11,
+    val version: Int = 12,
     val credential: StoredCredential,
     val pending: PendingMessage? = null,
     val memoryPending: PendingMemory? = null,
@@ -446,7 +448,7 @@ internal class EncryptedSessionStore(
             if (plaintext.size > MAX_PLAINTEXT_BYTES) throw IOException("Invalid session record")
             val snapshot = json.decodeFromString<PersistedSession>(plaintext.toString(Charsets.UTF_8))
             if (snapshot.version < 10 && (snapshot.voiceDraft != null || snapshot.pending?.voiceTranscript != null || snapshot.pending?.voiceScopeId != null)) throw IOException("Unsupported session record")
-            if (snapshot.version !in 1..11 || (snapshot.version < 11 && snapshot.securityJournal != null) || (snapshot.version == 1 && snapshot.memoryPending != null) ||
+            if (snapshot.version !in 1..12 || (snapshot.version < 12 && snapshot.credential.passwordSession) || (snapshot.version < 11 && snapshot.securityJournal != null) || (snapshot.version == 1 && snapshot.memoryPending != null) ||
                 (snapshot.version < 3 && snapshot.documentPending != null) || (snapshot.version < 4 && snapshot.entityPending != null) ||
                 (snapshot.version < 5 && (snapshot.proposalPending != null || snapshot.proposalDraft != null)) || (snapshot.version < 6 && snapshot.agentJournal != null) || (snapshot.version < 7 && snapshot.consolidationJournal != null) || (snapshot.version < 8 && snapshot.expressionJournal != null) || (snapshot.version < 9 && snapshot.learningJournal != null)) {
                 throw IOException("Unsupported session record")
@@ -508,7 +510,7 @@ internal class EncryptedSessionStore(
     private fun write(snapshot: PersistedSession) {
         var plaintext: ByteArray? = null
         try {
-            plaintext = json.encodeToString(snapshot.copy(version = 11)).toByteArray(Charsets.UTF_8)
+            plaintext = json.encodeToString(snapshot.copy(version = 12)).toByteArray(Charsets.UTF_8)
             if (plaintext.size > MAX_PLAINTEXT_BYTES) throw SessionStorageException(SessionStoreFailure.InvalidPayload)
             val ciphertext = cipher.encrypt(plaintext)
             if (ciphertext.size > MAX_FILE_BYTES) throw SessionStorageException(SessionStoreFailure.InvalidPayload)

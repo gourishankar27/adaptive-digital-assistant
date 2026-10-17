@@ -1,0 +1,18 @@
+{
+  "version": "ada-answer-quality-manifest-v1",
+  "corpus": "evaluations/answer-quality-phase23-v1.json",
+  "sha256": "8363ddf3046b3fc8af6a34b9625a6c5c358ded565f2d10709901a9277585a261",
+  "split": {
+    "development": 8,
+    "holdout": 8
+  },
+  "baseline_prompt": "ada-baseline-v4",
+  "candidate_prompt": "ada-baseline-v5",
+  "semantic_default": "disabled; no installed supported embedding model/digest",
+  "rubric": {
+    "usefulness": "0 unsupported/unhelpful, 1 partially useful, 2 useful and appropriately bounded",
+    "citation_entailment": "0 unsupported/mismatched, 1 incomplete, 2 supported by actual supplied source; null when no citation required",
+    "uncertainty": "0 overclaims/guesses, 1 partial caveat, 2 appropriate uncertainty/clarification",
+    "review_requirement": "explicit qualitative review; markers and model grading alone are not truth"
+  }
+}

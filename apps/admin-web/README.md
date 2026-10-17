@@ -1,13 +1,32 @@
 # ADA admin web — Phase 06
 
+## Phase22 HTTPS password sign-in
+
+Ordinary sign-in now asks username/password. Configure the exact server
+ADA_BROWSER_ORIGIN and use the HTTPS private-network origin: host-only Secure/
+HttpOnly/SameSite=Strict cookies, exact-origin/CSRF checks and no JS-readable
+credential persistence. Reopen and visible monitoring renewal clear queries and
+verify the admin grant again. Settings offers current/all sign-out and password
+change. The explicit advanced bearer path still supports loopback development,
+with tokens in memory and cookies omitted. See
+[the password guide](../../docs/PASSWORD-LOGIN-AND-SESSIONS.md) for0016 enrollment,
+installation and failure recovery; no live account/service was changed.
+
 Read-only backend monitoring for a server-authorized operator: sign-in, overview,
 provider/limit configuration, server-filtered request pages, composite owner/request
 detail and audit metadata. All six enabled reads use existing `/v1/admin` routes.
 No raw chats, source quotes, prompts or operational write controls are exposed.
 
+Phase21 checks same-origin `/health/ready` without a credential before admin
+sign-in. Both Vite development and preview proxy `/health` and `/v1` to their fixed
+configured backend. The origin parser rejects normalized-away paths and empty
+query/fragment markers; cross-origin credentials remain forbidden. Remote setup
+and browser-versus-native diagnostics are in
+[PRIVATE-NETWORK-CONNECTIVITY](../../docs/PRIVATE-NETWORK-CONNECTIVITY.md).
+
 For the complete current server/account/client walkthrough, see
-[HOW-TO-USE-ADA](../../docs/HOW-TO-USE-ADA.md). The current Phase18 source requires
-database head **0015**; historical Phase 05/08 installation evidence below is preserved.
+[HOW-TO-USE-ADA](../../docs/HOW-TO-USE-ADA.md). Current source requires
+database head **0016**; historical Phase 05/08 installation evidence below is preserved.
 
 ## Windows setup and checks
 
@@ -52,9 +71,9 @@ Browser recording, traces, screenshots and video are disabled.
 
 ## Run with an existing backend
 
-The backend must have the current schema head **0015** and an explicit monitoring
+The backend must have the current schema head **0016** and an explicit monitoring
 grant for your account UUID. Admin monitoring was introduced by migration **0004**;
-the current Phase18 source requires **0015** for readiness. See
+current source requires **0016** for readiness. See
 [ADMIN-MONITORING.md](../../docs/ADMIN-MONITORING.md).
 Phase 06 implementation does not migrate the application DB or grant real accounts.
 Start ADA with root `scripts/start.ps1` (loopback :8000, one worker), then:
@@ -101,11 +120,11 @@ stop ADA and run from the repository root:
 .\scripts\start.ps1
 ```
 
-Use the current repository's required head **0015**. The reported login failure
+Use the current repository's required head **0016**. The reported login failure
 was repaired by separately installing **0004** and granting the user-selected
 account against the pre-Phase 08 backend. That repair does not install Phase 08:
 Phase 08 required a separately authorized **0005** installation; the current
-source requires the complete supported chain through **0015**.
+source requires the complete supported chain through **0016**.
 Restart Vite if its proxy target changed, then sign in again. A subsequent
 **Access denied** means the account needs an explicit local `grant-admin` using its
 UUID as described in [ADMIN-MONITORING.md](../../docs/ADMIN-MONITORING.md). Applying

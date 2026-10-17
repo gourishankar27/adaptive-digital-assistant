@@ -13,8 +13,9 @@ from ada.learning import continuity_message, prompt_learning
 from ada.memory import time_ms
 from ada.models import Conversation, PromptChange, Request, RetrievalTrace, now_ms
 from ada.personality import (
-    DOCUMENT_PROMPT_VERSION,
+    DOCUMENT_PROMPT_VERSIONS,
     PROMPT_VERSION,
+    QUALITY_PROMPT_VERSION,
     RETRIEVAL_PROMPT_VERSIONS,
     build_prompt,
 )
@@ -113,7 +114,7 @@ class ChatService:
         system["content"] += prompt_learning(learning)
         newest = {"role": "user", "content": content}
         compatible = conversation.prompt_version in RETRIEVAL_PROMPT_VERSIONS
-        document_compatible = conversation.prompt_version == DOCUMENT_PROMPT_VERSION
+        document_compatible = conversation.prompt_version in DOCUMENT_PROMPT_VERSIONS
         plan = plan_query(
             content,
             as_of,
@@ -175,6 +176,7 @@ class ChatService:
             else:
                 remaining -= needed
         # Complete pairs only. Failed/in-flight turns remain evidence, not model history.
+        quality = conversation.prompt_version == QUALITY_PROMPT_VERSION
         rows = db.scalars(
             select(Request)
             .where(
@@ -183,17 +185,23 @@ class ChatService:
                 Request.status == "completed",
             )
             .order_by(Request.base_revision.desc())
-            .limit(50)
+            .limit(51 if quality else 50)
         ).all()
+        truncated = len(rows) > 50
+        rows = rows[:50]
+        if quality:
+            from ada.quality_context import rank_history
+
+            rows = rank_history(rows, content)
         pairs = []
         for row in rows:
             pair = [row.messages[-1], {"role": "assistant", "content": row.response}]
             needed = sum(message_cost(m) for m in pair)
             if needed > remaining:
                 continue
-            pairs.append(pair)
+            pairs.append((row.base_revision, pair))
             remaining -= needed
-        messages = [system] + [m for pair in reversed(pairs) for m in pair]
+        messages = [system] + [m for _, pair in sorted(pairs) for m in pair]
         if evidence:
             messages.append(evidence)
         if continuity:
@@ -205,6 +213,26 @@ class ChatService:
             history_pairs=len(pairs),
             history_pairs_omitted=len(rows) - len(pairs),
         )
+        if quality:
+            result["plan"]["quality_context"] = {
+                "version": "ada-quality-context-v1",
+                "history_considered": len(rows),
+                "history_selected": len(pairs),
+                "history_search_truncated": truncated,
+                "evidence_selected": len(result["selected"]) + len(result["document_selected"]),
+                "candidate_pool_truncated": result["budget"]["candidate_pool_truncated"],
+                "continuity_reason": (learning or {}).get("continuity_reason", "not_enrolled"),
+                "continuity_search_truncated": (learning or {}).get(
+                    "continuity_search_truncated", False
+                ),
+                "omission_reasons": sorted(
+                    {
+                        c["decision"]
+                        for c in result["candidates"] + result["document_candidates"]
+                        if c["decision"] != "selected"
+                    }
+                ),
+            }
         return messages, result
 
     def chat(
@@ -403,7 +431,9 @@ class ChatService:
             raise ServiceError(409, "request_conflict") from exc
         return attempt, messages, None
 
-    def upgrade_prompt(self, owner, conversation_id):
+    def upgrade_prompt(self, owner, conversation_id, *, target=PROMPT_VERSION):
+        if target not in (PROMPT_VERSION, QUALITY_PROMPT_VERSION):
+            raise ServiceError(409, "unsupported_prompt_upgrade")
         with self.sessions.begin() as db:
             conversation = db.scalar(
                 select(Conversation)
@@ -412,17 +442,18 @@ class ChatService:
             )
             if conversation is None:
                 raise ServiceError(404, "conversation_not_found")
-            if conversation.prompt_version == PROMPT_VERSION:
+            if conversation.prompt_version == target:
                 return {
                     "id": conversation.id,
-                    "prompt_version": PROMPT_VERSION,
+                    "prompt_version": target,
                     "revision": conversation.revision,
                 }
-            if conversation.prompt_version not in (
+            supported = (
                 "ada-baseline-v1",
                 "ada-baseline-v2",
                 "ada-baseline-v3",
-            ):
+            ) + ((PROMPT_VERSION,) if target == QUALITY_PROMPT_VERSION else ())
+            if conversation.prompt_version not in supported:
                 raise ServiceError(409, "unsupported_prompt_upgrade")
             active = db.scalar(
                 select(Request.id).where(
@@ -433,24 +464,24 @@ class ChatService:
             )
             if active:
                 raise ServiceError(409, "conversation_busy")
-            new_prompt = build_prompt(conversation.personality_snapshot)
+            new_prompt = build_prompt(conversation.personality_snapshot, version=target)
             db.add(
                 PromptChange(
                     owner_id=owner,
                     conversation_id=conversation_id,
                     previous_version=conversation.prompt_version,
-                    new_version=PROMPT_VERSION,
+                    new_version=target,
                     previous_prompt=conversation.system_prompt,
                     new_prompt=new_prompt,
                 )
             )
-            conversation.system_prompt, conversation.prompt_version = new_prompt, PROMPT_VERSION
+            conversation.system_prompt, conversation.prompt_version = new_prompt, target
             # Failed attempts keep their original prompt snapshot. They must not
             # resume across an explicit change to the conversation's context.
             conversation.revision += 1
             return {
                 "id": conversation.id,
-                "prompt_version": PROMPT_VERSION,
+                "prompt_version": target,
                 "revision": conversation.revision,
             }
 

@@ -1,6 +1,6 @@
 # Phase 22 — password login and revocable sessions
 
-Status: **Proposed; planning only.** Inputs: 20 readiness, 18 device lifecycle,
+Status: **Implemented checkpoints A–E; isolated verification and target limits recorded in STATUS/WORKLOG. No live enrollment, migration or deployment.** Inputs: 20 readiness, 18 device lifecycle,
 G-21/G-28/G-32.21 is required before remote login, not local disposable tests.
 Follow [shared rules](FUTURE-ROADMAP.md). Existing owner IDs/admin grants survive.
 
@@ -75,3 +75,11 @@ remain deferred; no live account/password is changed by planning.
 Design references: OWASP [password storage](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html),
 [authentication](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html)
 and [session management](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html).
+
+## Implementation record
+
+See [the password/session guide](../docs/PASSWORD-LOGIN-AND-SESSIONS.md) for exact
+routes, normalization, Argon2 profile, admission/rotation limits, lost-delivery policy,
+Android v12 compatibility, HTTPS cookies/CSRF, legacy credential boundaries and
+0015/v1–0016/v2 restore quarantine. Physical/release HTTPS and manual review remain
+separate gates. Dated actual checks/skips are appended to STATUS and WORKLOG.

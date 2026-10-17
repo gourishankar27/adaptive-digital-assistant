@@ -1,12 +1,15 @@
 import type { QueryClient } from '@tanstack/react-query';
 import { AdaError, safeFailure, type ApiFailure } from './api/errors';
 import type { AdminApi, AdminMe } from './api/admin';
+import { browserAuth, CookieAdminApi } from './api/password';
 
 export type AdminState = { kind: 'disconnected' } | { kind: 'validating' } | { kind: 'connected'; server: string; operator: AdminMe; epoch: number } | { kind: 'error'; failure: ApiFailure };
 export class AdminSession {
   private state: AdminState = { kind: 'disconnected' };
   private epoch = 0;
   private api?: AdminApi;
+  private cookieServer?: string;
+  private renewAfter = 0;
   private cooldown?: { until: number; failure: ApiFailure };
   private listeners = new Set<() => void>();
   constructor(readonly queries: QueryClient, private factory: (server: string, token: string) => AdminApi) {}
@@ -19,8 +22,52 @@ export class AdminSession {
     void this.queries.cancelQueries(); this.queries.clear();
   }
   disconnect = () => { this.clear(); this.emit({ kind: 'disconnected' }); };
+  passwordMode = () => this.cookieServer !== undefined;
+  async changePassword(current_password: string, new_password: string) {
+    const server = this.cookieServer, epoch = this.epoch;
+    if (!server) return;
+    try { await browserAuth(server, 'password', { current_password, new_password }); if (epoch === this.epoch) this.disconnect(); }
+    catch (error) { if (epoch === this.epoch) { this.clear(); this.emit({ kind: 'error', failure: safeFailure(error) }); } }
+  }
+  logoutAll = () => {
+    const server = this.cookieServer;
+    this.disconnect(); this.cookieServer = undefined;
+    const epoch = this.epoch;
+    if (server) void browserAuth(server, 'logout-all').catch(() => {
+      if (epoch === this.epoch) this.emit({ kind: 'error', failure: { kind: 'authentication', message: 'Local data cleared. Server sign-out was not confirmed. Reconnect or ask the local operator to reset the password.', outcome: 'unknown' } });
+    });
+  };
+  logout = () => {
+    const server = this.cookieServer; this.cookieServer = undefined;
+    this.disconnect();
+    const epoch = this.epoch;
+    if (server) void browserAuth(server, 'logout').catch(() => {
+      if (epoch === this.epoch) this.emit({ kind: 'error', failure: { kind: 'authentication', message: 'Local data cleared. Server sign-out was not confirmed; reconnect and revoke this session, or use local password reset.', outcome: 'unknown' } });
+    });
+  };
+  async passwordLogin(server: string, username: string, password: string) {
+    await this.passwordSession(server, guard => browserAuth(server, 'login', { username, password }, undefined, guard));
+  }
+  async reopen(server: string) {
+    if (!server.startsWith('https://')) return;
+    await this.passwordSession(server, guard => browserAuth(server, 'refresh', {}, undefined, guard));
+  }
+  private async passwordSession(server: string, authenticate: (guard: () => boolean) => Promise<number | undefined>) {
+    this.clear(); const epoch = this.epoch; this.cookieServer = server;
+    this.emit({ kind: 'validating' });
+    try {
+      const expiresAt = await authenticate(() => epoch === this.epoch);
+      if (epoch !== this.epoch) return;
+      const api = new CookieAdminApi(server); this.api = api;
+      const operator = await api.adminMe();
+      if (epoch === this.epoch) { this.renewAfter = expiresAt ? expiresAt - Math.min(60000, Math.max(1000, (expiresAt - Date.now()) / 2)) : Date.now() + 300000; this.emit({ kind: 'connected', server, operator, epoch }); }
+    } catch (error) {
+      if (epoch === this.epoch) { this.clear(); this.emit({ kind: 'error', failure: safeFailure(error) }); }
+    }
+  }
   retryDeadline = () => this.cooldown?.until ?? 0;
   async connect(server: string, token: string) {
+    this.cookieServer = undefined;
     this.clear(); const epoch = this.epoch;
     if (this.cooldown && this.cooldown.until > Date.now()) { this.emit({ kind: 'error', failure: { ...this.cooldown.failure, retryAfterMs: this.cooldown.until - Date.now() } }); return; }
     this.emit({ kind: 'validating' });
@@ -41,6 +88,10 @@ export class AdminSession {
     return state.kind === 'connected' ? ['ada-admin', state.server, state.operator.id, state.epoch, resource, args] : ['ada-admin', 'disconnected', this.epoch, resource];
   }
   async read<T>(operation: (api: AdminApi) => Promise<T>): Promise<T> {
+    if (this.cookieServer && this.state.kind === 'connected' && Date.now() >= this.renewAfter) {
+      await this.reopen(this.cookieServer);
+      throw new AdaError({ kind: 'cancelled', message: 'Session renewed. Monitoring data is refreshing.', outcome: 'unavailable' });
+    }
     const api = this.api, epoch = this.epoch;
     if (!api || this.state.kind !== 'connected') throw new AdaError({ kind: 'authentication', message: 'Sign in to monitor ADA.', outcome: 'unavailable' });
     if (this.cooldown && this.cooldown.until > Date.now()) throw new AdaError({ ...this.cooldown.failure, retryAfterMs: this.cooldown.until - Date.now() });

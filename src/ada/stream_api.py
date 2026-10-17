@@ -6,7 +6,6 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Header, Query, Request
 from fastapi.responses import StreamingResponse
-from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.background import BackgroundTask
 
@@ -88,8 +87,7 @@ def stream_router(service, current_user, error_responses, chat_input, request_ou
                     released = True
                     service.observers.release()
 
-        authorization = request.headers.get("authorization", "")
-        credential = HTTPAuthorizationCredentials(scheme="Bearer", credentials=authorization[7:])
+        principal = request.scope["ada.principal"]
 
         async def observe():
             cursor = after
@@ -97,12 +95,7 @@ def stream_router(service, current_user, error_responses, chat_input, request_ou
                 while not await request.is_disconnected():
                     # Fresh principal check at each bounded batch/heartbeat, including token rotation.
                     try:
-                        valid = (
-                            request.app.state.security.authenticate(
-                                credential.credentials, touch=False
-                            ).owner
-                            == owner
-                        )
+                        valid = request.app.state.security.current(principal)
                     except ServiceError:
                         valid = False
                     if not valid:

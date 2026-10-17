@@ -14,7 +14,7 @@ function mount(path = '/overview', api = mockAdmin()) {
   const rendered = render(<QueryClientProvider client={queries}><MemoryRouter initialEntries={[path]}><App session={session} /></MemoryRouter></QueryClientProvider>);
   return { api, queries, session, ...rendered };
 }
-async function signIn(user: ReturnType<typeof userEvent.setup>) { await user.type(screen.getByLabelText('Bearer token'), 'synthetic-test-credential'); await user.click(screen.getByRole('button', { name: 'Sign in' })); }
+async function signIn(user: ReturnType<typeof userEvent.setup>) { if (!screen.queryByLabelText('Bearer token')) await user.click(screen.getByLabelText('Advanced: legacy bearer token')); await user.type(screen.getByLabelText('Bearer token'), 'synthetic-test-credential'); await user.click(screen.getByRole('button', { name: 'Sign in' })); }
 describe('admin views', () => {
   it('verifies admin permission and clears the input, cache and credential on logout', async () => {
     const { queries, api } = mount(), user = userEvent.setup();
@@ -23,7 +23,7 @@ describe('admin views', () => {
     expect(screen.getAllByText('Unknown / not measured')).toHaveLength(2);
     expect(JSON.stringify(queries.getQueryCache().getAll().map(q => q.queryKey))).not.toContain('synthetic-test-credential');
     expect(localStorage.length).toBe(0); expect(sessionStorage.length).toBe(0);
-    await user.click(screen.getByRole('button', { name: 'Sign out' })); expect(queries.getQueryCache().getAll()).toHaveLength(0); expect(api.disconnect).toHaveBeenCalled(); expect(screen.getByLabelText('Bearer token')).toHaveValue('');
+    await user.click(screen.getByRole('button', { name: 'Sign out' })); expect(queries.getQueryCache().getAll()).toHaveLength(0); expect(api.disconnect).toHaveBeenCalled(); expect(screen.getByLabelText('Password', { exact: true })).toHaveValue('');
   });
   it('denies an ordinary token and immediately removes a revoked detail', async () => {
     const { api, queries } = mount(`/requests/${owner}/${requestId}`), user = userEvent.setup();

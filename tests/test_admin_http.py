@@ -16,7 +16,12 @@ def test_admin_grant_http_monitoring_and_cli_revocation(harness):
         listener.bind(("127.0.0.1", 0))
         port = listener.getsockname()[1]
     environment = os.environ.copy()
-    environment.update(ADA_DATABASE_URL=h["settings"].database_url, ADA_PROVIDER="fake")
+    environment.update(
+        ADA_DATABASE_URL=h["settings"].database_url,
+        ADA_PROVIDER="fake",
+        ADA_CONSOLIDATION_WORKER_ENABLED="false",
+        ADA_DELETION_WORKER_ENABLED="false",
+    )
     marker = "SYNTHETIC_HTTP_PRIVATE_BODY"
     with tempfile.TemporaryFile() as logs:
         process = subprocess.Popen(
@@ -82,7 +87,7 @@ def test_admin_grant_http_monitoring_and_cli_revocation(harness):
                     headers=h["b"],
                     json={"request_id": str(uuid4()), "content": marker},
                 )
-                assert reply.status_code == 200
+                assert reply.status_code == 200, "Synthetic HTTP chat did not complete"
                 rid = reply.json()["request_id"]
                 response = client.get(f"/v1/admin/requests/{h['b_id']}/{rid}", headers=h["a"])
                 assert response.status_code == 200 and marker not in response.text

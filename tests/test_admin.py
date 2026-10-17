@@ -152,7 +152,10 @@ def test_admin_openapi_responses_and_actual_query_filters(harness):
         response = h["client"].get(path, headers=h["a"])
         assert response.status_code == 200
         assert_schema(response.json(), response_schema(document, schema_path, "get", 200), document)
-        assert document["paths"][schema_path]["get"]["security"] == [{"HTTPBearer": []}]
+        assert document["paths"][schema_path]["get"]["security"] == [
+            {"HTTPBearer": []},
+            {"APIKeyCookie": []},
+        ]
         assert response.headers["Cache-Control"] == "no-store"
     params = {
         "owner_id": h["a_id"],

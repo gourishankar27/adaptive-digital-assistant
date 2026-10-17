@@ -60,7 +60,10 @@ scope and current repository evidence take precedence over stale planning text.
   passwords, contact database/Ollama ports, or run model inference through a bypass.
 - Store credentials using the platform's suitable secure mechanism. Android keys
   belong in Keystore; encrypt the stored credential payload. The initial admin SPA
-  keeps its manually entered bearer token in memory. No token in browser local
+  keeps its advanced manually entered bearer token in memory. Phase22 ordinary
+  browser login uses Secure/HttpOnly/SameSite=Strict host-only cookies with exact
+  HTTPS-origin/CSRF checks; Android password mode persists only encrypted refresh
+  material and keeps access in memory. No password persistence. No token in browser local
   storage, URLs, analytics, crash reports, screenshot fixtures or committed config.
 - Account/server switching clears private caches, drafts, request state and loaded
   source cards. Cache keys include identity/server/scope/request as applicable.

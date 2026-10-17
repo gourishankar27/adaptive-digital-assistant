@@ -5,6 +5,7 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
@@ -36,6 +37,7 @@ class FoundationSmokeTest {
         compose.onNodeWithText("Welcome back.").assertIsDisplayed()
         compose.onNodeWithText("Connect").assertIsNotEnabled()
         compose.onNodeWithText("ADA server URL").performScrollTo().performTextInput("http://external.example")
+        compose.onNodeWithTag("connect-legacy").performScrollTo().performClick()
         compose.onNodeWithText("Bearer token").performScrollTo().performTextInput("invalid-test-only")
         compose.onNodeWithText("Connect").performScrollTo().performClick()
         compose.onNodeWithText("Check the entered values and try again.").performScrollTo().assertIsDisplayed()
@@ -63,6 +65,7 @@ class FoundationSmokeTest {
     @Test fun rejectedCredentialDisplaysSanitizedErrorWithRealHttp() {
         assumeTrue("Disposable HTTP helper must be explicitly provisioned", InstrumentationRegistry.getArguments().getString("adaHttpIntegration") == "true")
         compose.onNodeWithText("ADA server URL").performScrollTo().performTextInput("http://10.0.2.2:18764")
+        compose.onNodeWithTag("connect-legacy").performScrollTo().performClick()
         compose.onNodeWithText("Bearer token").performScrollTo().performTextInput("invalid-test-only")
         compose.onNodeWithText("Connect").performScrollTo().performClick()
         compose.waitUntil(timeoutMillis = 15_000) {

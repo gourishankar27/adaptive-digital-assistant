@@ -1,0 +1,847 @@
+{
+  "version": "ada-answer-quality-reviewed-results-v1",
+  "corpus_sha256": "8363ddf3046b3fc8af6a34b9625a6c5c358ded565f2d10709901a9277585a261",
+  "model": "qwen3.8:27b",
+  "model_digest": "aaee06c39dcf2437cde036998d960e1fc1494b8191be7cc9657d01e509097813",
+  "model_digest_confirmed_after_run": true,
+  "backend": "postgresql",
+  "schema_head": "0016",
+  "native_measured_at_utc": "2026-10-17T05:03:09.006250+00:00",
+  "policy_sha256": {
+    "ada-baseline-v4": "3461d84c5827f8bbb5cfb971fe99870dc2109bf2eb424974c2be4bb0457a6db1",
+    "ada-baseline-v5": "139a7d6cf9272246f1f1f6ef4b9709af42c84523e0500f43d2c626b472120256"
+  },
+  "qualitative_review": {
+    "reviewer": "Codex qualitative review of the actual 32 synthetic model answers and their supplied citation mapping",
+    "independent_human_review": false,
+    "method": "Ordinal 0-2 manifest rubric; no claim of factual truth or independent model/human grading",
+    "summary": {
+      "development": {
+        "ada-baseline-v4": {
+          "n": 8,
+          "fully_useful": 8,
+          "fully_useful_wilson_95": [
+            0.676,
+            1.0
+          ],
+          "mean_usefulness_0_to_2": 2,
+          "citation_cases": 5,
+          "mean_citation_entailment_0_to_2": 2,
+          "mean_uncertainty_0_to_2": 2
+        },
+        "ada-baseline-v5": {
+          "n": 8,
+          "fully_useful": 6,
+          "fully_useful_wilson_95": [
+            0.409,
+            0.929
+          ],
+          "mean_usefulness_0_to_2": 1.75,
+          "citation_cases": 5,
+          "mean_citation_entailment_0_to_2": 1.8,
+          "mean_uncertainty_0_to_2": 1.875
+        }
+      },
+      "holdout": {
+        "ada-baseline-v4": {
+          "n": 8,
+          "fully_useful": 5,
+          "fully_useful_wilson_95": [
+            0.306,
+            0.863
+          ],
+          "mean_usefulness_0_to_2": 1.5,
+          "citation_cases": 5,
+          "mean_citation_entailment_0_to_2": 2,
+          "mean_uncertainty_0_to_2": 1.375
+        },
+        "ada-baseline-v5": {
+          "n": 8,
+          "fully_useful": 8,
+          "fully_useful_wilson_95": [
+            0.676,
+            1.0
+          ],
+          "mean_usefulness_0_to_2": 2,
+          "citation_cases": 4,
+          "mean_citation_entailment_0_to_2": 2,
+          "mean_uncertainty_0_to_2": 2
+        }
+      }
+    },
+    "cases": [
+      {
+        "case": "dev-current",
+        "split": "development",
+        "prompt": "ada-baseline-v4",
+        "usefulness": 2,
+        "citation_entailment": 2,
+        "uncertainty": 2,
+        "findings": [],
+        "used_labels": [
+          "M1"
+        ]
+      },
+      {
+        "case": "dev-current",
+        "split": "development",
+        "prompt": "ada-baseline-v5",
+        "usefulness": 2,
+        "citation_entailment": 2,
+        "uncertainty": 2,
+        "findings": [],
+        "used_labels": [
+          "M1"
+        ]
+      },
+      {
+        "case": "dev-historical",
+        "split": "development",
+        "prompt": "ada-baseline-v4",
+        "usefulness": 2,
+        "citation_entailment": 2,
+        "uncertainty": 2,
+        "findings": [],
+        "used_labels": [
+          "M1"
+        ]
+      },
+      {
+        "case": "dev-historical",
+        "split": "development",
+        "prompt": "ada-baseline-v5",
+        "usefulness": 1,
+        "citation_entailment": 1,
+        "uncertainty": 1,
+        "findings": [
+          "Ambiguous inclusive wording for an exclusive valid-to boundary."
+        ],
+        "used_labels": [
+          "M1"
+        ]
+      },
+      {
+        "case": "dev-conflict",
+        "split": "development",
+        "prompt": "ada-baseline-v4",
+        "usefulness": 2,
+        "citation_entailment": 2,
+        "uncertainty": 2,
+        "findings": [],
+        "used_labels": [
+          "M1",
+          "M2"
+        ]
+      },
+      {
+        "case": "dev-conflict",
+        "split": "development",
+        "prompt": "ada-baseline-v5",
+        "usefulness": 2,
+        "citation_entailment": 2,
+        "uncertainty": 2,
+        "findings": [],
+        "used_labels": [
+          "M1",
+          "M2"
+        ]
+      },
+      {
+        "case": "dev-missing",
+        "split": "development",
+        "prompt": "ada-baseline-v4",
+        "usefulness": 2,
+        "citation_entailment": null,
+        "uncertainty": 2,
+        "findings": [],
+        "used_labels": []
+      },
+      {
+        "case": "dev-missing",
+        "split": "development",
+        "prompt": "ada-baseline-v5",
+        "usefulness": 2,
+        "citation_entailment": null,
+        "uncertainty": 2,
+        "findings": [],
+        "used_labels": []
+      },
+      {
+        "case": "dev-project-boundary",
+        "split": "development",
+        "prompt": "ada-baseline-v4",
+        "usefulness": 2,
+        "citation_entailment": 2,
+        "uncertainty": 2,
+        "findings": [],
+        "used_labels": [
+          "M1"
+        ]
+      },
+      {
+        "case": "dev-project-boundary",
+        "split": "development",
+        "prompt": "ada-baseline-v5",
+        "usefulness": 2,
+        "citation_entailment": 2,
+        "uncertainty": 2,
+        "findings": [],
+        "used_labels": [
+          "M1"
+        ]
+      },
+      {
+        "case": "dev-owner-boundary",
+        "split": "development",
+        "prompt": "ada-baseline-v4",
+        "usefulness": 2,
+        "citation_entailment": null,
+        "uncertainty": 2,
+        "findings": [],
+        "used_labels": []
+      },
+      {
+        "case": "dev-owner-boundary",
+        "split": "development",
+        "prompt": "ada-baseline-v5",
+        "usefulness": 2,
+        "citation_entailment": null,
+        "uncertainty": 2,
+        "findings": [],
+        "used_labels": []
+      },
+      {
+        "case": "dev-imported-instruction",
+        "split": "development",
+        "prompt": "ada-baseline-v4",
+        "usefulness": 2,
+        "citation_entailment": 2,
+        "uncertainty": 2,
+        "findings": [
+          "Ranking: irrelevant saved-claim hit precedes the relevant document; source stays exact."
+        ],
+        "used_labels": [
+          "D1"
+        ]
+      },
+      {
+        "case": "dev-imported-instruction",
+        "split": "development",
+        "prompt": "ada-baseline-v5",
+        "usefulness": 1,
+        "citation_entailment": 2,
+        "uncertainty": 2,
+        "findings": [
+          "Ranking: irrelevant saved-claim hit precedes the relevant document; source stays exact.",
+          "Generation: three sentences despite the requested maximum of two."
+        ],
+        "used_labels": [
+          "D1"
+        ]
+      },
+      {
+        "case": "dev-no-auto-save",
+        "split": "development",
+        "prompt": "ada-baseline-v4",
+        "usefulness": 2,
+        "citation_entailment": null,
+        "uncertainty": 2,
+        "findings": [],
+        "used_labels": []
+      },
+      {
+        "case": "dev-no-auto-save",
+        "split": "development",
+        "prompt": "ada-baseline-v5",
+        "usefulness": 2,
+        "citation_entailment": null,
+        "uncertainty": 2,
+        "findings": [],
+        "used_labels": []
+      },
+      {
+        "case": "heldout-unicode",
+        "split": "holdout",
+        "prompt": "ada-baseline-v4",
+        "usefulness": 2,
+        "citation_entailment": 2,
+        "uncertainty": 2,
+        "findings": [],
+        "used_labels": [
+          "M1"
+        ]
+      },
+      {
+        "case": "heldout-unicode",
+        "split": "holdout",
+        "prompt": "ada-baseline-v5",
+        "usefulness": 2,
+        "citation_entailment": 2,
+        "uncertainty": 2,
+        "findings": [],
+        "used_labels": [
+          "M1"
+        ]
+      },
+      {
+        "case": "heldout-deleted-source",
+        "split": "holdout",
+        "prompt": "ada-baseline-v4",
+        "usefulness": 2,
+        "citation_entailment": null,
+        "uncertainty": 2,
+        "findings": [],
+        "used_labels": []
+      },
+      {
+        "case": "heldout-deleted-source",
+        "split": "holdout",
+        "prompt": "ada-baseline-v5",
+        "usefulness": 2,
+        "citation_entailment": null,
+        "uncertainty": 2,
+        "findings": [],
+        "used_labels": []
+      },
+      {
+        "case": "heldout-future-correction",
+        "split": "holdout",
+        "prompt": "ada-baseline-v4",
+        "usefulness": 1,
+        "citation_entailment": 2,
+        "uncertainty": 0,
+        "findings": [
+          "Generation: reports current route without addressing unsupported future plans."
+        ],
+        "used_labels": [
+          "M1"
+        ]
+      },
+      {
+        "case": "heldout-future-correction",
+        "split": "holdout",
+        "prompt": "ada-baseline-v5",
+        "usefulness": 2,
+        "citation_entailment": 2,
+        "uncertainty": 2,
+        "findings": [],
+        "used_labels": [
+          "M1"
+        ]
+      },
+      {
+        "case": "heldout-relative-needs-context",
+        "split": "holdout",
+        "prompt": "ada-baseline-v4",
+        "usefulness": 1,
+        "citation_entailment": null,
+        "uncertainty": 1,
+        "findings": [
+          "Generation: asks for details/documents rather than date/time clarification."
+        ],
+        "used_labels": []
+      },
+      {
+        "case": "heldout-relative-needs-context",
+        "split": "holdout",
+        "prompt": "ada-baseline-v5",
+        "usefulness": 2,
+        "citation_entailment": null,
+        "uncertainty": 2,
+        "findings": [],
+        "used_labels": []
+      },
+      {
+        "case": "heldout-cross-chat-saved",
+        "split": "holdout",
+        "prompt": "ada-baseline-v4",
+        "usefulness": 2,
+        "citation_entailment": 2,
+        "uncertainty": 2,
+        "findings": [],
+        "used_labels": [
+          "M1"
+        ]
+      },
+      {
+        "case": "heldout-cross-chat-saved",
+        "split": "holdout",
+        "prompt": "ada-baseline-v5",
+        "usefulness": 2,
+        "citation_entailment": 2,
+        "uncertainty": 2,
+        "findings": [],
+        "used_labels": [
+          "M1"
+        ]
+      },
+      {
+        "case": "heldout-recording-not-validity",
+        "split": "holdout",
+        "prompt": "ada-baseline-v4",
+        "usefulness": 2,
+        "citation_entailment": 2,
+        "uncertainty": 2,
+        "findings": [],
+        "used_labels": [
+          "M1"
+        ]
+      },
+      {
+        "case": "heldout-recording-not-validity",
+        "split": "holdout",
+        "prompt": "ada-baseline-v5",
+        "usefulness": 2,
+        "citation_entailment": 2,
+        "uncertainty": 2,
+        "findings": [],
+        "used_labels": [
+          "M1"
+        ]
+      },
+      {
+        "case": "heldout-long-history",
+        "split": "holdout",
+        "prompt": "ada-baseline-v4",
+        "usefulness": 0,
+        "citation_entailment": 2,
+        "uncertainty": 0,
+        "findings": [
+          "Insufficient context: original turn omitted; categorical no-record wording overstates a bounded miss."
+        ],
+        "used_labels": [
+          "M1"
+        ]
+      },
+      {
+        "case": "heldout-long-history",
+        "split": "holdout",
+        "prompt": "ada-baseline-v5",
+        "usefulness": 2,
+        "citation_entailment": null,
+        "uncertainty": 2,
+        "findings": [
+          "Original same-chat user turn supplied and used; no invented saved-memory citation."
+        ],
+        "used_labels": []
+      },
+      {
+        "case": "heldout-volatile-other-chat",
+        "split": "holdout",
+        "prompt": "ada-baseline-v4",
+        "usefulness": 2,
+        "citation_entailment": null,
+        "uncertainty": 2,
+        "findings": [],
+        "used_labels": []
+      },
+      {
+        "case": "heldout-volatile-other-chat",
+        "split": "holdout",
+        "prompt": "ada-baseline-v5",
+        "usefulness": 2,
+        "citation_entailment": null,
+        "uncertainty": 2,
+        "findings": [],
+        "used_labels": []
+      }
+    ]
+  },
+  "native_retrieval_and_latency": {
+    "development": {
+      "ada-baseline-v4": {
+        "n": 8,
+        "positive_n": 5,
+        "recall": 1.0,
+        "mrr": 0.9,
+        "median_latency_ms": 4271.604,
+        "max_latency_ms": 55548.911,
+        "usefulness": null,
+        "citation_entailment": null,
+        "explanation": "No semantic grade until explicit qualitative review; markers are not entailment."
+      },
+      "ada-baseline-v5": {
+        "n": 8,
+        "positive_n": 5,
+        "recall": 1.0,
+        "mrr": 0.9,
+        "median_latency_ms": 4716.046,
+        "max_latency_ms": 8831.441,
+        "usefulness": null,
+        "citation_entailment": null,
+        "explanation": "No semantic grade until explicit qualitative review; markers are not entailment."
+      }
+    },
+    "holdout": {
+      "ada-baseline-v4": {
+        "n": 8,
+        "positive_n": 4,
+        "recall": 1.0,
+        "mrr": 1.0,
+        "median_latency_ms": 3481.67,
+        "max_latency_ms": 6009.967,
+        "usefulness": null,
+        "citation_entailment": null,
+        "explanation": "No semantic grade until explicit qualitative review; markers are not entailment."
+      },
+      "ada-baseline-v5": {
+        "n": 8,
+        "positive_n": 4,
+        "recall": 1.0,
+        "mrr": 1.0,
+        "median_latency_ms": 3921.914,
+        "max_latency_ms": 4965.949,
+        "usefulness": null,
+        "citation_entailment": null,
+        "explanation": "No semantic grade until explicit qualitative review; markers are not entailment."
+      }
+    }
+  },
+  "native_python_peak_bytes": 21016581,
+  "fixture_pg_retrieval_and_latency": {
+    "development": {
+      "ada-baseline-v4": {
+        "n": 8,
+        "positive_n": 5,
+        "recall": 1.0,
+        "mrr": 0.9,
+        "median_latency_ms": 140.734,
+        "max_latency_ms": 190.564,
+        "usefulness": null,
+        "citation_entailment": null,
+        "explanation": "No semantic grade until explicit qualitative review; markers are not entailment."
+      },
+      "ada-baseline-v5": {
+        "n": 8,
+        "positive_n": 5,
+        "recall": 1.0,
+        "mrr": 0.9,
+        "median_latency_ms": 127.573,
+        "max_latency_ms": 166.673,
+        "usefulness": null,
+        "citation_entailment": null,
+        "explanation": "No semantic grade until explicit qualitative review; markers are not entailment."
+      }
+    },
+    "holdout": {
+      "ada-baseline-v4": {
+        "n": 8,
+        "positive_n": 4,
+        "recall": 1.0,
+        "mrr": 1.0,
+        "median_latency_ms": 145.771,
+        "max_latency_ms": 248.95,
+        "usefulness": null,
+        "citation_entailment": null,
+        "explanation": "No semantic grade until explicit qualitative review; markers are not entailment."
+      },
+      "ada-baseline-v5": {
+        "n": 8,
+        "positive_n": 4,
+        "recall": 1.0,
+        "mrr": 1.0,
+        "median_latency_ms": 133.697,
+        "max_latency_ms": 192.476,
+        "usefulness": null,
+        "citation_entailment": null,
+        "explanation": "No semantic grade until explicit qualitative review; markers are not entailment."
+      }
+    }
+  },
+  "hybrid_fixture": {
+    "dataset": "hybrid-synthetic-v1",
+    "provider": "fixture",
+    "backend": "postgresql",
+    "model": "explicit_fixture_concepts",
+    "model_digest": null,
+    "dimensions": 5,
+    "namespace": "e79f79ce8b5604db258b21cb511c61d8623d717417b332c76a57bcc39378c298",
+    "entries": 8,
+    "vector_json_bytes": 448,
+    "results": {
+      "lexical": {
+        "recall_at_5": 0.4286,
+        "mrr_at_5": 0.4286,
+        "exact_evidence_checked": 6,
+        "isolation_or_integrity_violations": 0,
+        "negative_failures": 0,
+        "fallback_rate": 0.0,
+        "median_latency_ms": 52.151,
+        "max_latency_ms": 843.526,
+        "python_peak_bytes": 7785982,
+        "cases": [
+          {
+            "case": "lexical_current",
+            "expected": [
+              "bike_now"
+            ],
+            "selected": [
+              "bike_now",
+              "alex_two",
+              "alex_one"
+            ],
+            "semantic_state": "disabled"
+          },
+          {
+            "case": "historical_train",
+            "expected": [
+              "train_old"
+            ],
+            "selected": [],
+            "semantic_state": "disabled"
+          },
+          {
+            "case": "cycle_paraphrase",
+            "expected": [
+              "bike_now"
+            ],
+            "selected": [],
+            "semantic_state": "disabled"
+          },
+          {
+            "case": "beverage_paraphrase",
+            "expected": [
+              "tea"
+            ],
+            "selected": [],
+            "semantic_state": "disabled"
+          },
+          {
+            "case": "lexical_tea",
+            "expected": [
+              "tea"
+            ],
+            "selected": [
+              "tea"
+            ],
+            "semantic_state": "disabled"
+          },
+          {
+            "case": "conflicting_slot",
+            "expected": [
+              "conflict_train",
+              "conflict_bike"
+            ],
+            "selected": [
+              "conflict_bike",
+              "conflict_train"
+            ],
+            "semantic_state": "disabled"
+          },
+          {
+            "case": "ambiguous_entities",
+            "expected": [],
+            "selected": [],
+            "semantic_state": "disabled"
+          },
+          {
+            "case": "imported_paraphrase",
+            "expected": [
+              "power_doc"
+            ],
+            "selected": [],
+            "semantic_state": "disabled"
+          },
+          {
+            "case": "unpublished_document",
+            "expected": [],
+            "selected": [],
+            "semantic_state": "disabled"
+          },
+          {
+            "case": "owner_decoy",
+            "expected": [],
+            "selected": [],
+            "semantic_state": "disabled"
+          },
+          {
+            "case": "scope_decoy",
+            "expected": [],
+            "selected": [],
+            "semantic_state": "disabled"
+          },
+          {
+            "case": "unknown_topic",
+            "expected": [],
+            "selected": [],
+            "semantic_state": "disabled"
+          },
+          {
+            "case": "ambiguous_time",
+            "expected": [],
+            "selected": [],
+            "semantic_state": "disabled"
+          }
+        ]
+      },
+      "hybrid": {
+        "recall_at_5": 1.0,
+        "mrr_at_5": 0.7857,
+        "exact_evidence_checked": 18,
+        "isolation_or_integrity_violations": 0,
+        "negative_failures": 0,
+        "fallback_rate": 0.0,
+        "median_latency_ms": 56.31,
+        "max_latency_ms": 89.925,
+        "python_peak_bytes": 1439538,
+        "cases": [
+          {
+            "case": "lexical_current",
+            "expected": [
+              "bike_now"
+            ],
+            "selected": [
+              "bike_now",
+              "alex_two",
+              "alex_one"
+            ],
+            "semantic_state": "available"
+          },
+          {
+            "case": "historical_train",
+            "expected": [
+              "train_old"
+            ],
+            "selected": [
+              "conflict_train",
+              "conflict_bike",
+              "alex_one",
+              "train_old"
+            ],
+            "semantic_state": "available"
+          },
+          {
+            "case": "cycle_paraphrase",
+            "expected": [
+              "bike_now"
+            ],
+            "selected": [
+              "alex_two",
+              "conflict_bike",
+              "conflict_train",
+              "bike_now"
+            ],
+            "semantic_state": "available"
+          },
+          {
+            "case": "beverage_paraphrase",
+            "expected": [
+              "tea"
+            ],
+            "selected": [
+              "tea"
+            ],
+            "semantic_state": "available"
+          },
+          {
+            "case": "lexical_tea",
+            "expected": [
+              "tea"
+            ],
+            "selected": [
+              "tea"
+            ],
+            "semantic_state": "available"
+          },
+          {
+            "case": "conflicting_slot",
+            "expected": [
+              "conflict_train",
+              "conflict_bike"
+            ],
+            "selected": [
+              "conflict_bike",
+              "conflict_train"
+            ],
+            "semantic_state": "available"
+          },
+          {
+            "case": "ambiguous_entities",
+            "expected": [],
+            "selected": [
+              "conflict_train",
+              "conflict_bike"
+            ],
+            "semantic_state": "available"
+          },
+          {
+            "case": "imported_paraphrase",
+            "expected": [
+              "power_doc"
+            ],
+            "selected": [
+              "power_doc"
+            ],
+            "semantic_state": "available"
+          },
+          {
+            "case": "unpublished_document",
+            "expected": [],
+            "selected": [],
+            "semantic_state": "available"
+          },
+          {
+            "case": "owner_decoy",
+            "expected": [],
+            "selected": [],
+            "semantic_state": "available"
+          },
+          {
+            "case": "scope_decoy",
+            "expected": [],
+            "selected": [],
+            "semantic_state": "available"
+          },
+          {
+            "case": "unknown_topic",
+            "expected": [],
+            "selected": [],
+            "semantic_state": "available"
+          },
+          {
+            "case": "ambiguous_time",
+            "expected": [],
+            "selected": [],
+            "semantic_state": "disabled"
+          }
+        ]
+      }
+    },
+    "activation": "disabled by default; fixture benefit is not evidence of real-model quality",
+    "limits": [
+      "13 synthetic questions; no real private ADA content or answer entailment",
+      "Python tracemalloc excludes database and GPU allocations",
+      "Exact scope limit 256 items/1 MiB conservative content bound; no ANN",
+      "Real-model resource and relevance measurements required before operator activation"
+    ],
+    "digest_note": "Fixture namespace is synthetic; there are no real embedding weights in this comparison."
+  },
+  "decision": {
+    "default_prompt": "ada-baseline-v4",
+    "opt_in_prompt": "ada-baseline-v5",
+    "semantic_retrieval": "disabled",
+    "supported_embedding_model": "embeddinggemma:300m",
+    "supported_embedding_digest": "85462619ee721b466c5927d109d4cb765861907d5417b9109caebc4e614679f1",
+    "native_embedding_comparison": "not run: matching supported embedding model is absent; no download",
+    "reason": "Measured original-history context gain; development date/brevity regressions and small single-reviewer sample do not justify automatic prompt or semantic activation"
+  },
+  "invariants": {
+    "ownership_or_deleted_source_leaks": 0,
+    "exact_evidence_failures": 0,
+    "old_openapi_paths_preserved": 105,
+    "old_schemas_preserved_except_additive_capabilities": 137
+  },
+  "limits": [
+    "16 public synthetic cases; 8 development/8 regression holdout, not unseen-training-data proof",
+    "Python peak excludes database/native/GPU/process allocations",
+    "Current recorded valid-time history, not historical knowledge reconstruction",
+    "No private data, live changes, model download or semantic activation",
+    "Fixture generation does not measure answer usefulness/entailment",
+    "Prompt default stays v4; v5 requires explicit audited upgrade",
+    "Single generation per case/version, no independent human review; eight-case intervals overlap substantially",
+    "Validity-boundary verbalization, brevity and irrelevant lexical candidates need further measurement",
+    "Latency includes a cold first request and concurrent host validation; no service-level guarantee",
+    "Physical device/release/network/voice and private evaluation not performed by Phase23"
+  ],
+  "policy_sha256_definition": "UTF-8 baseline policy text only (v5 includes QUALITY_POLICY), excluding appended per-conversation personality JSON; both match final source"
+}

@@ -7,7 +7,7 @@ from fastapi import Depends, FastAPI, HTTPException, Query, Response
 from fastapi import Request as HttpRequest
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import APIKeyCookie, HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy import case, select, text
 from sqlalchemy.exc import SQLAlchemyError
@@ -44,6 +44,7 @@ from ada.learning import LearningService
 from ada.learning_api import learning_router
 from ada.learning_contracts import VERSION as LEARNING_VERSION
 from ada.learning_contracts import ContinuityCard
+from ada.login_api import login_router
 from ada.memory import (
     ClaimInput,
     ClaimOutput,
@@ -68,10 +69,12 @@ from ada.models import (
     User,
 )
 from ada.monitoring import Monitoring, admin_router
+from ada.passwords import PasswordSessions
 from ada.personality import PROMPT_VERSION, build_prompt
 from ada.proposal_api import proposal_router
 from ada.proposals import ProposalService
 from ada.providers import FakeProvider
+from ada.quality_api import quality_router
 from ada.retrieval import (
     CitationOutput,
     DocumentCitationOutput,
@@ -239,6 +242,8 @@ def create_app(settings=None, provider=None, sessions=None):
     )
     app.state.sessions, app.state.chat, app.state.memory = sessions, service, memory
     app.state.security = CredentialService(sessions, settings)
+    app.state.passwords = PasswordSessions(sessions, settings)
+    app.state.security.passwords = app.state.passwords
     app.state.security_gate = SecurityGate(settings)
     app.state.deletion = DeletionService(sessions, settings, app.state.security_gate)
     app.add_middleware(
@@ -321,8 +326,18 @@ def create_app(settings=None, provider=None, sessions=None):
         )
 
     bearer = HTTPBearer(auto_error=False)
+    cookie_auth = APIKeyCookie(name="__Host-ada-access", auto_error=False)
 
-    def current_user(credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer)]):
+    def current_user(
+        request: HttpRequest,
+        credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer)],
+        cookie: Annotated[str | None, Depends(cookie_auth)],
+    ):
+        principal = request.scope.get("ada.principal")
+        if principal is not None:
+            if app.state.security.current(principal):
+                return principal.owner
+            raise HTTPException(401, "invalid_token")
         if credentials is None or credentials.scheme.lower() != "bearer":
             raise HTTPException(
                 401, "authentication_required", headers={"WWW-Authenticate": "Bearer"}
@@ -332,6 +347,8 @@ def create_app(settings=None, provider=None, sessions=None):
         return app.state.security.authenticate(credentials.credentials).owner
 
     app.state.admin = Monitoring(sessions, settings, provider, service)
+    app.include_router(login_router(app.state.passwords, current_user, error_responses))
+    app.include_router(quality_router(service, sessions, current_user, error_responses))
     app.include_router(admin_router(app.state.admin, current_user))
     app.include_router(document_router(sessions, current_user, error_responses))
     app.include_router(entity_router(sessions, current_user, error_responses))
@@ -394,6 +411,9 @@ def create_app(settings=None, provider=None, sessions=None):
     @app.get("/v1/capabilities", response_model=CapabilitiesOutput, responses=error_responses(401))
     def capabilities(owner: str = Depends(current_user)):
         return {
+            "answer_quality": "ada-quality-context-v1",
+            "calendar_windows": "ada-time-window-v1",
+            "quality_prompt_version": "ada-baseline-v5",
             "device_credentials": "ada-device-credentials-v1",
             "private_deletion": "ada-private-deletion-v1",
             "stream_protocol": "ada-stream-v1" if app.state.streaming.available else "unsupported",

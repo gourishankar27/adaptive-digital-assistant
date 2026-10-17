@@ -40,7 +40,10 @@ fun ApiFailure.message(): String = when (this) {
     is ApiFailure.Busy -> "ADA is busy. Wait and try again."
     ApiFailure.Provider -> "The model provider is unavailable. Try again later."
     ApiFailure.Timeout -> "The connection timed out. Check your connection and try again. A timeout does not establish whether a submitted request completed."
-    ApiFailure.Unreachable -> "ADA could not be reached. Check the server address and connection."
+    ApiFailure.Unreachable -> "ADA could not be reached. Check the address, Wi-Fi or VPN, firewall, proxy and server. This error does not identify which is unavailable. Retry after restoring the connection."
+    ApiFailure.Tls -> "The secure server identity could not be verified. Check the hostname, certificate trust/expiry and device clock. Do not bypass certificate checks."
+    ApiFailure.Dns -> "The server name could not be resolved. Check spelling, DNS and your private network or VPN, then retry."
+    ApiFailure.ServerNotReady -> "The server was reached but its database is not ready. Ask the server operator to check connectivity and migrations, then retry."
     ApiFailure.IncompatibleContract -> "This server returned an incompatible API contract. Check the server version."
     is ApiFailure.Http -> "The server could not complete the request (HTTP $status). Try again later."
 }

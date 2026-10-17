@@ -1,6 +1,24 @@
 # How to use ADA — developer setup and everyday operation
 
+For your current laptop, start with
+[Windows + Tailscale private setup](PRIVATE-SETUP-WINDOWS-TAILSCALE.md): corrected
+`.env`, managed TLS, exact HTTPS/password login, manual startup and device steps.
+It records the separately authorized setup after the earlier implementation runs.
+
+## Current Phase22 sign-in update
+
+Current source requires0016. Follow the [password/session installation guide](PASSWORD-LOGIN-AND-SESSIONS.md)
+for pinned installation, backup/migration, `ada login-accounts`, hidden-prompt
+`ada set-password ACCOUNT_UUID login`, exact HTTPS browser origin, ordinary
+username/password use and troubleshooting. This is now the normal client sign-in;
+older token instructions below remain the explicit legacy/development path.
+No password is derived from an existing token/name and no live password was set
+by implementation. Preserve owner UUIDs and separate admin grants.
+
 Updated **16 October 2026**, for Phase 20 readiness tooling and database head **0015**.
+Phase21 now adds saved Android HTTPS addresses, pre-login readiness and separately
+installed private routes; see [PRIVATE-NETWORK-CONNECTIVITY](PRIVATE-NETWORK-CONNECTIVITY.md).
+No remote route was deployed by implementing that phase.
 This guide covers the implemented server, Android app and admin dashboard through
 Phase18. Phase17-A hardening is implemented with remaining physical audio gates;
 Phase19 remains conditional and unimplemented. See [security and operations](SECURITY-AND-OPERATIONS.md)
@@ -255,7 +273,7 @@ From the repository root:
 .\.venv\Scripts\python.exe -m alembic check
 ```
 
-For this source version, both head/current should report **0015**. `alembic check`
+For this source version, both head/current should report **0016**. `alembic check`
 should find no new upgrade operations. Run the chain to the actual head; do not
 edit released migration files or use `stamp head` to bypass missing schema changes.
 
@@ -357,7 +375,7 @@ Use PostgreSQL client binaries matching the intended server major version. A raw
 `pg_dump` file or `pg_restore --list` result alone is not the selected recovery procedure.
 For an installation at0005, Phase 20 now provides a separate encrypted pre-upgrade
 tool and isolated restore/upgrade rehearsal in [RELEASE-READINESS](RELEASE-READINESS.md).
-The normal Phase18 tool still requires0015. Other older heads need their own
+The normal recovery tool supports reviewed0015/v1 and0016/v2. Other older heads need their own
 previously verified protected recovery procedure before migration; no tool upgrades
 the source merely to make a backup possible. Verify the actual head privately.
 Do not overwrite live databases or delete the existing Docker volume during a drill.
@@ -608,7 +626,7 @@ before clearing app storage or uninstalling.
 ### Step 1 — check backend readiness and your explicit grant
 
 Before starting the web UI, verify section 4's readiness check and section 6's
-token/account UUID. The current backend must be at head **0015**. Admin access
+token/account UUID. The current backend must be at head **0016**. Admin access
 requires an explicit monitoring grant; migration alone never grants a role.
 
 ### Step 2 — install locked web dependencies and start Vite
@@ -1037,7 +1055,7 @@ can point an otherwise correct checkout at a different database/provider.
 | Port5432/8000/5173 is occupied | Inspect with `Get-NetTCPConnection -State Listen -LocalPort 5432,8000,5173`. Identify the owner before stopping anything. Existing native PostgreSQL may be intentional. Vite uses strict port 5173. |
 | API address8000 needs to change | Start with `scripts/start.ps1 -Port 8001`; update Android URL/USB reverse and Vite `ADA_API_TARGET` together. Changing only one client setting leaves other paths pointing at 8000. |
 | `/health/live` refuses the connection | The API is not listening there. Check terminal A, its startup error, working directory and configured port. Docker PostgreSQL alone does not start ADA. |
-| Liveness works, but `/health/ready` returns503 `database_not_ready` | Check database connectivity and `alembic current` versus `heads`. Back up/stop API/migrate the intended database using section 5; current source expects 0015. Never stamp over missing tables. |
+| Liveness works, but `/health/ready` returns503 `database_not_ready` | Check database connectivity and `alembic current` versus `heads`. Back up/stop API/migrate the intended database using section 5; current source expects0016. Never stamp over missing tables. |
 | Admin login says “The server is unavailable or busy” | First check readiness on 8000, not 5173. Then check Vite's proxy target and the API's capacity/Retry-After. A running backend with old schema is still not ready. Keep browser origin 5173; do not substitute 8000. |
 | Admin says monitoring is unavailable | Confirm supported current schema/source and proxy reachability. Apply intended migrations after backup, restart the backend, and retry; older monitoring-readiness problems are not fixed by repeated login. |
 | Token rejected/HTTP401 | Use the current secret for an existing account, without `Bearer ` in client fields. Rotation revokes the old token. A username/account UUID/password is not a bearer token. |

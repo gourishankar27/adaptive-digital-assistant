@@ -6,6 +6,1853 @@
     "version": "0.2.0"
   },
   "paths": {
+    "/v1/auth/login": {
+      "post": {
+        "tags": [
+          "password sessions"
+        ],
+        "summary": "Login",
+        "operationId": "login_v1_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/refresh": {
+      "post": {
+        "tags": [
+          "password sessions"
+        ],
+        "summary": "Refresh",
+        "operationId": "refresh_v1_auth_refresh_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/browser/login": {
+      "post": {
+        "tags": [
+          "password sessions"
+        ],
+        "summary": "Browser Login",
+        "operationId": "browser_login_v1_auth_browser_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthAcknowledgement"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/browser/refresh": {
+      "post": {
+        "tags": [
+          "password sessions"
+        ],
+        "summary": "Browser Refresh",
+        "operationId": "browser_refresh_v1_auth_browser_refresh_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthAcknowledgement"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/sessions": {
+      "get": {
+        "tags": [
+          "password sessions"
+        ],
+        "summary": "Sessions",
+        "operationId": "sessions_v1_auth_sessions_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SessionMetadata"
+                  },
+                  "type": "array",
+                  "title": "Response Sessions V1 Auth Sessions Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
+          }
+        ]
+      }
+    },
+    "/v1/auth/logout": {
+      "post": {
+        "tags": [
+          "password sessions"
+        ],
+        "summary": "Logout",
+        "operationId": "logout_v1_auth_logout_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthAcknowledgement"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
+          }
+        ]
+      }
+    },
+    "/v1/auth/logout-all": {
+      "post": {
+        "tags": [
+          "password sessions"
+        ],
+        "summary": "Logout All",
+        "operationId": "logout_all_v1_auth_logout_all_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthAcknowledgement"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
+          }
+        ]
+      }
+    },
+    "/v1/auth/sessions/{session_id}/revoke": {
+      "post": {
+        "tags": [
+          "password sessions"
+        ],
+        "summary": "Revoke",
+        "operationId": "revoke_v1_auth_sessions__session_id__revoke_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthAcknowledgement"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/password": {
+      "post": {
+        "tags": [
+          "password sessions"
+        ],
+        "summary": "Password",
+        "operationId": "password_v1_auth_password_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordChangeInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthAcknowledgement"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
+          }
+        ]
+      }
+    },
+    "/v1/temporal/resolve": {
+      "post": {
+        "tags": [
+          "answer-quality"
+        ],
+        "summary": "Resolve",
+        "operationId": "resolve_v1_temporal_resolve_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimeSelection"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeResolution"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
+          }
+        ]
+      }
+    },
+    "/v1/scopes/{scope_id}/retrieve-window": {
+      "post": {
+        "tags": [
+          "answer-quality"
+        ],
+        "summary": "Window",
+        "operationId": "window_v1_scopes__scope_id__retrieve_window_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "scope_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Scope Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WindowRetrieveInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WindowRetrievalOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/conversations/{conversation_id}/quality-upgrade": {
+      "post": {
+        "tags": [
+          "answer-quality"
+        ],
+        "summary": "Upgrade",
+        "operationId": "upgrade_v1_conversations__conversation_id__quality_upgrade_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Conversation Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromptUpgradeOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/requests/{request_id}/quality-context": {
+      "get": {
+        "tags": [
+          "answer-quality"
+        ],
+        "summary": "Context",
+        "operationId": "context_v1_requests__request_id__quality_context_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QualityContextOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/admin/me": {
       "get": {
         "tags": [
@@ -88,6 +1935,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ]
       }
@@ -102,6 +1952,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -323,6 +2176,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -503,6 +2359,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ]
       }
@@ -517,6 +2376,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -617,6 +2479,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -799,6 +2664,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -1030,6 +2898,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -1186,6 +3057,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -1314,6 +3188,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -1470,6 +3347,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -1608,6 +3488,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -1764,6 +3647,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -1903,6 +3789,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -2059,6 +3948,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -2225,6 +4117,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -2373,6 +4268,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -2531,6 +4429,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -2697,6 +4598,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -2835,6 +4739,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -2973,6 +4880,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -3137,6 +5047,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -3295,6 +5208,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -3453,6 +5369,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -3611,6 +5530,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -3759,6 +5681,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -3917,6 +5842,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -4075,6 +6003,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -4233,6 +6164,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -4391,6 +6325,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -4529,6 +6466,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -4717,6 +6657,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -4855,6 +6798,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -5003,6 +6949,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -5161,6 +7110,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -5425,6 +7377,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ]
       }
@@ -5565,6 +7520,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ]
       }
@@ -5579,6 +7537,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -5745,6 +7706,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -5921,6 +7885,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -6069,6 +8036,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -6247,6 +8217,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -6425,6 +8398,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -6593,6 +8569,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -6741,6 +8720,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -6897,6 +8879,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -7063,6 +9048,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -7201,6 +9189,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -7367,6 +9358,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -7505,6 +9499,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -7663,6 +9660,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -7801,6 +9801,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -7952,6 +9955,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -8125,6 +10131,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -8263,6 +10272,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -8421,6 +10433,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -8579,6 +10594,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -8717,6 +10735,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -8855,6 +10876,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -8993,6 +11017,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -9151,6 +11178,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -9309,6 +11339,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -9467,6 +11500,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -9625,6 +11661,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -9763,6 +11802,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -10013,6 +12055,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ]
       }
@@ -10143,6 +12188,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ]
       },
@@ -10287,6 +12335,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ]
       }
@@ -10301,6 +12352,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -10459,6 +12513,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -10709,6 +12766,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ]
       }
@@ -10839,6 +12899,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ]
       },
@@ -10983,6 +13046,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ]
       }
@@ -10997,6 +13063,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -11135,6 +13204,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -11283,6 +13355,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -11421,6 +13496,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -11569,6 +13647,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -11798,6 +13879,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -11946,6 +14030,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -12084,6 +14171,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -12375,6 +14465,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ]
       }
@@ -12468,6 +14561,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ]
       }
@@ -12479,6 +14575,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "requestBody": {
@@ -12590,6 +14689,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -12722,6 +14824,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "requestBody": {
@@ -12843,6 +14948,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -12975,6 +15083,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -13100,6 +15211,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -13235,6 +15349,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -13387,6 +15504,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -13542,6 +15662,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -13667,6 +15790,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -13792,6 +15918,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "requestBody": {
@@ -13903,6 +16032,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -14035,6 +16167,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -14160,6 +16295,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -14295,6 +16433,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -14430,6 +16571,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -14585,6 +16729,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -14737,6 +16884,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -14862,6 +17012,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -15015,6 +17168,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -15230,6 +17386,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -15355,6 +17514,9 @@
         "security": [
           {
             "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -16902,6 +19064,19 @@
         ],
         "title": "ApprovalInput"
       },
+      "AuthAcknowledgement": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "AuthAcknowledgement"
+      },
       "CancelInput": {
         "properties": {
           "attempt": {
@@ -17066,6 +19241,27 @@
       },
       "CapabilitiesOutput": {
         "properties": {
+          "answer_quality": {
+            "type": "string",
+            "title": "Answer Quality",
+            "default": "unsupported"
+          },
+          "calendar_windows": {
+            "type": "string",
+            "title": "Calendar Windows",
+            "default": "unsupported"
+          },
+          "quality_prompt_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quality Prompt Version"
+          },
           "device_credentials": {
             "type": "string",
             "title": "Device Credentials",
@@ -20774,6 +22970,29 @@
         ],
         "title": "LiveOutput"
       },
+      "LoginInput": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Username"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 1024,
+            "minLength": 1,
+            "title": "Password"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "LoginInput"
+      },
       "MergeInput": {
         "properties": {
           "operation_id": {
@@ -20906,6 +23125,29 @@
           "operation_id"
         ],
         "title": "OperationInput"
+      },
+      "PasswordChangeInput": {
+        "properties": {
+          "current_password": {
+            "type": "string",
+            "maxLength": 1024,
+            "minLength": 1,
+            "title": "Current Password"
+          },
+          "new_password": {
+            "type": "string",
+            "maxLength": 1024,
+            "minLength": 15,
+            "title": "New Password"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "current_password",
+          "new_password"
+        ],
+        "title": "PasswordChangeInput"
       },
       "PersonalityInput": {
         "properties": {
@@ -21442,6 +23684,37 @@
         ],
         "title": "ProviderHealth"
       },
+      "QualityContextOutput": {
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Request Id"
+          },
+          "policy": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Policy"
+          },
+          "explanation": {
+            "type": "string",
+            "title": "Explanation",
+            "default": "Older request snapshots are not reconstructed or upgraded."
+          }
+        },
+        "type": "object",
+        "required": [
+          "request_id"
+        ],
+        "title": "QualityContextOutput"
+      },
       "ReadyOutput": {
         "properties": {
           "status": {
@@ -21514,6 +23787,22 @@
           "generation"
         ],
         "title": "RecoverInput"
+      },
+      "RefreshInput": {
+        "properties": {
+          "refresh_token": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Refresh Token"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "refresh_token"
+        ],
+        "title": "RefreshInput"
       },
       "RenameInput": {
         "properties": {
@@ -22744,6 +25033,86 @@
         "type": "object",
         "title": "SemanticDiagnostic"
       },
+      "SessionMetadata": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "created_at": {
+            "type": "integer",
+            "format": "int64",
+            "title": "Created At"
+          },
+          "expires_at": {
+            "type": "integer",
+            "format": "int64",
+            "title": "Expires At"
+          },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revoked At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "created_at",
+          "expires_at",
+          "revoked_at"
+        ],
+        "title": "SessionMetadata"
+      },
+      "SessionOutput": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "refresh_token": {
+            "type": "string",
+            "title": "Refresh Token"
+          },
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "access_expires_at": {
+            "type": "integer",
+            "format": "int64",
+            "title": "Access Expires At"
+          },
+          "expires_at": {
+            "type": "integer",
+            "format": "int64",
+            "title": "Expires At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "refresh_token",
+          "session_id",
+          "access_expires_at",
+          "expires_at"
+        ],
+        "title": "SessionOutput"
+      },
       "SessionReset": {
         "properties": {
           "operation_id": {
@@ -23235,6 +25604,155 @@
           "evidence"
         ],
         "title": "SupportingEvidence"
+      },
+      "TimeResolution": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "const": "ada-time-window-v1",
+            "title": "Version",
+            "default": "ada-time-window-v1"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "resolved",
+              "needs_clarification"
+            ],
+            "title": "State"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference"
+          },
+          "start": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start"
+          },
+          "end": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End"
+          },
+          "local_start": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Local Start"
+          },
+          "local_end": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Local End"
+          },
+          "semantics": {
+            "type": "string",
+            "const": "valid_time_overlap_current_recorded_state",
+            "title": "Semantics",
+            "default": "valid_time_overlap_current_recorded_state"
+          }
+        },
+        "type": "object",
+        "required": [
+          "state",
+          "reason"
+        ],
+        "title": "TimeResolution"
+      },
+      "TimeSelection": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "const": "ada-time-window-v1",
+            "title": "Version",
+            "default": "ada-time-window-v1"
+          },
+          "expression": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Expression"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expression"
+        ],
+        "title": "TimeSelection"
       },
       "ToolReceiptOutput": {
         "properties": {
@@ -23800,12 +26318,106 @@
           "approved_at"
         ],
         "title": "VoiceLineageOutput"
+      },
+      "WindowRetrievalOutput": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "const": "ada-window-retrieval-v1",
+            "title": "Version",
+            "default": "ada-window-retrieval-v1"
+          },
+          "resolution": {
+            "$ref": "#/components/schemas/TimeResolution"
+          },
+          "selected": {
+            "items": {
+              "$ref": "#/components/schemas/CitationOutput"
+            },
+            "type": "array",
+            "title": "Selected"
+          },
+          "candidate_pool_truncated": {
+            "type": "boolean",
+            "title": "Candidate Pool Truncated",
+            "default": false
+          },
+          "candidate_limit": {
+            "type": "integer",
+            "title": "Candidate Limit",
+            "default": 64
+          },
+          "used_bytes": {
+            "type": "integer",
+            "title": "Used Bytes",
+            "default": 0
+          },
+          "omitted_groups": {
+            "type": "integer",
+            "title": "Omitted Groups",
+            "default": 0
+          },
+          "invalid_groups": {
+            "type": "integer",
+            "title": "Invalid Groups",
+            "default": 0
+          },
+          "guidance": {
+            "type": "string",
+            "title": "Guidance",
+            "default": "Compare exact assertions over the whole half-open valid-time interval. Different values may describe a change or conflict: ask rather than silently choosing. Recorded state is current, not a reconstruction of what was known then. Document availability and alias history are not interpreted by this claim-only version. Nothing was saved."
+          }
+        },
+        "type": "object",
+        "required": [
+          "resolution"
+        ],
+        "title": "WindowRetrievalOutput"
+      },
+      "WindowRetrieveInput": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Query"
+          },
+          "selection": {
+            "$ref": "#/components/schemas/TimeSelection"
+          },
+          "limit": {
+            "type": "integer",
+            "maximum": 16.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "default": 8
+          },
+          "budget_bytes": {
+            "type": "integer",
+            "maximum": 12000.0,
+            "minimum": 0.0,
+            "title": "Budget Bytes",
+            "default": 2200
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "query",
+          "selection"
+        ],
+        "title": "WindowRetrieveInput"
       }
     },
     "securitySchemes": {
       "HTTPBearer": {
         "type": "http",
         "scheme": "bearer"
+      },
+      "APIKeyCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "__Host-ada-access"
       }
     }
   }

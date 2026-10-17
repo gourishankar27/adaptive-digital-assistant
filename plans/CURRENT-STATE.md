@@ -1,8 +1,54 @@
 # Current ADA baseline
 
+**Phase23 source, 2026-10-16 America/Phoenix:** explicit owner calendar-window
+lookup, Android interval/source/correction controls, loaded-proposal review cues
+and audited opt-in v5 context selection are implemented. Schema remains0016;
+new-chat default stays v4 and semantic stays disabled. OpenAPI now109paths/143schemas,
+with105previous paths unchanged and only three additive old capability properties.
+Public synthetic/native-model comparison and local API/emulator gates are recorded
+in STATUS/WORKLOG and [the quality guide](../docs/ANSWER-QUALITY-AND-MEMORY-RELEVANCE.md).
+This source has not been deployed to the previously running Phase22 service or
+installed on the S24FE. Historical installation/evidence below remain distinct.
+
+**Authorized private setup follow-up, 2026-10-16:** fresh observation found the
+application Docker PostgreSQL17.11 already at0016/57tables. Its exposed role
+password was rotated and private dotenv/container settings synchronized without
+resetting the database. Tailscale Serve now reaches the running one-worker
+loopback API8000 through pinned local Caddy18764; real system-trusted HTTPS/admin
+assets, cookie/native password protocol and non-admin fences passed with a
+removed synthetic owner. The S24 FE and iPad are online in the tailnet. A fresh
+Alembic-process metadata import defect was fixed and regression checked on
+SQLite/PG17. Real owner enrollment/client sign-in verification is recorded in the
+dated STATUS/WORKLOG follow-up; physical release/voice/renewal gates remain
+separate. Use [the Windows setup guide](../docs/PRIVATE-SETUP-WINDOWS-TAILSCALE.md).
+The no-live-operation statements below describe the earlier implementation run.
+
+Setup follow-up: hidden-password enrollment succeeded for the existing admin owner
+with login `gourishankar-admin`. The user confirms the S24FE's real HTTPS server
+check and password sign-in work in current debug app15. Laptop browser sign-in
+is also confirmed by the user and active session metadata. Signed-release,
+reopen/chat/handover and voice claims are not inferred from these results.
+
+Phase22 source now requires0016/57tables and implements explicit password enrollment,
+revocable opaque/rotating sessions, Android Keystore-refresh sign-in and HTTPS admin
+HttpOnly cookies. Legacy tokens, owner IDs/admin grants and request replay survive.
+The original implementation run left installation/enrollment and target gates
+pending and made no live changes; the separately authorized setup above supersedes
+its installation/enrollment limits. Read the dated STATUS/WORKLOG and
+[password/session guide](../docs/PASSWORD-LOGIN-AND-SESSIONS.md).
+
 Current overview reconciled for Phase 20 on 2026-10-16 America/Phoenix; dated
 validation records below retain their own dates. Read current source and tests before implementing a phase;
 this file is a planning snapshot, not a permanent claim about the repository.
+
+Phase21 source now adds Android named HTTPS-origin bookmarks, reviewed version1
+address import, pre-login/recovery public readiness checks and TLS/DNS diagnostics;
+web admin sign-in also preflights readiness through the fixed same-origin proxy.
+Private Tailscale Serve and LAN Caddy templates/runbook are available. Schema0015,
+API96paths/132schemas, saved prompts and credentials remain unchanged. Isolated
+Windows/host/emulator results and unperformed real enrollment/system-trusted
+release/physical handover gates are recorded in STATUS/WORKLOG. Phase24 onward
+remain planned; no Phase21 deployment or live DB change.
 
 Separately authorized local installation check, 2026-10-16: configured Docker
 PostgreSQL17.11 on loopback5433 was freshly observed at **0015**, all54tables;
@@ -29,7 +75,7 @@ facts/preferences/decisions and transactional valid-time corrections.
 Phase 2 added full-text/subject retrieval, a whole-prompt byte budget, exact
 evidence checks, source labels and durable per-request retrieval snapshots.
 
-Migrations 0001–0014 remain unchanged by Phase18; current head is 0015. Baseline v4 is
+Migrations 0001–0014 remain unchanged by Phase18; Phase18 head was0015; current source head is0016. Baseline v4 is
 current for new conversations. v3 retains claim retrieval; earlier conversations
 retain their saved prompt until explicitly upgraded.
 

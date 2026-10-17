@@ -26,6 +26,7 @@ async function unavailableCode(response: Response): Promise<'database_not_ready'
 }
 
 export function normalizeServer(value: string): string {
+  if (!/^https?:\/\/[^/?#\\\s]+\/?$/i.test(value.trim())) throw new ContractError();
   const url = new URL(value);
   if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password || url.search || url.hash || (url.pathname !== '/' && url.pathname !== '')) throw new ContractError();
   if (url.protocol !== 'https:' && !['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname)) throw new ContractError();
@@ -48,6 +49,7 @@ export class HttpAdaApi implements AdaApi {
     this.active.clear();
   }
   async me(signal?: AbortSignal) { return this.get('/v1/me', decodeUser, signal); }
+  async checkConnection(signal?: AbortSignal) { return this.checkServer(signal); }
   async capabilities(signal?: AbortSignal) { return this.get('/v1/capabilities', decodeCapabilities, signal); }
   async requestStatus(requestId: string, signal?: AbortSignal) {
     const expected = uuid(requestId).toLowerCase();
@@ -58,7 +60,13 @@ export class HttpAdaApi implements AdaApi {
     }, signal);
   }
 
-  protected async get<T>(path: string, decode: (value: unknown) => T, signal?: AbortSignal): Promise<T> {
+  protected async checkServer(signal?: AbortSignal): Promise<void> {
+    await this.get('/health/ready', value => {
+      if (typeof value !== 'object' || value === null || !('status' in value) || value.status !== 'ready' || !('schema' in value) || typeof value.schema !== 'string' || !/^[0-9]{4}$/.test(value.schema)) throw new ContractError();
+    }, signal, false);
+  }
+
+  protected async get<T>(path: string, decode: (value: unknown) => T, signal?: AbortSignal, authenticated = true): Promise<T> {
     if (!this.token) throw new AdaError({ kind: 'authentication', message: 'Reconnect with a current token.', outcome: 'unavailable' });
     const controller = new AbortController();
     this.active.add(controller);
@@ -69,7 +77,7 @@ export class HttpAdaApi implements AdaApi {
     const timer = setTimeout(() => { timedOut = true; controller.abort(); }, this.timeoutMs);
     try {
       const response = await this.transport(path, {
-        method: 'GET', headers: { Accept: 'application/json', Authorization: `Bearer ${this.token}` },
+        method: 'GET', headers: authenticated ? { Accept: 'application/json', Authorization: `Bearer ${this.token}` } : { Accept: 'application/json' },
         signal: controller.signal, credentials: 'omit', redirect: 'error', cache: 'no-store', referrerPolicy: 'no-referrer',
       });
       // Even a custom injected transport cannot silently forward a redirect.
@@ -89,8 +97,22 @@ export class HttpAdaApi implements AdaApi {
         }
         this.privacyEpoch = privacyEpoch;
       }
-      if (!response.headers.get('Content-Type')?.toLowerCase().includes('application/json')) throw new ContractError();
-      const result = decode(parseWire(await response.text()));
+      if (response.headers.get('Content-Type')?.split(';')[0].trim().toLowerCase() !== 'application/json') throw new ContractError();
+      let body: string;
+      if (!authenticated) {
+        const reader = response.body?.getReader();
+        if (!reader) throw new ContractError();
+        const decoder = new TextDecoder('utf-8', { fatal: true }); let size = 0; body = '';
+        try {
+          for (;;) {
+            const { value, done } = await reader.read(); if (done) break;
+            size += value.byteLength; if (size > 1024) throw new ContractError();
+            body += decoder.decode(value, { stream: true });
+          }
+          body += decoder.decode();
+        } finally { await reader.cancel().catch(() => undefined); }
+      } else body = await response.text();
+      const result = decode(parseWire(body));
       if (controller.signal.aborted || !this.token) throw new DOMException('Cancelled', 'AbortError');
       return result;
     } catch (error) {
@@ -99,7 +121,7 @@ export class HttpAdaApi implements AdaApi {
       if (controller.signal.aborted) {
         throw new AdaError({ kind: timedOut ? 'timeout' : 'cancelled', message: timedOut ? 'The wait timed out. A submitted request may still be running; recover its original request ID.' : 'Stopped waiting. Any submitted server request may continue.', outcome: 'unknown' });
       }
-      throw new AdaError({ kind: 'unreachable', message: 'The server could not be reached. Check the connection and try again.', outcome: 'unknown' });
+      throw new AdaError({ kind: 'unreachable', message: 'The server could not be reached. Check DNS, Wi-Fi or VPN, proxy availability and the browser certificate warning. Browsers do not identify the exact network or TLS cause here. Restore the connection before retrying.', outcome: 'unknown' });
     } finally {
       clearTimeout(timer);
       signal?.removeEventListener('abort', cancel);

@@ -20,7 +20,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.encodeToJsonElement
 import okhttp3.HttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
@@ -35,7 +34,7 @@ class ConnectionCredential private constructor(val server: HttpUrl, internal val
     companion object {
         val debugHttpHosts = setOf("10.0.2.2", "127.0.0.1", "localhost")
         fun parse(server: String, token: String, allowDebugHttp: Boolean): ConnectionCredential? {
-            val url = server.trim().toHttpUrlOrNull() ?: return null
+            val url = serverOrigin(server, allowDebugHttp) ?: return null
             if (url.username.isNotEmpty() || url.password.isNotEmpty() || url.query != null ||
                 url.fragment != null || url.encodedPath != "/") return null
             if (url.scheme != "https" && !(allowDebugHttp && url.host in debugHttpHosts)) return null
@@ -60,12 +59,22 @@ sealed interface ApiFailure {
     data object Provider : ApiFailure
     data object Timeout : ApiFailure
     data object Unreachable : ApiFailure
+    data object Tls : ApiFailure
+    data object Dns : ApiFailure
+    data object ServerNotReady : ApiFailure
     data object IncompatibleContract : ApiFailure
     data class Http(val status: Int) : ApiFailure
 }
 
 /** Typed owner-authenticated ADA routes; clients never access the provider or database. */
 interface AdaApi {
+    suspend fun changePassword(connection: ConnectionCredential, old: String, replacement: String): ApiResult<AuthAcknowledgementDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun passwordLogin(server: String, username: String, password: String, allowDebugHttp: Boolean): ApiResult<PasswordSessionDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun refreshLogin(server: String, refresh: String, allowDebugHttp: Boolean): ApiResult<PasswordSessionDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun logoutSession(connection: ConnectionCredential, all: Boolean = false): ApiResult<AuthAcknowledgementDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun loginSessions(connection: ConnectionCredential): ApiResult<List<LoginSessionDto>> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun revokeLoginSession(connection: ConnectionCredential, id: UUID): ApiResult<AuthAcknowledgementDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+
     suspend fun securityStatus(connection: ConnectionCredential): ApiResult<SecurityStatusDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
     suspend fun credentials(connection: ConnectionCredential): ApiResult<List<DeviceCredentialDto>> = ApiResult.Failure(ApiFailure.IncompatibleContract)
     suspend fun issueCredential(connection: ConnectionCredential, journal: SecurityJournal): ApiResult<CredentialIssueDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
@@ -127,6 +136,8 @@ interface AdaApi {
     suspend fun createPersonality(connection: ConnectionCredential, body: PersonalityInputDto): ApiResult<PersonalityDto>
     suspend fun createConversation(connection: ConnectionCredential, body: ConversationInputDto): ApiResult<ConversationDto>
     suspend fun upgradePrompt(connection: ConnectionCredential, id: UUID): ApiResult<PromptUpgradeDto>
+    suspend fun upgradeQualityPrompt(connection: ConnectionCredential, id: UUID): ApiResult<PromptUpgradeDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun retrieveWindow(connection: ConnectionCredential, scope: UUID, body: WindowRetrieveInputDto): ApiResult<WindowRetrievalDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
     suspend fun send(connection: ConnectionCredential, conversation: UUID, body: ChatInputDto): ApiResult<RequestDto>
     suspend fun createScope(connection: ConnectionCredential, body: ScopeInputDto): ApiResult<ScopeDto>
     suspend fun createNote(connection: ConnectionCredential, scope: UUID, body: NoteInputDto): ApiResult<SourceVersionDto>
@@ -187,7 +198,7 @@ class HttpAdaApi(callTimeoutMillis: Long = 65_000) : AdaApi {
                     require(data == null && type.isEmpty())
                 }
             } catch (_: InterruptedIOException) { if (!pendingCall.isCanceled()) send(ApiResult.Failure(ApiFailure.Timeout)) }
-            catch (_: IOException) { if (!pendingCall.isCanceled()) send(ApiResult.Failure(ApiFailure.Unreachable)) }
+            catch (error: IOException) { if (!pendingCall.isCanceled()) send(ApiResult.Failure(connectionFailure(error))) }
             catch (_: Exception) { if (!pendingCall.isCanceled()) send(ApiResult.Failure(ApiFailure.IncompatibleContract)) }
             finally { close() }
         }
@@ -231,6 +242,7 @@ class HttpAdaApi(callTimeoutMillis: Long = 65_000) : AdaApi {
         return call(connection, pending.path, pending.body)
     }
     // No automatic retry of an ambiguous POST and no credential-bearing redirects.
+    private val serverProbe = HttpServerProbe()
     private val client = OkHttpClient.Builder()
         .connectTimeout(10, TimeUnit.SECONDS).readTimeout(60, TimeUnit.SECONDS)
         .callTimeout(callTimeoutMillis, TimeUnit.MILLISECONDS).followRedirects(false).followSslRedirects(false)
@@ -250,6 +262,38 @@ class HttpAdaApi(callTimeoutMillis: Long = 65_000) : AdaApi {
             override fun writeTo(sink: BufferedSink) = buffered.writeTo(sink)
         }
     }
+
+    override suspend fun passwordLogin(server: String, username: String, password: String, allowDebugHttp: Boolean): ApiResult<PasswordSessionDto> {
+        val origin = serverOrigin(server, allowDebugHttp) ?: return ApiResult.Failure(ApiFailure.Validation)
+        val ready = serverProbe.check(origin); if (ready is ApiResult.Failure) return ready
+        return authentication(origin, "login", adaJson.encodeToString(PasswordLoginInput(username, password)))
+    }
+    override suspend fun refreshLogin(server: String, refresh: String, allowDebugHttp: Boolean): ApiResult<PasswordSessionDto> {
+        val origin = serverOrigin(server, allowDebugHttp) ?: return ApiResult.Failure(ApiFailure.Validation)
+        val ready = serverProbe.check(origin); if (ready is ApiResult.Failure) return ready
+        return authentication(origin, "refresh", adaJson.encodeToString(RefreshLoginInput(refresh)))
+    }
+    private suspend fun authentication(origin: HttpUrl, route: String, body: String): ApiResult<PasswordSessionDto> = withContext(Dispatchers.IO) {
+        try {
+            val request = Request.Builder().url(origin.newBuilder().addPathSegments("v1/auth/$route").build())
+                .header("Accept", "application/json").post(oneShotJsonBody(body)).build()
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return@withContext sanitizedFailure(response)
+                val text = response.peekBody(8193).string()
+                if (text.toByteArray().size > 8192) return@withContext ApiResult.Failure(ApiFailure.IncompatibleContract)
+                val result = adaJson.decodeFromString<PasswordSessionDto>(text)
+                if (ConnectionCredential.parse(origin.toString(), result.access_token, true) == null ||
+                    ConnectionCredential.parse(origin.toString(), result.refresh_token, true) == null || result.access_expires_at <= 0 || result.expires_at < result.access_expires_at)
+                    return@withContext ApiResult.Failure(ApiFailure.IncompatibleContract)
+                ApiResult.Success(result)
+            }
+        } catch (error: IOException) { ApiResult.Failure(connectionFailure(error)) }
+        catch (_: IllegalArgumentException) { ApiResult.Failure(ApiFailure.IncompatibleContract) }
+    }
+    override suspend fun changePassword(connection: ConnectionCredential, old: String, replacement: String) = call<AuthAcknowledgementDto>(connection, "auth/password", adaJson.encodeToString(PasswordChangeInput(old, replacement)))
+    override suspend fun logoutSession(connection: ConnectionCredential, all: Boolean) = call<AuthAcknowledgementDto>(connection, if (all) "auth/logout-all" else "auth/logout", "{}")
+    override suspend fun loginSessions(connection: ConnectionCredential) = call<List<LoginSessionDto>>(connection, "auth/sessions")
+    override suspend fun revokeLoginSession(connection: ConnectionCredential, id: UUID) = call<AuthAcknowledgementDto>(connection, "auth/sessions/$id/revoke", "{}")
 
     private suspend inline fun <reified T> call(
         connection: ConnectionCredential, path: String, body: String? = null,
@@ -271,8 +315,7 @@ class HttpAdaApi(callTimeoutMillis: Long = 65_000) : AdaApi {
                 val json = response.body?.string() ?: return@withContext ApiResult.Failure(ApiFailure.IncompatibleContract)
                 ApiResult.Success(adaJson.decodeFromString<T>(json))
             }
-        } catch (_: InterruptedIOException) { ApiResult.Failure(ApiFailure.Timeout)
-        } catch (_: IOException) { ApiResult.Failure(ApiFailure.Unreachable)
+        } catch (error: IOException) { ApiResult.Failure(connectionFailure(error))
         } catch (_: SerializationException) { ApiResult.Failure(ApiFailure.IncompatibleContract)
         } catch (_: IllegalArgumentException) { ApiResult.Failure(ApiFailure.IncompatibleContract) }
     }
@@ -324,7 +367,11 @@ class HttpAdaApi(callTimeoutMillis: Long = 65_000) : AdaApi {
         "documents_require_prompt_upgrade",
     )
     private fun page(limit: Int, offset: Int) = mapOf("limit" to limit.toString(), "offset" to offset.toString())
-    override suspend fun me(connection: ConnectionCredential) = call<MeDto>(connection, "me")
+    override suspend fun me(connection: ConnectionCredential): ApiResult<MeDto> {
+        val ready = serverProbe.check(connection.server)
+        if (ready is ApiResult.Failure) return ready
+        return call(connection, "me")
+    }
     override suspend fun securityStatus(connection: ConnectionCredential) = call<SecurityStatusDto>(connection, "security/status")
     override suspend fun credentials(connection: ConnectionCredential) = call<List<DeviceCredentialDto>>(connection, "security/credentials")
     override suspend fun issueCredential(connection: ConnectionCredential, journal: SecurityJournal): ApiResult<CredentialIssueDto> {
@@ -377,6 +424,8 @@ class HttpAdaApi(callTimeoutMillis: Long = 65_000) : AdaApi {
     override suspend fun createPersonality(connection: ConnectionCredential, body: PersonalityInputDto) = call<PersonalityDto>(connection, "personalities", adaJson.encodeToString(body))
     override suspend fun createConversation(connection: ConnectionCredential, body: ConversationInputDto) = call<ConversationDto>(connection, "conversations", adaJson.encodeToString(body))
     override suspend fun upgradePrompt(connection: ConnectionCredential, id: UUID) = call<PromptUpgradeDto>(connection, "conversations/$id/prompt-upgrade", "{}")
+    override suspend fun upgradeQualityPrompt(connection: ConnectionCredential, id: UUID) = call<PromptUpgradeDto>(connection, "conversations/$id/quality-upgrade", "{}")
+    override suspend fun retrieveWindow(connection: ConnectionCredential, scope: UUID, body: WindowRetrieveInputDto) = call<WindowRetrievalDto>(connection, "scopes/$scope/retrieve-window", adaJson.encodeToString(body))
     override suspend fun send(connection: ConnectionCredential, conversation: UUID, body: ChatInputDto): ApiResult<RequestDto> {
         // Keep the legacy claim-only wire shape when document use is off, including restored older journals.
         val encoded = adaJson.encodeToJsonElement(body) as JsonObject

@@ -871,3 +871,35 @@ as a test workaround. Safe diagnostic capture and a bounded recovery-only runner
 are implemented; physical testing is not required for this emulator investigation.
 
 Next free gap ID: **G-42**. No later feature phase was implemented.
+
+### Phase21 follow-up — 2026-10-16
+
+G-06/G-29 now have implemented Android named HTTPS addresses, explicit reviewed
+metadata import/switch/clear, login/recovery readiness without credentials and
+TLS/DNS diagnostics, plus separate Tailscale Serve/LAN Caddy templates and a
+Windows runbook. Actual Caddy/ADA/synthetic-owner/built-UI/SSE/replay host checks
+passed through direct TLS and the local two-proxy Serve-boundary laboratory;
+invalid trust/host/expiry and Android's rejection of the lab CA were checked.
+This advances source/local evidence; actual Tailscale enrollment/ACL enforcement,
+positive system-trusted release HTTPS, real LAN firewall, certificate renewal,
+DNS changes, VPN revocation and physical Wi-Fi/handover remain unperformed.
+
+G-41 remains **Open**. One full recovery-only emulator run passed all four
+force-stop stages and SecurityUI, but a subsequent repetition failed the existing
+voice-draft resume wait. Two earlier SecurityUI deletion waits also failed; its
+test now waits for confirmation acknowledgement before polling the owned job and
+explicitly refreshing the client. One corrected security run passed; this is
+test sequencing/diagnostics evidence, not a production reliability fix. Preserve
+the individual failures; controlled-load submission tracing remains the gate.
+No new private data/auth/scheduler feature or deployment was implemented.
+
+### 2026-10-16 — Phase22 source follow-up (preserves original gap audit)
+
+G-28/G-32 now have implemented password/session source: explicit local enrollment,
+bounded pre-authentication, rotating/revocable native/browser families and
+backward-compatible credential/recovery policy. The original statements above
+describe their audit date. See STATUS/WORKLOG for actual verification and remaining
+live enrollment, physical/release HTTPS, other-browser/manual/load gates. G-21's
+separate local admin grant is intentionally preserved. No signup or automatic
+admin enrollment. G-06/G-29 network target gates and G-41 reliability remain open;
+Phase22 does not claim to fix voice or previous force-stop intermittency.

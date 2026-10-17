@@ -6,6 +6,7 @@
 }
 
 https://{$ADA_PRIVATE_HOST} {
+    bind {$ADA_PRIVATE_BIND:127.0.0.1}
     tls {$ADA_TLS_CERT} {$ADA_TLS_KEY}
     header {
         Cache-Control "no-store"

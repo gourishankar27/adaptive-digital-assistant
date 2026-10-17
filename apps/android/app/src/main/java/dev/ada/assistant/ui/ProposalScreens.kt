@@ -44,6 +44,8 @@ fun ProposalScreens(controller: ProposalController, back: () -> Unit) {
                 } }
             }
             val c = d.candidate
+            if (d.proposal.conflicts.any { it.value == c.value }) Text("An overlapping saved assertion has the same value. Compare its dates and original support before deciding whether another endorsement is useful.")
+            if (d.proposal.conflicts.any { it.value != c.value }) Text("Overlapping saved assertions have different values. Keep the conflict visible or explicitly review a dated correction; model confidence cannot settle it.")
             fun change(next: ProposalCandidateDto) = controller.draft(candidate = next)
             OutlinedTextField(c.subject, { change(c.copy(subject = it)) }, label = { Text("Subject") }, enabled = editable, modifier = Modifier.fillMaxWidth().testTag("proposal-subject"))
             OutlinedTextField(c.predicate, { change(c.copy(predicate = it)) }, label = { Text("Predicate") }, enabled = editable, modifier = Modifier.fillMaxWidth().testTag("proposal-predicate"))
@@ -73,7 +75,10 @@ fun ProposalScreens(controller: ProposalController, back: () -> Unit) {
             if (s.scopes.hasMore) TextButton(controller::moreScopes) { Text("More scopes") }
             OutlinedButton(controller::refresh, enabled = !s.busy, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("proposal-refresh")) { Text("Refresh inbox") }
             if (s.inbox.items.isEmpty() && !s.inbox.loading) Text("No pending suggestions in this scope.")
-            s.inbox.items.forEach { p -> OutlinedButton({ controller.open(p) }, enabled = editable, modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("proposal-open-${p.id}")) { Text("${p.candidate.subject} · ${p.candidate.predicate}: ${p.candidate.value}") } }
+            proposalReviewGroups(s.inbox.items).forEach { group ->
+                if (group.size > 1) Text("${group.size} matching annotations with the same support/dates among loaded suggestions. Each still needs its own explicit review.")
+                group.forEach { p -> OutlinedButton({ controller.open(p) }, enabled = editable, modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("proposal-open-${p.id}")) { Text("${p.candidate.subject} · ${p.candidate.predicate}: ${p.candidate.value}") } }
+            }
             if (s.inbox.hasMore) TextButton(controller::moreProposals) { Text("More suggestions") }
             Text("Select owned source material", style = MaterialTheme.typography.titleMedium)
             s.sources.forEach { source -> OutlinedButton({ controller.selectSource(source) }, enabled = editable, modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch)) { Text("${source.trust_class} · ${displayInstant(source.created_at)} · ${source.content.take(80)}") } }

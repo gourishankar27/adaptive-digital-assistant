@@ -137,7 +137,7 @@ fun ChatApp(vm: ChatViewModel, openSettings: () -> Unit) {
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             when (state.destination) {
-                ChatDestination.Connect -> ChatConnect(state, vm::connect, openSettings)
+                ChatDestination.Connect -> ChatConnect(state, vm::connect, vm::disconnect, openSettings, vm::passwordLogin)
                 ChatDestination.Conversations -> ConversationsScreen(state, vm)
                 ChatDestination.NewConversation -> NewConversationScreen(state, vm)
                 ChatDestination.Chat -> ConversationScreen(state, vm, typing)
@@ -160,8 +160,11 @@ fun ChatApp(vm: ChatViewModel, openSettings: () -> Unit) {
 }
 
 @Composable
-private fun ChatConnect(state: ChatState, connect: (String, String) -> Unit, openSettings: () -> Unit) {
+private fun ChatConnect(state: ChatState, connect: (String, String) -> Unit, clear: () -> Unit, openSettings: () -> Unit, passwordLogin: (String, String, String) -> Unit) {
     var server by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var legacy by remember { mutableStateOf(false) }
     var token by remember { mutableStateOf("") } // Never saved in a Bundle or plaintext preferences.
     val focus = LocalFocusManager.current
     Column(
@@ -170,11 +173,17 @@ private fun ChatConnect(state: ChatState, connect: (String, String) -> Unit, ope
     ) {
         ScreenHeading("Welcome back.", "Connect to your ADA server. Your account, conversations and sources stay together.")
         OutlinedTextField(
-            server, { server = it }, label = { Text("ADA server URL") }, singleLine = true,
+            server, { clear(); server = it; token = ""; password = ""; username = "" }, label = { Text("ADA server URL") }, singleLine = true,
             enabled = !state.connecting, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Next),
             supportingText = { Text("Use verified HTTPS. Debug builds also support listed local development hosts.") },
             modifier = Modifier.fillMaxWidth().testTag("connect-server"),
         )
+        ServerAddressPanel(server, change = { clear(); server = it; token = ""; password = ""; username = "" }, enabled = !state.connecting)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(legacy, { legacy = it; token = ""; password = "" }, modifier = Modifier.testTag("connect-legacy"))
+            Text("Advanced: legacy bearer token")
+        }
+        if (legacy) {
         OutlinedTextField(
             token, { token = it }, label = { Text("Bearer token") }, singleLine = true,
             enabled = !state.connecting, visualTransformation = PasswordVisualTransformation(),
@@ -184,10 +193,18 @@ private fun ChatConnect(state: ChatState, connect: (String, String) -> Unit, ope
             }),
             modifier = Modifier.fillMaxWidth().testTag("connect-token"),
         )
+        } else {
+            OutlinedTextField(username, { username = it }, label = { Text("Username") }, singleLine = true,
+                enabled = !state.connecting, modifier = Modifier.fillMaxWidth().testTag("connect-username"))
+            OutlinedTextField(password, { password = it }, label = { Text("Password") }, singleLine = true,
+                enabled = !state.connecting, visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                modifier = Modifier.fillMaxWidth().testTag("connect-password"))
+        }
         StateFeedback(state)
         Button(
-            onClick = { focus.clearFocus(); connect(server, token); token = "" },
-            enabled = !state.connecting && server.isNotBlank() && token.isNotBlank(),
+            onClick = { focus.clearFocus(); if (legacy) connect(server, token) else passwordLogin(server, username, password); token = ""; password = "" },
+            enabled = !state.connecting && server.isNotBlank() && (if (legacy) token.isNotBlank() else username.isNotBlank() && password.isNotEmpty()),
             modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("connect-action"),
         ) { Text(if (state.connecting) "Connecting…" else "Connect") }
         if (state.connecting) BusyIndicator("Checking your account and API compatibility")
@@ -414,6 +431,7 @@ private fun ConversationContext(state: ChatState, vm: ChatViewModel, maximumHeig
     val scope = state.scopes.items.firstOrNull { it.id == conversation.scope_id }
     var contextDetails by remember(conversation.id) { mutableStateOf(false) }
     var confirmUpgrade by remember(conversation.id) { mutableStateOf(false) }
+    var confirmQuality by remember(conversation.id) { mutableStateOf(false) }
     val scroll = rememberScrollState()
     val scrolling = if (scrollWithin) Modifier.heightIn(max = maximumHeight).verticalScroll(scroll) else Modifier
     Column(Modifier.fillMaxWidth().then(scrolling).padding(horizontal = AdaSpacing.medium), verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
@@ -434,7 +452,17 @@ private fun ConversationContext(state: ChatState, vm: ChatViewModel, maximumHeig
             TextButton(onClick = { confirmUpgrade = true }, enabled = state.pending == null && !state.upgrading, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("prompt-upgrade")) { Text(if (state.upgrading) "Updating prompt…" else "Update saved prompt") }
         }
         StateFeedback(state, suppressFailure = state.pending?.failure != null && state.pending.failure == state.fault)
+        if (state.capabilities?.quality_prompt_version == "ada-baseline-v5" && conversation.prompt_version in setOf("ada-baseline-v1", "ada-baseline-v2", "ada-baseline-v3", "ada-baseline-v4")) {
+            TextButton({ confirmQuality = true }, enabled = state.pending == null && !state.upgrading,
+                modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("quality-prompt-upgrade")) { Text("Review context upgrade") }
+        }
     }
+    if (confirmQuality) AlertDialog(
+        onDismissRequest = { confirmQuality = false }, title = { Text("Use the v5 context policy?") },
+        text = { Text("This explicitly changes future replies: relevant original excerpts and complete chat pairs are ranked within bounded searches. Missing context stays uncertain. Nothing is automatically saved to memory. Past answers and source snapshots stay as recorded; the server audits this change.") },
+        confirmButton = { TextButton({ confirmQuality = false; vm.upgradePrompt(quality = true) }) { Text("Enable for future replies") } },
+        dismissButton = { TextButton({ confirmQuality = false }) { Text("Keep saved prompt") } },
+    )
     if (confirmUpgrade) AlertDialog(
         onDismissRequest = { confirmUpgrade = false }, title = { Text("Update the saved prompt?") },
         text = { Text("Future replies will use the current ADA prompt and retrieval behavior. Existing answers, source cards and the saved style remain unchanged. The server records this explicit upgrade.") },
@@ -568,11 +596,11 @@ private fun Composer(state: ChatState, vm: ChatViewModel, maximumHeight: Dp) {
                 }
                 if (state.capabilities?.let { it.document_retrieval && it.document_citations } == true) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(state.useDocuments, vm::updateDocuments, enabled = !reserved && state.useMemory && state.conversation?.prompt_version == "ada-baseline-v4",
+                        Checkbox(state.useDocuments, vm::updateDocuments, enabled = !reserved && state.useMemory && state.conversation?.prompt_version in setOf("ada-baseline-v4", "ada-baseline-v5"),
                             modifier = Modifier.testTag("use-documents").semantics { contentDescription = "Use imported documents in this message" })
                         Text("Use imported documents", style = MaterialTheme.typography.bodyMedium)
                     }
-                    if (state.conversation?.prompt_version != "ada-baseline-v4") Text("Explicitly update this conversation’s saved prompt to use imported documents.", style = MaterialTheme.typography.bodySmall)
+                    if (state.conversation?.prompt_version !in setOf("ada-baseline-v4", "ada-baseline-v5")) Text("Explicitly update this conversation’s saved prompt to use imported documents.", style = MaterialTheme.typography.bodySmall)
                     else if (!state.useMemory) Text("Turn on saved memory to use scoped evidence, including imported documents.", style = MaterialTheme.typography.bodySmall)
                 }
                 if (state.capabilities?.historical_memory_queries == true) OutlinedTextField(
@@ -708,7 +736,9 @@ private fun AccountSettingsScreen(state: ChatState, vm: ChatViewModel, openSetti
             ) { Text("Replace token for this account") }
         }
         Text("Account and server changes clear local conversations, sources, drafts and pending requests. A request already submitted may continue on the server.", style = MaterialTheme.typography.bodyMedium)
-        Button(onClick = vm::logout, modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("logout")) { Text("Log out / change server") }
+        PasswordSessionPanel(vm)
+        OutlinedButton(onClick = { vm.logout(all = true) }, modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch)) { Text("Sign out all password sessions") }
+        Button(onClick = { vm.logout() }, modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("logout")) { Text("Log out / change server") }
         Text("Voice uses installed on-device services. Memory extraction requires explicit review.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

@@ -11,7 +11,7 @@ from ada.evidence import validate_text
 from ada.providers import ProviderError
 
 PROTOCOL_VERSION = "ada-agent-v1"
-COMPATIBLE_CHAT_PROMPTS = ("ada-baseline-v3", "ada-baseline-v4")
+COMPATIBLE_CHAT_PROMPTS = ("ada-baseline-v3", "ada-baseline-v4", "ada-baseline-v5")
 CONTEXT_BYTES = 8192
 OUTPUT_TOKENS = 1024
 MAX_STEPS = 5

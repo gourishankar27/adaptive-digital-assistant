@@ -3,8 +3,36 @@ import { describe, expect, it, vi } from 'vitest';
 import { AdminSession } from '../src/admin-session';
 import { AdaError, httpFailure } from '../src/api/errors';
 import { mockAdmin, otherOwner, owner } from './mock-admin';
+import * as passwordApi from '../src/api/password';
 function deferred<T>() { let resolve!: (value: T) => void; const promise = new Promise<T>(r => { resolve = r; }); return { promise, resolve }; }
 describe('admin identity boundaries', () => {
+  it('fences a late password-change acknowledgement after switching accounts', async () => {
+    const auth = vi.spyOn(passwordApi, 'browserAuth').mockResolvedValue(undefined);
+    const me = vi.spyOn(passwordApi.CookieAdminApi.prototype, 'adminMe').mockResolvedValue({ id: owner, permissions: ['monitoring:read'] });
+    try {
+      const session = new AdminSession(new QueryClient(), () => mockAdmin(otherOwner));
+      await session.passwordLogin(window.location.origin, 'synthetic', 'Public synthetic passphrase');
+      const waiting = deferred<number | undefined>(); auth.mockReturnValueOnce(waiting.promise);
+      const change = session.changePassword('Public synthetic passphrase', 'Public replacement passphrase');
+      await session.connect('next', 'synthetic-next'); waiting.resolve(undefined); await change;
+      expect(session.getSnapshot()).toMatchObject({ kind: 'connected', operator: { id: otherOwner } });
+      session.disconnect();
+    } finally { auth.mockRestore(); me.mockRestore(); }
+  });
+  it.each(['logout', 'logoutAll'] as const)('fences a late %s error after switching accounts', async operation => {
+    const auth = vi.spyOn(passwordApi, 'browserAuth').mockResolvedValue(undefined);
+    const me = vi.spyOn(passwordApi.CookieAdminApi.prototype, 'adminMe').mockResolvedValue({ id: owner, permissions: ['monitoring:read'] });
+    try {
+      const session = new AdminSession(new QueryClient(), () => mockAdmin(otherOwner));
+      await session.passwordLogin(window.location.origin, 'synthetic', 'Public synthetic passphrase');
+      const waiting = deferred<number | undefined>();
+      auth.mockReturnValueOnce(waiting.promise.then(() => { throw new AdaError(httpFailure(503)); }));
+      session[operation](); await session.connect('next', 'synthetic-next'); waiting.resolve(undefined);
+      await Promise.resolve(); await Promise.resolve();
+      expect(session.getSnapshot()).toMatchObject({ kind: 'connected', operator: { id: otherOwner } });
+      session.disconnect();
+    } finally { auth.mockRestore(); me.mockRestore(); }
+  });
   it('honors admin-me Retry-After across reconnect attempts', async () => {
     vi.useFakeTimers();
     try {

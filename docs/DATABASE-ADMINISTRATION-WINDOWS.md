@@ -1,5 +1,15 @@
 # ADA database administration on Windows
 
+## Current Phase22 schema and account update
+
+Source head is0016; the earlier live0015 check below is dated historical evidence.
+Installation is pending for the application database. Backups support reviewed
+0015/v1 and0016/v2, with the separate0005 recovery workflow retained. Restore of
+0016 disables passwords and revokes session families as well as old credentials.
+See the [password/session guide](PASSWORD-LOGIN-AND-SESSIONS.md) for explicit
+hidden-prompt enrollment, local account metadata, migration and recovery steps.
+A database reset is not required; do not paste passwords/tokens into SQL or plans.
+
 This is the step-by-step operator guide for accessing, checking, upgrading and,
 when deliberately selected, resetting ADA's PostgreSQL database on your laptop.
 Run PowerShell commands in **Windows PowerShell or PowerShell 7**. Run SQL and
@@ -486,7 +496,9 @@ For subsequent manual startup, use separate PowerShell windows:
    Expect `ok`, then `ready` with schema `0015`. Private routes should reject
    missing credentials. `127.0.0.1` is this laptop; on a phone it means the phone.
    For USB debug access use the existing Android instructions in HOW-TO-USE-ADA.
-   Wi-Fi/Tailscale trusted HTTPS setup remains a separately planned feature.
+   Wi-Fi/Tailscale trusted HTTPS installation is documented in
+   [PRIVATE-NETWORK-CONNECTIVITY](PRIVATE-NETWORK-CONNECTIVITY.md); it requires a
+   separately selected network setup, and was not deployed by Phase21.
 
 For foreground servers, press **Ctrl+C** in their windows to stop them. To stop a
 background API or preview from this installation, first inspect the listener and

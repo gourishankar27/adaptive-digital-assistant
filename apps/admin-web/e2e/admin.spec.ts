@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { fixtureAction, ownerA, ownerB, requestId } from './fixture';
 async function signIn(page: Page, credential = process.env.ADA_WEB_TEST_TOKEN) {
   if (!credential) throw new Error('Ephemeral browser credential is unavailable.');
-  await page.getByLabel('Bearer token').fill(credential); await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  if (await page.getByLabel('Bearer token', { exact: true }).count() === 0) await page.getByLabel('Advanced: legacy bearer token').check(); await page.getByLabel('Bearer token', { exact: true }).fill(credential); await page.getByRole('button', { name: 'Sign in', exact: true }).click();
 }
 test('keyboard entry, all palettes/brightness contrast, narrow windows and 200% zoom', async ({ page }) => {
   await page.goto('/admin/overview'); await page.keyboard.press('Tab'); await expect(page.getByRole('link', { name: 'Skip to content' })).toBeFocused(); await page.keyboard.press('Enter'); await expect(page.getByRole('main')).toBeFocused();
@@ -53,14 +53,14 @@ test('actual PostgreSQL sign-in, provider refusal, server pagination, same UUID 
   await page.getByRole('link', { name: 'Requests', exact: true }).click(); await page.getByLabel('State', { exact: true }).selectOption('failed'); await page.getByRole('button', { name: 'Apply filters' }).click(); await expect(page.getByRole('table').locator('tbody tr')).toHaveCount(1); await page.getByRole('link', { name: /Request: / }).click(); await expect(page.getByText('provider_unavailable', { exact: true })).toBeVisible();
   await page.getByRole('link', { name: 'Audit', exact: true }).click(); await expect(page.getByRole('table', { name: 'Audit metadata' })).toBeVisible(); await expect(page.getByRole('cell', { name: 'monitor.request', exact: true }).first()).toBeVisible();
   expect(await page.evaluate(() => ({ local: localStorage.length, session: sessionStorage.length }))).toEqual({ local: 0, session: 0 });
-  await page.reload(); await expect(page.getByLabel('Bearer token')).toHaveValue(''); await expect(page.getByRole('table')).toHaveCount(0);
+  await page.reload(); await expect(page.getByLabel('Password', { exact: true })).toHaveValue(''); await expect(page.getByRole('table')).toHaveCount(0);
 });
 test('ordinary token denied, local revocation clears detail, logout and account/server switches', async ({ page }) => {
   await page.goto(`/admin/requests/${ownerB}/${requestId}`); await signIn(page, process.env.ADA_WEB_TEST_ORDINARY_TOKEN); await expect(page.getByRole('alert')).toContainText('Access denied'); await expect(page.getByText('Identity & outcome')).toHaveCount(0);
   await signIn(page); await expect(page.getByText('Identity & outcome')).toBeVisible();
   try { fixtureAction('revoke'); await page.getByRole('button', { name: 'Refresh', exact: true }).click(); await expect(page.getByRole('alert')).toContainText('Access denied'); await expect(page.getByText('Identity & outcome')).toHaveCount(0); } finally { fixtureAction('grant'); }
   await signIn(page, process.env.ADA_WEB_TEST_SECOND_TOKEN); await expect(page.getByText(/Operator 00000000-0000-0000-0000-000000000202/)).toBeVisible();
-  await page.getByRole('button', { name: 'Sign out', exact: true }).click(); await expect(page.getByText('Identity & outcome')).toHaveCount(0); await page.getByLabel('Browser server origin').fill('http://another-host:8000'); await page.getByLabel('Bearer token').fill('synthetic-invalid'); await page.getByRole('button', { name: 'Sign in', exact: true }).click(); await expect(page.getByRole('alert')).toContainText('current browser origin'); await expect(page.getByText(/000000000202/)).toHaveCount(0);
+  await page.getByRole('button', { name: 'Sign out', exact: true }).click(); await expect(page.getByText('Identity & outcome')).toHaveCount(0); await page.getByLabel('Browser server origin').fill('http://another-host:8000'); if (await page.getByLabel('Bearer token', { exact: true }).count() === 0) await page.getByLabel('Advanced: legacy bearer token').check(); await page.getByLabel('Bearer token', { exact: true }).fill('synthetic-invalid'); await page.getByRole('button', { name: 'Sign in', exact: true }).click(); await expect(page.getByRole('alert')).toContainText('current browser origin'); await expect(page.getByText(/000000000202/)).toHaveCount(0);
 });
 test('explicit synthetic database-not-ready sign-in explains migration needs and clears the credential', async ({ page }) => {
   // This interception checks failure wording only; subsequent sign-in uses real PostgreSQL/HTTP.
@@ -69,7 +69,7 @@ test('explicit synthetic database-not-ready sign-in explains migration needs and
   await page.goto('/admin/overview'); await signIn(page);
   const feedback = page.getByRole('alert'), submit = page.getByRole('button', { name: 'Sign in', exact: true });
   await expect(feedback).toContainText('The backend database is not ready.'); await expect(feedback).toContainText('apply the required migrations'); await expect(feedback).toBeFocused();
-  await expect(page.getByText('SYNTHETIC_PRIVATE_DIAGNOSTIC')).toHaveCount(0); await expect(page.getByLabel('Bearer token')).toHaveValue(''); await expect(page.getByRole('table')).toHaveCount(0); await expect(submit).toBeDisabled();
+  await expect(page.getByText('SYNTHETIC_PRIVATE_DIAGNOSTIC')).toHaveCount(0); await expect(page.getByLabel('Bearer token', { exact: true })).toHaveValue(''); await expect(page.getByRole('table')).toHaveCount(0); await expect(submit).toBeDisabled();
   expect(await page.evaluate(() => ({ local: localStorage.length, session: sessionStorage.length }))).toEqual({ local: 0, session: 0 });
   await expect(submit).toBeEnabled({ timeout: 5000 }); expect(attempts).toBe(1);
   await page.unroute('**/v1/admin/me'); await signIn(page); await expect(page.getByText('Responding', { exact: true })).toBeVisible();
@@ -82,7 +82,7 @@ test('failed refresh stays stale, rate limits wait, direct missing detail and ex
   await page.unroute('**/v1/admin/overview?*'); await page.getByRole('button', { name: 'Sign out', exact: true }).click();
   // New page starts a new in-memory session; direct navigation never carries auth.
   await page.goto(`/admin/requests/${ownerA}/00000000-0000-0000-0000-000000009999`); await signIn(page); await expect(page.getByRole('alert')).toContainText('unavailable'); await expect(page.getByText('Identity & outcome')).toHaveCount(0);
-  await page.getByRole('link', { name: 'Overview', exact: true }).click(); await expect(page.getByText('Responding', { exact: true })).toBeVisible(); await page.route('**/v1/admin/overview?*', route => route.fulfill({ status: 401, json: { detail: 'private' } })); await page.getByRole('button', { name: 'Refresh', exact: true }).click(); await expect(page.getByRole('alert')).toContainText('invalid or expired'); await expect(page.getByText('Responding', { exact: true })).toHaveCount(0);
+  await page.getByRole('link', { name: 'Overview', exact: true }).click(); await expect(page.getByText('Responding', { exact: true })).toBeVisible(); await page.route('**/v1/admin/overview?*', route => route.fulfill({ status: 401, json: { detail: 'private' } })); await page.getByRole('button', { name: 'Refresh', exact: true }).click(); await expect(page.getByRole('alert')).toContainText('session expired'); await expect(page.getByText('Responding', { exact: true })).toHaveCount(0);
 });
 test('explicit health fixtures show unknown, degraded and escaped model metadata', async ({ page }) => {
   let scenario = 'unknown';

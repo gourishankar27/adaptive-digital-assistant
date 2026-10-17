@@ -7,6 +7,7 @@ from ada import (  # noqa: F401
     entity_models,
     expression_models,
     learning_models,
+    login_models,
     proposal_models,
     security_models,
     stream_models,
@@ -64,7 +65,14 @@ CONTENT_TABLES = (
 )
 
 SECURITY_METADATA_TABLES = frozenset(
-    {"device_credentials", "deletion_previews", "deletion_jobs", "deleted_requests"}
+    {
+        "device_credentials",
+        "deletion_previews",
+        "deletion_jobs",
+        "deleted_requests",
+        "password_credentials",
+        "login_sessions",
+    }
 )
 
 

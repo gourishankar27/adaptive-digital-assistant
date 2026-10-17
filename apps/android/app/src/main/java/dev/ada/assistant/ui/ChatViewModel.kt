@@ -36,6 +36,10 @@ class ChatViewModel(
     val security = SecurityController(api, store, viewModelScope, { expire() },
         { server, token -> rotateCredential(server, token) },
         { expire(null, "Saved server content was deleted. Local private recovery data was cleared. Backups and offline devices may retain copies.") })
+    private val mutablePasswordSessions = MutableStateFlow<List<LoginSessionDto>>(emptyList())
+    val passwordSessions = mutablePasswordSessions.asStateFlow()
+    private var renewalJob: Job? = null
+    private var accessExpiresAt: Long? = null
     private var credential: ConnectionCredential? = null
     private var identity: SessionIdentity? = null
     private var generation = 0L
@@ -72,8 +76,10 @@ class ChatViewModel(
     fun observeForeground(visible: Boolean) {
         foreground = visible
         voice.observeForeground(visible)
-        if (!visible) { streamJob?.cancel(); update { it.copy(streamConnected = false) } }
+        if (!visible) { renewalJob?.cancel(); renewalJob = null; streamJob?.cancel(); update { it.copy(streamConnected = false) } }
         else if (state.value.destination == ChatDestination.Chat && state.value.pending != null) reconcile()
+        if (visible && accessExpiresAt?.let { it - System.currentTimeMillis() < 60_000 } == true) { renewSession(); return }
+        if (visible && renewalJob == null && accessExpiresAt != null) scheduleRenewal(accessExpiresAt!!, generation)
         if (visible && credential != null) sessionWork { c, epoch -> value(api.me(c), epoch) }
     }
     private fun launchWork(block: suspend () -> Unit): Job {
@@ -93,6 +99,8 @@ class ChatViewModel(
     }
     private fun current(epoch: Long) = epoch == generation
     private fun resetMemory() {
+        mutablePasswordSessions.value = emptyList()
+        renewalJob?.cancel(); renewalJob = null; accessExpiresAt = null
         security.reset()
         voice.reset()
         memory.reset()
@@ -137,8 +145,17 @@ class ChatViewModel(
         return try { storage.withLock { store.clear() }; cleanupFailed = false; true }
         catch (_: Exception) { false }
     }
-    fun logout() = expire(reason = null, notice = "Disconnecting. Private data is hidden while encrypted recovery state is removed.")
-    fun disconnect() = logout()
+    fun logout(all: Boolean = false) {
+        val previous = credential
+        val revoke = accessExpiresAt != null || all
+        expire(reason = null, notice = "Signing out. Private local data is being cleared.")
+        val epoch = generation
+        if (previous != null && revoke) viewModelScope.launch(NonCancellable) {
+            val result = api.logoutSession(previous, all)
+            if (current(epoch) && result is ApiResult.Failure) update { it.copy(notice = "Local data cleared. Server sign-out was not confirmed. Reconnect and revoke the session or ask the local operator to reset your password.") }
+        }
+    }
+    fun disconnect() = expire(reason = null)
 
     fun restore() {
         resetMemory(); mutableState.value = ChatState(connecting = true)
@@ -152,9 +169,41 @@ class ChatViewModel(
                 update { it.copy(connecting = false, notice = "Connect with a current token. Unusable encrypted state is discarded.") }
                 return@launchWork
             }
-            establish(saved.identity.server, saved.token, epoch, expectedOwner = saved.identity.owner)
+            if (saved.passwordSession) {
+                val result = value(api.refreshLogin(saved.identity.server, saved.token, allowDebugHttp), epoch) ?: return@launchWork
+                establish(saved.identity.server, result.access_token, epoch, expectedOwner = saved.identity.owner,
+                    refreshToken = result.refresh_token, expiresAt = result.access_expires_at)
+            } else establish(saved.identity.server, saved.token, epoch, expectedOwner = saved.identity.owner)
         }
     }
+
+    fun passwordLogin(server: String, username: String, password: String) {
+        resetMemory(); mutableState.value = ChatState(connecting = true); clearDurably()
+        val epoch = generation
+        launchWork {
+            if (!awaitCleanup() || !current(epoch)) return@launchWork
+            val result = value(api.passwordLogin(server, username, password, allowDebugHttp), epoch) ?: return@launchWork
+            establish(server, result.access_token, epoch, refreshToken = result.refresh_token, expiresAt = result.access_expires_at)
+        }
+    }
+    fun loadPasswordSessions() = sessionWork { connection, epoch ->
+        value(api.loginSessions(connection), epoch)?.let { mutablePasswordSessions.value = it }
+    }
+    fun revokePasswordSession(id: UUID) = sessionWork { connection, epoch ->
+        if (value(api.revokeLoginSession(connection, id), epoch) != null && current(epoch)) restore()
+    }
+    fun changePassword(old: String, replacement: String) = sessionWork { connection, epoch ->
+        if (value(api.changePassword(connection, old, replacement), epoch) != null && current(epoch))
+            expire(null, "Password changed. Sign in again. Other password sessions were revoked.")
+    }
+    private fun scheduleRenewal(expiresAt: Long, epoch: Long) {
+        renewalJob = viewModelScope.launch {
+            val remaining = expiresAt - System.currentTimeMillis()
+            delay((remaining - minOf(60_000, remaining / 2)).coerceAtLeast(1000))
+            if (current(epoch) && foreground) renewSession()
+        }
+    }
+    fun renewSession() = restore()
 
     fun connect(server: String, token: String) {
         resetMemory(); mutableState.value = ChatState(connecting = true)
@@ -173,7 +222,7 @@ class ChatViewModel(
         launchWork { establish(server, token, epoch, expectedOwner = previous.owner) }
     }
 
-    private suspend fun establish(server: String, token: String, epoch: Long, expectedOwner: UUID? = null) {
+    private suspend fun establish(server: String, token: String, epoch: Long, expectedOwner: UUID? = null, refreshToken: String? = null, expiresAt: Long? = null) {
         if (!awaitCleanup()) {
             if (current(epoch)) expire(ApiFailure.IncompatibleContract, "Secure cleanup could not be confirmed. Resolve device storage before connecting.")
             return
@@ -207,7 +256,7 @@ class ChatViewModel(
         val savedPending = try {
             storage.withLock {
                 if (!current(epoch)) return
-                store.saveCredential(StoredCredential(verified, token, user.data_epoch))
+                store.saveCredential(StoredCredential(verified, refreshToken ?: token, user.data_epoch, passwordSession = refreshToken != null))
                 store.pending(verified)
             }
         } catch (_: Exception) {
@@ -215,7 +264,8 @@ class ChatViewModel(
             return
         }
         if (!current(epoch)) return
-        credential = connection; identity = verified
+        credential = connection; identity = verified; accessExpiresAt = expiresAt
+        if (expiresAt != null && foreground) scheduleRenewal(expiresAt, epoch)
         voice.setVerifiedSession(connection, verified, features)
         memory.setVerifiedSession(connection, verified, features)
         documents.setVerifiedSession(connection, verified, features)
@@ -458,12 +508,13 @@ class ChatViewModel(
             }
         }
     }
-    fun upgradePrompt() {
+    fun upgradePrompt(quality: Boolean = false) {
         val row = mutableState.value.conversation ?: return
+        if (quality && mutableState.value.capabilities?.quality_prompt_version != "ada-baseline-v5") return
         if (mutableState.value.upgrading) return
         update { it.copy(upgrading = true, fault = null, notice = null) }
         sessionWork { connection, epoch ->
-            val result = api.upgradePrompt(connection, row.id)
+            val result = if (quality) api.upgradeQualityPrompt(connection, row.id) else api.upgradePrompt(connection, row.id)
             if (!current(epoch)) return@sessionWork
             value(result, epoch)
             if (!current(epoch)) return@sessionWork
@@ -482,7 +533,7 @@ class ChatViewModel(
         useDocuments = it.useDocuments && enabled) }; saveDraft() }
     fun updateDocuments(enabled: Boolean) {
         update { it.copy(useDocuments = enabled && it.useMemory && it.capabilities?.document_retrieval == true &&
-            it.capabilities.document_citations && it.conversation?.prompt_version == "ada-baseline-v4") }; saveDraft()
+            it.capabilities.document_citations && it.conversation?.prompt_version in setOf("ada-baseline-v4", "ada-baseline-v5")) }; saveDraft()
     }
     fun updateAsOf(instant: String) { update { it.copy(asOf = instant) }; saveDraft() }
     private fun normalizedTime(value: String): String? {
@@ -503,7 +554,7 @@ class ChatViewModel(
         if (voiceDraft != null && (current.capabilities?.hasVoiceInput() != true || voiceDraft.identity != verified || voiceDraft.conversationId != row.id || voiceDraft.scopeId != row.scope_id)) return
         val content = voiceDraft?.reviewedText ?: current.draft
         if ((current.useMemory && current.capabilities?.memory_in_chat != true) ||
-            (current.useDocuments && (!current.useMemory || current.capabilities?.document_retrieval != true || !current.capabilities.document_citations || row.prompt_version != "ada-baseline-v4")) ||
+            (current.useDocuments && (!current.useMemory || current.capabilities?.document_retrieval != true || !current.capabilities.document_citations || row.prompt_version !in setOf("ada-baseline-v4", "ada-baseline-v5"))) ||
             (current.asOf.isNotBlank() && current.capabilities?.historical_memory_queries != true)) { invalidDraft(); return }
         val at = try { normalizedTime(current.asOf) } catch (_: DateTimeParseException) { invalidDraft(); return }
             catch (_: IllegalArgumentException) { invalidDraft(); return }

@@ -9,6 +9,7 @@ from sqlalchemy import func, select, update
 
 from ada.auth import token_hash
 from ada.errors import ServiceError
+from ada.login_models import LoginSession
 from ada.models import User, now_ms
 from ada.security_models import DeviceCredential
 
@@ -19,6 +20,7 @@ class Principal:
     epoch: int
     digest: str = field(repr=False)
     credential_id: str | None = None
+    session_id: str | None = None
 
 
 def public_credential(row):
@@ -53,6 +55,19 @@ class CredentialService:
             ).first()
             if user is not None:
                 return Principal(user.id, user.data_epoch, digest)
+            session = db.execute(
+                select(LoginSession.id, User.id.label("owner"), User.data_epoch)
+                .join(User, User.id == LoginSession.owner_id)
+                .where(
+                    LoginSession.access_hash == digest,
+                    LoginSession.revoked_at.is_(None),
+                    LoginSession.access_expires_at > instant,
+                    LoginSession.expires_at > instant,
+                    LoginSession.idle_expires_at > instant,
+                )
+            ).first()
+            if session is not None:
+                return Principal(session.owner, session.data_epoch, digest, session_id=session.id)
             row = db.execute(
                 select(
                     DeviceCredential.id.label("credential_id"),

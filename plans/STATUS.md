@@ -4,7 +4,26 @@ Current overview updated 2026-10-16 America/Phoenix; historical entries retain t
 own dates and verification provenance. Update after implementation and verification.
 “Planned” means a specification exists, not that code or a working UI exists.
 
-**Authorized local-operation update, 2026-10-16:** the configured Docker
+**Phase23 source/local verification:** calendar-window lookup, explicit v5 context
+upgrade and review cues are implemented. New chats retain v4, semantic stays off,
+and schema stays0016. See the dated Phase23 record below for actual checks,
+native-model findings and remaining gates. This work has not been deployed to
+the separately installed Phase22 private service or physical S24FE.
+
+**Subsequent authorized private installation:** see the 2026-10-16 Windows/Tailscale
+setup follow-up at the end of this file and the
+[step-by-step guide](../docs/PRIVATE-SETUP-WINDOWS-TAILSCALE.md). Live0016 and the
+private HTTPS route are now observed/running; owner password enrollment and actual
+laptop admin/S24FE sign-ins are confirmed. Earlier implementation-only
+no-deployment statements retain their original evidence boundary.
+
+**Phase22 source update:** current source requires0016/57tables and exports
+105paths/138schemas. That implementation run left live enrollment/installation
+pending and used only isolated validation services/databases. The authorized setup
+above records subsequent live results; earlier observations retain their own dates.
+See the Phase22 entry for actual checks, skips and remaining target gates.
+
+**Historical authorized local-operation update, 2026-10-16:** the configured Docker
 PostgreSQL17.11 database was freshly verified at0015/54tables. No-op upgrade and
 schema-drift checks passed. Current loopback API8000, built admin preview5173 and
 Ollama11434 were started; synthetic owner/admin/real-model/replay checks passed.
@@ -37,7 +56,10 @@ release-reliability gates remain separate. See the follow-up entry at the end an
 | 18 | A–D implemented in source; validation paused by user | Head0015, digest-only device lifecycle, owner rate/body/admission bounds, encrypted PostgreSQL recovery drill, confirmed all-content erasure, Android v11 journals/settings and admin privacy cache fencing. Full backend747passed/23skipped, affected62passed/1skip, Android224units, six Chromium cases and API36/37 isolated checks recorded below. Final audit/remaining target gates are open; no deployment or live migration/erasure. |
 | 19 | Conditional plan | Phases 12/18 plus measured device or selected integration requirements. |
 | 20 | Implemented; local non-device baseline recorded, release limits remain | Separate encrypted0005 recovery/current policy, populated restore/upgrade/replay, saved five-component plus holdout scorecard and Caddy lab validation. Full PG18/SQLite760passed/24skipped; final affected23passed; fresh Android224units, web56units/six Chromium, emulator cold/HTTP/dialog/recovery/security evidence below. Preserve intermittency and unavailable model/old-server/manual/live gates. No installation or deployment. |
-| 21–31 | Proposed roadmap; no implementation | See [FUTURE-ROADMAP](FUTURE-ROADMAP.md). No later-phase implementation or deployment. |
+| 21 | Implemented; local connectivity verified, target/recovery gates remain | Named Android HTTPS addresses/import, public login preflight, TLS/DNS diagnostics, fixed same-origin health proxy and private Caddy routes. Actual ADA/TLS/SSE host rehearsals, Android metadata UI/negative TLS and web/backend checks below. G-41 intermittency remains; no real VPN/firewall/certificate deployment. |
+| 22 | Password/session checkpoints A–E implemented; source and isolated verification, live/target gates separate | Explicit hidden-prompt enrollment, pinned Argon2id, digest-only rotating families, bounded pre-auth, Android refresh-only Keystore and HTTPS HttpOnly admin cookies. Dated checks/skips below; no live password, migration or deployment. |
+| 23 | A–E implemented; measured opt-in/disabled decision, local verification | Explicit claim intervals/time clarification, original-source/history ranking under optional audited v5, request diagnostics and Android review cues. V4 remains default; semantic disabled because supported weights absent. Public fixture/native comparison and remaining cases in dated entry; no migration/deployment. |
+| 24–31 | Proposed roadmap; no implementation | See [FUTURE-ROADMAP](FUTURE-ROADMAP.md). No later-phase implementation or deployment. |
 
 Phase 02A's Windows fixture gate is closed. Phase 03's foundation builds and
 local HTTP/browser/emulator gates passed. Phase 04 now implements the Android
@@ -51,7 +73,7 @@ playback. Phase18 is implemented in source with verification still open; Phase19
 account grant. At the Phase 08 boundary, application migration 0005 was pending.
 The final Phase 09 read-only check observed application head 0005 and one active
 grant for the selected account; Phase 09 has not migrated it. Current source needs
-0015 before operational use. Phase 09 supplies explicit scoped identities and
+0016 before operational use. Phase 09 supplies explicit scoped identities and
 the Android review/editor. Phase 10 supplies optional exact hybrid retrieval,
 deliberately disabled pending real-model measurements. Phase 11 adds explicit
 selected-source proposals/review, while automatic extraction remains off. No deployment was performed.
@@ -2357,3 +2379,551 @@ leftover synthetic owners passed. Live counts remain2users/3personalities/
 4conversations/14requests/27events/27sources/27versions. Git whitespace check
 passed; existing LF→CRLF notices are informational. No destructive guide command
 was run. Local service processes are intentionally left available.
+
+### 2026-10-16 — Phase21 private-network connectivity — fed5d4b working tree
+
+Scope: only `phase-21-private-network-connectivity.md`; no later phase or
+deployment. Inspected rules/roadmap/current source, schema history/OpenAPI,
+client transports/recovery/tests and Phase20 evidence first. Source prerequisite
+0015/96paths/132schemas is intact; existing HTTPS/private auth/readiness supports
+this work without a new API endpoint, migration or prompt upgrade. Physical/iOS
+and real VPN/certificate/firewall execution were not selected.
+
+Implemented checkpoints:
+
+- A: Tailscale Serve → loopback Caddy18764 API/built-UI template; direct LAN TLS
+  template defaults to loopback unless `ADA_PRIVATE_BIND` is explicitly set.
+  Windows runbook covers both routes, controlled DNS/certificate ownership,
+  narrow firewall example, renewal, exact-origin client setup and withdrawal.
+  Tailscale identity headers never substitute for ADA credentials or admin grants.
+- B: Android up to12 named HTTPS label/origin profiles, explicit selection/removal/
+  clear and existing private-session reset; bounded readiness without a bearer
+  before native me/recovery/rotation and browser admin sign-in. Native TLS/DNS/
+  timeout/generic errors are distinct; unknown503 does not assert a DB cause.
+  Web errors explicitly acknowledge browser diagnostic limits. Vite proxies fixed
+  same-origin `/health` as well as `/v1`. Authenticated owner/capability/role and
+  generation fences remain authoritative. Android version14/0.21.0-connectivity.
+- C: strict version1 JSON label/origin import, full preview and explicit selection,
+  no credential/trust fields or automatic connection. Manual entry remains. No
+  camera/QR/deep-link handler, silent discovery or cross-origin web sign-in added.
+- D: real Caddy + migrated disposable ADA + built UI + authenticated SSE/cursor/
+  completed replay through direct TLS and the two-proxy Serve-boundary laboratory;
+  certificate negatives, stopped upstream and emulator metadata/platform checks.
+  The lab's local edge is not an actual Tailscale daemon/ACL test.
+
+Privacy/data contracts: profile metadata is separate from Keystore private
+state; selection clears the prior token/private session and never copies a
+credential between origins. No release network-security/trust exception,
+cleartext LAN, CORS widening, provider/DB native access, live `.env`/account/grant
+change or application database operation. Released migrations/prompts/contracts,
+Python runtime source and dependency locks remain unchanged. New Python code is
+test/operator rehearsal only, using isolated loopback processes/disposable data.
+
+Checks actually run:
+
+- Baseline before implementation: Android HTTP/connection/chat selection
+  **52unit tests passed**, Gradle27s; web **56passed30.75s**; schema/client pytest
+  **6passed,2skipped,1warning8.76s** (PG URL not supplied); Ruff passed. Snapshot
+  of551tracked paths captured before edits. Initial new profile tests failed
+  compilation as expected before types existed; new web invariant suite **4failed**
+  before preflight/path checks were implemented.
+- Configured PostgreSQL test target was unavailable. Initial PG fixture run was
+  interrupted rather than reported complete; first browser server startup timed
+  out. Started an owned PostgreSQL18.6 loopback55421 cluster in ignored phase21
+  storage, database `ada_phase2_test`, with public synthetic data only. No Docker
+  engine/application DB repair/start was attempted in this no-deployment scope.
+- Final focused schema/client/streaming/admin-HTTP pytest: **35passed,1skipped,
+  1warning70.28s**, SQLite and real PG18. Security/erasure/revocation follow-up:
+  **55passed,1skipped,1warning78.01s**. Both skips are SQLite native-row-lock cases;
+  their PG variants ran. Existing Starlette/httpx deprecation remains. These are
+  targeted suites, not a new full760-case Phase20 run.
+- Android full units **231passed/0failed/0skipped**; final validation lint/debug/
+  instrumentation/unsigned-release build passed26s/128tasks24executed after the
+  last metadata bounds/storage guard change. Earlier full builds also passed74s,
+ 32s and49s. Final normal-application artifact check is recorded in closeout.
+- Owned read-only API37 emulator5584: profile save/select/clear/remove, Activity
+  recreation persistence and import preview/explicit selection passed8.765s;
+  final metadata/DNS pair passed **2tests12.654s**. Reserved `.invalid` lookup
+  produced native DNS feedback. Actual Android platform rejected the laboratory
+  CA/hostname without a trust bypass. No physical phone or system-CA install.
+- Actual Caddy2.11.7 direct TLS and two-proxy boundary checks passed: readiness,
+  unauth401, ordinary admin403, explicit admin200, ignored network identity as
+  authority, real built SPA/API routing, six durable stream events, cursor and
+  completed replay, other-owner404, untrusted root/wrong host/expired cert rejection
+  and stopped-upstream unavailability. Standard Phase20 proxy regression passed
+  too (two fixture SSE frames). TLS CA trust was per-process only; model was fake.
+- Web **64unit tests/7files passed8.00s**; typecheck/lint/contracts/build passed;
+  production-build PG18-backed Chromium **6passed24.0s** with auth, revoked role,
+  account/server cleanup, keyboard/contrast/zoom and existing fixed-error states.
+  Five browser checks initially failed after preflight because Vite lacked the
+  `/health` proxy; added it, then the full six passed. Fresh `npm ci`/final repeat
+  results are recorded in closeout. No credentialed browser recordings.
+- Recovery-only emulator evidence is deliberately mixed: first two runs passed
+  four actual-force-stop stages each but failed SecurityUI deletion waits. Its
+  test now waits for confirmation acknowledgement before owned GET polling and
+  an explicit client refresh, with fixed safe status diagnostics. One corrected
+  full run passed four stages + SecurityUI8.767s. A later repeat timed out in the
+  existing voice-draft resume wait (line39); **G-41 remains Open**, not fixed by
+  retries or a claimed production change. Preserve all these individual outcomes.
+- Intermediate implementation/harness mistakes were corrected: Compose context
+  access inside remember; mock-server host outside the debug allowlist; the web
+  subclass initially dropped the public-request flag; an admin test DTO used the
+  wrong fields; PowerShell split an unquoted dotted Gradle property; a nested
+  Compose synchronization call failed. Host checks found the tailnet template's
+  original hostname matcher rejected Serve's Host; changed to any Host on an
+  explicitly loopback-bound socket. TLS harness now accepts Caddy refusing wrong
+  SNI before certificate presentation, and handles combined no-store headers.
+  These failed runs are not represented as passing checks.
+
+Remaining verification: no actual Tailscale enrollment/allowed-versus-revoked
+policy, real LAN firewall/DNS changes, positive system-trusted Android release
+HTTPS, renewal, physical Wi-Fi/VPN handover, manual assistive review or sustained
+load. G-06/G-29 installation/target parts remain open, as does G-41 reliability.
+No new real-model quality claim or always-on service/scheduler/password login.
+The new [private-network guide](../docs/PRIVATE-NETWORK-CONNECTIVITY.md) distinguishes
+tested laboratory commands from unexecuted installation examples. Stop at21.
+
+Phase21 closeout: normal application-ID Android units/lint/debug/unsigned-release
+artifacts passed **28s/101tasks44executed**, with **231units/0fail/0skip**. Nothing
+was installed onto a normal/physical phone. Fresh web `npm ci` installed270packages,
+audited271 with0findings (existing whatwg-encoding deprecation); contracts/types/
+lint, **64units8.17s** and build passed afterward. No dependency/lock upgrade.
+Final LAN emulator-assisted and tailnet-boundary host rehearsals both passed,
+including stopped-upstream checks; Android platform rejected the lab TLS endpoint.
+
+Final checks: **17UTF-8 Markdown files/224local links** passed; **13new-guide
+PowerShell examples** parsed without execution. **199protected tracked paths**
+(server Python, released migrations/contracts/prompts/locks and phase19/20/22–31
+plans) unchanged; **524of551 baseline tracked files** unchanged outside27intended
+edits. Source OpenAPI equals the committed96path/132schema contract as parsed
+JSON. Ruff lint/format **161files** and Git whitespace passed (informational
+LF→CRLF notices). Validation metadata/logs are ignored under `.pytest_cache/phase21`;
+no secret/private content was added to plans/reports.
+
+Cleanup verified the exact owned PG path before stopping loopback55421; removed
+only Phase21 validation APKs, confirmed no reverse remained and stopped owned
+read-only emulator5584. The existing runner removed its separate physical-named
+validation package even when an emulator check failed. No task listeners remained
+on19621–19624/19631–19634/19821/55421/18420/19420/18763/5173. Per-run temporary
+SQLite/CA/private-key files were cleaned by their harnesses. No live service,
+normal app, system trust, Docker/application DB, VPN, firewall, DNS or account
+was changed. No deployment/commit/later phase; G-41 and the listed target gates
+remain explicitly open.
+
+### 2026-10-16 — Phase22 password login and revocable sessions — fed5d4b working tree
+
+Scope: only phase-22-password-login-and-sessions.md. Read repository/planning rules,
+architecture/roadmap/current source, OpenAPI, migration/recovery and client/test
+baselines first. Preserved the existing uncommitted Phase21 work (559file initial
+snapshot). No application migration, password assignment, grant change, deployment,
+VPN/firewall/system trust change, external message or Phase23+ implementation.
+
+Checkpoints A–E implemented:
+
+- A/B: additive0016 separates password_credentials from unchanged users/display
+  names/token hashes. NFKC/casefold explicit identifiers reject collisions;
+  existing accounts stay disabled. Local interactive UUID-based set-password uses
+  hidden confirmation; login-accounts exposes safe authority/count metadata.
+  Argon2id25.1.0/bindings26.1.0 pinned;64MiB/3iterations/4lanes, independent salts,
+  two hash slots, dummy verification and rehash-on-success. Exact15–1024character
+  passwords are supported without composition/truncation. Five public synthetic
+  hash+verify pairs112.79–117.14ms, median114.76ms; not a load/peak-RSS measurement.
+- C: digest-only opaque access/rotating refresh families,15minute/30day/7day default
+  access/absolute/idle limits.128families/4096rotations bound history; expired and
+  oldest revoked entries can be reclaimed. User locks serialize reuse/reset/
+  rotation. Consumed refresh reuse revokes even a concurrent winner; lost delivery
+  requires password sign-in, with no replay grace/secret escrow. Owned list/revoke,
+  current/all logout and current-password change are implemented. Reset revokes
+  password families; legacy/device credentials retain separate explicit policy.
+- D: four exact login/refresh POST exceptions,8192byte/5second/16inflight pre-auth
+  bounds,120global/30IP/10identifier attempts per60seconds,4096hashed rate keys
+  and separate hash admission. No permanent account lock. The launcher ignores
+  proxy headers, retains one worker/no access logs. Auth metadata/revocation stays
+  available during content deletion. Fresh principal/epoch and SSE-batch fencing
+  continue; X-ADA-Owner fences cookie account changes before browser decoding.
+- E: Android normal username/password, password cleared after submit, access only
+  in memory, rotating refresh in v12 Keystore storage; v1–v11/advanced bearer
+  compatibility retained. Reopen/foreground renewal clears views, verifies the
+  same owner/epoch and performs GET recovery only. Settings reviews/revokes
+  sessions, changes password and logs out current/all. Short configurable access
+  lifetimes use a bounded renewal margin, avoiding a one-second refresh loop.
+  Browser uses exact configured HTTPS origin and Secure/HttpOnly/Strict host-only
+  cookies, custom-header/Origin CSRF, no token JSON/JS credential persistence.
+  Auth queue/Web Locks serialize renewal/cancel cleanup; response owner fencing
+  prevents cross-tab cache mixing. Monitoring remains read-only except auth.
+
+Data/contracts: head0016/57tables; encrypted backupv2 quarantines recovered password
+and session authority. Frozen0015/v1 and separate0005 inventories/recovery remain
+supported; current erasure still covers45content tables and discloses retained
+security metadata. All132existing schemas and96existing paths compare unchanged
+except their intentional cookie security alternative; additive current contract
+is105paths/138schemas. Released migrations/prompts/other phase plans/native trust
+files were checked unchanged. No new LLM capability, prompt upgrade or replay
+rewrite. See [PASSWORD-LOGIN-AND-SESSIONS](../docs/PASSWORD-LOGIN-AND-SESSIONS.md).
+
+Checks completed before final regression closeout:
+
+- Baseline: selected schema/client/security pytest33passed/31skipped28.48s (PG URL
+  not supplied); Ruff passed. An initial misspelled test path collected nothing
+  and was corrected, not counted as a pass. Initial new failure suite could not
+  import the not-yet-implemented password service, as expected before writes.
+- All database verification uses migrated SQLite/disposable schemas/databases in
+  owned loopback PostgreSQL18.6:55421/ada_phase2_test with matching native18tools.
+  Initial pg_ctl omitted the cluster's port override and failed to bind; corrected
+  to its owned55421 socket. No application/native5432 service was changed.
+- Focused PG18/SQLite security/recovery/legacy/client suite81passed/2SQLite-lock
+  skips153.67s. Expanded password, populated upgrade, schema0015backup/restore/
+  upgrade and corrected contract checks24passed/1SQLite-lock skip39.11s. Security/
+  stream/admin-HTTP follow-up107passed/3SQLite-lock skips197.03s. Later auth/contract/
+  admin follow-up61passed/3skipped94.03s; corrected full-run failure cases4passed13s.
+  Real PG refresh races, expiry/reuse/reset, SSE batch loss, generic disabled/
+  absent failures, CSRF/mixed identities, bounded admission, hidden operator input,
+  history-capacity recovery and wrong-owner fences are covered.
+- Intermediate monolithic full pytest:777passed/25skipped/3failed1182.24s. Two
+  failures were old bearer-only OpenAPI assertions. One SQLite HTTP fake chat
+  returned503; isolated SQLite/PG reruns passed. The subprocess fixture inherited
+  a background worker unlike its harness; it now explicitly disables unrelated
+  workers. This is fixture determinism, not proof of a product/G-41 repair. Final
+  current-tree full collection818cases/57modules was checked in three
+  independent disposable-data groups; their exact results are appended below.
+- Android final normal-ID units236passed/0failed/0skipped; lint/debug/instrumentation
+  and unsigned-release builds passed42s/240tasks25executed. Latest separate
+  validation-ID build and API37 emulator5584 passed password UI/Keystore/Activity/
+  explicit renewal13.019s, then actual force-stop/relaunch/renew/logout-all5.655s.
+  Earlier corrected stages passed7.403s/3.514s. No normal APK was installed; runner
+  checks APK application IDs and accepts emulators only. No physical phone/audio.
+- Fresh npm ci270installed/271audited/0findings; contracts/types/lint,67units/8files
+  7.61s and production build passed. Final PG18-backed built Chromium6passed33.6s.
+  Actual TLS Caddy + built browser passed ordinary password login, HttpOnly/host-
+  only cookie behavior, missing-CSRF denial, automatic short-lifetime renewal,
+  reopen/rotation, logout, non-admin denial, two-tab owner switch and password
+  change. Browser fixture leaf trust is pinned in that Chromium process only;
+  independent standard-CA TLS negatives cover trust rejection. No credentialed
+  recordings, system trust installation or production TLS bypass.
+- Both Phase21 direct TLS and two-proxy boundary rehearsals passed again: real
+  migrated ADA/fake provider, six durable SSE events, cursor/completed replay,
+  role/owner isolation, ignored network identity, built SPA, certificate negatives
+  and stopped-upstream unavailability. These are loopback laboratories, not live
+  LAN/Tailscale policy/renewal evidence. Python pip check and Ruff lint/format
+ 168files passed.19UTF-8 documents/222local links and3new-guide PowerShell examples
+  passed (syntax only, no installation commands executed). Git whitespace passed.
+
+Corrected failed development checks remain part of the record: Android version11
+fixture expectations/fake logout calls and a missing instrumentation import;
+Activity recreation incorrectly expected to rotate a retained ViewModel; an empty
+password assertion accidentally included its field label. Tests now use explicit
+renewal, real force-stop and editable-value semantics. Web legacy tests needed the
+advanced toggle/exact label matching. A preflight fetch receiver error was fixed
+with a bound transport closure; an account-change message was being overwritten
+and now explains reauthentication. Earlier browser text assertions were updated
+for password/session wording. These failed runs are not relabeled as passes.
+
+Remaining/skip policy: completed full group results/cleanup are appended below.
+No physical S24 FE/Android16, positive system-trusted release HTTPS, actual Wi-Fi/
+VPN/firewall/DNS/certificate renewal, manual password-manager/assistive review,
+other-browser or sustained auth/load/peak-memory check. Opt-in real-Ollama health/agent probes were not enabled; fixture inference is synthetic. Existing
+G-06/G-29 network target and G-41 reliability/voice gates remain open. Live0016
+installation, hidden-password enrollment and exact ADA_BROWSER_ORIGIN setup need
+separate operator execution; no live credential/data change was made. Stop at22.
+
+
+Phase22 final closeout: all818collected cases across57test modules were covered
+once by three independent migrated SQLite/PG18 disposable-data runs:257passed/
+15skipped426.09s;187passed/3skipped363.96s;349passed/7skipped556.37s. Aggregate
+**793passed,25skipped,0failed**. The25skips are17SQLite native-row-lock cases
+(whose PG variants ran),2opt-in non-generating Ollama health cases and6opt-in real
+agent-model cases. No missing PostgreSQL/recovery-tool skips. The existing
+Starlette/httpx deprecation warning remains. These results supersede the failed
+intermediate monolithic run without erasing it.
+
+Final review added3web account-switch race cases before fixing late password-change
+acknowledgements/logout errors: all3initially failed, then passed after generation
+fences. Fresh final web contracts/types/lint, **70units/8files10.14s** and production
+build passed. Rebuilt-current-UI PG18 Chromium **6passed22.0s** and the actual TLS
+password/cookie/CSRF/automatic-renewal/reopen/logout/two-tab/password-change drill
+passed again after those guards. Previous6passed33.6s and failed wording/locator
+checks remain dated development evidence. No recordings or real credentials.
+
+The legacy Android token adapter now refuses password-mode refresh material; its
+existing encrypted-store test verifies this boundary. Final normal-ID **236units/
+0fail/0skip**, lint/debug/instrumentation/unsigned-release build passed **24s/
+240tasks25executed**. Latest emulator password stages remain13.019s/5.655s, including
+actual force-stop. Normal artifact packaging also passed8s/217tasks; the validation
+runner's negative guard rejected normal-ID APKs before installation. Only separate
+validation APKs were ever installed on the owned emulator.
+
+Frozen recovery inventories were checked explicitly against current metadata:
+0015has54tables,0016has57, owner erasure45. No released migration, prompt, other
+phase or native trust-file change; old132schemas/96paths remain identical except
+the selected cookie security alternative. Final static/document/whitespace checks
+are recorded below. All task validation services are stopped: owned PG55421 path
+validated before stopping, emulator5584 terminated, validation APKs/reverse removed,
+zero disposable schemas/restore databases left, no task listeners on18422/19422/
+18423/19822/19621–19624/19631–19634/18763/5173/55421. Per-run CA/private-key/SQLite
+fixtures were removed by their runners. Native5432, Docker/application5433, live
+accounts/configuration and system trust were untouched. No deployment/commit or
+later phase. Live0016 enrollment/installation and the previously listed physical,
+network/manual/load/model/G-41 target gates remain pending.
+
+Final static closeout: 22UTF-8 documents/243local links passed;3guide PowerShell examples and start.ps1 parsed without execution. 57released migration/prompt/other-phase/native trust/client-lock-wrapper paths remain byte-identical to the initial snapshot. OpenAPI105paths/138schemas passes the old132schema/96path compatibility comparison, with only the selected cookie security alternative. Ruff lint/format168files and Git whitespace passed.
+
+
+## 2026-10-16 — authorized Windows/Tailscale private setup follow-up
+
+Scope: the user explicitly requested local environment/TLS setup after Phase22,
+including dotenv corrections, editable device IP references and a detailed guide.
+This is separate authorization from earlier phase implementation/no-deployment
+runs. Source HEAD remains fed5d4b plus preserved existing and current worktree
+changes; no commit, public publishing, unattended service or Phase23+ feature.
+
+Implemented/operator actions:
+- Corrected the private, Git-ignored dotenv: exact HTTPS ADA_BROWSER_ORIGIN,
+  literal absolute forward-slash ADA_ADMIN_DIST and editable laptop/phone/iPad
+  LAN/Tailscale address reference keys. These IP keys are metadata, not bind or
+  authorization settings. Removed unused direct-LAN/manual-cert variables.
+- Rotated the exposed PostgreSQL role password without printing/storing it in
+  plans. Updated both private dotenv credentials, restricted its Windows ACL to
+  the current user/SYSTEM/Administrators and recreated only the Compose db
+  container on the same named volume to synchronize its initialization environment.
+  Fresh password-authenticated connections and matching secret settings passed;
+  all57application-table inventories were identical across the rotation. No
+  reset, account token/role change, data migration or live backup was performed.
+- Fresh live database observation was already PostgreSQL17.11/head0016/57tables.
+  The fresh standalone alembic check exposed missing login_models registration
+  in migrations/env.py. Added a failing subprocess regression before fixing the
+  import. Existing migration files, tables/API contracts and prompts are unchanged;
+  current/check/doctor subsequently pass without schema changes.
+- Installed archive/executable-checksummed Caddy2.11.7 under LOCALAPPDATA/ADA/tools,
+  added pinned manual install/start/check-only helpers and linked the detailed
+  PRIVATE-SETUP-WINDOWS-TAILSCALE guide from README/HOW-TO/network/password guides.
+  No blanket dotenv evaluation/import, service registration or proxy TLS bypass.
+- Started one-worker/no-access-log/no-proxy-header API on127.0.0.1:8000 and Caddy
+  on127.0.0.1:18764. Existing Serve443 maps the actual tailnet hostname to18764;
+  status JSON contains no enabled AllowFunnel. PostgreSQL/Ollama remain local.
+  Normal system TLS validation passed; TLS1.3 certificate expires2027-01-14UTC.
+  No manual certificate/key creation, custom CA installation or firewall change.
+- Phone SM-S721U1/Android16 was USB-visible with version15/0.22.0-sessions already
+  installed; no APK install/uninstall or app-data reset. The user connected it to
+  Tailscale and Android peer100.126.191.82 was observed online; iPad100.90.118.114
+  also online. Device account/HTTPS/chat verification remains separately recorded.
+
+Checks actually run:
+- Initial fresh-process SQLite regression failed1case as expected; after the
+  import correction, password/session + fresh Alembic tests on migrated SQLite
+  and disposable real PostgreSQL17.11: **29passed/1skipped33.43s**. Skip is SQLite
+  row-lock concurrency; the PostgreSQL variant ran. Exact owned test database
+  removed; zero ada_setup_test_* databases remain. Existing Starlette/httpx
+  deprecation warning remains. Live alembic current0016/check no drift, doctor
+  and pip check passed. Ollama model listing confirms qwen3.8:27b, not inference.
+- Built web contracts/types/production build passed; lint and **70units/8files
+  7.56s** passed. Live system-trusted HTTPS readiness/admin200, unauthenticated
+  private401 and root404 verified. Actual TLS Chromium loaded the built sign-in
+  form and exercised synthetic password/non-admin denial with normal CA trust.
+- Real Serve -> Caddy -> ADA -> livePG17 synthetic HTTP checks passed browser
+  password/no-token-JSON/Secure/HttpOnly/Strict/host-only cookies, exact-origin/CSRF
+  rejection, rotation/current-owner/logout/401; native password protocol passed
+  rotation, old-access rejection and logout. Exact synthetic owners and their
+  credential/session rows were removed in finally blocks; legitimate security
+  audit metadata is retained. No private user chat/credential was recorded.
+- Ruff lint/format245files, Git whitespace, both new helper PowerShell AST parses,
+  valid proxy check-only and invalid-archive checksum refusal passed. The new
+  guide's21PowerShell examples parsed and5local links resolved. Optional fresh
+  installs/migrations/rotation/release/device commands are instructions, not all
+  rerun checks. Existing lockfiles/native network trust remain unchanged.
+
+Corrected failures: first rotation staging tried fsync on a read-only Windows
+handle; PostgreSQL rolled back and dotenv stayed unchanged. Writable flush/fsync
+retry succeeded. Initial proxy launch in inherited WindowsPowerShell5 failed
+module lookup and HTTPS returned502; running the helper in PowerShell7 restored
+18764/HTTPS200. The first synthetic CSRF probe omitted JSON Content-Type and was
+rejected415 before the origin check; corrected valid-JSON probe got expected403.
+No product permission weakening was made. User's first enrollment was rejected
+for fewer than15characters; password login remained disabled and a hidden-prompt
+retry was opened. Successful completion must be confirmed from metadata.
+
+Remaining checks: real owner enrollment and browser/phone sign-in results are
+appended when verified. Positive signed-release Android HTTPS, actual on-device
+reopen/refresh/chat/SSE/cellular handover, iPad Safari, manual accessibility,
+certificate renewal, sustained auth/load and physical voice/G-41 gates are not
+closed by host checks. No full793-case suite or Android rebuild was repeated for
+these helper/docs/metadata changes; the earlier Phase22 evidence is preserved.
+Native17 recovery tools/live encrypted backup/restore remain an operator follow-up
+(native18 is not the matching backup pair). No later phase or automatic startup.
+
+
+Setup enrollment follow-up: the initial short-password rejection was corrected
+by the operator's hidden-prompt retry. Local metadata now confirms the existing
+admin owner is password-enabled with login `gourishankar-admin`; its UUID/grant
+and the two other accounts are unchanged. The local success receipt is timestamped
+2026-10-17T00:35:35Z (2026-10-16 America/Phoenix). No password was captured by the
+agent. Real owner browser/phone use remains pending user results, distinct from
+the already passed synthetic live HTTPS protocol/browser checks. Final document
+check:9updatedUTF-8 files/111local links passed; Git whitespace and affected Ruff
+lint/format passed after recording the guide/status changes.
+
+
+Physical setup confirmation: the user reports the S24FE server readiness check
+and ordinary password sign-in both work through the real Tailscale HTTPS origin.
+This is current debug app15/0.22.0-sessions evidence, not a signed-release,
+reopen/refresh/chat/SSE/cellular/voice test. The user's console confirms successful
+hidden-password enrollment; agent metadata independently confirms password-enabled
+`gourishankar-admin` on the existing granted owner. Browser opening was not an
+enrollment side effect: a shell URL launch was rejected as blocked by policy and
+the browser connector had no available Chrome. The user was given the exact
+clickable HTTPS/admin URL for manual opening/sign-in; that result is pending.
+Final scan found no current DB secret/URL in changed/untracked repository files;
+standalone live alembic check and Git whitespace passed again.
+
+
+Private setup closeout, 2026-10-16 America/Phoenix: the user confirms the laptop
+admin dashboard opens after ordinary username/password sign-in, in addition to
+the S24FE's successful real HTTPS readiness/password sign-in. Backend metadata
+confirms active Android and Admin browser password families for the same existing
+granted owner; all3original owners remain and schema is0016. Manual browser opening
+resolved the unavailable automatic-launch path; no credential UI was automated.
+Services remain running for use on loopback API8000/Caddy18764/Ollama11434, with
+private Tailscale443. Enrollment and these two actual sign-in gates are now closed;
+the earlier pending entries above retain their chronology. Guide reflects the
+confirmed setup. No new model generation, physical reopen/refresh/SSE/cellular,
+iPadSafari, signed-release HTTPS, voice, certificate renewal/load or live encrypted
+recovery claim. No further phase implemented.
+
+
+## Phase23 answer quality and memory relevance — 2026-10-16 America/Phoenix
+
+Code: `fed5d4b` plus the existing Phase21/22/setup working tree and this bounded
+Phase23 change. Required/root/plans/Android instructions, README/architecture,
+current source/OpenAPI, head0016 and prior scorecards were inspected before
+implementation. Relevant baseline: retrieval, quality baseline, hybrid evaluation,
+learning and proposal tests **82passed/4expected SQLite skips (97.31s)**. Existing
+claims/documents/entities/review/episodes/continuity and session adapters satisfied
+prerequisites. No later phase or physical phone was needed.
+
+| Checkpoint | Implemented behavior and decision |
+|---|---|
+| A | Frozen public16case corpus,8development/8regression holdout, fixture and32native v4/v5 answers. Separate context/ranking/generation findings, exact-source isolation checks and Codex qualitative usefulness/entailment/uncertainty review. |
+| B | Existing lexical/subject/entity/exact-hybrid fixture comparison and fallback/budget tests rerun. Matching supported embeddinggemma weights absent: no native embedding/index/GPU claim, no download; semantic remains disabled. |
+| C | Explicit IANA timezone/reference and versioned yesterday/previous Monday-week resolution; displayed half-open intervals, missing/folded-midnight clarification, current-recorded valid-time overlap. Complete claim-conflict groups or omission. Old point lookup unchanged. |
+| D | Optional audited v5, ranked original history/authorized original continuity, frozen omission diagnostics and existing source/correction links. No automatic durable memory. Original retry/replay fences preserved; v4 remains default due measured regressions. |
+| E | Exact loaded pending-annotation grouping and same/different-value conflict cues, retained exact support and every separate accept/edit/reject. No auto approval or automatic completed-turn selection. |
+
+Data/contracts: no migration/dependency/new storage table. Head0016/57table model
+is unchanged. OpenAPI109paths/143schemas; all105old paths and137old non-capability
+schemas compared equal. Capabilities has three additive defaulted properties.
+V3/v4 baseline bytes, historical migrations, old evaluation artifacts, later-phase
+plans and locks/wrappers/release trust files match the turn-start snapshot
+(68protected files). Existing PromptChange/trace storage holds v5 audit/frozen
+metadata; old snapshots are never reconstructed. New chat, point retrieval,
+CLI --at, source trust/citation and recovery contracts remain supported.
+
+Checks actually run:
+
+- Failure-first new API tests:3failed/1passed/4deselected for missing routes before
+  implementation. Initial implemented target:2failed/6passed due a test-only
+  wrong source-version field path, then corrected. Affected old/new retrieval,
+  learning/storage/baseline group **61passed/2expected skips (70.87s)**; expanded
+  Phase23 target **17passed (16.52s)** on SQLite/PostgreSQL. Full suite and the
+  later three manifest/runner guards are recorded in the closeout below.
+- Ruff lint passed; final Ruff format **177files passed**. An intermediate format
+  check found one new runner signature; formatted and rechecked. `pip check`
+  passed. `alembic heads` reports0016. No application migration command run.
+- OpenAPI export and generated web types refreshed. Web typecheck/lint,
+  **70unit tests/8files**, and production build passed. No admin runtime source
+  change in Phase23; production Chromium suite not rerun for type-only changes.
+- Android app16/0.23.0-quality: **239unit tests, zero failures/errors/skips**;
+  lintDebug, assembleDebug, assembleDebugAndroidTest and unsigned assembleRelease
+  passed. First compile found a new adapter's serializer-name typo; corrected
+  before successful builds. No dependency/lock/wrapper/native TLS change.
+- Separate dev.ada.validation.phase23.debug API37 emulator with real disposable
+  PostgreSQL HTTP/session fixture: **1instrumentation flow passed (11.002s)**,
+  covering displayed interval, two exact conflicting Unicode source cards,
+  verified original source and explicit audited v5 upgrade/document compatibility.
+  The first install attempt raced emulator boot and failed; after boot-complete,
+  the full retry passed. Validation APKs/reverse/schema removed, emulator stopped;
+  normal debug/instrumentation APKs rebuilt and metadata restored. Physical
+  device/normal application data were not used or installed/reset.
+- Public comparison runners: initial SQLite fixture32outputs; final PG fixture32
+  and native Ollama32outputs. Initial two-recent-pair ranking still lost the
+  relevant old turn under budget; corrected to one recent pair before the final
+  fixture/native comparison. Corpus stayed frozen; this is regression holdout,
+  not independent unseen data. Existing13query hybrid fixture comparison passed
+  its integrity checks. Full raw synthetic reports are ignored local artifacts;
+  committed manifest/results contain reproducible aggregate/per-case findings.
+- Thirteen changed documentation files decoded UTF-8 and191local links resolved;
+  six PowerShell example blocks parsed. Git whitespace passed. A policy digest
+  audit initially compared policy-only hashes with assembled personality prompts;
+  the corrected documented definition matches both final baseline policy texts.
+
+Model evidence and measured decision: installed qwen3.8:27b digest
+`aaee06c39dcf2437cde036998d960e1fc1494b8191be7cc9657d01e509097813`
+matched before/after native comparison. Recall was1.0 for both policies over5
+positive development/4positive holdout cases; MRR0.9/1.0. Zero detected owner,
+project or deleted-source leaks/exact-span failures. Codex review: fully useful
+v4/v5 development8/8→6/8, holdout5/8→8/8. V5 restored the original long-history
+turn (5542prompt bytes vs v4's5850, under6000) but used ambiguous exclusive-date
+wording and exceeded brevity in development. Citation entailment counts actual
+used labels, not merely available cards. **Not independent human review**;
+small eight-case intervals overlap, one sample per version/case, host validation
+load uncontrolled. Native median development4.272→4.716s, holdout3.482→3.922s;
+first cold v4 request55.55s. No SLA or general accuracy claim.
+
+Hybrid fixture:13queries, lexical recall/MRR0.4286/0.4286 vs exact hybrid1.0/0.7857,
+zero integrity/isolation violations; eight5D vectors/448JSONbytes. Synthetic
+vectors, Python allocations and warmed/cold timings are not native model/index
+or GPU measurements. Supported embeddinggemma:300m digest absent; **semantic off**
+is the chosen valid exit. V5 stays **explicitly opt-in**, v4 default unchanged.
+
+Skipped/remaining target verification: native embedding/resource comparison
+requires separately selected installed supported weights; no download authorized
+or attempted. Independent reviewer/larger freshly versioned corpus and repeated
+warm latency/working-set/GPU measurement remain. Address native date-boundary,
+brevity and irrelevant lexical-hit findings before any default activation.
+Windowv1 intentionally excludes document availability/historical alias
+interpretation and is read-only, not a chat interval option. Private evaluation
+was not opted into. No fresh physical S24FE, TalkBack/large-font/release HTTPS,
+voice/G-41, network handover or live recovery/soak result is claimed. The previously
+running Phase22 API/proxy, app database, sessions and physical app were left in
+place; Phase23 has not been deployed. Phase24–31 remain planned.
+
+Usage, reproducible commands and details:
+[quality guide](../docs/ANSWER-QUALITY-AND-MEMORY-RELEVANCE.md),
+[manifest](../evaluations/answer-quality-manifest-v1.json),
+[reviewed results](../evaluations/answer-quality-results-v1.json).
+
+
+Phase23 verification closeout, 2026-10-16 America/Phoenix:
+
+- Full `python -m pytest -q -ra` against migrated SQLite and disposable
+  PostgreSQL18.6: **816passed/25skipped (1058.84s),841collected cases**. The25skips
+  are17SQLite row-lock cases (PostgreSQL counterparts ran), two opt-in generation-free
+  Ollama health probes and six opt-in legacy native-agent probes. Those opt-ins
+  were not enabled; the separate32answer Phase23 native run is distinct evidence.
+  One existing Starlette/httpx TestClient deprecation warning remains; no blanket
+  dependency update. Environment: ADA_TEST_DATABASE_URL selected only the dedicated
+  loopback55421/ada_phase2_test fixture and ADA_TEST_PG_BIN selected native18.
+- Later `pytest -q tests/test_quality_phase23_evaluation.py`: **3passed (0.17s)**,
+  run separately after the full suite had collected. New bounds/conflict and
+  active-upgrade tests were included in the full run. No claim that the later
+  three were part of that841case invocation.
+- Disposable fixture schema/restore-database inventory was empty after teardown.
+  Validation18423 listener absent, emulator/reverse/separate APKs removed and
+  owned55421 PostgreSQL stopped after verifying its workspace data path/port.
+  Existing application DB/API/proxy/Ollama and phone were not redeployed/modified.
+- Final source checks: Ruff lint/format177files, pip check, compatibility and
+  protected-file/prompt audits passed. Documentation/contract closeout follows
+  below if additional metadata checks are recorded. Earlier local failures,
+  skips and remaining target/model limits above are preserved.
+
+
+Final Phase23 metadata checks: `npm run contracts:check` passed;13updated UTF-8
+documents/197local links resolved and six PowerShell example blocks parsed.
+All49changed/new phase files were scanned against configured credential values
+with zero matches (values were never printed). Final Ruff lint/format177files
+passed. Repository-configured `git diff --check` passed. A diagnostic attempt
+that overrode autocrlf=false falsely flagged existing Windows CRLF as trailing
+whitespace; it made no file/config changes and was replaced with the normal
+repository-configured check. No line-ending mass rewrite was performed.
+Full-suite/fixture teardown left no disposable schemas or restore databases;
+owned PostgreSQL55421 and the API37 emulator are stopped. Normal APK metadata is
+app16/0.23.0-quality, with no installation. This completes Phase23's bounded
+local exit; all skips, native regressions and remaining target checks above remain.

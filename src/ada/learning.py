@@ -26,7 +26,7 @@ from ada.learning_models import (
 )
 from ada.memory import owned_scope
 from ada.models import Event, Request, Source, SourceVersion, User, now_ms
-from ada.personality import RETRIEVAL_PROMPT_VERSIONS
+from ada.personality import QUALITY_PROMPT_VERSION, RETRIEVAL_PROMPT_VERSIONS
 from ada.proposals import canonical, fingerprint
 from ada.retrieval import plan_query
 
@@ -567,6 +567,7 @@ class LearningService:
         cutoff = min(self.clock(), plan["as_of"])
         terms = set(re.findall(r"\w{3,}", content.casefold())) - STOP_WORDS
         snapshot["continuity_reason"] = "no_relevant_authorized_episode"
+        quality = conversation.prompt_version == QUALITY_PROMPT_VERSION
         episodes = db.scalars(
             select(Episode)
             .where(
@@ -576,9 +577,12 @@ class LearningService:
                 Episode.range_end <= cutoff + 1,
             )
             .order_by(Episode.created_at.desc(), Episode.id)
-            .limit(20)
+            .limit(21 if quality else 20)
         ).all()
-        for e in episodes:
+        authorized = []
+        if quality:
+            snapshot["continuity_search_truncated"] = len(episodes) > 20
+        for e in episodes[:20]:
             try:
                 job = self.consolidator._owned(db, owner, e.job_id)
                 self.consolidator._fresh(db, job)
@@ -595,6 +599,9 @@ class LearningService:
                 and s["trust_class"] != "model_generated"
                 and len(s["evidence"]["quote"].encode()) <= 600
             ]
+            if quality:
+                authorized.append((e, evidence))
+                continue
             selected = [
                 s
                 for s in evidence
@@ -624,4 +631,31 @@ class LearningService:
             ]
             snapshot["continuity_reason"] = "exact_original_sources"
             break
+        if quality:
+            from ada.quality_context import rank_original_sources
+
+            selected = rank_original_sources(authorized, content)
+            snapshot["continuity"] = [
+                {
+                    k: source[k]
+                    for k in (
+                        "source_id",
+                        "source_version",
+                        "source_origin",
+                        "trust_class",
+                        "evidence",
+                    )
+                }
+                | {
+                    "label": "C" + str(i + 1),
+                    "episode_id": episode.id,
+                    "summary_trust": "model_generated",
+                    "uncertainty": "source_reference_not_verified_recollection",
+                    "omitted_source_count": len(episode.sources)
+                    - sum(e.id == episode.id for e, _ in selected),
+                }
+                for i, (episode, source) in enumerate(selected)
+            ]
+            if selected:
+                snapshot["continuity_reason"] = "ranked_exact_original_sources_v2"
         return snapshot

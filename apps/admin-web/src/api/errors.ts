@@ -23,7 +23,7 @@ export function httpFailure(status: number, after?: number, unavailableCode?: 'd
     };
   }
   const map: Record<number, [FailureKind, string]> = {
-    401: ['authentication', 'The credential is invalid or expired. Reconnect with a current token.'],
+    401: ['authentication', 'Sign-in failed or the session expired. Check your username/password, or use a current legacy token.'],
     403: ['forbidden', 'This account cannot access this resource.'],
     404: ['not-found', 'The resource is unavailable to this account.'],
     409: ['conflict', 'The saved request differs or the conversation changed. Keep the original request data.'],

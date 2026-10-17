@@ -2,8 +2,14 @@
 
 Planning proposal, 2026-10-16 America/Phoenix, against source `fa2cbba`.
 The user subsequently selected Phase 20; its tooling/non-device baseline is now
-implemented and recorded in STATUS. **Phases 21–31 remain proposed; this document
-does not authorize their implementation or deployment.**
+implemented and recorded in STATUS. The user subsequently selected Phase21;
+its client/configuration/local rehearsal work is implemented with explicit target
+limits. Phase22 password/session source and separately authorized private setup
+are recorded in STATUS. Phase23 now has locally checked calendar windows,
+explicit v5 context upgrade/review controls and a public native comparison; v4
+remains default and semantic remains disabled. **Phases24–31 remain proposed;
+this document does not authorize their
+implementation or deployment.**
 This review excludes physical-Android verification and iOS work. Their existing
 gates remain open; they are not prerequisites for independent server, emulator,
 web or planning work. Optional on-device voice is designed here, with its later
@@ -33,9 +39,9 @@ These are planning choices, not consent to enable live schedules or notification
 | Phase | Plan | Concrete result | Actual dependencies |
 |---|---|---|---|
 | 20 | [Release readiness and quality baseline](phase-20-release-readiness-and-quality-baseline.md) | Implemented: legacy recovery, explicit inventory policy, saved scorecard and locally checked readiness; limits in STATUS | Source through Phase 18; physical 17-A gates excluded |
-| 21 | [Private-network connectivity](phase-21-private-network-connectivity.md) | Connect over Tailscale HTTPS or trusted same-LAN HTTPS with useful diagnostics | 20 transport audit; 18 authentication |
-| 22 | [Password login and sessions](phase-22-password-login-and-sessions.md) | Username/password in Android and admin; revocable sessions managed internally | 20; 21 before remote use |
-| 23 | [Answer quality and memory relevance](phase-23-answer-quality-and-memory-relevance.md) | Better recall, dates, clarification and grounded answers, with measured gains | 20; existing 08–15 |
+| 21 | [Private-network connectivity](phase-21-private-network-connectivity.md) | Implemented client profiles/preflight/diagnostics and private-route templates; local rehearsals, actual enrollment/release HTTPS deferred | 20 transport audit; 18 authentication |
+| 22 | [Password login and sessions](phase-22-password-login-and-sessions.md) | Implemented: password/session source and isolated checks; live enrollment/installation and target gates separate | 20; 21 before remote use |
+| 23 | [Answer quality and memory relevance](phase-23-answer-quality-and-memory-relevance.md) | Implemented: explicit windows/review, measured optional v5 with regressions recorded; v4 default/semantic disabled | 20; existing 08–15 |
 | 24 | [Secure web research](phase-24-secure-web-research.md) | Approve an outgoing query/URL; receive a cited answer without exporting private context by default | 20, 12, 18; 21/22 for remote UX |
 | 25 | [Conversational curiosity](phase-25-conversational-curiosity.md) | ADA asks relevant optional follow-ups and remembers only through existing review | 20, 14/15; 23 preferred; no scheduler required |
 | 26 | [Always-on operations and recovery](phase-26-always-on-operations-and-recovery.md) | One supervised server, automatic recovery, unattended encrypted backups and honest availability | 20; 21 for remote reachability; 18 |
@@ -70,7 +76,7 @@ flowchart LR
 
 ## Decisions that change the original gap proposals
 
-1. **Separate source from installation.** Head0015 is source truth; 0005 is a
+1. **Separate source from installation.** Current source head is0016 after Phase22;0015 was the Phase20/21 source baseline. 0005 is a
    historical observation, not a fresh live result.0005 already includes Phase 08
    document ingestion. No current live failure is inferred from an old record.
 2. **Fix the upgrade safety prerequisite.** `operations.backup` and `unpack`

@@ -109,6 +109,7 @@ private fun MemoryBrowse(state: MemoryState, controller: MemoryController) {
         }
         if (state.scopes.loading) item { MemoryProgress("Loading owned scopes") }
         if (state.scopeId != null) {
+            if (state.windowsEnabled) item { MemoryWindowPanel(state, controller) }
             item {
                 Text("View", style = MaterialTheme.typography.titleMedium)
                 Column(Modifier.selectableGroup()) {

@@ -22,11 +22,12 @@ class MemoryController(
     private var generation = 0L
     private var query = 0L
     private var detailSelection = 0L
+    private var windowQuery = 0L
     private var retryNotBefore = 0L
     private val jobs = mutableSetOf<Job>()
     private fun update(block: (MemoryState) -> MemoryState) { mutableState.value = block(mutableState.value) }
     fun reset() {
-        generation++; query++; detailSelection++
+        generation++; query++; detailSelection++; windowQuery++
         jobs.toList().forEach { it.cancel() }; jobs.clear()
         connection = null; identity = null; retryNotBefore = 0
         mutableState.value = MemoryState()
@@ -34,6 +35,7 @@ class MemoryController(
     fun setVerifiedSession(connection: ConnectionCredential, identity: SessionIdentity, features: CapabilitiesDto) {
         reset(); this.connection = connection; this.identity = identity
         update { it.copy(enabled = features.structured_memory,
+            windowsEnabled = features.calendar_windows == "ada-time-window-v1",
             historicalEnabled = features.historical_memory_queries,
             writesEnabled = features.structured_memory && features.memory_writes == "explicit_user_assertions") }
         work { _, epoch ->
@@ -51,7 +53,7 @@ class MemoryController(
             try { if (current(epoch)) block(verified, epoch) }
             catch (cancelled: CancellationException) { throw cancelled }
             catch (_: Exception) {
-                if (current(epoch)) update { it.copy(saving = false, detailLoading = false,
+                if (current(epoch)) update { it.copy(saving = false, detailLoading = false, windowLoading = false,
                     scopes = it.scopes.copy(loading = false), claims = it.claims.copy(loading = false),
                     sourceChoices = it.sourceChoices.copy(loading = false), fault = ApiFailure.IncompatibleContract,
                     notice = "The operation could not be confirmed safely. Keep the saved input and check recovery or refresh.") }
@@ -113,10 +115,26 @@ class MemoryController(
     }
     fun selectScope(id: UUID) {
         if (state.value.saving || state.value.scopes.items.none { it.id == id }) return
-        query++; detailSelection++
-        update { it.copy(scopeId = id, screen = MemoryScreen.Browse, claims = ChatPage(), detail = null,
+        query++; detailSelection++; windowQuery++
+        update { it.copy(scopeId = id, screen = MemoryScreen.Browse, claims = ChatPage(), detail = null, window = null, windowLoading = false,
             detailSource = null, sourceChoices = ChatPage(), draft = MemoryDraft(), preview = null, fault = null, validation = null) }
         refreshClaims()
+    }
+    fun retrieveWindow(text: String, expression: String, timezone: String, reference: String) {
+        val scope = state.value.scopeId ?: return
+        if (!state.value.windowsEnabled || state.value.windowLoading || System.currentTimeMillis() < retryNotBefore) return
+        val selection = ++windowQuery
+        val body = WindowRetrieveInputDto(text, TimeSelectionDto(expression, timezone, reference))
+        update { it.copy(windowLoading = true, window = null, fault = null) }
+        work { conn, epoch ->
+            val result = api.retrieveWindow(conn, scope, body)
+            if (!acceptSessionResult(result, epoch) || selection != windowQuery || state.value.scopeId != scope) return@work
+            val found = value(result, epoch)
+            if (!current(epoch)) return@work
+            val compatible = found == null || (found.version == "ada-window-retrieval-v1" && found.resolution.version == "ada-time-window-v1" && found.selected.all { it.scope_id == scope })
+            update { it.copy(windowLoading = false, window = if (compatible) found else null,
+                fault = if (compatible) it.fault else ApiFailure.IncompatibleContract) }
+        }
     }
     fun setMode(mode: MemoryMode) {
         if (mode != MemoryMode.Current && !state.value.historicalEnabled) return

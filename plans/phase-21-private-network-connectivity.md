@@ -1,6 +1,8 @@
 # Phase 21 — private-network connectivity
 
-Status: **Proposed; planning only.** Inputs: Phase 20's transport/readiness audit,
+Status: **Implemented in source; local Windows/host/emulator checks recorded,
+actual enrollment/release HTTPS/physical handover remain separate.** No deployment.
+Inputs: Phase 20's transport/readiness audit,
 18 credentials, current HTTPS-only release client, G-06/G-29. The user wants
 same-Wi-Fi and Tailscale access. Follow [shared rules](FUTURE-ROADMAP.md).
 
@@ -63,3 +65,26 @@ Tailscale's [Serve documentation](https://tailscale.com/docs/features/tailscale-
 describes private tailnet proxying. Its [HTTPS documentation](https://tailscale.com/docs/how-to/set-up-https-certificates)
 notes public certificate-name transparency: choose nonsensitive hostnames.
 These product capabilities are not evidence that ADA networking is already set up.
+
+## Implementation record — 2026-10-16
+
+- [x] A: new loopback Caddy tailnet backend; existing LAN TLS template now defaults
+  to explicit loopback binding. Windows runbook defines private Serve versus LAN,
+  DNS/certificate ownership, selected firewall rules, renewal and withdrawal.
+  Actual Tailscale enrollment/real certificates/firewall execution were excluded.
+- [x] B: up to12 metadata-only Android profiles, explicit selection/removal/clear;
+  bounded public readiness before native me/recovery and web admin-me; standard
+  platform TLS, native TLS/DNS diagnostics, honest generic/browser retry guidance.
+  Existing authenticated me/capabilities and all owner/server recovery fences remain.
+- [x] C: strict version1 JSON label/origin import, review then explicit selection,
+  manual entry retained. QR camera/deep-link/discovery are optional and not added.
+- [x] D: actual Caddy with disposable ADA/built UI/SSE/auth/replay through direct
+  TLS and a two-proxy Serve-boundary laboratory; negative root/host/expiry checks,
+  Android profile UI/recreation and OS laboratory-CA rejection; backend/web/native
+  regression evidence in STATUS/WORKLOG. No actual tailnet or physical handover claim.
+
+No migration, new public discovery endpoint, certificate exception, provider
+connection, password login or automatic role was added. Source OpenAPI remains
+96paths/132schemas and head0015. See
+[PRIVATE-NETWORK-CONNECTIVITY](../docs/PRIVATE-NETWORK-CONNECTIVITY.md) for the
+operator guide and explicit laboratory/target distinction. Stop at21.

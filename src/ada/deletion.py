@@ -127,6 +127,8 @@ class DeletionService:
                 "retained": [
                     "account",
                     "device_credentials",
+                    "password_credentials",
+                    "login_sessions_and_refresh_verifiers",
                     "admin_grants",
                     "minimal_operation_metadata",
                 ],

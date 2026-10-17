@@ -1,0 +1,30 @@
+# Tailscale Serve terminates HTTPS and forwards only to this loopback proxy.
+# Template: no daemon installation, VPN enrollment, or public Funnel is implied.
+{
+    admin off
+    auto_https off
+}
+
+http://:18764 {
+    bind 127.0.0.1
+    header {
+        Cache-Control "no-store"
+        Referrer-Policy "no-referrer"
+        X-Content-Type-Options "nosniff"
+    }
+    @api path /v1/* /health/* /docs /docs/* /openapi.json
+    handle @api {
+        reverse_proxy 127.0.0.1:8000 {
+            flush_interval -1
+        }
+    }
+    redir /admin /admin/ 308
+    handle_path /admin/* {
+        root * {$ADA_ADMIN_DIST}
+        try_files {path} /index.html
+        file_server
+    }
+    handle {
+        respond "Not found" 404
+    }
+}

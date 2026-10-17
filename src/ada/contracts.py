@@ -24,6 +24,9 @@ class UserOutput(BaseModel):
 
 
 class CapabilitiesOutput(BaseModel):
+    answer_quality: str = "unsupported"
+    calendar_windows: str = "unsupported"
+    quality_prompt_version: str | None = None
     device_credentials: str = "unsupported"
     private_deletion: str = "unsupported"
     voice_input: str = "unsupported"

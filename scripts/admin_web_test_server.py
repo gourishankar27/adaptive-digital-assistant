@@ -89,6 +89,16 @@ def seed(sessions, url, failed_provider):
         database_url=url, provider="fake", max_parallel=1, consolidation_worker_enabled=False
     )
     app = create_app(settings, FakeProvider(), sessions)
+    if os.environ.get("ADA_WEB_TEST_PASSWORD"):
+        app.state.passwords.set_password(
+            OPERATORS[0], "synthetic-admin", os.environ["ADA_WEB_TEST_PASSWORD"]
+        )
+        app.state.passwords.set_password(
+            OPERATORS[1], "synthetic-admin-two", os.environ["ADA_WEB_TEST_PASSWORD"]
+        )
+        app.state.passwords.set_password(
+            OWNERS[0], "synthetic-owner", os.environ["ADA_WEB_TEST_PASSWORD"]
+        )
     with TestClient(app) as client:
         # Synthetic owners are seeded using actual owned HTTP contracts.
         for index, identity in enumerate(OWNERS):

@@ -62,6 +62,16 @@ private fun unsupportedChatApi(): AdaApi = java.lang.reflect.Proxy.newProxyInsta
 ) { _, method, _ -> error("Unexpected test call: ${method.name}") } as AdaApi
 
 private class ChatApiMock(val store: MemorySessionStore) : AdaApi by unsupportedChatApi() {
+    var passwordLifetimeMs = 900000L
+    var passwordRenewals = 0
+    var passwordLogouts = 0
+    override suspend fun passwordLogin(server: String, username: String, password: String, allowDebugHttp: Boolean) = ApiResult.Success(PasswordSessionDto("synthetic-password-access", "synthetic-password-refresh", UUID.randomUUID(), System.currentTimeMillis() + passwordLifetimeMs, System.currentTimeMillis() + 1000000))
+    override suspend fun refreshLogin(server: String, refresh: String, allowDebugHttp: Boolean): ApiResult<PasswordSessionDto> {
+        passwordRenewals++
+        return passwordLogin(server, "", "", allowDebugHttp)
+    }
+    override suspend fun logoutSession(connection: ConnectionCredential, all: Boolean): ApiResult<AuthAcknowledgementDto> { passwordLogouts++; return ApiResult.Success(AuthAcknowledgementDto("signed_out")) }
+
     val voicePosts = mutableListOf<ReviewedVoiceInputDto>()
     var voiceReject = false
     override suspend fun voiceInputs(connection: ConnectionCredential, conversation: UUID) = ApiResult.Success(emptyList<VoiceLineageDto>())
@@ -161,6 +171,32 @@ class ChatViewModelTest {
         vm.voice.rejected(PendingMessage(store.credential!!.identity, conversation.id, ChatInputDto(UUID.randomUUID(), "Reviewed kettle"), transcript, conversation.scope_id))
         runCurrent(); vm.voice.approve(true); runCurrent()
         return Triple(vm, api, store)
+    }
+    @Test fun shortAccessLifetimeDoesNotCauseARefreshLoop() = runTest {
+        val store = MemorySessionStore(); val api = ChatApiMock(store); api.passwordLifetimeMs = 60000
+        val vm = ChatViewModel(api, store, true)
+        vm.passwordLogin("http://localhost:8000", "synthetic-user", "Public synthetic passphrase"); runCurrent()
+        advanceTimeBy(5000); runCurrent()
+        assertEquals(0, api.passwordRenewals)
+        vm.logout(); runCurrent()
+    }
+    @Test fun passwordLoginReopenRenewLogoutNeverStoresAccessOrReplaysMessages() = runTest {
+        val store = MemorySessionStore(); val api = ChatApiMock(store); val vm = ChatViewModel(api, store, true)
+        vm.passwordLogin("http://localhost:8000", "synthetic-user", "Public synthetic passphrase"); runCurrent()
+        assertNotNull(vm.state.value.account); assertTrue(store.credential!!.passwordSession)
+        assertEquals("synthetic-password-refresh", store.credential!!.token)
+        assertTrue(api.sent.isEmpty())
+        vm.restore(); runCurrent()
+        assertNotNull(vm.state.value.account); assertEquals(1, api.passwordRenewals)
+        assertTrue(api.sent.isEmpty())
+        vm.logout(); runCurrent()
+        assertNull(store.credential); assertNull(vm.state.value.account); assertEquals(1, api.passwordLogouts)
+    }
+    @Test fun passwordRenewalWithWrongOwnerClearsAllRecoveryWithoutPost() = runTest {
+        val store = MemorySessionStore(); val api = ChatApiMock(store); val vm = ChatViewModel(api, store, true)
+        vm.passwordLogin("http://localhost:8000", "synthetic-user", "Public synthetic passphrase"); runCurrent()
+        api.user = UUID.randomUUID(); vm.restore(); runCurrent()
+        assertNull(store.credential); assertNull(vm.state.value.account); assertTrue(api.sent.isEmpty())
     }
     @Test fun reviewedVoiceJournalPrecedesPostAndDuplicateSendUsesOneRequest() = runTest {
         val (vm, api, store) = voiceReady()

@@ -2,7 +2,9 @@ import json
 
 PROMPT_VERSION = "ada-baseline-v4"
 DOCUMENT_PROMPT_VERSION = "ada-baseline-v4"
-RETRIEVAL_PROMPT_VERSIONS = frozenset(("ada-baseline-v3", "ada-baseline-v4"))
+QUALITY_PROMPT_VERSION = "ada-baseline-v5"
+DOCUMENT_PROMPT_VERSIONS = frozenset((DOCUMENT_PROMPT_VERSION, QUALITY_PROMPT_VERSION))
+RETRIEVAL_PROMPT_VERSIONS = frozenset(("ada-baseline-v3", *DOCUMENT_PROMPT_VERSIONS))
 BASELINE_V3 = """You are ADA (Adaptive Digital Assistant), a user-built assistant application.
 Your language model is a replaceable backend, separate from ADA's application identity.
 Do not invent a developer organization or claim to be a Microsoft or OpenAI product.
@@ -55,12 +57,22 @@ BASELINE = (
     )
 )
 
+QUALITY_POLICY = """Phase23 context policy ada-quality-context-v1:
+Chat history is volatile context, not durable memory. Offer explicit source/dated-claim
+review for corrections; never claim a save. Prefer relevant original excerpts to summaries.
+A bounded miss does not prove the user never said it. Explain omissions and ask one
+specific question when evidence is insufficient. A calendar interval is not one instant;
+state its boundaries and distinguish validity from recording/publication.
+"""
+
 
 def build_prompt(snapshot: dict, *, version: str = PROMPT_VERSION) -> str:
     if version == "ada-baseline-v3":
         baseline = BASELINE_V3
     elif version == PROMPT_VERSION:
         baseline = BASELINE
+    elif version == QUALITY_PROMPT_VERSION:
+        baseline = BASELINE + QUALITY_POLICY
     else:
         raise ValueError("unsupported prompt version")
     return baseline + json.dumps(snapshot, ensure_ascii=False, sort_keys=True)

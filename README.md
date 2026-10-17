@@ -1,10 +1,30 @@
 # ADA
+
+Phase23 adds explicit calendar-window memory exploration, clearer proposal review
+and an optional audited v5 context policy. New chats retain v4, semantic retrieval
+stays disabled and schema head remains0016. Read
+[ANSWER-QUALITY-AND-MEMORY-RELEVANCE](docs/ANSWER-QUALITY-AND-MEMORY-RELEVANCE.md)
+for controls, measured native-model results and remaining limits. These source
+changes have not been deployed to the previously installed private service.
+
+Phase22 adds username/password sign-in on Android and HTTPS admin, rotating
+revocable sessions and hidden-prompt local enrollment. Current source needs
+**0016**; existing accounts remain password-disabled until an operator enrolls
+them. Legacy CLI/device tokens and explicit admin grants are preserved. Read
+[PASSWORD-LOGIN-AND-SESSIONS](docs/PASSWORD-LOGIN-AND-SESSIONS.md) before installation.
+This implementation does not migrate the live database or deploy services.
+
+For the separately authorized Windows/Tailscale setup, corrected dotenv values,
+managed HTTPS, password enrollment and phone/iPad connection steps, use
+[PRIVATE-SETUP-WINDOWS-TAILSCALE](docs/PRIVATE-SETUP-WINDOWS-TAILSCALE.md).
+Its dated STATUS/WORKLOG follow-up distinguishes live setup from earlier tests.
+
 Python/FastAPI on your Windows laptop, with PostgreSQL and a configurable Ollama
 model. Accounts share model weights. Personality, history and memory remain
 private to each authenticated user.
 
 For the complete current developer walkthrough, read
-[HOW-TO-USE-ADA](docs/HOW-TO-USE-ADA.md): fresh setup or upgrade to head **0015**,
+[HOW-TO-USE-ADA](docs/HOW-TO-USE-ADA.md): fresh setup or upgrade to head **0016**,
 Android/USB and admin login, feature use, daily startup and troubleshooting.
 
 For step-by-step Windows database access, queries, supported changes, migration,
@@ -26,13 +46,20 @@ are opt-in; content is retained until explicit owner deletion. One worker remain
 required. No application database migration or deployment is performed by a checkout.
 
 Future development proposals, starting at Phase 20, are in
-[the roadmap](plans/FUTURE-ROADMAP.md). Password login, public web research,
+[the roadmap](plans/FUTURE-ROADMAP.md). Public web research,
 scheduled curiosity, idle reflection and new speech models are planned features,
 not current capabilities.
 
 Phase 20's [release-readiness guide](docs/RELEASE-READINESS.md) covers the separate
 encrypted schema-0005 recovery tool, current recovery policy, frozen quality
 scorecard and a tested installation checklist. No live upgrade is implied.
+
+Phase 21 adds Android named HTTPS server addresses and reviewed metadata import,
+readiness checks before credential transmission, native TLS/DNS diagnostics and
+Tailscale Serve/LAN proxy templates. Read
+[PRIVATE-NETWORK-CONNECTIVITY](docs/PRIVATE-NETWORK-CONNECTIVITY.md) for Windows
+setup, certificate/DNS responsibilities and remaining target checks. Source and
+isolated rehearsals do not enroll a VPN, expose the server or deploy these routes.
 
 ## Implemented server and clients
 
@@ -76,7 +103,7 @@ index rebuild and exact semantic ranking alongside the original baseline.
 not establish real-model benefit. See
 [EMBEDDINGS-AND-HYBRID-RETRIEVAL.md](docs/EMBEDDINGS-AND-HYBRID-RETRIEVAL.md)
 for bounds, fallback, activation/evaluation and installation. Current source
-requires head 0015 after Phase 18; the application database was not migrated by these phases.
+requires head 0016 after Phase22; the application database was not migrated by these phases.
 
 Phase 11 adds migration **0008**, selected-source model suggestions, a private
 Android review inbox and explicit accept/edit/reject receipts. Acceptance creates
@@ -87,7 +114,7 @@ Admin overview adds operational counts only. Automatic extraction/approval stays
 off. See [MEMORY-PROPOSALS-AND-REVIEW.md](docs/MEMORY-PROPOSALS-AND-REVIEW.md)
 for API, bounds, migration, recovery and real-versus-fixture evaluation limits.
 The Phase 11 record observed application head0005 without migrating it; that is
-historical evidence, not a fresh live-state check. Current source needs0015;
+historical evidence, not a fresh live-state check. Current source needs0016;
 intended installation and remaining physical checks are separate. No deployment occurred.
 
 ## New Windows installation

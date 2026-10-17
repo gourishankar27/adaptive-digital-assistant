@@ -1,4 +1,5 @@
 import argparse
+import getpass
 import json
 import os
 from uuid import UUID, uuid4
@@ -28,6 +29,13 @@ def main():
         p.add_argument(
             "user_id", type=UUID, help="Exact issued account UUID, never an account name"
         )
+    password = sub.add_parser(
+        "set-password",
+        help="Local operator: assign login/reset password; revoke password sessions only",
+    )
+    password.add_argument("user_id", type=UUID)
+    password.add_argument("login")
+    sub.add_parser("login-accounts", help="Local operator: credential metadata, never verifiers")
     recover = sub.add_parser("recover-stale")
     recover.add_argument("--older-than-seconds", type=int, default=300)
     chat = sub.add_parser("chat")
@@ -65,7 +73,63 @@ def main():
         return
     engine, sessions = connect(settings.database_url)
     try:
-        if args.command in ("grant-admin", "revoke-admin"):
+        if args.command == "set-password":
+            from ada.passwords import PasswordSessions
+
+            if not os.isatty(0):
+                parser.exit(1, "Use an interactive terminal for the hidden password prompt.\n")
+            first = getpass.getpass("New password (15–1024 characters): ")
+            second = getpass.getpass("Repeat password: ")
+            if first != second:
+                parser.exit(1, "Passwords differ; no change.\n")
+            PasswordSessions(sessions, settings).set_password(str(args.user_id), args.login, first)
+            print(
+                "Password set; password sessions revoked. Legacy/device credentials are unchanged."
+            )
+        elif args.command == "login-accounts":
+            from sqlalchemy import func, select
+
+            from ada.login_models import LoginSession, PasswordCredential
+            from ada.models import User
+            from ada.security_models import DeviceCredential
+
+            with sessions() as db:
+                for user, password in db.execute(
+                    select(User, PasswordCredential).outerjoin(
+                        PasswordCredential, PasswordCredential.owner_id == User.id
+                    )
+                ):
+                    print(
+                        json.dumps(
+                            {
+                                "owner_id": user.id,
+                                "display_name": user.name,
+                                "login": password.login if password else None,
+                                "password_enabled": bool(password and password.verifier),
+                                "legacy_credential_present": True,
+                                "active_device_credentials": db.scalar(
+                                    select(func.count())
+                                    .select_from(DeviceCredential)
+                                    .where(
+                                        DeviceCredential.owner_id == user.id,
+                                        DeviceCredential.revoked_at.is_(None),
+                                        DeviceCredential.expires_at > now_ms(),
+                                    )
+                                ),
+                                "active_password_sessions": db.scalar(
+                                    select(func.count())
+                                    .select_from(LoginSession)
+                                    .where(
+                                        LoginSession.owner_id == user.id,
+                                        LoginSession.revoked_at.is_(None),
+                                        LoginSession.expires_at > now_ms(),
+                                        LoginSession.idle_expires_at > now_ms(),
+                                    )
+                                ),
+                            }
+                        )
+                    )
+        elif args.command in ("grant-admin", "revoke-admin"):
             print(
                 json.dumps(
                     set_admin_grant(sessions, str(args.user_id), args.command == "grant-admin")

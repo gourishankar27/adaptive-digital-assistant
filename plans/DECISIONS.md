@@ -401,3 +401,79 @@ It does not establish Android system trust or remote deployment. `/admin` redire
 to `/admin/`; other server contracts are unchanged. The quality baseline freezes
 public corpus digests and reports unassessed semantic grades honestly; fixture
 precision/markers cannot establish personal usefulness or citation entailment.
+
+## Phase 21 connection boundaries — 2026-10-16
+
+Reuse the existing minimal unauthenticated readiness endpoint rather than add
+discovery/private configuration. Check it without Authorization before native
+credential establishment/recovery and browser admin sign-in; authenticate and
+verify the owner/contract afterward. TLS/hostname validation remains per request.
+Do not infer a unique VPN cause from generic network/browser errors.
+
+Profiles are bounded local label/origin metadata, distinct from private encrypted
+journals. Switching clears the old session; no credential is copied between
+origins. Choose reviewed JSON metadata import for this phase; camera QR/deep links
+are optional and add no needed capability to manual entry. Import cannot enroll,
+authenticate, select silently or override trust. No schema/recovery format change.
+
+Tailscale Serve terminates TLS before a loopback-only Caddy API/UI proxy accepting
+the forwarded hostname. The alternative LAN TLS template has a safe loopback bind
+default until a deliberate private address/firewall installation. Caddy admin API
+stays off; controlled restart is required for selected file-based certificate
+updates. No network membership/header grants ADA authority. Test-CA local edge
+rehearsal is not proof of a real Serve daemon, ACLs or release Android system trust.
+
+### 2026-10-16 — Phase22 password authority and session recovery
+
+A distinct NFKC/casefold login maps to an unchanged owner UUID, assigned only by a
+local hidden-prompt operator command. Argon2id uses pinned dependencies, a fixed
+64MiB/3iteration/4lane profile and two concurrent hashes; generic failures use a
+dummy verifier. Display names, old credentials and admin grants are independent.
+
+Opaque digest-only access and rotating refresh families replace manual tokens in
+normal client sign-in. Any consumed-refresh reuse revokes the whole family. Lost
+responses/concurrent refreshes recover by explicit password sign-in, with no
+plaintext escrow or replay grace.128families/4096rotations bound history, and
+revoked history can be reclaimed at capacity so local reset remains usable.
+
+Android v12 stores refresh material only in password mode and keeps access in
+memory; released journals/advanced bearer mode remain compatible. Browser uses
+exact-origin HTTPS host-only HttpOnly/Secure/Strict cookies with a custom CSRF
+header. Auth operations are serialized (Web Locks across tabs where available).
+Refresh clears private queries and revalidates roles; neither client auto-replays
+private POSTs. Auth metadata/revocation remains available during content erasure.
+
+The launcher ignores proxy headers entirely; behind a proxy, IP admission is
+conservatively shared. Rate keys/counters are bounded process-local metadata; one
+worker remains required. No forwarded identity, username or session grants admin.
+Schema0016 backupv2 explicitly quarantines recovered password/session authority;
+0015/v1 and separate0005 recovery remain supported. No live installation/enrollment.
+
+Phase22 closeout refinement: authenticated X-ADA-Owner headers fence cross-tab
+cookie account changes before response decoding/cache entry. Cancelled login
+cleanup occurs inside the auth queue/Web Lock, before another login can replace
+cookies, so a late cancellation cannot revoke the next account by mistake.
+
+
+### 2026-10-16 — Phase23 explicit windows and optional context policy
+
+Add separate versioned owner-only calendar-window reads rather than overloading
+chat/point retrieval or silently treating a week as one instant. Version1 is
+claim-only, valid-time overlap against current recorded corrections; document
+availability and historical alias interpretation remain outside that version.
+Require an explicit timezone/reference and clarify ambiguous local boundaries.
+Return complete conflicting groups or omit the group, preserving exact support.
+
+Retain v4 defaults and byte-identical old baseline text. V5 is an explicit audited
+upgrade using the existing revision/retry fences and trace storage, not a schema
+change. Rank original user/history and already-authorized original continuity
+excerpts; generated summaries never become factual authority. Android links the
+window lookup to existing reviewed corrections and annotates loaded proposal
+repetitions without new automatic approval/write behavior.
+
+A frozen public 8+8 comparison produced32native answers, exact evidence checks
+and Codex qualitative review. Original-history gain is real within that case;
+date-boundary/brevity regressions and overlapping small-sample intervals prohibit
+a default-quality claim. Keep v5 opt-in. Matching supported embedding weights were
+absent: fixture hybrid benefit does not justify native semantic activation.
+No automatic downloads, private evaluation, later-phase work or deployment.

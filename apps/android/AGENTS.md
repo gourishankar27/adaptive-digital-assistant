@@ -67,3 +67,9 @@ External writes and automatic extraction remain later phases.
 - Agent journal v6 saves exact scoped creation/decision/recovery input before POST.
   Restore performs GET only; receipts preserve tool trust and original nonce. Unknown
   states never imply execution. Native model requests cannot approve themselves.
+
+Phase22 ordinary sign-in uses username/password; never persist passwords. In v12
+password mode persist only rotating refresh material in the Keystore journal,
+keep access in memory, and retain released v1–v11/advanced bearer compatibility.
+Clear private views on renewal, verify owner/server/epoch and perform GET recovery
+only. Never replay a consumed refresh or any private POST automatically.

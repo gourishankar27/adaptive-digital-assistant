@@ -13,6 +13,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from starlette.responses import JSONResponse
 
 from ada.errors import ServiceError
+from ada.login_api import ACCESS, PUBLIC, PreAuthBoundary, browser_check, cookies
 from ada.models import Scope, User
 from ada.security_models import DeletedRequest
 
@@ -81,10 +82,14 @@ class SecurityGate:
 class SecurityMiddleware:
     def __init__(self, app, credentials, gate):
         self.app, self.credentials, self.gate = app, credentials, gate
+        self.preauth = PreAuthBoundary(credentials.passwords)
 
     async def __call__(self, scope, receive, send):
         if scope["type"] != "http" or not scope.get("path", "").startswith("/v1/"):
             await self.app(scope, receive, send)
+            return
+        if scope["method"] == "POST" and scope["path"] in PUBLIC:
+            await self.preauth.dispatch(self.app, scope, receive, send)
             return
         principal = None
         entered = False
@@ -94,7 +99,7 @@ class SecurityMiddleware:
         is_stream = False
         write = scope["method"] not in ("GET", "HEAD", "OPTIONS")
         path = scope["path"]
-        metadata = (
+        metadata = path.startswith("/v1/auth/") or (
             re.fullmatch(
                 r"/v1/security/(?:status|credentials(?:/[0-9a-fA-F-]{36}/(?:rotate|revoke))?|"
                 r"deletion-previews|deletions(?:/[0-9a-fA-F-]{36})?)",
@@ -108,18 +113,31 @@ class SecurityMiddleware:
         headers = dict(raw_headers)
         try:
             authorization_count = sum(key == b"authorization" for key, _ in raw_headers)
-            if authorization_count == 0:
+            cookie = cookies(scope).get(ACCESS)
+            if authorization_count and cookie:
+                raise ServiceError(401, "conflicting_credentials")
+            if cookie:
+                browser_check(scope, self.gate.settings, write=write)
+                principal = self.credentials.authenticate(cookie)
+            elif authorization_count == 0:
                 raise ServiceError(401, "authentication_required")
-            if authorization_count != 1:
+            elif authorization_count != 1:
                 raise ServiceError(401, "invalid_token")
-            for name in (b"content-length", b"content-type", b"content-encoding"):
+            for name in (
+                b"content-length",
+                b"content-type",
+                b"content-encoding",
+                b"origin",
+                b"x-ada-csrf",
+            ):
                 if sum(key == name for key, _ in raw_headers) > 1:
                     raise ServiceError(400, "ambiguous_request_headers")
-            authorization = headers.get(b"authorization", b"").decode("latin1")
-            parts = authorization.split()
-            if len(parts) != 2 or parts[0].lower() != "bearer":
-                raise ServiceError(401, "authentication_required")
-            principal = self.credentials.authenticate(parts[1])
+            if principal is None:
+                authorization = headers.get(b"authorization", b"").decode("latin1")
+                parts = authorization.split()
+                if len(parts) != 2 or parts[0].lower() != "bearer":
+                    raise ServiceError(401, "authentication_required")
+                principal = self.credentials.authenticate(parts[1])
             scope["ada.principal"] = principal
             self.gate.enter(principal.owner, write)
             entered = True
@@ -241,7 +259,7 @@ class SecurityMiddleware:
                             privacy_current = db.scalar(
                                 select(func.coalesce(func.sum(User.data_epoch), 0))
                             )
-                    self_revoked = scope.get("ada.self_revoked", False) and path.endswith("/revoke")
+                    self_revoked = scope.get("ada.self_revoked", False)
                     if not self_revoked and (
                         not self.credentials.current(chosen, check_epoch=not metadata)
                         or privacy_current != privacy_epoch
@@ -256,12 +274,14 @@ class SecurityMiddleware:
                     output = [
                         (key, value)
                         for key, value in message.get("headers", [])
-                        if key.lower() not in (b"cache-control", b"x-ada-data-epoch")
+                        if key.lower()
+                        not in (b"cache-control", b"x-ada-data-epoch", b"x-ada-owner")
                     ]
                     output.extend(
                         [
                             (b"cache-control", b"no-store"),
                             (b"x-ada-data-epoch", str(chosen.epoch).encode()),
+                            (b"x-ada-owner", chosen.owner.encode()),
                         ]
                     )
                     if admin_read and response_status < 400:

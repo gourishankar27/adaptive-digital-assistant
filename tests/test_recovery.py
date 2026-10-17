@@ -72,6 +72,47 @@ def test_standalone_recovery_import_registers_entire_private_inventory():
         raise AssertionError("Standalone recovery inventory registration failed")
 
 
+def test_released_0015_artifact_restores_quarantined_then_upgrades(
+    recovery_database, tmp_path, monkeypatch
+):
+    url, binary, owned = recovery_database
+    config = Config("alembic.ini")
+    command.downgrade(config, "0015")
+    engine, sessions = connect(url)
+    owner, legacy = create_user(sessions, "Public 0015 recovery owner")
+    phrase = "Public synthetic recovery passphrase"
+    try:
+        receipt = backup(url, binary, tmp_path, phrase, Settings(database_url=url))
+        manifest, _ = unpack(read_artifact(receipt["artifact"], phrase))
+        assert manifest["head"] == "0015" and manifest["format"] == "ada-postgres-backup-v1"
+        assert len(manifest["tables"]) == 54
+        with sessions() as db:
+            ledger = deletion_ledger(db.connection())
+        ledger_path = write_artifact(
+            tmp_path / "ledger.adaenc", json.dumps(ledger).encode(), phrase
+        )
+        target = "ada_restore_" + uuid4().hex[:12]
+        owned.append(target)
+        restore(url, binary, target, receipt["artifact"], ledger_path, phrase)
+        restored_url = make_url(url).set(database=target).render_as_string(hide_password=False)
+        monkeypatch.setenv("ADA_DATABASE_URL", restored_url)
+        command.upgrade(config, "head")
+        command.check(config)
+        restored, restored_sessions = connect(restored_url)
+        try:
+            from ada.auth import token_hash
+            from ada.login_models import PasswordCredential
+            from ada.models import User
+
+            with restored_sessions() as db:
+                assert db.get(User, owner).token_hash != token_hash(legacy)
+                assert db.get(PasswordCredential, owner) is None
+        finally:
+            restored.dispose()
+    finally:
+        engine.dispose()
+
+
 @pytest.fixture
 def recovery_database(monkeypatch):
     raw = os.environ.get("ADA_TEST_DATABASE_URL")
@@ -207,6 +248,10 @@ def test_populated_restore_replay_revocation_and_latest_deletion_ledger(
                 seed_engine.dispose()
                 with engine.begin() as conn:
                     conn.execute(text(f'DROP SCHEMA "{schema}" CASCADE'))
+        app.state.passwords.set_password(a_id, "recovery-alice", "Public recovery passphrase only")
+        password_session = app.state.passwords.login(
+            "recovery-alice", "Public recovery passphrase only"
+        )
         receipt = backup(url, binary, tmp_path, phrase, settings)
         artifact = Path(receipt["artifact"])
         manifest, _ = unpack(read_artifact(artifact, phrase))
@@ -227,6 +272,20 @@ def test_populated_restore_replay_revocation_and_latest_deletion_ledger(
         restored_engine, restored_sessions = connect(restored_url)
         try:
             with restored_sessions() as db:
+                assert (
+                    db.scalar(
+                        text("SELECT verifier FROM password_credentials WHERE owner_id=:owner"),
+                        {"owner": a_id},
+                    )
+                    is None
+                )
+                assert (
+                    db.scalar(
+                        text("SELECT revoked_at FROM login_sessions WHERE id=:session"),
+                        {"session": password_session["session_id"]},
+                    )
+                    is not None
+                )
                 assert (
                     db.scalar(
                         text("SELECT revoked_at FROM device_credentials WHERE id=:key"),

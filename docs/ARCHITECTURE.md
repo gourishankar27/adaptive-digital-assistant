@@ -1,12 +1,74 @@
 # ADA architecture decisions
 
-Current source: schema **0015**, with private chat/memory/documents, reviewed tools,
+## Phase23 bounded answer context and calendar windows
+
+Schema remains0016. Existing v3/v4 prompts and API path contracts are preserved;
+v4 stays the new-chat default. An explicit owner-authenticated, conversation-locked
+quality upgrade audits v5 and increments revision using existing PromptChange.
+Failed retries cannot cross that revision; completed replay retains original
+messages/evidence. V5 ranks original user history and already-authorized original
+continuity excerpts within existing byte/candidate bounds. Generated summaries
+never become factual evidence. Selection/omission metadata is frozen in the
+existing trace and exposed through a new owner-only diagnostic read.
+
+Separate versioned calendar resolution/window APIs require timezone and reference,
+use whole half-open valid-time overlap against current recorded state, and return
+clarification for ambiguous/missing local boundaries. They never reinterpret old
+point APIs or change chat input/recovery fingerprints. The claim-only window path
+filters owner/scope/time before selection, revalidates exact support and returns
+complete conflicting groups or omits the group. Android provides read-only bounds,
+source/correction links and explicit v5 confirmation; loaded proposal grouping
+does not approve, suppress or merge review operations.
+
+Public native v4/v5 comparison found context benefit and date/brevity regressions.
+V5 remains opt-in; absent supported embedding weights leave semantic disabled.
+No migration, dependency, background worker or deployment was added. See
+[the measured policy and interfaces](ANSWER-QUALITY-AND-MEMORY-RELEVANCE.md).
+
+## Phase22 password authority and transport
+
+Schema0016 separates normalized login/password verifiers from owner display names
+and legacy credentials. Password login creates revocable digest-only access and
+rotating refresh families. Owner locks serialize reset/rotation/reuse; expensive
+Argon2 work runs outside transactions under a two-slot bound. Exact pre-auth POST
+routes have independent admission/body limits; every private route and outgoing
+SSE batch retains fresh owner authentication. One worker remains required.
+
+Android v12 journals store refresh material only in password mode, access in memory,
+and preserve v1–v11 reads. HTTPS browser sessions use host-only Secure/HttpOnly/
+SameSite=Strict cookies and exact-origin/custom-header CSRF; the advanced bearer
+adapter remains separate. An authenticated owner header fences cross-tab cookie
+account switches; cancelled auth cleanup stays inside the serialization boundary.
+Monitoring permissions still come only from current
+admin grants. Refresh/401/epoch/account changes clear private caches; private POSTs
+are never automatically replayed. New encrypted backupv2 covers57tables;0015/v1
+and separate0005 recovery remain supported. Restore disables recovered passwords
+and sessions before explicit operator recovery. See
+[PASSWORD-LOGIN-AND-SESSIONS](PASSWORD-LOGIN-AND-SESSIONS.md).
+
+Current source: schema **0016**, with private chat/memory/documents, reviewed tools,
 consolidation, preferences/continuity, streaming, Android voice and security/
 operations. Phase 20 adds recovery/evaluation tooling and readiness evidence;
 it does not install the application or implement later roadmap features. Dated
 phase sections below retain their original validation and installation boundaries.
 
 ## Deployment
+
+Phase21 adds no server route/schema/prompt change. Android stores up to12 named
+HTTPS origins separately from encrypted private state; explicit selection clears
+the previous login and never auto-connects. Reviewed version1 JSON imports carry
+only a label/origin. The native me/recovery and web admin sign-in paths first use
+the existing unauthenticated readiness endpoint, without sending a credential;
+TLS/origin validation still applies to every subsequent request. Native TLS and
+DNS errors are distinct; generic/browser errors do not prove a specific VPN cause.
+
+Private route templates select Tailscale Serve → loopback Caddy18764 or directly
+bound LAN Caddy HTTPS. API/PostgreSQL/Ollama stay private, admin uses same-origin
+relative requests, and network headers confer no ADA authority. LAN Caddy defaults
+to loopback until deliberately configured. Laboratory Caddy/ADA/SSE and emulator
+negative-TLS checks do not enroll VPNs or establish release system trust/renewal.
+See [PRIVATE-NETWORK-CONNECTIVITY](PRIVATE-NETWORK-CONNECTIVITY.md) for execution
+steps and remaining target gates. No Phase21 deployment occurred.
 
 Separately authorized local operation on 2026-10-16 freshly verified the configured
 Docker PostgreSQL17.11 database at head0015 (54tables), with no pending migration.
@@ -167,7 +229,7 @@ Monitoring selects columns/JSON scalar counts rather than private ORM snapshots.
 It preserves composite owner/request identity and unrecorded metrics as null.
 Polling, query windows, pagination and audit rows/age are bounded. Provider model-list
 probes are serialized/cached, response/time bounded and run outside DB transactions;
-they never generate. Current readiness validates supported head 0015. Admission shows the
+they never generate. Current readiness validates supported head 0016. Admission shows the
 actual process semaphore, with one worker; GPU/throughput remain unknown. See
 [ADMIN-MONITORING.md](ADMIN-MONITORING.md) for allowlists, failure/audit semantics,
 retention and installation. Phase 05 introduces no account impersonation.

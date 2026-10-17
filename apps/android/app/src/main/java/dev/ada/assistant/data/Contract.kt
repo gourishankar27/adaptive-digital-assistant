@@ -55,6 +55,8 @@ val adaJson = Json { ignoreUnknownKeys = true; explicitNulls = false; encodeDefa
     val stream_protocol: String = "unsupported", val generation_cancellation: Boolean = false,
     val voice_input: String = "unsupported", val voice_audio_uploads: Boolean = false,
     val device_credentials: String = "unsupported", val private_deletion: String = "unsupported",
+    val answer_quality: String = "unsupported", val calendar_windows: String = "unsupported",
+    val quality_prompt_version: String? = null,
 )
 @Serializable data class PersonalitySnapshotDto(
     val name: String, val style: String, val warmth: String, val detail: String,

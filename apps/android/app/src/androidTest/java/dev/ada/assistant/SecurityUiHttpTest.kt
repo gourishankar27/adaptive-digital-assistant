@@ -59,7 +59,30 @@ class SecurityUiHttpTest {
         compose.onNodeWithTag("delete-ack").performScrollTo().performClick()
         compose.onNodeWithTag("delete-confirm").performScrollTo().performClick()
         compose.waitUntil(20_000) { vm.security.state.value.pending?.kind == "delete" || vm.state.value.account == null }
-        if (vm.state.value.account != null) { compose.waitUntil(20_000) { !vm.security.state.value.busy }; compose.runOnIdle { vm.security.refresh() } }
+        if (vm.state.value.account != null) {
+            // Confirmation queues durable work; a single immediate refresh may still read queued.
+            // Finish confirmation first: overlapping receipt polling can trip owner admission.
+            // Then wait on the owned GET receipt before exercising explicit client refresh.
+            compose.waitUntil(20_000) { !vm.security.state.value.busy }
+            assertNotNull("No deletion acknowledgement; fixed client feedback: ${vm.security.state.value.notice}", vm.security.state.value.deletion)
+            val deletionId = vm.security.state.value.pending!!.operation
+            var observed: ApiResult<DeletionDto>? = null
+            try {
+                compose.waitUntil(20_000) {
+                    observed = runBlocking { api.deletion(c, deletionId) }
+                    (observed as? ApiResult.Success)?.value?.status == "completed"
+                }
+            } catch (failure: Throwable) {
+                val safe = when (val result = observed) {
+                    is ApiResult.Success -> "state=${result.value.status}, code=${result.value.error_code}"
+                    is ApiResult.Failure -> "failure=${result.reason.javaClass.simpleName}, code=${result.code}"
+                    null -> "no receipt"
+                }
+                throw AssertionError("Synthetic deletion did not complete: $safe", failure)
+            }
+            compose.waitUntil(20_000) { !vm.security.state.value.busy }
+            compose.runOnIdle { vm.security.refresh() }
+        }
         compose.waitUntil(20_000) { vm.state.value.account == null }
         compose.waitUntil(10_000) { runBlocking { store.readCredential() } == null }
         assertNull(vm.voice.state.value.draft); assertTrue(vm.state.value.sources.isEmpty())

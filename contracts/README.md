@@ -1,5 +1,16 @@
 # Existing ADA HTTP contract
 
+## Phase22 additive authentication
+
+The exported contract adds `/v1/auth` login/refresh, browser cookie equivalents,
+owned session metadata/revoke, logout current/all and password change. Existing
+private request/response schemas, UUIDs, snapshots and replay remain compatible;
+private OpenAPI security now offers HTTPBearer or APIKeyCookie. Middleware rejects
+mixed credentials and enforces the exact HTTPS browser origin/CSRF policy. Browser
+login/refresh return acknowledgements, never token JSON; access expiry is a
+nonsecret response header. Native login returns opaque access/refresh credentials.
+See [the lifecycle guide](../docs/PASSWORD-LOGIN-AND-SESSIONS.md).
+
 `openapi.json` is exported from the implemented FastAPI routes. Phase 03 added
 output schemas. Phase 05 adds explicitly granted, audited monitoring metadata
 and introduced migration 0004; no admin prompt upgrade is needed. Phase 08 adds
@@ -277,3 +288,13 @@ Explicit owner-confirmed erasure returns410 for old requests, a documented excep
 to normal completed replay. Security receipts contain counts/UUID metadata, never
 private evidence text or stored plaintext tokens. Issuance returns its secret once;
 exact replay returns token:null. See [security and operations](../docs/SECURITY-AND-OPERATIONS.md).
+
+
+Phase23 preserves all105existing Phase22 path definitions and137old non-capability
+schemas. It adds109total paths/143schemas: explicit authenticated time resolution,
+claim-window retrieval, audited v5 upgrade and frozen request-quality diagnostics.
+Only CapabilitiesOutput gains three optional fields with defaults. Chat request,
+point-in-time retrieval, citation shapes and old trace schemas are unchanged.
+V4 stays default; v5 is explicit. Calendar resolution is `ada-time-window-v1` and
+retrieval is `ada-window-retrieval-v1`, with valid-time-overlap/current-recorded
+semantics. See [the quality policy](../docs/ANSWER-QUALITY-AND-MEMORY-RELEVANCE.md).

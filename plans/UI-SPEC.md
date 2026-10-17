@@ -32,7 +32,7 @@ warmth comes through its language, not artificial emotion gauges.
 
 | Screen | Content and controls | Required states |
 |---|---|---|
-| Connect | ADA server URL, token entry, Connect, account/server confirmation | Empty, validating, connected, unreachable, invalid token, incompatible contract |
+| Connect | ADA server URL, username/password, advanced token option, Connect, account/server confirmation | Empty, validating, connected, unreachable, invalid token, incompatible contract |
 | Conversations | Paginated owned list, scope/style summary, New conversation | Loading, empty, loaded, error, refresh, pending conversation |
 | New conversation | Title, owned scope or new personal scope, available profile | Selection, validation, creating, uncertain creation outcome |
 | Chat | History, composer, Send, pending/status row, Retry, source chips | Loading history, ready, sending, running, reconnecting, failed, completed, access lost |
@@ -103,7 +103,7 @@ Client route guards improve navigation; the server enforces every admin operatio
 
 | Screen | Metadata shown | Boundaries |
 |---|---|---|
-| Sign in | Server, token entry, admin check, current operator | Token held in memory; no public account enrollment |
+| Sign in | HTTPS server, username/password, advanced token option, admin check, current operator | Token held in memory; no public account enrollment |
 | Overview | Backend readiness, actual request counts, capacity, last update | Unknown/degraded metrics distinct from zero |
 | Requests | Server-filtered/pageable states, owner ID, request ID, attempt, model, timestamps | No raw messages or source quotes in list results |
 | Request detail | Persisted state, recorded error, known timing, retrieval counts/budgets | Route includes owner ID and request ID; no hidden model reasoning |
@@ -121,10 +121,11 @@ stale data and failed refresh separately. Filter/page on the server instead of
 downloading the database. Label queue, end-to-end and provider durations according
 to what is actually measured. Do not infer GPU use or tokens/sec from wall time.
 
-Use same-origin `/admin` hosting or a development proxy to ADA. The initial SPA
-uses a manually entered bearer credential held only in memory. Refresh requires
-sign-in again. Cookie sessions, refresh-token flows and broad CORS are not
-implemented by this plan; changes need a selected backend contract.
+Use exact same-origin HTTPS `/admin` hosting for Phase22 ordinary password login.
+Host-only Secure/HttpOnly/SameSite=Strict cookies and exact-origin/CSRF checks use
+the selected Phase22 backend contract. Reopen/renew clears queries and verifies
+the admin grant. The advanced bearer adapter remains memory-only and supports
+the fixed loopback development proxy. Broad CORS remains unsupported.
 
 ## Visual and accessibility rules
 

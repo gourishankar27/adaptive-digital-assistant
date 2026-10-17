@@ -1,6 +1,9 @@
 # Phase 23 — answer quality and memory relevance
 
-Status: **Proposed; planning only.** Inputs: Phase 20's held-out scorecard and existing
+Status: **A–E implemented with a measured opt-in/disabled decision; local verification
+recorded in STATUS/WORKLOG.** V4 remains default, v5 requires explicit upgrade,
+semantic remains disabled, and native embedding/independent review/physical checks
+remain open. No deployment. Inputs: Phase 20's held-out scorecard and existing
 claim/document/entity/proposal/episode/expression/continuity paths. G-12/G-13/
 G-18/G-23/G-36. Follow [shared rules](FUTURE-ROADMAP.md). No live install or
 physical phone is needed to evaluate disposable current-head fixtures.
@@ -63,3 +66,33 @@ source text, unsupported prompt versions and deterministic same-request replay.
 Run affected PostgreSQL/API/client checks. Record local-model versus fixture evidence.
 Exit with a measured configuration/version decision and actionable remaining cases;
 do not claim general factual accuracy or silently enable automatic extraction.
+
+## Implementation record — 2026-10-16 America/Phoenix
+
+Prerequisites were verified against current source, head0016, exported OpenAPI
+and existing retrieval/learning/proposal/evaluation tests. No prerequisite phase
+or physical device was required. Source base is `fed5d4b` plus the pre-existing
+Phase21/22/setup working tree; this phase preserves that work.
+
+- **A complete:** frozen16case public corpus (8development/8regression holdout),
+  fixture and32native qwen answers, exact evidence/isolation checks and explicit
+  Codex qualitative review of usefulness/entailment/uncertainty. No independent
+  human review or general factual accuracy claim. Failures are retained by type.
+- **B complete with disabled exit:** reran lexical/subject/entity/exact-hybrid
+  fixture comparison, budgets/truncation/fallback tests and recorded resource
+  limits. Matching supported embedding weights were absent; native embedding
+  comparison/index/GPU cost is skipped, no download/semantic activation.
+- **C complete:** explicit IANA timezone/reference, yesterday/prior Monday-week,
+  displayed real interval, ambiguity clarification, half-open valid-time overlap
+  against current recorded state. Claim-only version; old point APIs unchanged.
+- **D complete with opt-in decision:** v5 ranked original history/authorized
+  continuity, frozen omissions, explicit audited upgrade, source/correction links,
+  no automatic save. Long-history context improved; native date/brevity regressions
+  mean v4 remains default. Failed/completed replay/version fences tested.
+- **E complete:** exact loaded suggestion grouping/conflict cues, retained support
+  and separate accept/edit/reject; no automatic selection or approval.
+
+See [the quality guide](../docs/ANSWER-QUALITY-AND-MEMORY-RELEVANCE.md),
+[manifest](../evaluations/answer-quality-manifest-v1.json) and
+[reviewed results](../evaluations/answer-quality-results-v1.json) for interfaces,
+commands, denominators and actionable remaining cases. No later phase implemented.

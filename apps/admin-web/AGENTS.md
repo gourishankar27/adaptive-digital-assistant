@@ -5,7 +5,10 @@ README and actual contracts/openapi.json before changing transport or screens.
 
 - Use the real injected ADA HTTP adapter for enabled controls. Fixture adapters
   live under tests/e2e and must never be imported from production src.
-- Keep bearer credentials in memory only. Never persist/log tokens or place them
+- Phase22 password sessions use Secure/HttpOnly/SameSite=Strict host-only cookies,
+  an exact configured HTTPS origin and CSRF header for authentication mutations.
+  Never expose cookie secrets to JavaScript or browser storage. Preserve the separate
+  advanced bearer adapter and keep bearer credentials in memory only. Never persist/log tokens or place them
   in URLs, analytics, traces, screenshots, fixtures or committed configuration.
 - Use relative same-origin /v1 paths, reject redirects, and keep development
   proxy targets fixed outside user input. No direct database or provider access.

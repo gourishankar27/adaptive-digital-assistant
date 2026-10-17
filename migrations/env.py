@@ -8,6 +8,7 @@ from ada import (  # noqa: F401
     entity_models,
     expression_models,
     learning_models,
+    login_models,
     proposal_models,
     security_models,
     stream_models,

@@ -93,7 +93,7 @@ def security_router(credentials, deletion, gate, current_user, error_responses):
         return {
             "owner_id": owner,
             "current_credential_id": principal.credential_id,
-            "legacy_credential": principal.credential_id is None,
+            "legacy_credential": principal.credential_id is None and principal.session_id is None,
             "enrollment_enabled": credentials.settings.device_enrollment_enabled,
             "deletion_worker_enabled": credentials.settings.deletion_worker_enabled,
             "data_epoch": epoch,

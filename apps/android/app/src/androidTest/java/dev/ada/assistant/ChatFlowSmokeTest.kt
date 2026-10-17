@@ -43,7 +43,7 @@ class ChatFlowSmokeTest {
         compose.runOnIdle { vm.logout() }
         runBlocking { AndroidSessionStore(compose.activity.applicationContext).clear() }
         compose.waitForIdle()
-        compose.onNodeWithTag("connect-token").assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Password))
+        compose.onNodeWithTag("connect-password").assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Password))
     }
 
     @After fun clearPrivateTestState() {
@@ -145,7 +145,7 @@ class ChatFlowSmokeTest {
         assertTrue(vm.state.value.events.items.isEmpty())
         assertTrue(vm.state.value.sources.isEmpty())
         assertTrue(vm.state.value.draft.isEmpty())
-        compose.onNodeWithTag("connect-token").assert(SemanticsMatcher.expectValue(SemanticsProperties.EditableText, AnnotatedString("")))
+        compose.onNodeWithTag("connect-password").assert(SemanticsMatcher.expectValue(SemanticsProperties.EditableText, AnnotatedString("")))
     }
 
     @Test fun personalScopeEmojiDraftRotationAndHistoricalValidation() {

@@ -27,7 +27,7 @@ from cryptography.x509.oid import NameOID
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def certificates(directory):
+def certificates(directory, *, expired=False):
     now = datetime.datetime.now(datetime.UTC)
     ca_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "ADA synthetic proxy CA")])
@@ -49,8 +49,12 @@ def certificates(directory):
         .issuer_name(name)
         .public_key(key.public_key())
         .serial_number(x509.random_serial_number())
-        .not_valid_before(now - datetime.timedelta(minutes=1))
-        .not_valid_after(now + datetime.timedelta(days=1))
+        .not_valid_before(
+            now - datetime.timedelta(days=2) if expired else now - datetime.timedelta(minutes=1)
+        )
+        .not_valid_after(
+            now - datetime.timedelta(days=1) if expired else now + datetime.timedelta(days=1)
+        )
         .add_extension(x509.SubjectAlternativeName([x509.DNSName("localhost")]), critical=False)
         .sign(ca_key, hashes.SHA256())
     )

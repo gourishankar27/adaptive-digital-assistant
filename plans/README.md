@@ -64,9 +64,9 @@ are designs until implemented and exported in OpenAPI. The existing
 | 18 | [phase-18-security-and-operations.md](phase-18-security-and-operations.md) | Device credentials, deletion/retention, recovery and shared capacity | 05, 06; whichever feature phases exist |
 | 19 | [phase-19-edge-and-external-integrations.md](phase-19-edge-and-external-integrations.md) | Optional local mobile models and selected integrations | 12, 18; measured device requirements |
 | 20 | [phase-20-release-readiness-and-quality-baseline.md](phase-20-release-readiness-and-quality-baseline.md) | Implemented: separate legacy recovery, frozen scorecard and local readiness baseline; limits in STATUS | Source through 18 |
-| 21 | [phase-21-private-network-connectivity.md](phase-21-private-network-connectivity.md) | Proposed: trusted Tailscale/LAN HTTPS and connection setup | 20 transport audit; 18 |
-| 22 | [phase-22-password-login-and-sessions.md](phase-22-password-login-and-sessions.md) | Proposed: username/password on both clients, revocable sessions | 20; 21 before remote use |
-| 23 | [phase-23-answer-quality-and-memory-relevance.md](phase-23-answer-quality-and-memory-relevance.md) | Proposed: measured recall, dates, context and correction improvements | 20; existing memory features |
+| 21 | [phase-21-private-network-connectivity.md](phase-21-private-network-connectivity.md) | Implemented: named Android origins/import/preflight, diagnostics and private-route rehearsals; actual deployment/target gates remain | 20 transport audit; 18 |
+| 22 | [phase-22-password-login-and-sessions.md](phase-22-password-login-and-sessions.md) | Implemented password/session source; live enrollment/target checks pending | 20; 21 before remote use |
+| 23 | [phase-23-answer-quality-and-memory-relevance.md](phase-23-answer-quality-and-memory-relevance.md) | Implemented/local checks: explicit intervals, review cues, measured opt-in v5; v4 default/semantic disabled; remaining limits in STATUS | 20; existing memory features |
 | 24 | [phase-24-secure-web-research.md](phase-24-secure-web-research.md) | Proposed: approved public research, isolated egress and saved web citations | 20, 12, 18 |
 | 25 | [phase-25-conversational-curiosity.md](phase-25-conversational-curiosity.md) | Proposed: personal follow-up questions, topic controls and later inbox | 20, 14/15; 23 preferred |
 | 26 | [phase-26-always-on-operations-and-recovery.md](phase-26-always-on-operations-and-recovery.md) | Proposed: supervised laptop service and unattended encrypted recovery | 20, 18; 21 for remote reachability |

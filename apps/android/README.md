@@ -1,5 +1,16 @@
 # ADA Android chat, memory, tools, episodes and interaction learning (Phase 17)
 
+## Phase22 password sign-in
+
+Version15/0.22.0-sessions uses server/username/password by default. Keystore v12
+persists only refresh material in password mode, with access in memory and no saved
+password; v1–v11 journals remain readable. Reopen/foreground renewal verifies the
+same owner/epoch and performs GET recovery only. Settings reviews/revokes password
+sessions, changes passwords and signs out current/all families. Advanced bearer
+mode retains CLI/device compatibility. Follow
+[the password guide](../../docs/PASSWORD-LOGIN-AND-SESSIONS.md) for explicit local
+enrollment and0016 installation. Physical/release HTTPS checks remain separate.
+
 For the step-by-step current installation, USB connection, feature instructions
 and known phone issues, see [HOW-TO-USE-ADA](../../docs/HOW-TO-USE-ADA.md).
 
@@ -13,6 +24,14 @@ static personality profiles. Phase 16 adds incremental replies, durable stream
 recovery and explicit Stop. Existing profile editing, automatic extraction,
 external writes and local language-model inference remain later selected phases.
 Phase 17 adds reviewed on-device voice input and independent offline TTS.
+Phase 21 (versionCode14/0.21.0-connectivity) adds saved named HTTPS server addresses,
+explicit switch/clear, reviewed version1 JSON address import and public readiness
+checks before login/recovery sends credentials. Open **Saved servers and connection
+checks** on the connection screen. Profiles store label/origin only, separately
+from Keystore credentials. Standard release TLS and debug-only local HTTP remain;
+no QR/deep-link trust, discovery or certificate bypass. Read
+[private-network connectivity](../../docs/PRIVATE-NETWORK-CONNECTIVITY.md) for
+the Tailscale Serve and direct LAN routes and their separate deployment gates.
 Phase 14 adds separately scoped interaction preferences and opt-in bounded session
 tone under Settings; saved personality profiles remain unchanged.
 Phase 08 adds owned UTF-8 text/Markdown import, immutable version/status/chunk
@@ -723,3 +742,31 @@ suite and exercise both actual force-stop prepare/resume pairs plus SecurityUI.
 It now emits stage results before a failure; exact UUIDs are metadata, not tokens.
 Always select an authorized isolated emulator/device explicitly. Never use a normal
 app ID, reset a user's app or run concurrent Gradle builds to reproduce these checks.
+
+
+## Phase23 calendar lookup and explicit quality context
+
+Source app16/0.23.0-quality adds Memory → Explore a calendar interval and an
+explicit conversation context-upgrade confirmation. These controls require the
+server's new capabilities; v4 new chats, existing journals and session transport
+stay compatible. Exact source/correction review and loaded proposal duplicate/
+conflict cues preserve individual review. See
+[the quality guide](../../docs/ANSWER-QUALITY-AND-MEMORY-RELEVANCE.md).
+
+Local verification recorded239unit tests, lint/debug/instrumentation/unsigned
+release builds and a separate API37 emulator HTTP flow. The normal debug APK was
+rebuilt after validation; it was not installed on the user's phone. To repeat the
+isolated flow, start an owned emulator, set the dedicated ADA_TEST_DATABASE_URL,
+then build and run serially:
+
+```powershell
+./gradlew.bat -PadaValidationApplicationId=dev.ada.validation.phase23 :app:assembleDebug :app:assembleDebugAndroidTest
+../../.venv/Scripts/python.exe -X utf8 ../../scripts/verify_quality_android.py --device emulator-5584
+./gradlew.bat :app:assembleDebug :app:assembleDebugAndroidTest
+```
+
+Use the selected running emulator serial. The runner rejects physical devices and
+normal application IDs, validates APK metadata and uses disposable synthetic
+HTTP/PostgreSQL fixtures. It removes only its validation APKs, reverse and schema.
+Wait for Android to finish booting before running it. Physical accessibility,
+large-font/TalkBack and signed-release HTTPS remain target checks.

@@ -61,11 +61,11 @@ function query(filters: Filters, allowed: string[]): string {
   return params.toString() ? `?${params}` : '';
 }
 export class HttpAdminApi extends HttpAdaApi implements AdminApi {
-  protected override async get<T>(path: string, decode: (value: unknown) => T, signal?: AbortSignal): Promise<T> {
-    try { return await super.get(path, decode, signal); }
+  protected override async get<T>(path: string, decode: (value: unknown) => T, signal?: AbortSignal, authenticated = true): Promise<T> {
+    try { return await super.get(path, decode, signal, authenticated); }
     catch (error) {
       const messages: Partial<Record<FailureKind, string>> = {
-        authentication: 'The credential is invalid or expired. Sign in with a current token.',
+        authentication: 'The session expired or the signed-in account changed. Sign in again, or use a current legacy token.',
         forbidden: 'Access denied. This account no longer has the monitoring permission.',
         'not-found': 'The monitoring record is unavailable to this operator.',
         validation: 'The server rejected the monitoring filters. Check the IDs, page and date window.',
@@ -77,7 +77,10 @@ export class HttpAdminApi extends HttpAdaApi implements AdminApi {
       throw error;
     }
   }
-  adminMe(signal?: AbortSignal) { return this.get('/v1/admin/me', decodeAdminMe, signal); }
+  async adminMe(signal?: AbortSignal) {
+    await this.checkServer(signal);
+    return this.get('/v1/admin/me', decodeAdminMe, signal);
+  }
   overview(hours: number, signal?: AbortSignal) {
     if (!Number.isInteger(hours) || hours < 1 || hours > 168) throw new ContractError();
     return this.get(`/v1/admin/overview?window_hours=${hours}`, decodeOverview, signal);

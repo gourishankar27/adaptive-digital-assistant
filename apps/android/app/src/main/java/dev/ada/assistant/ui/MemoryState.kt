@@ -14,6 +14,8 @@ data class MemoryDraft(
     override fun toString() = "MemoryDraft(redacted)"
 }
 data class MemoryState(
+    val windowsEnabled: Boolean = false, val windowLoading: Boolean = false,
+    val window: WindowRetrievalDto? = null,
     val enabled: Boolean = false, val writesEnabled: Boolean = false, val historicalEnabled: Boolean = false,
     val screen: MemoryScreen = MemoryScreen.Browse,
     val scopes: ChatPage<ScopeDto> = ChatPage(), val scopeId: UUID? = null,

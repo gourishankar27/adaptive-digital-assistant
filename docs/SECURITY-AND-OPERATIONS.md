@@ -1,5 +1,15 @@
 # Security, retention and recovery
 
+## Phase22 extension
+
+Current head0016 adds password_credentials, login_sessions and refresh_verifiers
+(57total tables). The [password/session guide](PASSWORD-LOGIN-AND-SESSIONS.md)
+defines Argon2 bounds, exact pre-auth routes, CSRF, owner revocation, legacy/device
+compatibility and v2 backup quarantine. Content erasure retains these classified
+security records and still removes the45table content closure.0015/v1 and0005
+recovery remain versioned supported paths. Earlier Phase18 evidence below remains
+historical; no live migration, credential change or deployment is implied.
+
 Phase 18 implements schema **0015** and additive owner-authenticated security APIs.
 This is a runbook, not an instruction to publish a server or erase a live account.
 Use [HOW-TO-USE-ADA](HOW-TO-USE-ADA.md) for the existing development setup.
@@ -168,6 +178,12 @@ or job process until shared admission, lease fairness and real GPU capacity have
 been implemented and tested under separately requested scope.
 
 ## Selected remote access: private HTTPS with a system-trusted certificate
+
+Phase21's [private-network runbook](PRIVATE-NETWORK-CONNECTIVITY.md) now supplies
+the separate Tailscale Serve/loopback-proxy route and direct LAN setup. The LAN
+template defaults to loopback and requires an explicit `ADA_PRIVATE_BIND` before
+a selected remote installation. Its client/proxy rehearsals do not establish
+live VPN/firewall/system-trusted release-client operation.
 
 The selected topology is a private VPN/firewall-restricted Caddy HTTPS endpoint
 serving the built admin UI and proxying the loopback ADA API. Only TCP 443 is

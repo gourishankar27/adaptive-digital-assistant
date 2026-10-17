@@ -212,8 +212,8 @@ def backup(url, pg_bin, destination, password, settings):
             with conn.begin():
                 conn.execute(text("SET TRANSACTION READ ONLY"))
                 head = conn.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
-                if head != "0015":
-                    raise RecoveryError("Backup requires installed schema head 0015")
+                if head not in ("0015", "0016"):
+                    raise RecoveryError("Backup requires reviewed schema head 0015 or 0016")
                 from ada.recovery_policy import validate_inventory
 
                 validate_inventory(head, inspect(conn).get_table_names(schema="public"))
@@ -232,7 +232,9 @@ def backup(url, pg_bin, destination, password, settings):
                     pg_environment(url),
                 )
                 manifest = {
-                    "format": "ada-postgres-backup-v1",
+                    "format": "ada-postgres-backup-v2"
+                    if head == "0016"
+                    else "ada-postgres-backup-v1",
                     "head": head,
                     "snapshot_at": now_ms(),
                     "tables": inventory,
@@ -294,8 +296,8 @@ def unpack(payload):
             dump = archive.read("database.dump")
         if (
             not isinstance(manifest, dict)
-            or manifest.get("format") != "ada-postgres-backup-v1"
-            or manifest.get("head") != "0015"
+            or (manifest.get("format"), manifest.get("head"))
+            not in (("ada-postgres-backup-v1", "0015"), ("ada-postgres-backup-v2", "0016"))
             or not isinstance(manifest.get("tables"), dict)
             or type(manifest.get("snapshot_at")) is not int
             or (hashlib.sha256(dump).hexdigest() != manifest.get("dump_sha256"))
@@ -371,6 +373,12 @@ def restore(url, pg_bin, target_database, artifact, ledger_path, password):
                 text("UPDATE device_credentials SET revoked_at=COALESCE(revoked_at, :now)"),
                 {"now": now_ms()},
             )
+            if manifest["head"] == "0016":
+                conn.execute(text("UPDATE password_credentials SET verifier=NULL"))
+                conn.execute(
+                    text("UPDATE login_sessions SET revoked_at=COALESCE(revoked_at, :now)"),
+                    {"now": now_ms()},
+                )
         if restored_inventory != manifest["tables"]:
             raise RecoveryError("Restored row hashes/counts differ; credentials quarantined")
         with engine.begin() as conn:
