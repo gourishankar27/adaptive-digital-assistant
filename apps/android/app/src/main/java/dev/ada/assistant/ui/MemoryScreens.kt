@@ -350,8 +350,7 @@ private fun MemoryChoice(selected: Boolean, label: String, modifier: Modifier = 
 
 @Composable
 private fun MemoryHeading(title: String, text: String) {
-    Text(title, style = MaterialTheme.typography.headlineMedium, modifier = Modifier.semantics { heading() })
-    Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    AdaSectionHeading(title, text)
 }
 
 @Composable

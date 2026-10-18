@@ -5,6 +5,9 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,21 +26,25 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -59,12 +66,15 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -74,6 +84,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.ada.assistant.data.ApiFailure
 import dev.ada.assistant.data.EventDto
@@ -86,56 +99,44 @@ import kotlin.math.sin
 @OptIn(ExperimentalLayoutApi::class)
 fun ChatApp(vm: ChatViewModel, openSettings: () -> Unit) {
     val state by vm.state.collectAsStateWithLifecycle()
+    val voice by vm.voice.state.collectAsStateWithLifecycle()
+    val tools by vm.agents.state.collectAsStateWithLifecycle()
+    val presence = adaPresenceState(state, voice, state.destination == ChatDestination.Tools && tools.run?.status == "running")
     val focus = LocalFocusManager.current
     val typing = WindowInsets.isImeVisible
     BackHandler(state.account != null && state.destination != ChatDestination.Conversations) { focus.clearFocus(); vm.back() }
+    BoxWithConstraints(Modifier.fillMaxSize().imePadding()) {
+    val rail = maxWidth >= AdaLayout.railAt && state.account != null && !typing
     Scaffold(
-        modifier = Modifier.fillMaxSize().imePadding(),
+        modifier = Modifier.fillMaxSize(), containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.onBackground,
         contentWindowInsets = WindowInsets(0, 0, 0, 0), // MainActivity supplies system bar insets.
         topBar = {
-            if (!typing) Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 2.dp) {
+            if (!typing && state.destination == ChatDestination.Chat && state.conversation != null) ConversationToolbar(state, vm)
+            else if (!typing) Surface(color = MaterialTheme.colorScheme.background.copy(alpha = .82f)) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = AdaSpacing.medium), verticalAlignment = Alignment.CenterVertically) {
+                    AdaPresence(presence, Modifier.size(AdaSpacing.touch), motion = presence in setOf(AdaPresenceState.Thinking, AdaPresenceState.Acting), describe = presence != AdaPresenceState.Idle)
                     Column(Modifier.weight(1f).padding(vertical = AdaSpacing.small)) {
                         Text("ADA", style = MaterialTheme.typography.titleLarge)
-                        Text("A little space to think", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(if (state.account == null) "A private space to think" else "Your private workspace", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    TextButton(
+                    AdaIconButton(AdaIcon.Settings, "Settings",
                         onClick = { focus.clearFocus(); if (state.account == null) openSettings() else vm.navigate(ChatDestination.Settings) },
-                        modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("top-settings"),
-                    ) { Text("Settings") }
+                        modifier = Modifier.testTag("top-settings"))
                 }
             }
         },
         bottomBar = {
-            if (state.account != null && !typing) NavigationBar(windowInsets = WindowInsets(0, 0, 0, 0)) {
-                val inChat = state.destination !in setOf(ChatDestination.Settings, ChatDestination.Connect, ChatDestination.Memory, ChatDestination.Documents, ChatDestination.Entities, ChatDestination.Proposals)
-                NavigationBarItem(
-                    selected = inChat,
-                    onClick = { focus.clearFocus(); vm.navigate(ChatDestination.Conversations) },
-                    icon = { NavigationGlyph(0) }, label = { Text("Chat") },
-                    modifier = Modifier.testTag("nav-chat"),
-                )
-                NavigationBarItem(
-                    selected = state.destination in setOf(ChatDestination.Memory, ChatDestination.Entities, ChatDestination.Proposals), enabled = state.capabilities?.structured_memory == true,
-                    onClick = { focus.clearFocus(); vm.navigate(ChatDestination.Memory) }, icon = { NavigationGlyph(1) }, label = { Text("Memory") },
-                    modifier = Modifier.testTag("nav-memory").semantics { stateDescription = if (state.capabilities?.structured_memory == true) "Owned statements and evidence" else "This server does not offer structured memory" },
-                )
-                NavigationBarItem(
-                    selected = state.destination == ChatDestination.Documents,
-                    enabled = state.capabilities?.let { it.document_uploads && it.document_ingestion == "text_markdown_v1" } == true,
-                    onClick = { focus.clearFocus(); vm.navigate(ChatDestination.Documents) }, icon = { NavigationGlyph(1) }, label = { Text("Documents") },
-                    modifier = Modifier.testTag("nav-documents"),
-                )
-                NavigationBarItem(
-                    selected = state.destination == ChatDestination.Settings,
-                    onClick = { focus.clearFocus(); vm.navigate(ChatDestination.Settings) },
-                    icon = { NavigationGlyph(2) }, label = { Text("Settings") },
-                    modifier = Modifier.testTag("nav-settings"),
-                )
+            if (state.account != null && !typing && !rail) Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                AdaGlassSurface(Modifier.widthIn(max = AdaLayout.reading).padding(horizontal = AdaSpacing.small, vertical = AdaSpacing.small)) {
+                    AppNavigation(state, rail = false) { focus.clearFocus(); vm.navigate(it) }
+                }
             }
         },
     ) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding)) {
+        Row(Modifier.fillMaxSize().padding(padding)) {
+            if (rail) AppNavigation(state, rail = true) { focus.clearFocus(); vm.navigate(it) }
+            Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.TopCenter) {
+            Column(Modifier.widthIn(max = AdaLayout.content).fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
             when (state.destination) {
                 ChatDestination.Connect -> ChatConnect(state, vm::connect, vm::disconnect, openSettings, vm::passwordLogin)
                 ChatDestination.Conversations -> ConversationsScreen(state, vm)
@@ -157,7 +158,30 @@ fun ChatApp(vm: ChatViewModel, openSettings: () -> Unit) {
                 ChatDestination.Documents -> DocumentScreens(vm.documents)
                 ChatDestination.Settings -> AccountSettingsScreen(state, vm, openSettings)
             }
+            }
+            }
         }
+    }
+    }
+}
+
+@Composable
+private fun AppNavigation(state: ChatState, rail: Boolean, navigate: (ChatDestination) -> Unit) {
+    data class Item(val target: ChatDestination, val label: String, val glyph: Int, val selected: Boolean, val enabled: Boolean, val tag: String)
+    val inChat = state.destination !in setOf(ChatDestination.Settings, ChatDestination.Connect, ChatDestination.Memory, ChatDestination.Documents, ChatDestination.Entities, ChatDestination.Proposals)
+    val items = listOf(
+        Item(ChatDestination.Conversations, "Chat", 0, inChat, true, "nav-chat"),
+        Item(ChatDestination.Memory, "Memory", 1, state.destination in setOf(ChatDestination.Memory, ChatDestination.Entities, ChatDestination.Proposals), state.capabilities?.structured_memory == true, "nav-memory"),
+        Item(ChatDestination.Documents, "Documents", 3, state.destination == ChatDestination.Documents, state.capabilities?.let { it.document_uploads && it.document_ingestion == "text_markdown_v1" } == true, "nav-documents"),
+        Item(ChatDestination.Settings, "Settings", 2, state.destination == ChatDestination.Settings, true, "nav-settings"),
+    )
+    fun itemModifier(item: Item): Modifier = Modifier.testTag(item.tag).then(if (item.target == ChatDestination.Memory) Modifier.semantics {
+        stateDescription = if (item.enabled) "Owned statements and evidence" else "This server does not offer structured memory"
+    } else Modifier)
+    if (rail) NavigationRail(Modifier.fillMaxHeight().verticalScroll(rememberScrollState()).testTag("expanded-navigation"), containerColor = Color.Transparent) {
+        items.forEach { item -> NavigationRailItem(item.selected, { navigate(item.target) }, icon = { NavigationGlyph(item.glyph) }, label = { Text(item.label) }, enabled = item.enabled, modifier = itemModifier(item)) }
+    } else NavigationBar(containerColor = Color.Transparent, tonalElevation = 0.dp, windowInsets = WindowInsets(0, 0, 0, 0), modifier = Modifier.testTag("compact-navigation")) {
+        items.forEach { item -> NavigationBarItem(item.selected, { navigate(item.target) }, icon = { NavigationGlyph(item.glyph) }, label = { Text(item.label) }, enabled = item.enabled, modifier = itemModifier(item)) }
     }
 }
 
@@ -169,11 +193,12 @@ private fun ChatConnect(state: ChatState, connect: (String, String) -> Unit, cle
     var legacy by remember { mutableStateOf(false) }
     var token by remember { mutableStateOf("") } // Never saved in a Bundle or plaintext preferences.
     val focus = LocalFocusManager.current
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
     Column(
-        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(AdaSpacing.large),
+        Modifier.widthIn(max = AdaLayout.form).fillMaxSize().verticalScroll(rememberScrollState()).padding(AdaSpacing.large),
         verticalArrangement = Arrangement.spacedBy(AdaSpacing.medium),
     ) {
-        ScreenHeading("Welcome back.", "Connect to your ADA server. Your account, conversations and sources stay together.")
+        AdaPresenceHeading("Welcome back.", "Your private space for a clearer conversation.", if (state.connecting) AdaPresenceState.Unconfirmed else AdaPresenceState.Idle)
         OutlinedTextField(
             server, { clear(); server = it; token = ""; password = ""; username = "" }, label = { Text("ADA server URL") }, singleLine = true,
             enabled = !state.connecting, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Next),
@@ -213,6 +238,7 @@ private fun ChatConnect(state: ChatState, connect: (String, String) -> Unit, cle
         Text("The credential and pending requests are encrypted on this device. Logging out clears private local state.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         TextButton(onClick = openSettings, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Choose your appearance") }
     }
+    }
 }
 
 @Composable
@@ -223,12 +249,21 @@ private fun ConversationsScreen(state: ChatState, vm: ChatViewModel) {
         verticalArrangement = Arrangement.spacedBy(AdaSpacing.medium),
     ) {
         item {
-            ScreenHeading("Your conversations", state.account?.let { "Hello, ${it.name}. Pick up a conversation or start with a fresh page." } ?: "Connect to see your conversations.")
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
+                AdaPresence(adaPresenceState(state), Modifier.size(AdaLayout.presence), motion = false)
+                Column(Modifier.weight(1f)) {
+                    Text("Your conversations", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
+                    Text(state.account?.let { "Hello, ${it.name}." } ?: "Connect to begin.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                AdaIconButton(AdaIcon.Refresh, "Refresh conversations", vm::refreshConversations, enabled = !state.conversations.loading)
+            }
         }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
-                Button(onClick = vm::beginCreate, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("new-conversation")) { Text("New conversation") }
-                TextButton(onClick = vm::refreshConversations, enabled = !state.conversations.loading, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Refresh") }
+                Button(onClick = vm::beginCreate, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("new-conversation")) {
+                    AdaIconGlyph(AdaIcon.Add)
+                    Text("New conversation", Modifier.padding(start = AdaSpacing.small))
+                }
             }
         }
         item { StateFeedback(state) }
@@ -351,34 +386,18 @@ private fun ConversationScreen(state: ChatState, vm: ChatViewModel, typing: Bool
         return
     }
     val list = rememberLazyListState()
-    BoxWithConstraints(Modifier.fillMaxSize()) {
+    BoxWithConstraints(Modifier.widthIn(max = AdaLayout.reading).fillMaxSize()) {
       val totalMaxHeight = maxHeight
-      val compact = totalMaxHeight < 360.dp
       val hasPending = state.pending?.message?.conversationId == conversation.id
-      val headerHeight = (totalMaxHeight * 0.25f).coerceAtMost(200.dp)
-      val pendingHeight = (totalMaxHeight * 0.25f).coerceAtMost(170.dp)
-      val composerHeight = (totalMaxHeight * (if (compact) 0.45f else 0.40f)).coerceAtMost(280.dp)
       Column(Modifier.fillMaxSize()) {
-       if (!typing && state.capabilities?.web_research == "ada-web-research-v1") TextButton({ vm.navigate(ChatDestination.Research) }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("open-research")) { Text("Public research") }
-       if (!typing && state.capabilities?.curiosity_protocol == "ada-curiosity-v1") TextButton({ vm.navigate(ChatDestination.Curiosity) }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("open-curiosity")) { Text("Questions & curiosity") }
-       if (!typing && (state.capabilities?.hasAgentTools() == true || state.capabilities?.hasEpisodes() == true)) Row(Modifier.fillMaxWidth()) {
-         if (state.capabilities?.hasAgentTools() == true) TextButton({ vm.navigate(ChatDestination.Tools) }, modifier = Modifier.weight(1f).heightIn(min = AdaSpacing.touch).testTag("open-tools")) { Text("Read-only tools") }
-         if (state.capabilities?.hasEpisodes() == true) TextButton({ vm.navigate(ChatDestination.Episodes) }, modifier = Modifier.weight(1f).heightIn(min = AdaSpacing.touch).testTag("open-episodes")) { Text("History & episodes") }
-       }
-       if (!typing) {
-        if (!compact) {
-            ConversationContext(state, vm, headerHeight)
-            HorizontalDivider()
-        }
         LazyColumn(
             Modifier.weight(1f).fillMaxWidth().testTag("chat-history"), state = list,
             contentPadding = androidx.compose.foundation.layout.PaddingValues(AdaSpacing.medium),
             verticalArrangement = Arrangement.spacedBy(AdaSpacing.medium),
         ) {
-            if (compact) item(key = "conversation-context") { ConversationContext(state, vm, 200.dp, scrollWithin = false) }
-            if (compact && hasPending) item(key = "request-recovery") { PendingPanel(state, vm, 170.dp, scrollWithin = false) }
+            item(key = "conversation-feedback") { StateFeedback(state, suppressFailure = state.pending?.failure != null && state.pending.failure == state.fault) }
             if (state.events.items.isEmpty() && !state.events.loading) item {
-                StatusCard("What’s on your mind?", "Your words belong here. ADA will use this conversation’s saved style and chosen scope.")
+                AdaPresenceHeading("What’s on your mind?", "This conversation uses your saved style and chosen scope.", compact = true)
             }
             items(state.events.items, key = { it.id }) { event ->
                 EventCard(event, state, vm)
@@ -396,13 +415,13 @@ private fun ConversationScreen(state: ChatState, vm: ChatViewModel, typing: Bool
                 val replyMissing = state.events.items.none { it.request_id == requestId && it.role == "assistant" }
                 if (response != null && (userMissing || replyMissing)) item(key = "submitted-$requestId") {
                     Column(verticalArrangement = Arrangement.spacedBy(AdaSpacing.medium)) {
-                        if (userMissing) Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
+                        if (userMissing) AdaMessageSurface(true) {
                             Column(Modifier.padding(AdaSpacing.medium), verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
                                 Text("You", style = MaterialTheme.typography.labelLarge)
                                 SafeChatText(submitted.body.content)
                             }
                         }
-                        if (replyMissing && response.response != null) Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
+                        if (replyMissing && response.response != null) AdaMessageSurface(false) {
                             Column(Modifier.padding(AdaSpacing.medium), verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
                                 Text("ADA", style = MaterialTheme.typography.labelLarge)
                                 SafeChatText(response.response)
@@ -417,17 +436,66 @@ private fun ConversationScreen(state: ChatState, vm: ChatViewModel, typing: Bool
                     }
                 }
             }
+            if (hasPending) item(key = "request-recovery") { PendingPanel(state, vm, 170.dp, scrollWithin = false) }
         }
-        LaunchedEffect(conversation.id, state.events.items.lastOrNull()?.id, state.pending?.phase, compact) {
-            val precedingItems = if (compact) 1 + if (hasPending) 1 else 0 else 0
-            if (state.events.items.isNotEmpty() && (state.pending != null || state.events.items.size <= 2)) list.animateScrollToItem(state.events.items.lastIndex + precedingItems)
+        LaunchedEffect(conversation.id, state.events.items.lastOrNull()?.id, state.pending?.phase) {
+            // Follow new messages/status transitions, not every streamed token or a reader's scroll.
+            if (state.events.items.isNotEmpty() || hasPending) {
+                val last = (list.layoutInfo.totalItemsCount - 1).coerceAtLeast(0)
+                list.animateScrollToItem(last)
+            }
         }
-        if (!compact && hasPending) PendingPanel(state, vm, pendingHeight)
-       }
-        // Keep the same composer/focus state while the IME opens; only its available height changes.
-        // Dismissing the keyboard restores context, history and recovery controls.
-        Composer(state, vm, if (typing) totalMaxHeight else composerHeight)
+        // Same composer stays composed while IME opens; thread uses the remaining window.
+        Composer(state, vm, if (typing) totalMaxHeight else (totalMaxHeight * .45f).coerceAtMost(200.dp))
       }
+    }
+}
+
+@Composable
+private fun ConversationToolbar(state: ChatState, vm: ChatViewModel) {
+    val conversation = state.conversation ?: return
+    var menu by remember(conversation.id) { mutableStateOf(false) }
+    var details by remember(conversation.id) { mutableStateOf(false) }
+    Surface(color = MaterialTheme.colorScheme.background.copy(alpha = .82f)) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = AdaSpacing.small), verticalAlignment = Alignment.CenterVertically) {
+            AdaIconButton(AdaIcon.Back, "Conversations", { vm.navigate(ChatDestination.Conversations) })
+            Column(Modifier.weight(1f).padding(horizontal = AdaSpacing.small, vertical = AdaSpacing.small)) {
+                Text(conversation.title, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.semantics { heading() })
+                Text("${conversation.personality.name} · ${conversation.personality.style}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+            Box {
+                AdaIconButton(AdaIcon.More, "Conversation menu", { menu = true }, Modifier.testTag("chat-menu").semantics { stateDescription = if (menu) "Expanded" else "Collapsed" })
+                DropdownMenu(menu, { menu = false }) {
+                    DropdownMenuItem(text = { Text("Conversation details") }, leadingIcon = { AdaIconGlyph(AdaIcon.Sources) },
+                        onClick = { menu = false; details = true }, modifier = Modifier.testTag("conversation-details"))
+                    DropdownMenuItem(text = { Text("Refresh history") }, leadingIcon = { AdaIconGlyph(AdaIcon.Refresh) },
+                        enabled = !state.events.loading, onClick = { menu = false; vm.refreshEvents() })
+                    if (state.capabilities?.web_research == "ada-web-research-v1") DropdownMenuItem(text = { Text("Public research") }, onClick = { menu = false; vm.navigate(ChatDestination.Research) }, modifier = Modifier.testTag("open-research"))
+                    if (state.capabilities?.curiosity_protocol == "ada-curiosity-v1") DropdownMenuItem(text = { Text("Questions & curiosity") }, onClick = { menu = false; vm.navigate(ChatDestination.Curiosity) }, modifier = Modifier.testTag("open-curiosity"))
+                    if (state.capabilities?.hasAgentTools() == true) DropdownMenuItem(text = { Text("Read-only tools") }, onClick = { menu = false; vm.navigate(ChatDestination.Tools) }, modifier = Modifier.testTag("open-tools"))
+                    if (state.capabilities?.hasEpisodes() == true) DropdownMenuItem(text = { Text("History & episodes") }, onClick = { menu = false; vm.navigate(ChatDestination.Episodes) }, modifier = Modifier.testTag("open-episodes"))
+                    DropdownMenuItem(text = { Text("Settings") }, leadingIcon = { AdaIconGlyph(AdaIcon.Settings) }, onClick = { menu = false; vm.navigate(ChatDestination.Settings) })
+                }
+            }
+        }
+    }
+    if (details) CompactChatDialog("Conversation details", "conversation-details-dialog", "conversation-details-done", { details = false }) {
+        ConversationContext(state, vm, 600.dp, scrollWithin = false)
+    }
+}
+
+@Composable
+private fun CompactChatDialog(title: String, tag: String, doneTag: String, close: () -> Unit, content: @Composable () -> Unit) {
+    Dialog(onDismissRequest = close, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        AdaGlassSurface(Modifier.padding(AdaSpacing.medium).widthIn(max = AdaLayout.form).fillMaxWidth().testTag(tag)) {
+            Column(Modifier.heightIn(max = 600.dp)) {
+                Row(Modifier.fillMaxWidth().padding(start = AdaSpacing.medium, end = AdaSpacing.tiny), verticalAlignment = Alignment.CenterVertically) {
+                    Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f).semantics { heading() })
+                    AdaIconButton(AdaIcon.Close, "Done", close, Modifier.testTag(doneTag))
+                }
+                Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()).padding(AdaSpacing.medium), verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) { content() }
+            }
+        }
     }
 }
 
@@ -441,11 +509,6 @@ private fun ConversationContext(state: ChatState, vm: ChatViewModel, maximumHeig
     val scroll = rememberScrollState()
     val scrolling = if (scrollWithin) Modifier.heightIn(max = maximumHeight).verticalScroll(scroll) else Modifier
     Column(Modifier.fillMaxWidth().then(scrolling).padding(horizontal = AdaSpacing.medium), verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            TextButton(onClick = { vm.navigate(ChatDestination.Conversations) }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Conversations") }
-            Spacer(Modifier.weight(1f))
-            TextButton(onClick = vm::refreshEvents, enabled = !state.events.loading, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Refresh history") }
-        }
         Text(conversation.title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
         Text("Scope: ${scope?.name ?: scopeLabel(conversation.scope_kind)}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text("Saved style: ${conversation.personality.name} · ${conversation.personality.style} · ${conversation.personality.warmth} · ${conversation.personality.detail}", style = MaterialTheme.typography.bodySmall)
@@ -480,17 +543,16 @@ private fun ConversationContext(state: ChatState, vm: ChatViewModel, maximumHeig
 @Composable
 private fun EventCard(event: EventDto, state: ChatState, vm: ChatViewModel) {
     val user = event.role == "user"
-    Card(
-        Modifier.fillMaxWidth().testTag("event-${event.id}"),
-        colors = CardDefaults.cardColors(containerColor = if (user) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerLow),
-    ) {
+    AdaMessageSurface(user, Modifier.testTag("event-${event.id}")) {
         Column(Modifier.padding(AdaSpacing.medium), verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
-            Text(if (user) "You" else if (event.role == "assistant") "ADA" else "Recorded message", style = MaterialTheme.typography.labelLarge)
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(if (user) "You" else if (event.role == "assistant") "ADA" else "Recorded message", style = MaterialTheme.typography.labelLarge, modifier = Modifier.weight(1f))
+                if (user) AdaIconButton(AdaIcon.Sources, "Input and reply sources", { vm.openSources(event.request_id) })
+            }
             if (event.request_status != "completed") Text(
                 when (event.request_status) { "running" -> "Request still running"; "failed" -> "Request did not complete"; else -> "Request status is not recognized" },
                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            if (user) TextButton(onClick = { vm.openSources(event.request_id) }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Input and reply sources") }
             SafeChatText(event.content)
             if (event.role == "assistant" && event.request_status == "completed") ReadReplyButton(vm, event.request_id)
             if (event.role == "assistant") {
@@ -529,7 +591,7 @@ private fun PendingPanel(state: ChatState, vm: ChatViewModel, maximumHeight: Dp,
         PendingPhase.Conflict -> "The saved request needs review"
         PendingPhase.Blocked -> if (receivedWithCleanupFailure) "Reply received; recovery storage needs attention" else "Reconnect before continuing"
     }
-    Surface(color = MaterialTheme.colorScheme.surfaceContainerHighest) {
+    AdaGlassSurface(Modifier.padding(horizontal = AdaSpacing.small, vertical = AdaSpacing.tiny)) {
         Column(Modifier.fillMaxWidth().then(scrolling).padding(AdaSpacing.medium), verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
             if (pending.message.voiceTranscript != null) Text("Reviewed voice input · original transcript retained separately")
             Text(title, style = MaterialTheme.typography.titleSmall, modifier = Modifier.testTag("pending-status"))
@@ -541,7 +603,7 @@ private fun PendingPanel(state: ChatState, vm: ChatViewModel, maximumHeight: Dp,
                 if (progress.stream_state in setOf("running", "cancel_requested") && progress.available) {
                     Text(if (state.stopping || progress.stream_state == "cancel_requested") "Stop requested; waiting for shutdown" else if (state.streamConnected) "Receiving reply" else "Observer detached; Check request to reconnect")
                     Button(onClick = vm::stopGeneration, enabled = progress.stream_state == "running" && !state.stopping,
-                        modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("stop-generation")) { Text("Stop") }
+                        modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("thread-stop-generation")) { Text("Stop") }
                 }
             }
             if (pending.phase in setOf(PendingPhase.Journaling, PendingPhase.Submitting, PendingPhase.Running, PendingPhase.Unknown)) {
@@ -550,7 +612,7 @@ private fun PendingPanel(state: ChatState, vm: ChatViewModel, maximumHeight: Dp,
                 })
             }
             if (state.events.items.none { it.request_id == pending.message.body.request_id && it.role == "user" }) SafeChatText(pending.message.body.content, links = false)
-            Text(
+            if (details || pending.phase !in setOf(PendingPhase.Journaling, PendingPhase.Submitting, PendingPhase.Running)) Text(
                 when (pending.phase) {
                     PendingPhase.Unknown -> "A lost connection or timed-out wait does not mean generation failed. Check the original request ID."
                     PendingPhase.Running, PendingPhase.Submitting -> "You can leave this screen. The server may continue working; another Send will not duplicate this request."
@@ -586,16 +648,57 @@ private fun PendingPanel(state: ChatState, vm: ChatViewModel, maximumHeight: Dp,
 
 @Composable
 private fun Composer(state: ChatState, vm: ChatViewModel, maximumHeight: Dp) {
+    // In a short landscape IME window, scroll inside a one-line editor rather
+    // than scrolling the entire icon row out of view with a multiline draft.
+    val shortWindow = maximumHeight < 120.dp
     var advanced by remember { mutableStateOf(false) }
+    var addMenu by remember { mutableStateOf(false) }
     val focus = LocalFocusManager.current
     val count = state.draft.codePointCount(0, state.draft.length)
     val reserved = state.pending != null
     val voiceState by vm.voice.state.collectAsStateWithLifecycle()
     val canSend = voiceState.phase !in setOf(VoicePhase.Permission, VoicePhase.Checking, VoicePhase.Recording, VoicePhase.Transcribing) && !reserved && state.draft.isNotBlank() && count <= 4000 && state.capabilities?.chat == true
-    Surface(color = MaterialTheme.colorScheme.surface, shadowElevation = 2.dp) {
-        Column(Modifier.fillMaxWidth().heightIn(max = maximumHeight).verticalScroll(rememberScrollState()).padding(horizontal = AdaSpacing.medium, vertical = AdaSpacing.small), verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
-            VoicePanel(vm)
-            if (advanced) {
+    val progress = state.stream?.takeIf { it.request_id == state.pending?.message?.body?.request_id }
+    val canStop = progress?.stream_state in setOf("running", "cancel_requested") && progress?.available == true
+    AdaGlassSurface(Modifier.padding(horizontal = AdaSpacing.small, vertical = AdaSpacing.tiny).testTag("chat-composer-surface")) {
+        Column(Modifier.fillMaxWidth().heightIn(max = maximumHeight).verticalScroll(rememberScrollState()).padding(AdaSpacing.tiny)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Box {
+                    AdaIconButton(AdaIcon.Attach, "Add or message options", { addMenu = true }, Modifier.testTag("composer-menu").semantics { stateDescription = if (addMenu) "Expanded" else "Collapsed" })
+                    DropdownMenu(addMenu, { addMenu = false }) {
+                        if (state.capabilities?.let { it.document_uploads && it.document_ingestion == "text_markdown_v1" } == true) DropdownMenuItem(
+                            text = { Text("Open document imports") }, leadingIcon = { AdaIconGlyph(AdaIcon.Attach) },
+                            onClick = { addMenu = false; focus.clearFocus(); vm.navigate(ChatDestination.Documents) }, modifier = Modifier.testTag("attach-document"))
+                        DropdownMenuItem(text = { Text("Message options") }, leadingIcon = { AdaIconGlyph(AdaIcon.Options) },
+                            onClick = { addMenu = false; focus.clearFocus(); advanced = true }, modifier = Modifier.testTag("message-options"))
+                    }
+                }
+                BasicTextField(
+                    state.draft, vm::updateDraft, minLines = 1, maxLines = if (shortWindow) 1 else 4,
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Default),
+                    modifier = Modifier.weight(1f).heightIn(min = AdaSpacing.touch).testTag("composer").semantics {
+                        contentDescription = "Message ADA"
+                        if (count > 4000) error("Shorten this draft to 4,000 Unicode characters.")
+                    },
+                    decorationBox = { field -> Box(Modifier.padding(vertical = if (shortWindow) AdaSpacing.small else 14.dp, horizontal = AdaSpacing.tiny)) {
+                        if (state.draft.isEmpty()) Text("Message ADA", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        field()
+                    } },
+                )
+                VoicePanel(vm)
+                if (canStop) AdaIconButton(AdaIcon.Stop, if (state.stopping || progress?.stream_state == "cancel_requested") "Stop requested" else "Stop reply",
+                    vm::stopGeneration, Modifier.testTag("stop-generation"), enabled = !state.stopping && progress?.stream_state == "running")
+                else AdaIconButton(AdaIcon.Send, "Send message", { focus.clearFocus(); vm.send() }, Modifier.testTag("send"), enabled = canSend)
+            }
+            if (count >= 3600) Text(if (count > 4000) "Shorten this draft to 4,000 Unicode characters. Emoji count once." else "$count / 4,000 characters",
+                modifier = Modifier.padding(horizontal = AdaSpacing.medium).testTag("composer-count"),
+                color = if (count > 4000) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall)
+        }
+    }
+    if (advanced) CompactChatDialog("Message options", "message-options-dialog", "message-options-done", { advanced = false }) {
                 if (state.capabilities?.memory_in_chat == true) Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(state.useMemory, vm::updateMemory, enabled = !reserved, modifier = Modifier.semantics { contentDescription = "Use saved memory in this message" })
                     Text("Use saved memory", style = MaterialTheme.typography.bodyMedium)
@@ -615,21 +718,7 @@ private fun Composer(state: ChatState, vm: ChatViewModel, maximumHeight: Dp) {
                     enabled = !reserved, singleLine = true, modifier = Modifier.fillMaxWidth().testTag("historical-instant"),
                 )
                 if (reserved) Text("The pending request keeps its original options.", style = MaterialTheme.typography.bodySmall)
-            }
-            OutlinedTextField(
-                state.draft, vm::updateDraft, label = { Text("Message ADA") },
-                placeholder = { Text("What’s on your mind?") }, minLines = 1, maxLines = 4,
-                isError = count > 4000,
-                supportingText = { Text(if (count > 4000) "Shorten this draft to 4,000 Unicode characters. Emoji count once." else "$count / 4,000 characters") },
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Default),
-                modifier = Modifier.fillMaxWidth().testTag("composer"),
-            )
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                TextButton(onClick = { advanced = !advanced }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("message-options")) { Text(if (advanced) "Hide options" else "Message options") }
-                Spacer(Modifier.weight(1f))
-                Button(onClick = { focus.clearFocus(); vm.send() }, enabled = canSend, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("send")) { Text("Send") }
-            }
-        }
+
     }
 }
 
@@ -716,7 +805,7 @@ private fun AccountSettingsScreen(state: ChatState, vm: ChatViewModel, openSetti
             }
         }
         OutlinedButton(onClick = openSettings, modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("appearance")) { Text("Appearance") }
-        Text("Choose Oxford Blue, Dark Red or Olive Green in light or dark mode. Text follows the system font size.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text("ADA Ambient, Oxford Blue, Dark Red or Olive Green. Light and dark modes keep your system text size.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         HorizontalDivider()
         SettingsProfiles(state, vm)
         HorizontalDivider()
@@ -841,10 +930,7 @@ private fun FailureNotice(failure: ApiFailure) {
 
 @Composable
 private fun ScreenHeading(title: String, explanation: String) {
-    Column(verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
-        Text(title, style = MaterialTheme.typography.headlineMedium, modifier = Modifier.semantics { heading() })
-        Text(explanation, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
+    AdaSectionHeading(title, explanation)
 }
 
 @Composable
@@ -877,7 +963,7 @@ private fun BackButton(back: () -> Unit) { TextButton(onClick = back, modifier =
 @Composable
 private fun BusyIndicator(label: String) {
     Row(Modifier.fillMaxWidth().padding(AdaSpacing.small), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(AdaSpacing.medium)) {
-        CircularProgressIndicator(Modifier.size(24.dp).semantics { contentDescription = label }, strokeWidth = 2.dp)
+        AdaPresence(AdaPresenceState.Unconfirmed, Modifier.size(AdaSpacing.touch), motion = false, describe = false)
         Text(label, style = MaterialTheme.typography.bodyMedium)
     }
 }
@@ -896,6 +982,9 @@ private fun NavigationGlyph(kind: Int) {
         } else if (kind == 1) {
             val path = Path().apply { moveTo(6.dp.toPx(), 3.dp.toPx()); lineTo(18.dp.toPx(), 3.dp.toPx()); lineTo(18.dp.toPx(), 21.dp.toPx()); lineTo(12.dp.toPx(), 17.dp.toPx()); lineTo(6.dp.toPx(), 21.dp.toPx()); close() }
             drawPath(path, color, style = stroke)
+        } else if (kind == 3) {
+            drawRoundRect(color, Offset(5.dp.toPx(), 2.dp.toPx()), Size(14.dp.toPx(), 20.dp.toPx()), CornerRadius(2.dp.toPx()), style = stroke)
+            repeat(3) { line -> drawLine(color, Offset(8.dp.toPx(), (8 + line * 4).dp.toPx()), Offset(16.dp.toPx(), (8 + line * 4).dp.toPx()), strokeWidth = stroke.width) }
         } else {
             drawCircle(color, 6.dp.toPx(), style = stroke)
             drawCircle(color, 2.dp.toPx(), style = stroke)

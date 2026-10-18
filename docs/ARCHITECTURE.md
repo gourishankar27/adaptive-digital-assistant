@@ -1,5 +1,20 @@
 # ADA architecture decisions
 
+## Android Ambient Intelligence presentation
+
+The 2026-10-18 redesign retains MainActivity, existing ChatDestination values,
+ChatViewModel/controllers, HTTP adapters, capability gates and encrypted stores.
+Theme/component layers own colors, scaled typography, bounded layouts, insets and
+state-derived visuals; they own no private network/persistence/business actions.
+Compact bottom navigation and expanded scrollable rail share the same four
+destinations. AdaPresence uses existing recording/playback/request/tool state,
+with explicit unconfirmed/offline/error semantics and no invented amplitude.
+Motion is lifecycle/viewport/system-animation gated. Fresh-install appearance is
+dark violet; earlier persisted palette and mode choices remain available unchanged.
+No backend, schema, snapshot, request or journal contract changes. Test-host
+captures contain synthetic data and do not disable production FLAG_SECURE. See
+[the audit/guide](ANDROID-UI-REDESIGN.md) and dated validation evidence.
+
 ## Phase25 opt-in questions and private inbox
 
 Migration0017 adds owner-global curiosity policy, owner/scope-bound question

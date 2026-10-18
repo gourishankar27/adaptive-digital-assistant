@@ -1,5 +1,36 @@
 # ADA Android chat, memory, tools, episodes and interaction learning (Phase 17)
 
+## ADA Ambient Intelligence presentation
+
+App19/0.25.1-ambient redesigns the existing Compose UI without changing routes,
+authentication, controllers, data/journal formats or server contracts. Fresh
+installs default to dark ADA Ambient; saved Oxford Blue/Dark Red/Olive Green and
+light/dark choices retain their original preference keys. All four palettes and
+light mode are selectable. Shared typography, surfaces, presence, chat treatment,
+IME anchoring and expanded navigation retain the working feature flows. See
+[audit/design/verification](../../docs/ANDROID-UI-REDESIGN.md). No new migration,
+permission, dependency, speech model or app installation is part of this work.
+
+Emulator-only validation uses a separate `dev.ada.validation.redesign` build,
+dedicated `ADA_TEST_DATABASE_URL` and an explicit synthetic provider fixture:
+
+```powershell
+./gradlew.bat '-PadaValidationApplicationId=dev.ada.validation.redesign' assembleDebug assembleDebugAndroidTest
+```
+
+From the repository root with the dedicated test database configured:
+
+```powershell
+./.venv/Scripts/python.exe scripts/verify_android_redesign.py --device emulator-5584
+```
+
+This exercises the real HTTP adapter. The helper validates the emulator
+and separate APK IDs before installing, then removes its APKs/reverse/schema.
+Public-only test-host screenshots stay under `.pytest_cache/ui-redesign/screens`;
+MainActivity's secure-window protection is never disabled. Use `--suite curiosity`,
+`--suite password` or `--suite foundation` for the selected regression flows.
+Restore normal APK outputs by rebuilding without the validation property.
+
 ## Phase22 password sign-in
 
 Version15/0.22.0-sessions uses server/username/password by default. Keystore v12
@@ -17,7 +48,7 @@ and known phone issues, see [HOW-TO-USE-ADA](../../docs/HOW-TO-USE-ADA.md).
 This Compose/Material 3 app verifies an issued ADA bearer credential with real
 `GET /v1/me` and `GET /v1/capabilities`, then provides owned conversation
 selection/creation, paginated history, complete chat replies, exact-request
-recovery and source cards. Three light/dark palettes and system-scaled typography
+recovery and source cards. Four light/dark palettes and system-scaled typography
 remain available. Phase 07 adds owned memory browsing, exact evidence selection,
 explicit Remember/correction previews and encrypted write recovery, plus new
 static personality profiles. Phase 16 adds incremental replies, durable stream

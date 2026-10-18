@@ -13,16 +13,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.SideEffect
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.material3.Scaffold
-import androidx.compose.ui.Modifier
-import androidx.compose.foundation.layout.Box
 import dev.ada.assistant.data.HttpAdaApi
 import dev.ada.assistant.data.AndroidSessionStore
 import dev.ada.assistant.ui.ChatViewModel
 import dev.ada.assistant.ui.ChatApp
 import dev.ada.assistant.ui.AdaTheme
+import dev.ada.assistant.ui.AdaAppFrame
 import dev.ada.assistant.ui.AppearancePreferences
 import dev.ada.assistant.ui.AppearanceSettingsDialog
 import androidx.activity.SystemBarStyle
@@ -58,14 +54,12 @@ class MainActivity : ComponentActivity() {
                 enableEdgeToEdge(statusBarStyle = barStyle, navigationBarStyle = barStyle)
             }
             AdaTheme(palette = appearance.palette, dark = appearance.dark) {
-                Scaffold { insets ->
-                    Box(Modifier.padding(insets).consumeWindowInsets(insets)) {
+                AdaAppFrame {
                         ChatApp(viewModel) {
                             focus.clearFocus()
                             viewModel.voice.observeForeground(false)
                             settingsOpen = true
                         }
-                    }
                 }
                 if (settingsOpen) AppearanceSettingsDialog(appearance, change = {
                     preferences.save(it)

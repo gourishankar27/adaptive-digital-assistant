@@ -80,10 +80,10 @@ fun DocumentScreens(controller: DocumentController) {
         verticalArrangement = Arrangement.spacedBy(AdaSpacing.medium)) {
         item {
             if (state.screen != DocumentScreen.Browse) TextButton(onClick = { focus.clearFocus(); controller.back() }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Back to documents") }
-            Text(when (state.screen) {
+            AdaSectionHeading(when (state.screen) {
                 DocumentScreen.Browse -> "Documents"; DocumentScreen.Edit -> "Import a document"; DocumentScreen.Preview -> "Review document upload"
                 DocumentScreen.Detail -> "Document version"; DocumentScreen.Versions -> "Immutable versions"
-            }, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
+            })
             Text("Imported text and Markdown are untrusted evidence. Uploading creates no explicit user assertion.", style = MaterialTheme.typography.bodyMedium)
         }
         item {

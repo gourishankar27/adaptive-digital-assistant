@@ -44,6 +44,7 @@ class VoicePermissionDialogTest {
         compose.runOnIdle { vm.openConversation(conversation.id) }
         compose.waitUntil(20_000) { vm.state.value.conversation?.id == conversation.id && !vm.state.value.events.loading }
         compose.onNodeWithTag("voice-toggle").performScrollTo().performClick()
+        compose.onNodeWithTag("voice-controls-dialog").assertIsDisplayed()
     }
     private fun clickPermission(vararg endings: String) {
         val automation = InstrumentationRegistry.getInstrumentation().uiAutomation
@@ -68,6 +69,7 @@ class VoicePermissionDialogTest {
         compose.waitUntil(10_000) { capture.callback != null }
         assertEquals(PackageManager.PERMISSION_GRANTED, ContextCompat.checkSelfPermission(compose.activity, Manifest.permission.RECORD_AUDIO))
         assertTrue(vm.voice.state.value.phase in setOf(VoicePhase.Checking, VoicePhase.Recording))
+        compose.onNodeWithTag("voice-controls-close").assertIsNotEnabled()
     }
     @Test fun verifiedDenialAndRepeatedDenialRemainActionable() {
         prepare()

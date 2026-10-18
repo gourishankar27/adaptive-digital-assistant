@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.core.content.edit
 
-data class AppearanceSettings(val palette: ThemePalette = ThemePalette.OxfordBlue, val dark: Boolean = false)
+data class AppearanceSettings(val palette: ThemePalette = ThemePalette.AmbientViolet, val dark: Boolean = true)
 
 /** Device-local, non-private appearance only. Never use this store for credentials or ADA data. */
 class AppearancePreferences(context: Context) {
@@ -42,7 +42,7 @@ class AppearancePreferences(context: Context) {
 
     fun load() = AppearanceSettings(
         palette = ThemePalette.fromPreference(preferences.getString("palette", null)),
-        dark = preferences.getBoolean("dark", false),
+        dark = preferences.getBoolean("dark", true),
     )
 
     fun save(settings: AppearanceSettings) {
@@ -90,7 +90,7 @@ class AppearancePreferences(context: Context) {
                                 Box(Modifier.size(24.dp).background(palette.seed, CircleShape).border(1.dp, MaterialTheme.colorScheme.outline, CircleShape))
                                 Column(Modifier.weight(1f)) {
                                     Text(palette.label, style = MaterialTheme.typography.bodyLarge)
-                                    if (palette == ThemePalette.OxfordBlue) Text("Default", style = MaterialTheme.typography.bodySmall)
+                                    if (palette == ThemePalette.AmbientViolet) Text("Ambient Intelligence · default", style = MaterialTheme.typography.bodySmall)
                                 }
                             }
                         }

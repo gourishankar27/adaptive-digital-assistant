@@ -217,6 +217,9 @@ def main():
                 app,
                 host="127.0.0.1",
                 port=args.port,
+                # Native dialog/source reviews outlast Uvicorn's default idle socket.
+                # Match the dedicated client fixture; production policy is unchanged.
+                timeout_keep_alive=90,
                 workers=1,
                 access_log=False,
                 log_level="error",

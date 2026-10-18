@@ -4,6 +4,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertIsOn
+import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -34,6 +35,11 @@ class FoundationSmokeTest {
         compose.activityRule.scenario.recreate()
     }
     @Test fun launchesLabelsInputsAndThemePreview() {
+        compose.runOnIdle {
+            org.junit.Assert.assertTrue(compose.activity.window.attributes.flags and android.view.WindowManager.LayoutParams.FLAG_SECURE != 0)
+            org.junit.Assert.assertFalse(androidx.core.view.WindowInsetsControllerCompat(compose.activity.window, compose.activity.window.decorView).isAppearanceLightStatusBars)
+            org.junit.Assert.assertFalse(androidx.core.view.WindowInsetsControllerCompat(compose.activity.window, compose.activity.window.decorView).isAppearanceLightNavigationBars)
+        }
         compose.onNodeWithText("Welcome back.").assertIsDisplayed()
         compose.onNodeWithText("Connect").assertIsNotEnabled()
         compose.onNodeWithText("ADA server URL").performScrollTo().performTextInput("http://external.example")
@@ -45,17 +51,22 @@ class FoundationSmokeTest {
         compose.waitUntil(10_000) {
             compose.onAllNodes(androidx.compose.ui.test.hasTestTag("top-settings")).fetchSemanticsNodes().isNotEmpty()
         }
-        compose.onNodeWithText("Settings").performClick()
-        compose.onNodeWithText("Oxford Blue").assertIsSelected()
+        compose.onNodeWithTag("top-settings").performClick()
+        compose.onNodeWithText("ADA Ambient").assertIsSelected()
         compose.onNodeWithText("Dark Red").performScrollTo().performClick().assertIsSelected()
         compose.onNodeWithText("Olive Green").performScrollTo().performClick().assertIsSelected()
-        compose.onNodeWithContentDescription("Dark mode").performScrollTo().performClick().assertIsOn()
+        compose.onNodeWithContentDescription("Dark mode").performScrollTo().assertIsOn()
+        compose.onNodeWithContentDescription("Dark mode").performScrollTo().performClick().assertIsOff()
+        compose.runOnIdle {
+            org.junit.Assert.assertTrue(androidx.core.view.WindowInsetsControllerCompat(compose.activity.window, compose.activity.window.decorView).isAppearanceLightStatusBars)
+            org.junit.Assert.assertTrue(androidx.core.view.WindowInsetsControllerCompat(compose.activity.window, compose.activity.window.decorView).isAppearanceLightNavigationBars)
+        }
         compose.activityRule.scenario.recreate()
         compose.onNodeWithText("Olive Green").performScrollTo().assertIsSelected()
-        compose.onNodeWithContentDescription("Dark mode").performScrollTo().assertIsOn()
+        compose.onNodeWithContentDescription("Dark mode").performScrollTo().assertIsOff()
         val saved = AppearancePreferences(InstrumentationRegistry.getInstrumentation().targetContext).load()
         org.junit.Assert.assertEquals(ThemePalette.OliveGreen, saved.palette)
-        org.junit.Assert.assertTrue(saved.dark)
+        org.junit.Assert.assertFalse(saved.dark)
         compose.onNodeWithText("Dark Red").performScrollTo().performClick().assertIsSelected()
         compose.onNodeWithText("Oxford Blue").performScrollTo().performClick().assertIsSelected()
         compose.onNodeWithContentDescription("Dark mode").performScrollTo().performClick()

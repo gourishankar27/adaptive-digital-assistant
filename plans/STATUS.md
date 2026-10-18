@@ -3248,3 +3248,214 @@ twelve post-full-collection cases; the earlier930/27 and47/1 runs retain their
 own provenance. Android/native public-model evidence predates this read-state-only
 edge fix, with no client, schema, prompt or inference-path changes. OwnedPG was
 restarted only for this disposable rerun, then re-inventoried/stopped again.
+
+## 2026-10-17 — private proxy launcher quoting fix
+
+HEAD844d560 plus this fix. Reproduced the reported Python SyntaxError using
+Windows PowerShell5.1 with `start-private-proxy.ps1 -CheckOnly`. Pass the existing
+Python dotenv reader through standard input instead of a quoted `-c` argument.
+No dotenv evaluation, configuration, dependency or proxy behavior change.
+CheckOnly now reports Valid configuration in Windows PowerShell5.1 and
+PowerShell7.6.6. Targeted schema/contract pytest3passed (existing TestClient
+deprecation warning); Ruff lint/format200files and whitespace passed. Existing
+Caddy formatting warning remains nonblocking. Full backend/nativePG/client suites
+not rerun for this launcher-only fix. No proxy started, deployment or DB operation.
+
+## 2026-10-18 — Android Ambient Intelligence UI redesign
+
+Scope: only [the requested UI plan](ADA-Android-UI-Redesign.md), HEAD844d560 plus
+the preserved uncommitted proxy fix and this work. Audited actual Compose/Material3,
+single Activity/navigation, state/controllers, HTTP/Keystore, voice, screens,
+accessibility/insets, SDK/dependencies/OpenAPI/tests before broad UI changes.
+Shared theme/primitives were built/tested before chat rollout, then feature views.
+See [audit/design/files/usage](../docs/ANDROID-UI-REDESIGN.md).
+
+Implemented app19/0.25.1-ambient:
+
+- Dark-first violet Ambient identity for fresh installs; all saved legacy palette
+  and mode keys/choices preserved. Four palettes/light mode, scaled native sans
+  typography, shared geometry/spacing, restrained atmospheric/vector depth and
+  selective glass. No new SDK, dependency, font, permission or bitmap asset.
+- AdaPresence derives listening/processing/speaking/task/error/offline/unconfirmed
+  state from current UI data. No invented amplitude, hidden activity or emotion.
+  Text/semantics accompany color; motion respects lifecycle, viewport and system
+  animator setting. Unknown delivery is never presented as confirmed inference.
+- New sign-in/home hierarchy, quiet unboxed assistant replies, tinted owner
+  messages, elevated keyboard-anchored composer and shared feature headings.
+  Context scrolls; action shortcuts remain pinned in normal-height chats and
+  scroll in very short windows. Same four destinations use compact navigation or
+  a scrollable expanded rail; forms/reading have bounded width.
+- Voice remains the existing permission/review/playback panel with state visuals.
+  Proposal/research/curiosity collect lifecycle-aware state. All existing owners,
+  capabilities, approvals, sources, retries, controller/data/audio implementations,
+  journal keys/versions, request snapshots and API contracts remain unchanged.
+  MainActivity keeps FLAG_SECURE and its existing audio/auth lifecycle handlers.
+
+Checks actually run (separate invocations, not combined full-suite claims):
+
+- Baseline Android254units/lint/debug/instrumentation builds passed. Initial new
+  palette check failed1of257units; fixed low-contrast violet roles. Theme stage
+ 258units/lint/debug passed; chat stage258units/lint/debug/instrumentation passed.
+  Final normal unit/lint/debug/androidTest/unsigned-release checks recorded below.
+- Backend contract baseline6passed/2PG-not-configured skips14.00s; nativePG18.6
+  rerun **8passed32.76s**, with only existing TestClient deprecation warning.
+  No server or schema changes; full backend/web suites not repeated.
+- API37 emulator, separate validation APK, real HTTP/PG/password/Keystore with
+  explicit FakeProvider: latest portrait2stages, rotated landscape1, expanded1,
+  MainActivity foundation1, curiosity recovery2 and password recovery2 all passed
+  (nine selected stages across six runs). Full connected suite was not run.
+  Actual durations/current artifact closeout are recorded below/WORKLOG.
+- Portrait covers rendered dark/light heading ink, all eight presence semantics,
+  ordinary UI style/conversation creation, multiline/emoji input, focus, IME
+  anchoring, touch Send, streamed reply and same-request source navigation.
+  Gesture navigation1080x2400/density420. Actual rotated landscape2400x1080,
+  three-button navigation and1.3font scale passed13.399s. Extremely short viewport
+  retains scrollable composer controls. Expanded2560x1800/density320/font1.6
+  passed9.894s after completed build, with rail navigation and focused typing.
+- Native MainActivity foundation passed10.291s with system animator disabled:
+  all palettes, saved mode/palette recreation, status/navigation icon flags and
+  FLAG_SECURE. Curiosity force-stop stages7.795s/4.595s; password renewal/force-stop/
+  revocation7.487s/3.568s. No duplicate user statement after curiosity restoration.
+- Earlier visual runs caught inherited black text through transparent containers;
+  fixed explicit root content colors and added rendered-ink assertion. Test setup
+  initially assumed a saved style; the disposable account required UI style
+  creation. IME animation synchronization fixed missed test taps. Missing public
+  image handling fixed a collector decoding error. Recovery exposed virtualized
+  shortcut access, fixed by pinning normal-height actions. Initial artificial
+  landscape size override left no app viewport under IME; actual rotation rerun
+  passed. Failed/earlier runs remain in WORKLOG, not relabelled as passes.
+- Public test-host images visually reviewed for dark/light, chat, typing and
+  expanded layout. They capture the app surface, not the separate IME window;
+  production secure-window policy was never disabled. No private account/content.
+  Ruff lint/format201files, whitespace, protected-file/credential/link audits below.
+
+Remaining verification: physical S24FE/Android16, manual TalkBack, physical IME/
+keyboard variants, foldable live-resize, graphics/battery/long-scroll performance,
+and inherited voice/focus/G-41 gates. Emulator checks do not close these. No native
+model/audio inference was needed for this presentation change. No normal app
+installation, application DB migration/write, deployment or later-phase work.
+
+UI closeout: final normal `testDebugUnitTest lintDebug assembleDebug
+assembleDebugAndroidTest assembleRelease` passed1m19s; XML258tests/0failures/
+0errors/0skips. Debug ID dev.ada.assistant.debug/app19/0.25.1-ambient and unsigned
+release artifact verified. Latest portrait stages10.570s/3.418s passed after the
+action-row change; earlier17.8s/7.191s remains its prior invocation.
+Against633pre-task files,29changed/new UI/docs/test files, no deletions;
+391protected files unchanged, including entire backend/contracts, client data/
+audio/controllers/ViewModels, migrations, locks/wrappers, later phase plans and
+the preexisting proxy fix. OpenAPI remains byte-identical126paths/168schemas.
+Ruff lint/format201files, pip check, whitespace,8UTF-8 docs/133local links and
+15PowerShell blocks passed. Changed files/ignored non-image validation artifacts
+scanned with zero configured credential/contact matches.
+
+Cleanup verified: separate APKs/reverse absent; owned emulator restored to
+1080x2400/density420/font1.0/gesture navigation/free rotation/unset animator scale,
+then stopped. TestPG had only public0relations and postgres/ada_phase2_test, no
+fixture schemas/restore databases; stopped owned55421 after workspace datadir/
+loopback-option checks.55421/18423 listeners absent. No normal app install, live
+database operation or service/proxy/Docker/Ollama change. Target limits above stay
+open; no later-phase implementation or deployment.
+
+
+## 2026-10-18 — Compact Android chat refinement
+
+Scope: the user's screenshot-driven follow-up to ADA-Android-UI-Redesign.md;
+HEAD844d560 plus the preserved proxy fix/first redesign and this refinement.
+Reviewed rules, current Compose/state/controllers, OpenAPI0017/126paths/168schemas
+and test baseline. No server contracts, data/audio/controllers/ViewModels,
+Keystore journals, prompt/source snapshots, dependencies or migrations changed.
+
+Implemented in the existing app19/0.25.1-ambient presentation:
+
+- Compact conversation Back/title/overflow header replaces the permanent feature
+  toolbar. Research, curiosity, tools, episodes, context/upgrades, refresh and
+  Settings stay capability-gated and available on demand.
+- One composer row contains paperclip/Add, editable text, microphone and Send;
+  an owned active stream changes Send to Stop. Add opens separate options or the
+  existing document imports. Imports still require explicit owned scope and text/
+  Markdown review; there is no message attachment contract or arbitrary file claim.
+- Options/context/voice use scrollable native dialogs. Memory/document/time guards,
+  frozen pending options and explicit ASR approval remain. Capture prevents
+  accidental dialog dismissal; closing a draft does not approve/send/discard it.
+- Provisional replies/recovery now scroll in the thread. Stop remains reachable
+  while reading earlier messages; check/retry keep exact keys. Near-limit/error
+  counts replace the permanent empty counter. Short windows use an internally
+  scrolling one-line editor; normal windows retain multiline entry. Native48dp
+  labelled vector controls, theme roles and saved palettes remain.
+- Smaller home hierarchy and concise scope/style metadata remove duplicate rows.
+  Backend/audio/provider behavior and secure-window policy remain intact.
+
+Checks actually run so far (final closeout below): initial units/lint/debug1m33s,
+core units/lint/debug/androidTest36s, separate validation builds passed. Contract
+baseline6passed/2PG-not-configured skips15.35s; nativePG18.6 rerun8passed24.73s.
+Existing Starlette/httpx deprecation remains. Portrait real HTTP/PG/password/
+Keystore21.866s/4.880s; final portrait22.324s/4.153s. Tests exercise collapsed and
+capability-gated menus,48dp row geometry, options roundtrip without sending,
+voice open/close, document import navigation, multiline/emoji/IME and original
+reply sources. Curiosity force-stop recovery9.956s/6.145s passed.
+
+Separate synthetic SQLite HTTP/native-window tests: streaming Stop/detach/exact
+cancelled retry16.503s and voice review/approval/lineage/independent playback12.170s,
+denial/background/encrypted recovery6.885s passed. Drivers are synthetic, not
+physical microphone/speaker validation. Idle consolidation was disabled only in
+that ignored fixture environment after a capacity race (below).
+
+Expanded2560x1800/density320/font1.6 rail+typing15.842s passed. Landscape iterations
+and final build/normal artifact/foundation results are recorded in closeout below;
+initial captures required further visual investigation, not a blanket UI pass.
+
+Corrections preserved: initial visual12.300s failed because the test expected
+unadvertised tools; gate expectations now match capabilities. Returning from
+imports failed28.225s, then32.861s with Unreachable metadata after a long dialog
+review. Test-only admin helper now keeps idle sockets90s like the dedicated client
+fixture; no production retry/network policy changed. Stream fixture25.413s saw
+Busy then Missing before reservation. A forced disposable reproduction proved
+idle consolidation can occupy its shared slot (503 then same-key404); no server
+change. Worker-disabled fixture rerun passed. Intermediate landscape capture
+clipping prompted the short-window editor and stricter touch-height assertions.
+An additional labelled landscape invocation actually captured portrait; it is
+not landscape evidence. Collector now checks landscape PNG dimensions. Earlier
+runs/logs are retained under ignored .pytest_cache/ui-compact.
+
+Ruff initially requested one formatting change in the collector; fixed, lint and
+format282files passed, pip check and whitespace passed. Full backend/web/connected
+suites, native model inference, physical S24FE, manual TalkBack/keyboard variants,
+foldable live resize, performance/battery and inherited voice/focus/G-41 gates
+remain separate. No normal app installation, application DB write/migration,
+private-service change, later phase or deployment.
+
+
+Compact UI closeout: final normal `testDebugUnitTest lintDebug assembleDebug
+assembleDebugAndroidTest assembleRelease` passed53s;258units/0failures/0errors/
+0skips. Android lint0errors/23existing warnings (dependency/localization notices);
+no framework upgrade. Normal debug metadata dev.ada.assistant.debug/app19/
+0.25.1-ambient and unsigned release verified. Password renewal/force-stop/revocation
+stages8.921s/4.018s and native secure-window/palettes/system-bar foundation15.570s
+passed. No full connected suite claim; other updated feature tests were compiled.
+
+Final real landscape2400x1080/font1.3/three-button run24.455s passed with full48dp
+focused control geometry, touch Send and source checks. OS fixed-to-user rotation
+was needed to keep emulator orientation consistent; final PNG dimensions checked.
+Earlier24.415s was actually portrait,25.512s was landscape; a subsequent25.514s
+instrumentation pass was rejected by collector for portrait dimensions. They are
+not substituted for the final configured result. Compose layer screenshots looked
+cropped in the rotated window even when semantic controls were visible. Added
+public-test-host-only UiAutomation keyboard/window capture: actual full-system
+image confirms the entire compact one-line composer above the large OS keyboard.
+Normal portrait remains multiline. MainActivity FLAG_SECURE was never disabled.
+The new system-window capture is separate from earlier app-surface-only evidence.
+
+Final protected-file audit against638pre-refinement files:21changed/new, no
+deletions,391protected unchanged (backend/OpenAPI/client data/audio/controllers/
+ViewModels/journals/migrations/locks/later phases/preexisting proxy fix). OpenAPI
+byte-identical126paths/168schemas. FourUTF-8 docs/36local links; configured-secret/
+contact scan zero matches. Final Ruff/pip/whitespace and cleanup recorded below.
+
+
+Final cleanup/checks: Ruff lint/format282files, pip check, whitespace and protected/
+credential/link audit passed after closeout edits. No fixture schemas/public
+relations remained on owned PG55421; stopped it after workspace/loopback checks.
+Separate validation packages/reverses absent. Emulator restored1080x2400/density420/
+font1.0/gesture navigation/free rotation/default rotation policy/unset animator
+scale, then stopped. Test ports55421/18423/18424/18425 absent. Preexisting normal
+emulator apps were left untouched. Private services and application DB unchanged.

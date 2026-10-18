@@ -26,7 +26,7 @@ class CuriosityUiHttpTest {
         ConnectionCredential.parse(origin(), login.access_token, true)!!
     }
     @Test fun curiosityPrepareBeforeProcessStop() {
-        assumeTrue(compose.activity.packageName == "dev.ada.validation.phase25.debug")
+        assumeTrue(compose.activity.packageName in setOf("dev.ada.validation.phase25.debug", "dev.ada.validation.redesign.debug"))
         val api = HttpAdaApi(); val conn = connection(api)
         val conversation = runBlocking {
             val p = success(api.createPersonality(conn, PersonalityInputDto(name = "Curiosity validation")))
@@ -39,7 +39,8 @@ class CuriosityUiHttpTest {
         compose.waitUntil(30000) { vm.state.value.account != null && vm.curiosity.state.value.policy != null }
         compose.runOnIdle { vm.openConversation(conversation.id) }
         compose.waitUntil(10000) { vm.state.value.conversation?.id == conversation.id }
-        compose.onNodeWithTag("open-curiosity").performClick()
+        compose.onNodeWithTag("chat-menu").performClick()
+        compose.onNodeWithTag("open-curiosity").performScrollTo().performClick()
         compose.onNodeWithTag("curiosity-enabled").performScrollTo().performClick()
         compose.onNodeWithTag("curiosity-save").performScrollTo().performClick()
         compose.waitUntil(15000) { vm.curiosity.state.value.policy?.settings?.enabled == true && !vm.curiosity.state.value.busy }
@@ -76,7 +77,7 @@ class CuriosityUiHttpTest {
         }
     }
     @Test fun curiosityRestoreAfterProcessStop() {
-        assumeTrue(compose.activity.packageName == "dev.ada.validation.phase25.debug")
+        assumeTrue(compose.activity.packageName in setOf("dev.ada.validation.phase25.debug", "dev.ada.validation.redesign.debug"))
         val vm = ViewModelProvider(compose.activity)[ChatViewModel::class.java]
         compose.waitUntil(30000) { vm.state.value.account != null && vm.curiosity.state.value.pending.isEmpty() && vm.curiosity.state.value.receipts.values.any { it.action == "action" && it.state == "completed" } }
         val receipt = vm.curiosity.state.value.receipts.values.single { it.action == "action" }
@@ -91,7 +92,8 @@ class CuriosityUiHttpTest {
         }
         compose.runOnIdle { vm.openConversation(q.opened_conversation_id!!) }
         compose.waitUntil(10000) { vm.state.value.conversation?.id == q.opened_conversation_id }
-        compose.onNodeWithTag("open-curiosity").performClick()
+        compose.onNodeWithTag("chat-menu").performClick()
+        compose.onNodeWithTag("open-curiosity").performScrollTo().performClick()
         compose.waitUntil(10000) { vm.curiosity.state.value.questions.any { it.id == q.id } }
         compose.onNodeWithTag("curiosity-off").performScrollTo().performClick()
         compose.waitUntil(10000) { vm.curiosity.state.value.policy?.settings?.enabled == false }

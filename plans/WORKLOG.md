@@ -2996,3 +2996,204 @@ postgres/ada_phase2_test/no restore databases. Verified owned datadir/options an
 stopped nativePG55421;55421/18423 listeners absent. Final protected-file/contract/
 configured-secret/UTF-8/link audit and Ruff200files/whitespace passed again. No
 later phase, normal app install, live data operation or deployment.
+
+### 2026-10-17 — private proxy launcher — HEAD844d560 + working tree
+
+Scope: fix only the reported PowerShell/Python quoting failure. Read root rules,
+README/architecture, current schema/test state and launcher/proxy configuration.
+Windows PowerShell5.1 `-CheckOnly` reproduced the unterminated Python string before
+the fix. Changed the existing reader invocation to stdin (`python -`) so embedded
+quotes survive legacy argument passing; dotenv remains parsed without evaluation.
+Both Windows PowerShell5.1 and PowerShell7.6.6 CheckOnly passed with actual pinned
+Caddy/config/built-admin path. Nonblocking Caddy formatting warning unchanged.
+Pytest `tests/test_schema_contract.py`:3passed0.98s, existing TestClient warning;
+Ruff lint/format200files and Git whitespace passed. No persistent new tests needed
+for the small invocation fix; actual Windows reproducer validated directly.
+Full pytest/nativePG/Android/web suites skipped: no backend/schema/client change.
+No proxy launch, deployment, credential/config edit or database operation.
+
+### 2026-10-18 — Android UI redesign — HEAD844d560 + working tree
+
+Scope: only plans/ADA-Android-UI-Redesign.md. Read root/Android/plans rules,
+README/architecture/current state/standards/workflow/status, requested full plan,
+actual source/SDK/dependencies/navigation/voice/insets/OpenAPI/test state first.
+633-file snapshot includes the prior uncommitted proxy fix and requested plan;
+preserved those changes. Audit/design/screen plan/file map communicated before
+broad rollout and recorded in docs/ANDROID-UI-REDESIGN.md. No subagents/deployment.
+
+Changed behavior/files: Theme/Appearance, AmbientComponents, MainActivity frame,
+ChatApp/VoicePanel and feature Screen headings/lifecycle collection. App19/
+0.25.1-ambient, default dark violet for fresh installs, saved legacy palette/mode
+keys retained. Shared typography/shape/spacing/glass/background, real state-derived
+presence, quiet chat, keyboard anchoring and compact/expanded navigation. No
+placeholder routes, fake production data, autonomous activity or inferred audio
+amplitude. Existing controllers/ViewModels, HTTP/data/audio, auth, exact journals,
+sources/approvals, APIs, migrations and dependency pins unchanged. Added focused
+unit/rendered/native-HTTP tests and guarded separate-package verification runner;
+existing runner's optional artifact callback leaves default behavior unchanged.
+
+Data/API/prompt changes: none. No migration, credential/settings file edit, model
+download/inference or application database operation. Phase26+ remains planned.
+
+Checks actually run and results:
+
+- Baseline Android254units/lint/debug/androidTest build passed14s; backend client/
+  schema contracts6passed/2PG-not-set skips14.00s. Final nativePG contract rerun
+ 8passed32.76s; existing Starlette/httpx TestClient deprecation remains.
+- New palette test initially1failed/256passed (257total), Ambient light contrast
+ 2.960885; corrected readable light/dark role pairings. Theme stage258units/
+  lint/debug passed1m22s. Chat rollout258units/lint/debug/androidTest passed48s.
+  Final all-build run258units/lint/debug/androidTest/unsigned release passed1m31s
+  before last action-row placement; fresh closeout build below, not a new count
+  attributed to this earlier invocation.
+- First representative HTTP test timed out22.821s because new password account
+  had no style. Diagnostic retry23.191s showed profile=false; collector also tried
+  decoding a nonexistent image, fixed explicit existence/strict base64 handling.
+  Added actual UI style creation; next24.785s showed profile=true but creation tap
+  missed during IME animation. Accessibility creation run14.821s/4.671s passed.
+  Wait for actual IME target/current insets, then restore touch creation. Fresh
+  keyboard/creation stages13.223s/3.088s passed; later portrait17.8s/7.191s passed
+  with multiline emoji input. Latest source portrait durations below.
+- Visual QA caught black default ink through transparent Scaffold containers;
+  fixed both explicit content colors and added a rendered TextLayoutResult contrast
+  assertion. This was a real composition defect not detected by palette arithmetic.
+  Root public images reviewed without weakening MainActivity FLAG_SECURE.
+- First curiosity regression prepare7.669s passed, restored UI failed to locate
+  open-curiosity after header virtualization. Kept capability actions pinned for
+  normal heights, scrollable for short windows. Fresh actual force-stop stages
+ 7.795s/4.595s passed; original receipt/one user event preserved. Password renewal/
+  force-stop restore/revoke7.487s/3.568s passed. Tests use native HTTP/PG/Keystore,
+  an explicit FakeProvider and only a separate dev.ada.validation.redesign APK.
+- MainActivity theme/control regression10.291s passed with animator scale0:
+  all four palettes, stored mode/palette after recreate, status/navigation icon
+  light/dark flags and FLAG_SECURE. System animator restored to prior unset value.
+- Artificial landscape size override2400x1080/font1.3/three-button navigation left
+  no app viewport under IME, Send not displayed (11.101s failed). Reset artificial
+  size and used actual OS rotation;2400x1080/three-button/font1.3 flow passed
+ 13.399s, including Send after compact composer scrolling. App-surface captures
+  exclude the system IME window. Expanded2560x1800/density320/font1.6 passed11.632s;
+  first start overlapped build completion, so repeated after confirmed completed
+  build:9.894s passed with focused-input/settled-IME assertions.
+- Final selected instrumented coverage totals nine stages across six invocations,
+  not a full connected suite. Earlier repeated visual passes remain separate
+  provenance. No actual recognition/playback/native-model quality claim is made.
+  Ruff lint/format201files and Git whitespace passed; final audits below.
+
+Windows/device/database evidence: existing JDK21.0.12/SDK37 AVD5584, compile/target36
+and min26 unchanged. Owned nativePG18.6 loopback55421/dedicated ada_phase2_test,
+ephemeral UUID fixture schemas only. No physical device was connected. Public-only
+test-host images retained under ignored .pytest_cache/ui-redesign/screens. Normal
+app never installed/reset, release remains unsigned. Proxy fix source preserved.
+
+Skipped/remaining: full backend and browser suites (no affected server/web code),
+full connected Android suite, physical S24FE/Android16, TalkBack, physical IME/
+keyboard/foldable live-resize, graphics/battery/long-scroll performance, inherited
+voice/focus/G-41 reliability. These are separate target gates. Final artifact,
+protected-file/secret/link checks and cleanup follow. Next work needs selection.
+
+UI closeout: fresh normal all-unit/lint/debug/androidTest/unsigned-release build
+passed1m19s. XML258tests/0failures/0errors/0skips; normal debug application ID and
+version19/0.25.1-ambient verified, unsigned release exists. Latest portrait
+10.570s/3.418s passed after action placement; total nine final selected stages
+remain across separate runs. Screens visually reviewed for final portrait/light,
+chat/source/typing and expanded1.6font settings. Captures are app surface only.
+
+Final633-file snapshot comparison:29changed/new, no deletions;391protected files
+unchanged (all backend/contracts, client data/audio/controllers/ViewModels,
+migrations, locks/wrappers, later phase plans and the existing proxy fix).
+OpenAPI byte-identical126paths/168schemas. Ruff lint/format201files, pip check,
+normal whitespace,8UTF-8 docs/133local links and15PowerShell blocks passed.
+Configured credential/contact scan of changed files and ignored non-image
+validation artifacts:zero matches. No dependency or `.env` change.
+
+Owned emulator package/reverse cleanup verified before restoring original
+1080x2400/density420/font1.0/gesture/free rotation/unset animator settings and
+stopping5584. Owned nativePG inventory:public0relations, no fixture schemas,
+only postgres/ada_phase2_test/no restore DBs. Resolved workspace data/options
+127.0.0.1:55421 verified, then stopped;55421/18423 listeners absent. Application
+DB, normal Android package, private API/proxy, Docker and Ollama untouched. No
+deployment or later phase. Physical/accessibility/performance/voice/G-41 limits
+remain as recorded; source/local implementation complete.
+
+
+### 2026-10-18 — compact Android chat — HEAD844d560 plus working tree
+
+Scope: user's supplied UI issues and compact reference hierarchy; follow-up to
+ADA-Android-UI-Redesign, preserving the existing proxy fix/first redesign.
+Changed behavior/files: ChatApp compact home/header/menus/composer, in-thread
+pending with persistent Stop, options/context dialogs; VoicePanel modal review;
+ChatIcons vector48dp actions; relevant instrumentation and public fixture
+collector/idle timeout; redesign guide. Current app19/0.25.1-ambient unchanged.
+Data/API/prompt changes: none. Source trust, exact request/voice lineage, auth,
+capabilities, journal formats and released migrations remain unchanged. File
+shortcut opens separate scoped text/Markdown import, not chat attachments.
+
+Checks actually run: initial Gradle units/lint/debug1m33s; core units/lint/debug/
+androidTest36s; validation APK builds passed. Baseline contract/schema pytest6pass/
+2PG skips15.35s; PG18.6 rerun8pass24.73s (existing TestClient deprecation).
+Portrait21.866s+4.880s, then22.324s+4.153s real HTTP/PG/Keystore tests passed:
+collapse/capabilities, modal options roundtrip/no pending or events, voice modal,
+imports and same conversation,48dp row/thread-space, focus/IME/multiline/emoji,
+Send and same-request sources. Curiosity actual force-stop9.956s+6.145s passed.
+Streaming16.503s, voice review/lineage/playback12.170s and denial/background/draft
+recovery6.885s passed with actual HTTP/SQLite and synthetic audio drivers.
+Expanded2560x1800/density320/font1.6 rail and typing15.842s passed. Additional
+landscape/window and final build/artifact results follow in closeout.
+
+Failures/corrections: unsupported-menu expectation12.300s corrected to actual
+capabilities. Import return28.225s then32.861s exposed Unreachable after idle;
+kept test-only helper sockets90s, with production networking unchanged. SQLite
+stream25.413s failed Busy->Missing; idle consolidation polls acquire the shared
+single slot even without queued jobs. Forced disposable overlap produced503
+capacity_busy then404 unreserved key (2.99s); ordinary fresh stream also passed
+5.58s. Worker disabled via ignored Stream/Voice child env, then all three tests
+passed. Episode fixture behavior unchanged. Fixed temporary UTF-8 rewrite
+artifacts before final builds; added explicit UTF-8 writes. First landscape
+screenshot clipping prompted a short-window internally scrolling editor and
+stronger control geometry checks. One later labelled-landscape run was actually
+portrait; do not count it as landscape. Collector now checks dimensions.
+
+Ruff initial collector-format failure corrected; lint/format282files, pip check,
+whitespace passed. Windows JDK21.0.12.101/Gradle8.13, API37 owned emulator, separate
+dev.ada.validation.redesign.debug only. Synthetic screenshot host never disables
+MainActivity FLAG_SECURE. User-supplied private screenshots were not copied into
+fixtures/logs/docs. Pre-task hashes protect backend/contracts/ownership/audio/
+controllers/journals/migrations/locks and unrelated proxy edits.
+
+Skipped/remaining: full backend/web/connected suites, physical S24FE, manual
+TalkBack/IME variants, foldable live resize, graphics/battery/long-scroll and
+inherited voice/focus/G-41 gates. No native model inference required. No live
+application database write/migration, normal app install, deployment or later
+phase. Current verification and cleanup closeout follow below.
+
+
+Compact closeout: normal Gradle all258units (0failures/errors/skips), lint/debug/
+androidTest/unsigned-release passed53s; lint0errors/23existing warnings. Normal
+APK metadata dev.ada.assistant.debug/19/0.25.1-ambient verified. Password stages
+8.921s/4.018s and MainActivity foundation15.570s passed. Final real rotated
+landscape24.455s passed full48dp focused controls, Send and sources; dimensions
+2400x1080, font1.3, three-button. One earlier24.415s labelled landscape captured
+portrait;25.512s was real landscape;25.514s stage passed but collector rejected
+portrait dimensions. Final emulator fixed-to-user rotation made orientation
+reproducible. Existing Compose rotated layer capture misleadingly cropped the
+composer; new public-only UiAutomation whole-window image confirms full composer
+above actual OS keyboard. No MainActivity screenshot flag change. Earlier records
+remain app-surface-only. Portrait normal multiline22.324s/4.153s passed.
+
+Audit:638baseline/21changed-new/no deletions,391protected unchanged; OpenAPI still
+126paths/168schemas byte-identical. FourUTF-8 docs/36local links, zero configured
+credential/contact matches in changed/ignored non-image artifacts. Other updated
+feature suites compiled but not separately run. Full-suite/physical/performance
+limits above remain open. Normal emulator package observed preexisting with last
+update13:26:28 (before this refinement), left untouched; separate validation
+packages removed by helpers. Final Ruff/pip/whitespace and owned resource cleanup
+follow below.
+
+
+Final cleanup/checks: Ruff lint/format282files, pip check, whitespace and protected/
+credential/link audit passed after closeout edits. No fixture schemas/public
+relations remained on owned PG55421; stopped it after workspace/loopback checks.
+Separate validation packages/reverses absent. Emulator restored1080x2400/density420/
+font1.0/gesture navigation/free rotation/default rotation policy/unset animator
+scale, then stopped. Test ports55421/18423/18424/18425 absent. Preexisting normal
+emulator apps were left untouched. Private services and application DB unchanged.

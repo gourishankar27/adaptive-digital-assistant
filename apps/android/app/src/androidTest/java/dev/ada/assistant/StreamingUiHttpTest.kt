@@ -42,6 +42,7 @@ class StreamingUiHttpTest {
             throw AssertionError("Synthetic streaming probe timed out: pending=${state.pending?.phase}, stream=${state.stream?.stream_state}, provisionalChars=${state.stream?.provisional?.length ?: 0}, fault=${state.fault?.javaClass?.simpleName}, observedFailures=$failures", error)
         } finally { observer.cancel() }
         val id = vm.state.value.pending!!.message.body.request_id
+        compose.onNodeWithTag("chat-history").performScrollToNode(hasText("Provisional reply"))
         compose.onNodeWithText("Provisional reply").performScrollTo().assertIsDisplayed()
         assertTrue(vm.state.value.sources.isEmpty())
         compose.runOnIdle { vm.navigate(ChatDestination.Settings) }
@@ -49,7 +50,9 @@ class StreamingUiHttpTest {
         assertEquals("running", runBlocking { success(api.streamStatus(c, id)) }.stream_state)
         compose.runOnIdle { vm.navigate(ChatDestination.Chat) }
         compose.waitUntil(20_000) { vm.state.value.streamConnected }
-        compose.onNodeWithTag("stop-generation").performScrollTo().performClick()
+        // Reading earlier history must not strand cancellation below a growing reply.
+        compose.onNodeWithTag("chat-history").performScrollToIndex(0)
+        compose.onNodeWithTag("stop-generation").assertIsDisplayed().performClick()
         compose.waitUntil(20_000) { vm.state.value.pending?.response?.error_code == "request_cancelled" }
         val terminal = runBlocking { success(api.streamStatus(c, id)) }
         assertEquals("cancelled", terminal.stream_state); assertEquals(1, terminal.attempt)
@@ -57,6 +60,7 @@ class StreamingUiHttpTest {
         assertEquals(1, runBlocking { success(api.events(c, conversation.id)) }.count { it.request_id == id })
         val receipt = runBlocking { success(api.cancelGeneration(c, id, 1)) }
         assertEquals(receipt, runBlocking { success(api.cancelGeneration(c, id, 1)) })
+        compose.onNodeWithTag("chat-history").performScrollToNode(hasText("Incomplete reply"))
         compose.onNodeWithText("Incomplete reply").performScrollTo().assertIsDisplayed()
         compose.runOnIdle { vm.retry() }
         compose.waitUntil(20_000) { vm.state.value.stream?.attempt == 2 }

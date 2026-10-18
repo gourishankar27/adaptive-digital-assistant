@@ -9,13 +9,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import dev.ada.assistant.data.*
 import java.util.UUID
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable fun CuriosityScreen(controller: CuriosityController, conversation: ConversationDto?, profiles: List<PersonalityDto>, continueConversation: (UUID) -> Unit) {
-    val s by controller.state.collectAsState()
+    val s by controller.state.collectAsStateWithLifecycle()
     var topic by remember { mutableStateOf("interests") }
     var selected by remember { mutableStateOf<SourceVersionDto?>(null) }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(AdaSpacing.medium), verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
-        Text("Questions & curiosity", style = MaterialTheme.typography.titleLarge)
+        AdaSectionHeading("Questions & curiosity")
         Text("Optional conversation starters. Answering does not save a fact or build a hidden profile. Timed delivery and notifications are unavailable.")
         s.notice?.let { Text(it, Modifier.testTag("curiosity-notice")) }
         if (s.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -62,7 +63,7 @@ import java.util.UUID
 }
 
 @Composable private fun CuriosityQuestionCard(controller: CuriosityController, q: CuriosityQuestionDto, profiles: List<PersonalityDto>, continueConversation: ((UUID) -> Unit)? = null) {
-    val state by controller.state.collectAsState()
+    val state by controller.state.collectAsStateWithLifecycle()
     val answerPending = state.pending.any { it.kind == "answer" && it.questionId == q.id }
     val answerCompleted = q.answer_request_id != null || state.receipts.values.any { it.action == "answer" && it.question_id == q.id && it.state == "completed" }
     if (q.text == null) {
@@ -103,6 +104,6 @@ import java.util.UUID
 }
 
 @Composable fun CuriosityChatCard(controller: CuriosityController, request: UUID? = null, conversation: UUID? = null) {
-    val s by controller.state.collectAsState()
+    val s by controller.state.collectAsStateWithLifecycle()
     s.questions.filter { (request != null && it.request_id == request) || (conversation != null && it.opened_conversation_id == conversation) }.forEach { CuriosityQuestionCard(controller, it, emptyList()) }
 }

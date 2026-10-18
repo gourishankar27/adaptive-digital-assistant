@@ -38,9 +38,11 @@ class VoiceUiHttpTest {
         InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand("pm grant ${compose.activity.packageName} android.permission.RECORD_AUDIO").close()
         compose.runOnIdle { vm.updateDraft("Independent typed draft") }
         compose.onNodeWithTag("voice-toggle").performScrollTo().performClick()
+        compose.onNodeWithTag("voice-controls-dialog").assertIsDisplayed()
         compose.onNodeWithTag("voice-record").performScrollTo().performClick()
         compose.waitUntil(5000) { input.callback != null }
         compose.runOnIdle { input.callback!!.ready() }
+        compose.onNodeWithTag("voice-controls-close").assertIsNotEnabled()
         compose.onNodeWithTag("send").assertIsNotEnabled()
         compose.onNodeWithTag("voice-stop-recording").performScrollTo().performClick()
         assertEquals(1, input.stops)
@@ -56,6 +58,14 @@ class VoiceUiHttpTest {
         compose.onNodeWithTag("voice-approve").assertIsOn()
         compose.waitUntil(5000) { vm.voice.approvedDraft() != null }
         val original = vm.voice.state.value.draft!!.transcript
+        compose.onNodeWithTag("voice-controls-close").assertIsDisplayed().performClick()
+        compose.onNodeWithTag("voice-controls-dialog").assertDoesNotExist()
+        assertNotNull(vm.voice.approvedDraft())
+        assertEquals("Independent typed draft", vm.state.value.draft)
+        assertTrue(runBlocking { (api.events(c, vm.state.value.conversation!!.id) as ApiResult.Success).value }.isEmpty())
+        compose.onNodeWithTag("voice-toggle").performScrollTo().performClick()
+        compose.onNodeWithTag("voice-review").performScrollTo().assertTextContains("Reviewed synthetic kettle 🫖 wording")
+        compose.onNodeWithTag("voice-approve").assertIsOn()
         compose.onNodeWithTag("voice-send").performScrollTo().assertIsEnabled().performClick()
         try {
             compose.waitUntil(20_000) { vm.state.value.submittedMessages.isNotEmpty() && vm.state.value.pending == null }
@@ -76,6 +86,9 @@ class VoiceUiHttpTest {
         compose.runOnIdle { vm.voice.play(id) }
         compose.waitUntil(5000) { vm.voice.state.value.playing }
         assertNotNull(output.text); assertFalse(output.text!!.contains(original.original_text))
+        if (compose.onAllNodesWithTag("voice-controls-dialog").fetchSemanticsNodes().isEmpty()) {
+            compose.onNodeWithTag("voice-toggle").performScrollTo().performClick()
+        }
         compose.onNodeWithTag("voice-stop-playback").performScrollTo().performClick()
         assertEquals("running", runBlocking { (api.streamStatus(c, running) as ApiResult.Success).value }.stream_state)
         compose.runOnIdle { vm.stopGeneration() }

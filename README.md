@@ -1,5 +1,12 @@
 # ADA
 
+The Android presentation now follows **ADA Ambient Intelligence**: a dark-first
+violet theme, state-driven presence, quieter chat and adaptive navigation. Existing
+palette choices, authenticated APIs and encrypted recovery remain intact. See the
+[redesign audit and guide](docs/ANDROID-UI-REDESIGN.md) and dated STATUS for actual
+checks and remaining device verification. This source has not been installed on
+the normal phone app or deployed.
+
 Phase25 adds **opt-in conversational curiosity**: topic/depth/cadence controls,
 optional questions after replies, a private later inbox and explicit conversation
 opening/answers. No scheduler, notification or automatic factual memory is added.

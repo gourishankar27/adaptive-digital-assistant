@@ -16,7 +16,8 @@ fun AgentScreen(controller: AgentController, conversation: ConversationDto?, acc
     val s by controller.state.collectAsStateWithLifecycle()
     var approval by remember { mutableStateOf<AgentStepDto?>(null) }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(AdaSpacing.medium), verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
-        Text("Read-only tools", style = MaterialTheme.typography.headlineSmall)
+        AdaSectionHeading("Read-only tools")
+        if (s.run?.status == "running") Row { AdaPresence(AdaPresenceState.Acting, Modifier.size(AdaLayout.presence)); Text(AdaPresenceState.Acting.label) }
         Text("Calculator, memory lookup and exact source lookup. Each tool request needs your approval. Results are evidence; they do not save memory.")
         if (!s.enabled) Text("This server does not support the selected tool protocol.")
         s.notice?.let { Text(it) }

@@ -1,5 +1,13 @@
 # Current ADA baseline
 
+**Android UI redesign, 2026-10-18 America/Phoenix:** app19/0.25.1-ambient adds
+the shared dark-first Ambient design, state-driven orb, quieter messages,
+keyboard-anchored composer and adaptive navigation. Saved legacy palettes/modes,
+feature destinations, API/data/controller/journal behavior remain. No new schema
+or dependency. Actual tests and device limits are recorded in STATUS/WORKLOG and
+[the redesign guide](../docs/ANDROID-UI-REDESIGN.md). No normal installation or
+deployment was performed.
+
 **Phase25 source, 2026-10-17 America/Phoenix:** opt-in owner topic/depth/cadence
 controls, optional active-chat questions, private later inbox, exact source pins,
 explicit conversation opening/ordinary answers and Android journalv14 are

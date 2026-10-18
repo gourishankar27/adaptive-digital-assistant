@@ -28,7 +28,8 @@ class EpisodeUiHttpTest {
         vm = ViewModelProvider(compose.activity)[ChatViewModel::class.java]; compose.runOnIdle { vm.connect(conn.server.toString(), token) }
         compose.waitUntil(20_000) { vm.state.value.account != null }
         compose.runOnIdle { vm.openConversation(conversation.id) }; compose.waitUntil(20_000) { vm.state.value.conversation?.id == conversation.id }
-        compose.onNodeWithTag("open-episodes").performClick()
+        compose.onNodeWithTag("chat-menu").performClick()
+        compose.onNodeWithTag("open-episodes").performScrollTo().performClick()
         compose.waitUntil(20_000) { vm.episodes.state.value.events.size == 2 && !vm.episodes.state.value.busy }
         compose.onNodeWithTag("episode-list").performScrollToNode(hasTestTag("episode-event-user"))
         compose.onNodeWithTag("episode-event-user").performClick()

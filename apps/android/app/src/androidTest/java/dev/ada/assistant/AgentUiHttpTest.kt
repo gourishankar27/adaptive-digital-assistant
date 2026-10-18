@@ -26,7 +26,8 @@ class AgentUiHttpTest {
         vm = ViewModelProvider(compose.activity)[ChatViewModel::class.java]; compose.runOnIdle { vm.connect(conn.server.toString(), token) }
         compose.waitUntil(20_000) { vm.state.value.account != null && !vm.agents.state.value.busy }
         compose.runOnIdle { vm.openConversation(conversation.id) }; compose.waitUntil(20_000) { vm.state.value.conversation?.id == conversation.id }
-        compose.onNodeWithTag("open-tools").performClick(); compose.onNodeWithTag("agent-task").performTextInput("Calculate 3+4")
+        compose.onNodeWithTag("chat-menu").performClick()
+        compose.onNodeWithTag("open-tools").performScrollTo().performClick(); compose.onNodeWithTag("agent-task").performTextInput("Calculate 3+4")
         closeSoftKeyboard(); compose.onNodeWithTag("agent-start").performScrollTo().performClick()
         compose.waitUntil(20_000) { vm.agents.state.value.run?.status == "pending_approval" && !vm.agents.state.value.busy }
         assertNull(vm.agents.state.value.run!!.steps.single().receipt); compose.onNodeWithTag("agent-preview").performScrollTo().performClick()

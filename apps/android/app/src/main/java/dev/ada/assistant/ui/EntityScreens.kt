@@ -26,7 +26,7 @@ fun EntityScreens(controller: EntityController, back: () -> Unit) {
     LazyColumn(Modifier.fillMaxSize().testTag("entities-list"), contentPadding = PaddingValues(AdaSpacing.medium), verticalArrangement = Arrangement.spacedBy(AdaSpacing.medium)) {
         item {
             TextButton(onClick = back, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Back to memory") }
-            Text("Entities", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
+            AdaSectionHeading("Entities")
             Text("Explicit names for people, projects and objects in this scope. Similar names stay separate until you confirm a link or merge.")
             s.fault?.let { Text(it.message(), color = MaterialTheme.colorScheme.error) }
             s.notice?.let { Text(it, modifier = Modifier.testTag("entity-notice")) }

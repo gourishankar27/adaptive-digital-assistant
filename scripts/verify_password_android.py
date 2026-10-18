@@ -19,7 +19,12 @@ PACKAGE = "dev.ada.validation.phase22.debug"
 
 
 def run(
-    device, *, package=PACKAGE, stages=None, test_class="dev.ada.assistant.PasswordLoginUiHttpTest"
+    device,
+    *,
+    package=PACKAGE,
+    stages=None,
+    test_class="dev.ada.assistant.PasswordLoginUiHttpTest",
+    after_stage=None,
 ):
     if not re.fullmatch(r"emulator-\d+", device) or not os.environ.get("ADA_TEST_DATABASE_URL"):
         raise SystemExit("Select an emulator and dedicated ADA_TEST_DATABASE_URL")
@@ -105,6 +110,8 @@ def run(
                 timeout=120,
             )
             print(result.stdout)
+            if after_stage is not None:
+                after_stage(command)
             if "OK (1 test)" not in result.stdout or "FAILURES" in result.stdout:
                 raise RuntimeError("Android password validation failed")
             command("shell", "am", "force-stop", package)

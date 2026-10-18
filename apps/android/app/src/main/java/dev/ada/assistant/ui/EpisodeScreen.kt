@@ -29,7 +29,7 @@ import java.util.UUID
         }
     }
     LazyColumn(Modifier.fillMaxSize().testTag("episode-list"), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        item { Text("History & episodes", style = MaterialTheme.typography.headlineSmall)
+        item { AdaSectionHeading("History & episodes")
             Text("Generated summaries help you navigate. They are interpretations, not remembered truth. Facts still need original evidence.")
             Text("Scope: ${s.scopeId ?: "Open a conversation first"}")
             if (s.busy) LinearProgressIndicator(Modifier.fillMaxWidth())

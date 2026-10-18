@@ -10,16 +10,17 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import dev.ada.assistant.data.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
 fun ProposalScreens(controller: ProposalController, back: () -> Unit) {
-    val s by controller.state.collectAsState()
+    val s by controller.state.collectAsStateWithLifecycle()
     val focus = LocalFocusManager.current
     var confirmDiscard by remember { mutableStateOf(false) }
     var confirmDecision by remember { mutableStateOf<String?>(null) }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(AdaSpacing.medium).testTag("proposal-screen"), verticalArrangement = Arrangement.spacedBy(AdaSpacing.medium)) {
         TextButton(back, Modifier.heightIn(min = AdaSpacing.touch)) { Text("Back to Memory") }
-        Text("Memory suggestions", style = MaterialTheme.typography.headlineSmall)
+        AdaSectionHeading("Memory suggestions")
         Text("Model suggestions are not saved memory. Read the original excerpts and explicitly review each annotation.")
         if (!s.enabled) Text("This server does not advertise the supported review contract.")
         if (s.busy || s.inbox.loading || s.scopes.loading) LinearProgressIndicator(Modifier.fillMaxWidth())

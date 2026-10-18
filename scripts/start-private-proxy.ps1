@@ -18,7 +18,8 @@ if not path.is_absolute() or not (path / "index.html").is_file():
     raise SystemExit("ADA_ADMIN_DIST must be a literal absolute built-admin directory in .env")
 print(path.resolve().as_posix())
 '@
-$adaDist = & $adaPython -X utf8 -c $adaReadDist (Join-Path $adaRoot '.env')
+# Standard input preserves embedded quotes under Windows PowerShell 5.1 as well.
+$adaDist = $adaReadDist | & $adaPython -X utf8 - (Join-Path $adaRoot '.env')
 if ($LASTEXITCODE -ne 0) { throw 'Cannot read the built-admin directory. Check .env and npm run build.' }
 $adaPreviousDist = $env:ADA_ADMIN_DIST
 try {

@@ -2,6 +2,8 @@ package dev.ada.assistant
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.SemanticsMatcher
@@ -14,6 +16,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTextReplacement
 import androidx.lifecycle.ViewModelProvider
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.espresso.Espresso.closeSoftKeyboard
@@ -151,16 +154,25 @@ class ChatFlowSmokeTest {
     @Test fun personalScopeEmojiDraftRotationAndHistoricalValidation() {
         connectRealServer()
         createConversation("Compose draft verification", projectScope = false)
-        compose.onNodeWithTag("composer").performScrollTo().performTextInput("Hello 😀")
-        // Dismiss the small landscape IME before inspecting supporting text and rotating.
+        // The compact composer hides ordinary counts. Exercise the actual Unicode limit
+        // through enabled/error behavior rather than expecting a permanent counter row.
+        compose.onNodeWithTag("composer").performScrollTo().performTextReplacement("😀".repeat(4000))
+        compose.onNodeWithTag("send").performScrollTo().assertIsEnabled()
+        compose.onNodeWithTag("composer").performScrollTo().performTextInput("😀")
+        compose.onNodeWithTag("send").performScrollTo().assertIsNotEnabled()
+        compose.onNodeWithTag("composer").performScrollTo().performTextReplacement("Hello 😀")
+        // Dismiss the small landscape IME before rotating and opening a separate dialog.
         closeSoftKeyboard()
         compose.waitForIdle()
-        compose.onNodeWithText("7 / 4,000 characters").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithTag("composer").assertTextContains("Hello 😀")
         compose.activityRule.scenario.recreate()
         compose.waitForIdle()
         compose.onNodeWithTag("composer").performScrollTo().assertTextContains("Hello 😀")
-        compose.onNodeWithTag("message-options").performScrollTo().performClick()
+        compose.onNodeWithTag("composer-menu").performScrollTo().performClick()
+        compose.onNodeWithTag("message-options").performClick()
         compose.onNodeWithTag("historical-instant").performScrollTo().performTextInput("2026-10-08T12:00:00.0001Z")
+        closeSoftKeyboard()
+        compose.onNodeWithTag("message-options-done").assertIsDisplayed().performClick()
         compose.onNodeWithTag("send").performScrollTo().performClick()
         compose.waitUntil(10_000) { vm.state.value.fault != null }
         // Validation closes the IME; short screens then restore their lazy context panel.

@@ -8,9 +8,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import dev.ada.assistant.data.ConversationDto
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable fun ResearchScreen(controller: ResearchController, conversation: ConversationDto?) {
-    val s by controller.state.collectAsState()
+    val s by controller.state.collectAsStateWithLifecycle()
     var confirm by remember { mutableStateOf(false) }
     if (confirm) AlertDialog(onDismissRequest = { confirm = false }, title = { Text("Approve this outgoing request?") },
         text = { Column(Modifier.verticalScroll(rememberScrollState())) {
@@ -21,7 +22,7 @@ import dev.ada.assistant.data.ConversationDto
         } }, confirmButton = { TextButton({ confirm = false; controller.approve() }) { Text("Approve this request only") } },
         dismissButton = { TextButton({ confirm = false }) { Text("Keep reviewing") } })
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(AdaSpacing.medium), verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
-        Text("Public research", style = MaterialTheme.typography.titleLarge)
+        AdaSectionHeading("Public research")
         Text("Research uses the exact public query or URL you approve. Saved memory, chat history and files are not attached. Search snippets are not read pages.")
         s.notice?.let { Text(it, Modifier.testTag("research-notice")) }
         if (s.busy) LinearProgressIndicator(Modifier.fillMaxWidth())

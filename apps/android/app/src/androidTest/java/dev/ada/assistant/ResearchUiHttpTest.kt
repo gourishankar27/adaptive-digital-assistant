@@ -37,7 +37,8 @@ class ResearchUiHttpTest {
         compose.waitUntil(30000) { vm.state.value.account != null }
         compose.runOnIdle { vm.openConversation(conversation.id) }
         compose.waitUntil(10000) { vm.state.value.conversation?.id == conversation.id }
-        compose.onNodeWithTag("open-research").performClick()
+        compose.onNodeWithTag("chat-menu").performClick()
+        compose.onNodeWithTag("open-research").performScrollTo().performClick()
         compose.onNodeWithTag("research-question").performTextInput("What data does ZoneInfo use?")
         compose.onNodeWithTag("research-target").performTextInput("https://docs.python.org/3/library/zoneinfo.html")
         closeSoftKeyboard()

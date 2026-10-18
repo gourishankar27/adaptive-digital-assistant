@@ -26,7 +26,9 @@ class ExpressionUiHttpTest {
         vm = ViewModelProvider(compose.activity)[ChatViewModel::class.java]
         compose.runOnIdle { vm.connect(c.server.toString(), token) }; compose.waitUntil(20_000) { vm.state.value.account != null }
         compose.runOnIdle { vm.openConversation(conversation.id) }; compose.waitUntil(20_000) { vm.state.value.conversation?.id == conversation.id }
-        compose.onNodeWithTag("top-settings").performClick()
+        val settings = compose.onNodeWithTag("nav-settings")
+        if (compose.onAllNodesWithTag("expanded-navigation").fetchSemanticsNodes().isNotEmpty()) settings.performScrollTo()
+        settings.assertIsDisplayed().performClick()
         compose.waitUntil(20_000) { vm.expression.state.value.preference?.target_id == conversation.id && !vm.expression.state.value.busy }
         compose.onNodeWithTag("expression-field-verbosity").performScrollTo().performClick()
         compose.onNodeWithTag("expression-choice-verbosity-concise").performClick()
