@@ -1,5 +1,11 @@
 # ADA implementation plans
 
+Phase25 adds opt-in conversational curiosity and a later inbox with explicit
+source/topic/cadence control, ordinary owned answers and Android exact recovery.
+Current source needs0017; local evidence/target limits are in STATUS and
+[the guide](../docs/CONVERSATIONAL-CURIOSITY.md). No scheduler, notification,
+automatic memory or Phase26–31 implementation/deployment is included.
+
 These plans continue the implemented Phase 0–2 server. Phase numbers in the earlier
 architecture prompt were suggestions; this directory uses the actual release
 history and puts usable interfaces before larger backend additions.
@@ -141,6 +147,13 @@ substitute for the repository's current state or server-side authorization.
 - [SOURCES.md](SOURCES.md): official references checked for planning, with a date.
 
 Keep secrets, private message text and real source quotes out of these records.
+
+Phase24 now implements default-off approved public research with a demonstrably
+isolated Docker broker, closed Python documentation/Wikipedia pilot, immutable
+untrusted W citations, explicit imported notes and Android encrypted recovery.
+Schema0016 is unchanged. Local results and remaining host/physical/native-quality
+gates are in STATUS/WORKLOG and [the guide](../docs/SECURE-WEB-RESEARCH.md).
+Phases25–31 remain planned; this source was not deployed.
 
 Phase 11 now implements selected-source proposals with explicit Android review,
 new endorsement evidence and reliable scoped review receipts. Automatic extraction

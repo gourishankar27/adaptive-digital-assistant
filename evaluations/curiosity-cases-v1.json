@@ -1,0 +1,17 @@
+{
+  "version": "ada-curiosity-cases-v1",
+  "privacy": "Public synthetic inputs only; no actual owner history or ratings",
+  "development": [
+    {"id": "new-owner", "kind": "generic", "topic": "interests"},
+    {"id": "personal-blocked", "kind": "blocked", "topic": "relationships"},
+    {"id": "task-relevance", "kind": "chat", "topic": "work", "text": "Help me think through a public software project."},
+    {"id": "original-unicode", "kind": "source", "topic": "interests", "text": "😀 I enjoy public astronomy talks."},
+    {"id": "repeated-skip", "kind": "repeat", "topic": "routines"},
+    {"id": "open-owner-answer", "kind": "answer", "topic": "interests", "text": "I enjoy public astronomy talks and learning about maps."}
+  ],
+  "holdout": [
+    {"id": "personal-explicit", "kind": "personal", "topic": "reflection"},
+    {"id": "work-original", "kind": "source", "topic": "work", "text": "I am learning to build a public map."},
+    {"id": "stale-original", "kind": "stale", "topic": "routines", "text": "I practise drawing public maps."}
+  ]
+}

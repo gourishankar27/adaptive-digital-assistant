@@ -1,5 +1,10 @@
 # How to use ADA — developer setup and everyday operation
 
+Current Phase25 source requires **0017 / 60 tables**. Curiosity is owner opt-in;
+see [the current guide](CONVERSATIONAL-CURIOSITY.md) for migration/controls/recovery.
+Earlier dated phase/install counts below remain historical. No live upgrade is implied.
+
+
 For your current laptop, start with
 [Windows + Tailscale private setup](PRIVATE-SETUP-WINDOWS-TAILSCALE.md): corrected
 `.env`, managed TLS, exact HTTPS/password login, manual startup and device steps.

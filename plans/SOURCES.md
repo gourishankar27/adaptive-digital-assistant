@@ -144,3 +144,35 @@ Ollama's [embedding API](https://docs.ollama.com/api/embed) is the primary refer
 for the existing embedding adapter. Installed tags/digests were inspected locally;
 the supported embeddinggemma digest was absent. No native embedding result or
 model download is inferred from the exact-hybrid fixture comparison.
+
+### 2026-10-17 — Phase24 primary references checked
+
+- OWASP [SSRF prevention](https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html)
+  informs closed allowlists, all-address checks, redirect bounds and network
+  enforcement. [LLM prompt injection prevention](https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html)
+  informs untrusted-source separation; a prompt is not an egress/authorization boundary.
+- Docker [container run](https://docs.docker.com/engine/containers/run/),
+  [iptables](https://docs.docker.com/engine/network/firewall-iptables/) and
+  [bridge networking](https://docs.docker.com/engine/network/drivers/bridge/)
+  describe the controls used. Actual local firewall/privilege/private-canary
+  evidence is recorded separately; documentation is not proof of isolation.
+- Wikimedia [REST API reference](https://www.mediawiki.org/wiki/API:REST_API/Reference)
+  and [search sample](https://www.mediawiki.org/wiki/API:REST_API/Reference/Sample_code:Search_pages/en)
+  support the public unauthenticated search pilot. No API key/purchase selected.
+  [Rate limits](https://www.mediawiki.org/wiki/Wikimedia_APIs/Rate_limits) and
+  [User-Agent policy](https://foundation.wikimedia.org/wiki/Policy:Wikimedia_Foundation_User-Agent_Policy)
+  require responsible identified requests; ADA's10/minute bound is conservative,
+  not a promised provider quota or SLA. Public operator contact is owner-selected
+  and disclosed in Wikipedia-only previews/headers; its value is not recorded here.
+- Wikimedia [terms](https://foundation.wikimedia.org/wiki/Policy:Terms_of_Use)
+  and [privacy](https://foundation.wikimedia.org/wiki/Policy:Privacy_policy)
+  were checked for attribution/licensing and recipient retention. They are not
+  a zero-retention guarantee; material-specific license exceptions still apply.
+- Python [documentation license](https://docs.python.org/3/license.html) and
+  [privacy notice](https://policies.python.org/python.org/Privacy-Notice/)
+  cover the static documentation pilot. Site-level metadata does not prove
+  every embedded material has the same license. Check terms before expansion.
+
+Provider URLs/policies can change. Recheck before installation or widening the
+pilot. No search subscription, model download, third-party integration account,
+private query export or general browsing capability was purchased or enabled.

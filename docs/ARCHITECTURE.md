@@ -1,5 +1,39 @@
 # ADA architecture decisions
 
+## Phase25 opt-in questions and private inbox
+
+Migration0017 adds owner-global curiosity policy, owner/scope-bound question
+snapshots and minimal exact-operation receipts. These are private content in the
+48-table erasure/60-table recovery inventory. All prior migration bytes remain.
+New backup-v3/0017 preserves original row hashes before credential/curiosity
+quarantine;0015/v1 and0016/v2 recovery remain supported. Restored curiosity is off
+until fresh owner consent. No live migration or deployment was performed.
+
+Curiosity defaults off. Explicit controls cover five topics, personal depth,
+cadence and chat/inbox channels. One catalogue companion is allowed per completed
+reply; two normal inbox drafts/owner/UTCday across scopes, ten explicitly requested
+interview questions/day, owner-wide dedup and permanent suppression. A bounded
+inspectable catalogue avoids hidden inference/dossiers. Personalized follow-up
+requires an exact accessible original pin; quotes remain untrusted and potentially
+stale. No model text supplies permissions, topic consent or factual memory.
+
+Companions use a separate versioned API after the actual answer. Drafts are not
+assistant chat events. Explicit opening atomically creates a conversation without
+inventing user text; answering records only the typed ordinary owner statement,
+using existing request UUID/fingerprint/replay. No auto-claim or preference update.
+Versioned optional navigation context is source/policy-bound and fits only within
+the existing whole prompt budget. Old prompts, response contracts and request
+messages remain exact. Network inference occurs after intent transactions commit.
+
+Android journalv14 preserves v1–v13 reads and an encrypted bounded operation queue,
+including a concurrent global-off intent. GET-only reopen, exact retries, receipt
+binding and identity/epoch/scope fences prevent duplicate or late private display.
+Receipt storage reserves a final slot for global off. Dismissed draft payloads are
+scrubbed; minimal dedup metadata has a disclosed30day lifetime. No timer, push,
+scheduler, private-profile extractor or new admin private view was added. See
+[the guide](CONVERSATIONAL-CURIOSITY.md) and dated STATUS for actual local results,
+refresh intermittency and remaining physical/quality/release gates.
+
 ## Phase23 bounded answer context and calendar windows
 
 Schema remains0016. Existing v3/v4 prompts and API path contracts are preserved;
@@ -587,3 +621,35 @@ allowlist is separate from credentials/private keys. The selected destination is
 %LOCALAPPDATA%/ADA/backups. See [the operational runbook](SECURITY-AND-OPERATIONS.md).
 No live backup, application migration, erasure, service publication or Phase19 work
 is implied by these source changes.
+
+## Phase24 isolated public research
+
+The `ada-web-research-v1` protocol adds an owner-controlled research workspace,
+separate from legacy tools/chat. It reuses existing AgentRun/Step/Approval/Receipt
+rows in the installed erasure/backup inventory; head0016 and all57tables remain.
+Legacy tool routes explicitly reject this protocol. Exact preview hashes bind
+canonical public targets, headers, expiry and budgets. An approval is a single
+call, never session-wide permission. Durable reservation precedes network I/O;
+fresh credential/epoch, lease and generation fences reject late publication.
+
+A default-off Docker adapter admits only a locally verified immutable image.
+Its tiny secret-free build context, default-drop IPv4/IPv6 firewall, pinned public
+IPv4 peer/TLS hostname, bounded parser and post-setup privilege drop are the
+egress boundary. There is no host mount, DB handle, inherited secret/proxy,
+private model context, cookie, JS or fallback HTTP client. All DNS A/AAAA answers
+must pass; redirects require another owner preview. Python documentation and
+English Wikipedia are the closed pilot; the Wikipedia-only public contact is
+visible in the exact headers. Network admission is separate from the existing
+shared model capacity. One worker remains required.
+
+Immutable untrusted W snapshots bind exact UTF-8 hashes and Unicode spans,
+retrieval/freshness, URLs, parser and terms. Search snippets are not W evidence.
+Answers use only the public question and saved web excerpts through the local
+provider; generated text cannot authorize another call. Explicit save creates
+an imported-untrusted research document, never an endorsed personal fact.
+Completed replay does not refetch. Android encrypted journalv13 preserves exact
+operations and GET-only recovery while retaining v1–v12 compatibility. Admin
+projects existing aggregate states/counts only. OpenAPI117paths/156schemas is
+additive; old prompts, citation contracts and chat fingerprints are unchanged.
+See [the security/usage runbook](SECURE-WEB-RESEARCH.md) for measured proof,
+limits, corrected disclosure error and remaining target/host/native-quality gates.

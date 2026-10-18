@@ -150,6 +150,8 @@ fun ChatApp(vm: ChatViewModel, openSettings: () -> Unit) {
                 }
                 ChatDestination.Entities -> EntityScreens(vm.entities) { vm.navigate(ChatDestination.Memory) }
                 ChatDestination.Proposals -> ProposalScreens(vm.proposals) { vm.navigate(ChatDestination.Memory) }
+                ChatDestination.Research -> ResearchScreen(vm.research, state.conversation)
+                ChatDestination.Curiosity -> CuriosityScreen(vm.curiosity, state.conversation, state.profiles.items, vm::openConversation)
                 ChatDestination.Tools -> AgentScreen(vm.agents, state.conversation, state.account)
                 ChatDestination.Episodes -> EpisodeScreen(vm.episodes, state.conversation)
                 ChatDestination.Documents -> DocumentScreens(vm.documents)
@@ -357,6 +359,8 @@ private fun ConversationScreen(state: ChatState, vm: ChatViewModel, typing: Bool
       val pendingHeight = (totalMaxHeight * 0.25f).coerceAtMost(170.dp)
       val composerHeight = (totalMaxHeight * (if (compact) 0.45f else 0.40f)).coerceAtMost(280.dp)
       Column(Modifier.fillMaxSize()) {
+       if (!typing && state.capabilities?.web_research == "ada-web-research-v1") TextButton({ vm.navigate(ChatDestination.Research) }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("open-research")) { Text("Public research") }
+       if (!typing && state.capabilities?.curiosity_protocol == "ada-curiosity-v1") TextButton({ vm.navigate(ChatDestination.Curiosity) }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("open-curiosity")) { Text("Questions & curiosity") }
        if (!typing && (state.capabilities?.hasAgentTools() == true || state.capabilities?.hasEpisodes() == true)) Row(Modifier.fillMaxWidth()) {
          if (state.capabilities?.hasAgentTools() == true) TextButton({ vm.navigate(ChatDestination.Tools) }, modifier = Modifier.weight(1f).heightIn(min = AdaSpacing.touch).testTag("open-tools")) { Text("Read-only tools") }
          if (state.capabilities?.hasEpisodes() == true) TextButton({ vm.navigate(ChatDestination.Episodes) }, modifier = Modifier.weight(1f).heightIn(min = AdaSpacing.touch).testTag("open-episodes")) { Text("History & episodes") }
@@ -378,7 +382,9 @@ private fun ConversationScreen(state: ChatState, vm: ChatViewModel, typing: Bool
             }
             items(state.events.items, key = { it.id }) { event ->
                 EventCard(event, state, vm)
+                if (event.role == "assistant") CuriosityChatCard(vm.curiosity, request = event.request_id)
             }
+            item { CuriosityChatCard(vm.curiosity, conversation = conversation.id) }
             if (state.events.loading) item { BusyIndicator("Loading recorded messages") }
             if (state.events.hasMore && !state.events.loading) item {
                 OutlinedButton(onClick = vm::loadMoreEvents, modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch)) { Text("Load more history") }
@@ -717,6 +723,7 @@ private fun AccountSettingsScreen(state: ChatState, vm: ChatViewModel, openSetti
         ExpressionSettings(vm.expression, state.conversation?.id)
         HorizontalDivider()
         LearningSettings(vm.learning, state)
+        if (state.capabilities?.curiosity_protocol == "ada-curiosity-v1") TextButton({ vm.navigate(ChatDestination.Curiosity) }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Questions & curiosity settings") }
         HorizontalDivider()
         SecuritySettings(vm.security)
         state.account?.let { account ->

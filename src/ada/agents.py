@@ -75,7 +75,7 @@ class AgentService:
 
     def _owned(self, db, owner, key, lock=False):
         row = db.get(AgentRun, (owner, key))
-        if row is None:
+        if row is None or row.protocol_version != PROTOCOL_VERSION:
             raise ServiceError(404, "agent_run_not_found")
         if lock:
             owned_scope(db, owner, row.scope_id, lock=True)
@@ -155,7 +155,11 @@ class AgentService:
                 raise ServiceError(404, "conversation_not_found")
             rows = db.scalars(
                 select(AgentRun)
-                .where(AgentRun.owner_id == owner, AgentRun.conversation_id == conversation)
+                .where(
+                    AgentRun.owner_id == owner,
+                    AgentRun.conversation_id == conversation,
+                    AgentRun.protocol_version == PROTOCOL_VERSION,
+                )
                 .order_by(AgentRun.created_at.desc(), AgentRun.id)
                 .limit(limit)
                 .offset(offset)
@@ -165,7 +169,10 @@ class AgentService:
     def receipt(self, owner, key):
         with self.sessions() as db:
             receipt = db.get(AgentReceipt, (owner, key))
-            if receipt is None:
+            if (
+                receipt is None
+                or self._owned(db, owner, receipt.run_id).protocol_version != PROTOCOL_VERSION
+            ):
                 raise ServiceError(404, "agent_receipt_not_found")
             return receipt.snapshot
 

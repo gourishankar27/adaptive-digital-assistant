@@ -204,8 +204,17 @@ def main():
             )
             provider = OllamaProvider(settings)
             seed(sessions, url, provider)
+            if os.environ.get("ADA_WEB_TEST_CURIOSITY_FIXTURE") == "1":
+                # Explicit disposable client fixture; production never falls back to this.
+                settings = settings.model_copy(update={"provider": "fake"})
+                provider = FakeProvider()
+            app = create_app(settings, provider, sessions)
+            if os.environ.get("ADA_WEB_TEST_RESEARCH_FIXTURE") == "1":
+                from research_test_fixture import enable_research_fixture
+
+                enable_research_fixture(app)
             uvicorn.run(
-                create_app(settings, provider, sessions),
+                app,
                 host="127.0.0.1",
                 port=args.port,
                 workers=1,

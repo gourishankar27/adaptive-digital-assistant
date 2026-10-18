@@ -31,6 +31,8 @@ from ada.contracts import (
     UserOutput,
     ValidationErrorOutput,
 )
+from ada.curiosity import CuriosityService
+from ada.curiosity_api import curiosity_router
 from ada.db import connect
 from ada.deletion import DeletionService
 from ada.document_api import document_router
@@ -75,6 +77,8 @@ from ada.proposal_api import proposal_router
 from ada.proposals import ProposalService
 from ada.providers import FakeProvider
 from ada.quality_api import quality_router
+from ada.research import ResearchService
+from ada.research_api import research_router
 from ada.retrieval import (
     CitationOutput,
     DocumentCitationOutput,
@@ -93,6 +97,7 @@ from ada.semantic import RebuildOutput
 from ada.service import ChatService, ServiceError, public_request
 from ada.stream_provider import StreamingOllamaProvider
 from ada.streaming import StreamingService
+from ada.web_broker import DockerWebBroker, UnavailableWebBroker
 
 
 class StrictInput(BaseModel):
@@ -244,6 +249,18 @@ def create_app(settings=None, provider=None, sessions=None):
     app.state.security = CredentialService(sessions, settings)
     app.state.passwords = PasswordSessions(sessions, settings)
     app.state.security.passwords = app.state.passwords
+    app.state.research = ResearchService(
+        sessions,
+        provider,
+        service.capacity,
+        DockerWebBroker(settings.web_broker_manifest)
+        if settings.web_research_enabled and settings.web_broker_manifest
+        else UnavailableWebBroker(),
+        prompt_bytes=settings.prompt_bytes,
+        operator_contact=settings.web_operator_contact,
+    )
+    app.state.curiosity = CuriosityService(sessions, service)
+    service.curiosity = app.state.curiosity
     app.state.security_gate = SecurityGate(settings)
     app.state.deletion = DeletionService(sessions, settings, app.state.security_gate)
     app.add_middleware(
@@ -289,6 +306,8 @@ def create_app(settings=None, provider=None, sessions=None):
                 or "/memory-extractions" in request.url.path
                 or "/memory-reviews" in request.url.path
                 or "/agent-" in request.url.path
+                or "/research-" in request.url.path
+                or "/curiosity" in request.url.path
                 or "/tool-receipts" in request.url.path
                 or request.url.path == "/v1/tools"
                 or "/episodes" in request.url.path
@@ -349,6 +368,12 @@ def create_app(settings=None, provider=None, sessions=None):
     app.state.admin = Monitoring(sessions, settings, provider, service)
     app.include_router(login_router(app.state.passwords, current_user, error_responses))
     app.include_router(quality_router(service, sessions, current_user, error_responses))
+    app.include_router(
+        research_router(app.state.research, app.state.security, current_user, error_responses)
+    )
+    app.include_router(
+        curiosity_router(app.state.curiosity, app.state.security, current_user, error_responses)
+    )
     app.include_router(admin_router(app.state.admin, current_user))
     app.include_router(document_router(sessions, current_user, error_responses))
     app.include_router(entity_router(sessions, current_user, error_responses))
@@ -415,6 +440,14 @@ def create_app(settings=None, provider=None, sessions=None):
             "calendar_windows": "ada-time-window-v1",
             "quality_prompt_version": "ada-baseline-v5",
             "device_credentials": "ada-device-credentials-v1",
+            "web_research": "ada-web-research-v1"
+            if app.state.research.broker.available
+            else "disabled",
+            "curiosity_protocol": "ada-curiosity-v1",
+            "curiosity_notifications": False,
+            "web_search": "wikimedia-rest-v1"
+            if app.state.research.broker.available and settings.web_operator_contact
+            else "disabled",
             "private_deletion": "ada-private-deletion-v1",
             "stream_protocol": "ada-stream-v1" if app.state.streaming.available else "unsupported",
             "generation_cancellation": app.state.streaming.available,

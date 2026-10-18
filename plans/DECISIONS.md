@@ -477,3 +477,84 @@ date-boundary/brevity regressions and overlapping small-sample intervals prohibi
 a default-quality claim. Keep v5 opt-in. Matching supported embedding weights were
 absent: fixture hybrid benefit does not justify native semantic activation.
 No automatic downloads, private evaluation, later-phase work or deployment.
+
+### 2026-10-17 — Phase24 approved isolated public research
+
+Keep research separate from chat/legacy tool execution as `ada-web-research-v1`,
+using existing owned AgentRun/Step/Approval/Receipt rows. This preserves0016 and
+the released recovery/erasure graph while retaining exact previews, immutable
+source receipts and completed replay. Old protocol endpoints cannot execute new
+research. New W citations avoid changing released origin/trust and M/D/C schemas.
+
+Use a tiny, immutable Linux Docker broker with demonstrated OS/firewall isolation,
+not a prompt filter or unrestricted in-process HTTP client. It receives only one
+approved public request, narrow policy/budgets/expiry and opaque receipt metadata.
+It receives no application secrets, history, memory, private DB/model access,
+host mounts or Docker socket. Startup proof and exact source/image binding are
+required; unavailable proof means disabled. Keep network admission separate from
+shared local-model capacity and retain one server worker.
+
+Choose a no-key English Wikipedia REST search after current primary-policy
+review, plus a closed Python documentation URL pilot. Only Wikipedia receives
+the operator-authorized public contact; show exact headers before approval and
+enforce the recipient guard independently inside the worker. The first public
+pilot mistakenly disclosed that header to Python too; this was reported, fixed
+and regression checked, including corrected actual public requests. Do not store
+the contact itself in versioned plans, logs or examples.
+
+Prefer three total calls and zero automatic redirects to broad page/redirect
+permission. Every follow-up needs matching new approval. Reject compressed bodies
+rather than expanding the pilot's decoder attack surface. Validate every A/AAAA
+answer, pin a public IPv4 socket and verify peer/TLS; IPv6 transport stays blocked.
+Save bounded normalized extraction with explicit truncation, exact Unicode spans,
+hashes/freshness/terms and untrusted provenance. Search snippets are not read pages.
+Generate locally from saved public evidence, never use model output as authority,
+and save only an explicitly requested imported-untrusted note. No automatic
+personal fact, private-context export, scheduling, curiosity or later-phase work.
+
+Reuse encrypted Android journal recovery, incrementing to v13 while preserving
+old reads. Reserve exact UUID/payload before POST; GET-only restore and sticky
+cancel prevent duplicate network effects or late UI restoration. Source hash/span
+verification is independent on the client. Local isolation/public/native and
+emulator results do not replace physical device, larger quality or operational
+installation-host gates. Feature stays default-off; no deployment was authorized.
+
+
+### 2026-10-17 — Phase25 owner-controlled curiosity
+
+Keep curiosity opt-in and separate from factual memory and old chat contracts.
+Use a bounded inspectable catalogue (30generic templates/five original-source
+variants), broad task topic or explicit owner choice, and exact source-linked
+uncertain follow-up. Do not claim model-generated personal insight. This avoids
+hidden profiling/inference and permits concrete topic, repetition and premise
+checks; wider naturalness/helpfulness still requires owner review.
+
+Add owner-global policy, scoped question snapshots and minimal exact receipts via
+0017, not overloaded expression/agent records. Serialize quotas/dedup under the
+authenticated owner lock so scopes cannot multiply two normal inbox drafts/day.
+Explicit per-question interview intent may bypass cadence within ten/day. Keep
+old request fingerprints/prompts/source enums untouched; use versioned optional
+navigation context and a new companion API after the actual answer. Opening an
+inbox draft creates a conversation but no fabricated user event/request. Only
+explicit typed answers use ordinary chat, outside the intent transaction.
+
+New tables enter48-table erasure/60-table recovery. Version backup-v3 explicitly;
+retain v1/0015 andv2/0016 artifacts. Verify original rows before disabling restored
+curiosity/incrementing policy revision and quarantining all credentials. Copy
+released lower downgrade preflight into0017 before SQLite DDL when crossing0016;
+released migration files remain byte-identical. No live migration/restore run.
+
+Off/pause, expiry and dismissal prevent stale premise delivery. Scrub dismissed
+payloads; retain minimal dedup metadata30days and explicit suppression/receipts
+until owner erasure. No inferred emotional, intimate, diagnostic or relationship
+profile. Android v14 reads old journals and persists a bounded exact-operation
+queue with a reserved off slot. The server receipt bound also reserves an off
+slot; a full normal quota cannot force curiosity to remain enabled. Unknown
+outcomes retain original keys, GET-only reopen and explicit retries. Late
+identity/epoch/scope callbacks cannot restore private state.
+
+Keep scheduler/push/lockscreen delivery unimplemented, notifications false, no
+new GPU worker/budget, and one Uvicorn worker. Planning all channels is not live
+notification consent. Existing admin views remain unchanged; only owners see
+question/feedback metrics. Small public/native/emulator evidence is not real
+owner-rated usefulness or release reliability. Stop at Phase25; no deployment.

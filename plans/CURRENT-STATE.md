@@ -1,5 +1,32 @@
 # Current ADA baseline
 
+**Phase25 source, 2026-10-17 America/Phoenix:** opt-in owner topic/depth/cadence
+controls, optional active-chat questions, private later inbox, exact source pins,
+explicit conversation opening/ordinary answers and Android journalv14 are
+implemented. Questions use a bounded inspectable catalogue, not hidden profiling
+or factual-memory extraction. Curiosity defaults off; there is no scheduler or
+notification delivery. Current source requires0017/60tables and exports126paths/
+168schemas, preserving117old paths/155non-capability schemas. Recovery-v3 includes
+new private inventory and disables restored curiosity; old recovery formats survive.
+Actual SQLite/PG/emulator/native/public-corpus results, corrected failures and
+remaining gates are recorded in STATUS/WORKLOG and
+[the guide](../docs/CONVERSATIONAL-CURIOSITY.md). The existing uncommitted Phase24
+work was preserved. No live DB migration, phone installation or deployment.
+Phases26–31 remain planned; historical records below retain their own evidence.
+
+**Phase24 source, 2026-10-17 America/Phoenix:** owner-approved, isolated public
+research and Android app17/0.24.0-research are implemented. Default-off startup
+requires a current immutable broker image and actual network-isolation proof.
+Only Python documentation/Wikipedia are allowlisted; the contact-gated Wikipedia
+search uses no key. Exact previews/receipts, untrusted W snapshots, local answers,
+explicit imported notes and encrypted v13 client recovery reuse existing owned
+inventory. Schema stays0016/57tables; OpenAPI117paths/156schemas preserves all109
+earlier paths and142non-capability schemas. No old prompt/chat/replay upgrade,
+dependency change, private-service activation or phone installation occurred.
+Actual checks, corrected failures and remaining physical/host/native-quality
+gates are in STATUS/WORKLOG and [the guide](../docs/SECURE-WEB-RESEARCH.md).
+Phases25–31 remain planned. Historical records below retain their provenance.
+
 **Phase23 source, 2026-10-16 America/Phoenix:** explicit owner calendar-window
 lookup, Android interval/source/correction controls, loaded-proposal review cues
 and audited opt-in v5 context selection are implemented. Schema remains0016;

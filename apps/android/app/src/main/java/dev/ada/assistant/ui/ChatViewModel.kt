@@ -28,6 +28,9 @@ class ChatViewModel(
     val documents = DocumentController(api, store, viewModelScope, { expire() })
     val entities = EntityController(api, store, viewModelScope, { expire() })
     val proposals = ProposalController(api, store, viewModelScope, { expire() })
+    val research = ResearchController(api, store, viewModelScope) { expire() }
+    val curiosity = CuriosityController(api, store, viewModelScope) { expire() }
+    private val curiosityTurns = mutableSetOf<UUID>()
     val agents = AgentController(api, store, viewModelScope, { expire() })
     val episodes = EpisodeController(api, store, viewModelScope, { expire() })
     val expression = ExpressionController(api, store, viewModelScope, { expire() })
@@ -108,6 +111,8 @@ class ChatViewModel(
         entities.reset()
         proposals.reset()
         agents.reset()
+        research.reset()
+        curiosity.reset(); curiosityTurns.clear()
         episodes.reset()
         expression.reset()
         learning.reset()
@@ -272,6 +277,8 @@ class ChatViewModel(
         entities.setVerifiedSession(connection, verified, features)
         proposals.setVerifiedSession(connection, verified, features)
         agents.setVerifiedSession(connection, verified, features)
+        research.setVerifiedSession(connection, verified, features)
+        curiosity.setVerifiedSession(connection, verified, features)
         episodes.setVerifiedSession(connection, verified, features)
         expression.setVerifiedSession(connection, verified, features)
         learning.setVerifiedSession(connection, verified, features)
@@ -308,6 +315,11 @@ class ChatViewModel(
     }
     fun navigate(destination: ChatDestination) {
         if (mutableState.value.account == null) return
+        if (destination == ChatDestination.Research && mutableState.value.capabilities?.web_research != "ada-web-research-v1") return
+        if (destination == ChatDestination.Curiosity) {
+            if (mutableState.value.capabilities?.curiosity_protocol != "ada-curiosity-v1") return
+            curiosity.activate(mutableState.value.conversation?.scope_id)
+        }
         if (destination == ChatDestination.Tools && mutableState.value.capabilities?.hasAgentTools() != true) return
         if (destination == ChatDestination.Episodes && mutableState.value.capabilities?.hasEpisodes() != true) return
         if (destination == ChatDestination.Memory) {
@@ -335,6 +347,8 @@ class ChatViewModel(
         ChatDestination.Retrieval -> ChatDestination.Sources
         ChatDestination.Entities -> ChatDestination.Memory
         ChatDestination.Proposals -> ChatDestination.Memory
+        ChatDestination.Research -> if (mutableState.value.conversation == null) ChatDestination.Conversations else ChatDestination.Chat
+        ChatDestination.Curiosity -> if (mutableState.value.conversation == null) ChatDestination.Conversations else ChatDestination.Chat
         ChatDestination.Tools -> if (mutableState.value.conversation == null) ChatDestination.Conversations else ChatDestination.Chat
         ChatDestination.Episodes -> if (mutableState.value.conversation == null) ChatDestination.Conversations else ChatDestination.Chat
         ChatDestination.Sources -> if (mutableState.value.conversation == null) ChatDestination.Conversations else ChatDestination.Chat
@@ -408,6 +422,7 @@ class ChatViewModel(
                 return@sessionWork
             }
             update { it.copy(conversation = row, events = ChatPage()) }
+            curiosity.activate(row.scope_id, row.id)
             refreshEvents()
         }
     }
@@ -578,6 +593,7 @@ class ChatViewModel(
                 if (mutableState.value.conversation?.id == row.id && mutableState.value.draft == content) update { it.copy(draft = "") }
             }
             update { it.copy(submittedMessages = it.submittedMessages + (message.body.request_id to message)) }
+            curiosityTurns += message.body.request_id
             submit(message, epoch)
         }
     }
@@ -684,6 +700,9 @@ class ChatViewModel(
                 if (message.voiceTranscript != null) voice.refreshHistory()
                 if (mutableState.value.conversation?.id == message.conversationId) refreshEvents()
                 refreshConversations()
+                if (curiosityTurns.remove(response.request_id)) {
+                    mutableState.value.conversation?.takeIf { it.id == message.conversationId }?.let { curiosity.afterReply(it, response.request_id) }
+                }
             }
             ObservedRequestState.Failed -> update { it.copy(pending = PendingState(message,
                 if (conflictCode == "retry_history_changed") PendingPhase.Conflict else PendingPhase.Failed, response, code = conflictCode),

@@ -432,7 +432,7 @@ def test_populated_0014_upgrade_and_downgrade_guard(harness):
     with pytest.raises(RuntimeError):
         command.downgrade(h["config"], "0014")
     with h["sessions"]() as db:
-        assert db.scalar(text("SELECT version_num FROM alembic_version")) == "0016"
+        assert db.scalar(text("SELECT version_num FROM alembic_version")) == "0017"
 
 
 def test_ambiguous_authorization_cannot_mix_principals(harness):

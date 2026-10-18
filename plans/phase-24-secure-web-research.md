@@ -1,6 +1,8 @@
 # Phase 24 — secure, cited web research
 
-Status: **Proposed; planning only.** Inputs: 20 readiness, 12 approval/receipt
+Status: **A–E implemented; local validation recorded, default-off and target gates
+remain.** See [STATUS](STATUS.md), [WORKLOG](WORKLOG.md) and
+[the implementation/runbook](../docs/SECURE-WEB-RESEARCH.md). Inputs: 20 readiness, 12 approval/receipt
 protocol, 18 privacy/erasure, G-24/G-33. Follow [shared rules](FUTURE-ROADMAP.md).
 21/22 improve remote sign-in but do not block isolated server security tests.
 
@@ -77,3 +79,52 @@ boundary. No web access is enabled by this planning document.
 
 Primary design guidance: OWASP [SSRF prevention](https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html)
 and [LLM prompt injection](https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html).
+
+## Implementation checkpoint record — 2026-10-17 America/Phoenix
+
+- **A completed locally:** secret-free three-file immutable Docker image, actual
+  default-drop OUTPUT policy, pinned public peer/TLS, post-setup UID65534 with
+  empty capability bounding/effective sets, seccomp/read-only/no-new-privileges,
+  no host mounts/secrets/proxies/socket. Startup denies9/9 forbidden targets;
+  independent private-canary positive control then restricted10/10 denial passed.
+  Startup fails closed and feature remains disabled in installed configuration.
+- **B completed for a closed pilot:** Python `/3/` static documentation and main
+  English Wikipedia pages only. All DNS A/AAAA answers checked; IPv4 pinned
+  transport, no IPv6 transport claim. Strict HTTPS443 canonicalization and actual
+  socket peer/TLS checks. Three total outbound calls/run, **zero automatic
+  redirects**, 1MiB identity-encoded response,32768codepoint extraction with
+  truncation flag,15s network I/O plus separate bounded DNS/setup. Two broker slots
+  and10starts/minute; no proxy/cookies/JS/subresources/crawling. These stricter
+  bounds replace the proposed automatic three-redirect allowance above.
+- **C completed:** current primary Wikimedia REST/terms/privacy/rate/User-Agent
+  policy reviewed; public no-key/no-purchase search. User selected a public
+  operator contact in ignored local configuration, disclosed only to Wikipedia.
+  Exact query/recipient/headers/expiry preview, five-minute authority and fresh
+  approval for every follow-on. No private-context selection/export feature was
+  added; manually typed disclosure is shown exactly. An initial contact-header
+  recipient error was disclosed and fixed with independent worker regression
+  protection; corrected public fetch/search passed. No contact value in plans.
+- **D completed:** versioned typed W snapshots, immutable extracted-text hash and
+  Unicode spans, retrieval/freshness/URLs/parser/trust/terms, distinct snippets,
+  completed no-refetch replay. No personal-fact promotion. Existing owned agent
+  inventory includes snapshots in erasure/backup; populated native encrypted
+  PostgreSQL restore and exact replay/credential quarantine were tested.
+- **E completed locally:** Android app17/journalv13 explicit approval, source
+  verification, cancellation/recovery and imported-note controls; exact nonce
+  before POST and GET-only reopen. Two actual force-stop stages passed on API37
+  emulator with synthetic broker/model over real HTTP/PG. Existing admin aggregate
+  counts include research; no private detail view was added. Actual isolated
+  public fetch/search and one native-model sourced answer/replay passed separately.
+
+Existing109paths/142non-capability schemas, chat inputs/prompts/replay, all released
+migrations and dependency locks remain unchanged. New total117paths/156schemas;
+schema stays0016/57tables. See STATUS/WORKLOG for exact suite counts, earlier
+corrected failures, skips and environment rather than treating this checklist as
+a new invocation of every historical test.
+
+Remaining target verification: installation-host isolation/restart, physical
+S24FE/Android16 approval/force-stop/accessibility/signed HTTPS, larger hostile-source
+and native answer-quality review, sustained resource/daemon-failure/soak behavior.
+One public native case is not a general accuracy/entailment or injection guarantee.
+Keep disabled until the operator explicitly installs/verifies/activates. No later
+phase, live migration, app installation or deployment was performed.

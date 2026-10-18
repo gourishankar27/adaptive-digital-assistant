@@ -5,7 +5,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="ADA_", env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_prefix="ADA_", env_file=".env", extra="ignore", hide_input_in_errors=True
+    )
     database_url: str = "postgresql+psycopg://ada:ada@127.0.0.1:5432/ada"
     provider: Literal["ollama", "fake"] = "ollama"
     ollama_url: str = "http://127.0.0.1:11434"
@@ -24,6 +26,9 @@ class Settings(BaseSettings):
     session_absolute_seconds: int = Field(default=2592000, ge=3600, le=7776000)
     session_idle_seconds: int = Field(default=604800, ge=600, le=2592000)
     deletion_worker_enabled: bool = False
+    web_research_enabled: bool = False
+    web_broker_manifest: str | None = None
+    web_operator_contact: str | None = None
     private_read_limit_per_minute: int = Field(default=2400, ge=1, le=10000)
     private_write_limit_per_minute: int = Field(default=600, ge=1, le=5000)
     private_max_body_bytes: int = Field(default=524288, ge=262144, le=1048576)
@@ -40,6 +45,10 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def fits_context(self):
+        if self.web_operator_contact is not None:
+            from ada.web_policy import user_agent
+
+            user_agent(self.web_operator_contact)
         if self.browser_origin is not None:
             from urllib.parse import urlsplit
 

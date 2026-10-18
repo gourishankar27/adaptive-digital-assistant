@@ -1,8 +1,25 @@
 # Phase status
 
-Current overview updated 2026-10-16 America/Phoenix; historical entries retain their
+Current overview updated 2026-10-17 America/Phoenix; historical entries retain their
 own dates and verification provenance. Update after implementation and verification.
 “Planned” means a specification exists, not that code or a working UI exists.
+
+**Phase25 source/local verification:** opt-in topic/depth/cadence controls,
+bounded chat/inbox questions, original-source pins and explicit conversation/
+ordinary-answer recovery are implemented. Current source needs0017/60tables;
+OpenAPI126paths/168schemas preserves117earlier paths/155non-capability schemas.
+Curiosity is off by default; no notifications/scheduler or auto-memory. Actual
+checks, corrected failures, emulator intermittency and remaining target gates are
+recorded below and in [the guide](../docs/CONVERSATIONAL-CURIOSITY.md). Phase24's
+existing uncommitted work was preserved. No live migration, phone install or deployment.
+
+**Phase24 source/local verification:** default-off owner-approved public research
+now has an actual isolated Docker egress boundary, exact request previews, saved
+untrusted W evidence, local answer/replay and Android approval/recovery. Schema
+stays0016/57tables; OpenAPI117paths/156schemas preserves released contracts. See
+the dated record/closeout below and [runbook](../docs/SECURE-WEB-RESEARCH.md) for
+actual checks, corrected disclosure error and remaining physical/host/quality
+gates. The running private service and normal phone app were not updated.
 
 **Phase23 source/local verification:** calendar-window lookup, explicit v5 context
 upgrade and review cues are implemented. New chats retain v4, semantic stays off,
@@ -59,7 +76,9 @@ release-reliability gates remain separate. See the follow-up entry at the end an
 | 21 | Implemented; local connectivity verified, target/recovery gates remain | Named Android HTTPS addresses/import, public login preflight, TLS/DNS diagnostics, fixed same-origin health proxy and private Caddy routes. Actual ADA/TLS/SSE host rehearsals, Android metadata UI/negative TLS and web/backend checks below. G-41 intermittency remains; no real VPN/firewall/certificate deployment. |
 | 22 | Password/session checkpoints A–E implemented; source and isolated verification, live/target gates separate | Explicit hidden-prompt enrollment, pinned Argon2id, digest-only rotating families, bounded pre-auth, Android refresh-only Keystore and HTTPS HttpOnly admin cookies. Dated checks/skips below; no live password, migration or deployment. |
 | 23 | A–E implemented; measured opt-in/disabled decision, local verification | Explicit claim intervals/time clarification, original-source/history ranking under optional audited v5, request diagnostics and Android review cues. V4 remains default; semantic disabled because supported weights absent. Public fixture/native comparison and remaining cases in dated entry; no migration/deployment. |
-| 24–31 | Proposed roadmap; no implementation | See [FUTURE-ROADMAP](FUTURE-ROADMAP.md). No later-phase implementation or deployment. |
+| 24 | A–E implemented; default-off, local verification and target limits recorded | Verified isolated approved Python/Wikipedia pilot, immutable W sources, explicit imported notes and Android v13 exact recovery. Actual Docker/public/native/PG/emulator checks and corrected failures below. No migration, activation or deployment. |
+| 25 | A–E implemented; opt-in local chat/inbox verification, target/quality limits remain | Migration0017, owner-wide controls/quotas, inspectable catalogue/original pins, atomic opening/ordinary answer and Android v14 queued recovery. Dated full/affected/PG/native/emulator evidence and skips below. No scheduler, auto-memory or deployment. |
+| 26–31 | Proposed roadmap; no implementation | See [FUTURE-ROADMAP](FUTURE-ROADMAP.md). No later-phase implementation or deployment. |
 
 Phase 02A's Windows fixture gate is closed. Phase 03's foundation builds and
 local HTTP/browser/emulator gates passed. Phase 04 now implements the Android
@@ -2927,3 +2946,305 @@ Full-suite/fixture teardown left no disposable schemas or restore databases;
 owned PostgreSQL55421 and the API37 emulator are stopped. Normal APK metadata is
 app16/0.23.0-quality, with no installation. This completes Phase23's bounded
 local exit; all skips, native regressions and remaining target checks above remain.
+
+## Phase24 — secure public web research, 2026-10-17 America/Phoenix
+
+Baseline: clean `9e06312`;594repository file hashes and109path/143schema OpenAPI
+saved before changes. Required root/scoped rules, README/architecture/current
+state/standards/workflow/status/roadmap, requested phase, migration/source/test
+state were inspected first. Existing Phase12 approval/receipt, Phase18 owner
+erasure/recovery and Phase20 readiness plus installed0016-compatible protocols
+met independent prerequisites. Baseline agent/storage/failure/security/recovery
+tests on SQLite/nativePG18.6: **105passed/2expectedSQLite-lock skips,156.72s**.
+Failure-first new route check:1failed/1passed/2deselected before implementation.
+
+Implemented A–E: default-off immutable secret-free Docker broker with actual
+default-drop firewall, public DNS/peer/TLS checks, privilege drop/seccomp/read-only
+proof and no inherited secrets/proxies/host mounts/socket. Closed Python docs/
+Wikipedia URL and no-key Wikipedia REST search; exact owner query/URL/header/
+recipient/expiry preview and per-call approval. Three total calls/run, zero
+automatic redirects,1MiB identity-only body,32768codepoint extraction/truncation
+flag,15s network I/O with separate bounded DNS/setup, two slots and10starts/minute.
+No private context is automatically exported and no model output authorizes calls.
+
+Research is a separate `ada-web-research-v1` protocol in existing AgentRun/Step/
+Approval/Receipt rows, already in45owner-content/57backup-table inventory.
+Owned immutable W text/hash/Unicode-span/trust/terms/freshness snapshots, snippets
+distinct from pages, no-refetch completed replay, credential/epoch/generation
+fences and local answer using shared inference admission. Explicit note save
+creates imported-untrusted document evidence, never an endorsed personal claim.
+Admin sees existing metadata/counts only. Android17/0.24.0-research adds exact
+approvals/source verification/note/cancel controls and encrypted journalv13 with
+v1–v12 reads, storage-before-POST and GET-only identity-bound recovery.
+
+Contracts/protected state:117paths/156schemas; all109earlier path definitions and
+142non-capability schemas exactly preserved, two optional capability
+fields defaulting to `disabled` added. Old prompts/chat inputs/fingerprints/M/D/C/replay, all migrations,
+dependency locks/wrappers and later phase files unchanged. No new schema/table,
+host dependency, model download, API restart, normal app install or deployment.
+Ignored local configuration contains the user-authorized public contact only;
+research remains disabled and no broker manifest was activated in the service.
+
+Actual local checks:
+
+- Final affected backend/contract/recovery run: **70passed/1expectedSQLite-lock
+  skip,58.26s**. A subsequent socket peer/SNI/no-second-DNS test separately
+  passed1test/37deselected. A later config error-redaction regression is included
+  in the fresh full run recorded at closeout. Tests cover ownership/protocol,
+  exact nonce/expiry/unknown/crash, hostile URL/IP/MIME/encoding/HTML, source
+  integrity/trust, revocation, shared capacity, transaction-free network/model,
+  native PG concurrent one-fetch approval, erasure and encrypted populated restore.
+- Docker Desktop Linux29.8.2: startup9/9forbidden targets denied; reachable private
+  synthetic canary positive control then restricted10/10denied. UID65534,
+  effective/bounding capabilities0, read-only, seccomp, no-private-env/host files
+  passed. Final immutable image35a12c82880775b20d8f0fd9d022e2215e45e2e6f05ee2c237f544edecb70898;
+  manifest/source hashes use forward slashes and canonical LF on Windows.
+- Actual corrected public pilot: Python ZoneInfo fetch completed with15139
+  extracted codepoints, Wikipedia Jupiter search returned3snippets; no truncation.
+  Public receipts are not evidence of general browsing or third-party availability.
+- Actual native integrated HTTP/PG/Docker source/answer/replay passed using installed
+  qwen3.8:27b digest aaee06c39dcf2437cde036998d960e1fc1494b8191be7cc9657d01e509097813.
+  Exact saved hash/span verified, answer contained IANA andW1, no citation warnings,
+  completed GET/answer replay equal. This one public marker-checked sample is not
+  general accuracy/entailment/injection immunity. Its image6542306808d8fc02caffcdde1daaa2c1398e5b9002b44faacbb0441f7a4b3fab
+  predates the final disclosure-wording rebuild; final image isolation was rerun
+  separately. No claim the native model was rerun on every wording-only rebuild.
+- Android **244unit tests**, lintDebug/debug/instrumentation/unsigned release
+  builds passed; final normal build after network-deadline copy change also passed.
+  Owned API37 emulator separate phase24APK over realHTTP/PG with explicit synthetic
+  broker/model: stage1approval/Unicode source/answer7.489s; actual force-stop;
+  stage2encrypted restore/GET-only/source3.691s, **two tests passed**. Validation
+  APK/reverse/fixture removed, normal APK rebuilt. No physical phone was present.
+- Web typecheck/lint/**70unit tests in8files**/production build passed; final
+  `npm run contracts:check` passed. Only generated web types changed, so no new
+  Chromium runtime suite was run. Ruff lint/format**191files**, pip check and
+  repository-configured whitespace check passed. Metadata/cleanup closeout follows.
+
+Development failures and corrections retained: initial API ownership lookup used
+the wrong Conversation key shape (8failed/36passed), corrected to owner-filtered
+lookup. A transient missing import caused20setup errors/36passed and was restored;
+a test-only deletion-preview route mismatch caused2failed/54passed, then corrected
+targets59passed/1skip. Android compilation caught a positional capability DTO
+compatibility issue; new default fields moved to the end. One in-flight cancel
+test needed explicit coroutine scheduling. The first emulator restore assertion
+incorrectly treated a substring as exact text; corrected test then both stages
+passed. Ruff formatting/noqa issues were corrected; final checks pass.
+
+Privacy correction: the first public pilot sent the configured operator-contact
+header to Python documentation as well as Wikipedia. This was reported to the
+user and corrected. Python now receives a contact-free User-Agent; Wikipedia
+alone receives the approved public contact. An independent worker guard rejects
+contact-bearing Python requests before connect. Regression checks and corrected
+actual public fetch/search passed. No contact value is stored in these records.
+
+Initial broad run was started before the export/header-fixture edits were frozen:
+**872passed/6failed/26skipped,1124.10s**. Two stale contract assertions and four
+old-collected header fixtures failed against newly changed files. Fresh contract
+module5passed and fresh affected suite70passed/1skip. A clean full-suite rerun
+against frozen behavior was started; its actual result is appended below, rather
+than relabelling the earlier invocation as green.
+
+Remaining/explicit skips: installation-host verification/restart/activation not
+performed; feature stays disabled. Physical S24FE/Android16, TalkBack/large-font,
+signed-release HTTPS/network handover, broader native hostile-source/answer quality,
+sustained resources/daemon-failure/soak and earlier voice/G-41 remain target gates.
+No private research dataset, general-site/IPv6 transport/compressed-body expansion,
+provider key/purchase, live DB migration/backup/erasure or later phase was run.
+The runbook is [SECURE-WEB-RESEARCH](../docs/SECURE-WEB-RESEARCH.md).
+
+Final adapter review follow-up: a stalled Docker stdout read could outlive the
+container-removal timer. New failure-first test failed1test/39deselected, then
+the host adapter switched to a23s communicate deadline with bounded best-effort
+removal and CLI cleanup. Cleanup failure cannot hide the unknown outcome or
+skip CLI termination; no request retry. Policy/worker/image bytes were unchanged.
+Fresh policy suite **40passed (0.10s)**; fresh combined policy/research/native
+recovery/contracts **73passed/1expectedSQLite-lock skip (53.99s)**. Actual final
+image isolation/private-canary and corrected public Python15139codepoints/
+Wikipedia3snippets passed again after the adapter change. The broad run below
+had already imported the earlier adapter and excludes this last new test; this
+follow-up is distinct fresh evidence for the final adapter, not an inflated
+full-suite count. A transient development failure had included the public contact
+in one ignored test log; it was redacted, and subsequent configured-secret/contact
+scan passed. No configured database password was found in those artifacts.
+
+Final provenance follow-up: unfinished research now rejects a changed provider
+ID/model instead of recording an answer under stale creation metadata. Completed
+replay remains original. Failure-first2SQLite failures/2PGskips/26deselected (that
+invocation had no PG URL); after the guard, fresh combined affected suite on
+SQLite/nativePG18 **77passed/1expectedSQLite-lock skip (57.57s)**, including all
+four provider/model drift cases and final Docker deadline test. The broad run
+below predates these five final cases/host guards; its separate count is preserved.
+
+### Phase24 broad regression and final broker proof
+
+Fresh broad `python -m pytest -q -ra` on migrated SQLite and disposable native
+PostgreSQL18.6: **886passed/26skipped,1082.68s (18m02s),912cases**. The26skips are
+18SQLite row-lock cases (PG counterparts ran), two opt-in generation-free Ollama
+health probes and six opt-in legacy native-agent probes. Those opt-ins were not
+enabled; the separate real public research/native-model pilot is distinct evidence.
+One existing Starlette/httpx TestClient deprecation warning remains; dependencies
+were not upgraded. This is a new successful invocation, not a rewrite of the
+earlier872passed/6failed run. Final targeted follow-ups are distinct as noted above.
+
+Final read-only proof improvement: the old `/broker` write attempt could fail
+from UID permissions alone. Startup now writes a synthetic probe in world-writable
+`/tmp` and requires EROFS, rejecting EACCES. Failure-first2failed/40deselected;
+fresh policy **42passed (0.11s)**. Rebuilt final immutable image
+d494abd80498712e64dcdfeb6fd4560751ab2d4ff5526552d7d6227b4a3f725a:
+actual EROFS/read-only, UID65534/caps0/seccomp/noenv/nohostfiles, startup9/9denied,
+positive private-canary then10/10restricteddenied all passed. Public Python15139
+codepoints/Wikipedia3snippets completed again, no truncation. Earlier image/native
+reports retain their original IDs; the native answer was not rerun for this
+self-test-only worker change. These two proof cases also postdate broad collection.
+The final combined affected run and cleanup results follow.
+
+### Phase24 final closeout
+
+- Final combined policy/research/PG recovery/contracts on final source:
+  **79passed/1expectedSQLite-lock skip (49.00s)**. This includes the seven cases
+  added after broad collection: Docker wait1, provider/model drift4, EROFS proof2.
+  No failures remain in these final invocations. Earlier failed checks and their
+  narrower provenance above are retained.
+- Ruff lint/format191files, pip check, web contract freshness and normal Git
+  whitespace checks passed. Final compatibility/protected audit preserved139
+  files,109old paths and142non-capability schemas. All51changed/new repository
+  files scanned against configured credentials/contact with zero matches.
+  Thirteen UTF-8 documents/205local links resolved;10PowerShell examples parsed.
+  Current broker manifest uses canonical LF hashes/forward-slash paths and matches
+  the final image source. Ignored validation artifacts were also scanned after
+  contact-log redaction; no configured credentials/contact remain there.
+- Cleanup found10empty fixture schemas left before migration by the earlier
+  setup-error run. Verified the dedicated55421/ada_phase2_test database, fixture
+  role/UUID names and zero relations/routines/types, then dropped only those empty
+  namespaces with RESTRICT. Final all-non-system schema and disposable restore/
+  recovery database inventories were empty. Owned nativePG55421 stopped after
+  verifying workspace data path/loopback port. No application database accessed.
+- Owned emulator5584 stopped; validation APK/reverse absent before stopping,
+  fixture18423 listener absent, no `ada-web-` containers remain. Normal debug APK
+  metadata is dev.ada.assistant.debug/version17/0.24.0-research; no normal install.
+  Docker engine/unrelated containers and Ollama/private API/proxy left untouched.
+- Local ignored configuration freshly verified: research disabled, broker manifest
+  unset, public contact present as authorized. No deployment/activation/migration
+  or later phase. A–E's bounded local exit is complete; all physical, installation-
+  host, larger quality/soak and earlier voice/G-41 limits above remain open.
+
+## 2026-10-17 — Phase25 conversational curiosity — local implementation
+
+Code: HEAD9e06312 plus preserved uncommitted Phase24 and this Phase25 work.
+Read root/client rules, required current-state/architecture/roadmap/workflow,
+requested plan, source, migration/recovery inventory and117path OpenAPI first.
+Existing Phase11 review,14/15 explicit expression/continuity and23 relevance
+paths were present; relevant baseline **89passed/3expected SQLite-lock skips**
+on SQLite/nativePG18.6. Planning did not authorize any later feature. Existing
+release/physical/voice/G-41 gates remain open rather than being prerequisites
+silently marked complete.
+
+Implemented A–E:
+
+- Default-off owner-global topic/depth/channel/frequency settings, per-topic
+  pause/block and global off. One optional companion per eligible completed reply;
+  concise/task-focused or already-questioning replies suppress it. Owner-wide
+  two normal inbox drafts/day and ten explicitly requested interviews/day (UTC).
+- Bounded versioned catalogue:30generic templates/five exact-source variants.
+  Broad task topic or explicit topic/original-source choice, uncertain source
+  wording, inspectable Unicode/hash spans, source owner/scope/time/current-support
+  checks. No inferred intimate premise, hidden profile or new inference worker.
+- Private inbox, reason/policy/expiry/dedup snapshots, skip/not-now/dismiss/
+  permanent suppression/pause/feedback. Exact opening creates a real owned
+  conversation without a user event. Explicit typed answers use ordinary chat
+  outside transactions; no automatic claim, preference, document or memory search.
+- Answer intents bind conversation and ordinary request fingerprint. Durable
+  rejected pre-admission receipts permit reviewed new answers; unknown/failed
+  requests retain exact recovery keys. Completed replay/bookkeeping reconciliation
+  never generates twice or adopts an unrelated UUID collision. Android validates
+  Unicode length, persists encrypted intents first, prevents duplicate answers,
+  restores using GET only and fences owner/epoch/scope/late logout callbacks.
+- New0017 only:60tables/48private-content inventory. Backup-v3/0017 verifies exact
+  original rows before disabling restored curiosity and quarantining credentials;
+  older0015/v1 and0016/v2 recovery remains supported. Dismissed text/pins scrubbed,
+  minimal dedup30days then lazy cleanup; permanent suppressions/receipts until
+  explicit owner erasure. Server/client bounds reserve final global-off capacity.
+- OpenAPI126paths/168schemas, nine new paths/eleven methods/twelve schemas.
+  All117old paths/155non-capability schemas unchanged; two optional capabilities
+  added. Android18/0.25.0-curiosity, encrypted journalv14 retains v1–v13 reads.
+  Admin remains unchanged/metadata-only. Notifications=false; no scheduler/push.
+
+Checks actually run (separate invocations, not combined counts):
+
+- Expanded affected backend after fixes: **105passed/2expected SQLite-lock skips**
+  (187.17s). **Full pytest:930passed/27skipped** (1283.97s;957cases) on migrated
+  SQLite/nativePG18.6. Skips:19SQLite-lock variants whose PG counterparts ran,
+  two opt-in generation-free Ollama health probes, six opt-in legacy native-agent
+  probes. Existing Starlette/httpx TestClient deprecation warning remains.
+- Full collection predates twelve later failure-path cases. Answer-reservation curiosity/
+  storage: **47passed/1expected SQLite quota-lock skip** (99.55s), including owner
+  quota concurrency, opt-out/revocation during answer generation, failed exact
+  retry without an open DB transaction, UTF-8 budget rejection/UUID collision,
+  populated upgrade/downgrade/Alembic drift, erasure and native0016/0017 recovery.
+- Android JDK21.0.12/API37 emulator: **254unit tests**, lint, debug/instrumentation
+  APKs and unsigned release built successfully. Exact journal/storage failure,
+  restore GET-only, off alongside unknown delivery/quota cooldown, late callbacks,
+  answer receipt recovery and oversized Unicode input covered. No normal install.
+- Separate validation APK used real HTTP/PostgreSQL/password/Keystore with an
+  explicit FakeProvider. Two earlier complete emulator force-stop invocations
+  passed (9.460s/4.585s and8.765s/4.935s); final answer-reservation flow passed
+  (8.167s/4.103s). Latest post-input-guard refresh/cleanup is recorded below.
+  A retained exact action after its real API write simulated a lost acknowledgement;
+  process-stop restore read its receipt without another user statement/POST.
+- Frozen public6development+3holdout corpus passed, including exact original,
+  permissions, stale premise, task topic, repetition and synthetic feedback.
+  Fresh final `evaluate_curiosity.py --native` passed nine cases plus one installed
+  qwen3.8:27b answer/completed replay (model digest in aggregate report). Codex
+  inspected the public sample: on-topic single question, no invented personal
+  premise. Earlier native run also passed; neither is an owner helpfulness rating,
+  independent premise-quality study, SLA or general model-quality result.
+- Web contracts generation/freshness, TypeScript, lint, **70unit tests** and
+  production build passed. No new browser runtime suite was run: web changes are
+  generated contract/capability additions, with no curiosity admin UI.
+- Ruff lint/format200files, pip check and Git whitespace passed. Contract/source,
+  configured-secret/contact, UTF-8/link/PowerShell and cleanup audits below.
+
+Corrected failed checks are preserved in WORKLOG: route/epoch/crash recovery,
+primary-question suppression, restore consent, lower downgrade preflight, test
+clock, reserved-off capacity/cooldown, pre-admission rejection/UUID collision and
+Android Unicode input. Emulator setup first rejected a split PowerShell Gradle
+property, then an explicitly unsuitable provider fixture, then exposed refresh
+timing intermittency. Later passes do not close the existing G-41 reliability gate.
+
+Remaining target verification: authorized installation/migration0017 and app18,
+physical S24FE/Android16, TalkBack/large-font, signed HTTPS/private-network handover,
+longer performance/soak and independent question relevance/premise/helpfulness
+review with actual owner ratings. Earlier voice/G-41 limits remain. No physical
+notification test applies until a later separately selected delivery phase.
+See [usage/runbook](../docs/CONVERSATIONAL-CURIOSITY.md). Phase26–31 remain planned;
+no deployment, live database operation, notification or feature activation.
+
+Phase25 closeout: final post-input-guard emulator stages **6.809s/3.107s passed**;
+254unit/0failure/0skip XML totals verified. Normal debug/instrumentation APKs
+rebuilt as dev.ada.assistant.debug/version18/0.25.0-curiosity without installation.
+Compared615-file pre-phase snapshot:56changed/new phase-scoped files, no deletions;
+39explicitly protected files unchanged (all0001–0016 migration bytes, old prompts,
+locks/wrappers, later plans and Phase24 research/broker source). All117old API
+paths/155non-capability schemas exact; only two additive capability fields.
+Fifteen UTF-8 documents/263local links resolved;69PowerShell blocks parsed.
+Configured credential/contact scan of changed files and ignored Phase25 artifacts
+found zero matches. Final whitespace and contract freshness checks passed.
+
+Cleanup: owned55421/dedicated test database had no fixture schemas, empty public
+schema and no restore/recovery fixture databases (only postgres/ada_phase2_test).
+Stopped only that nativePG instance after resolved workspace datadir/loopback-port
+checks. Separate validation APKs/reverse absent before stopping owned emulator5584;
+fixture18423 listener absent. No normal phone/app install or app DB change. Native
+Ollama, Docker/unrelated services, private API and proxy were left untouched.
+Bounded A–E source/local exit complete; target/quality/reliability limits remain.
+
+Final crash-edge follow-up: simulated process stop after a conflicting ordinary
+request but before rejection bookkeeping initially failed1SQLite case/1PG-not-set
+skip. A GET now returns `reconcile_required` until explicit exact replay commits
+the rejection and reopens the question. This prevents premature journal removal;
+it never adopts the unrelated request. Fresh final curiosity/storage run with
+nativePG: **49passed/1expected SQLite quota-lock skip74.05s**. This includes all
+twelve post-full-collection cases; the earlier930/27 and47/1 runs retain their
+own provenance. Android/native public-model evidence predates this read-state-only
+edge fix, with no client, schema, prompt or inference-path changes. OwnedPG was
+restarted only for this disposable rerun, then re-inventoried/stopped again.

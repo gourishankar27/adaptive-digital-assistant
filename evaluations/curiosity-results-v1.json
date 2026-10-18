@@ -1,0 +1,135 @@
+{
+  "version": "ada-curiosity-results-v1",
+  "corpus_sha256": "e4f43bfe09a2ae4e67c3c305a48074f96ffe5727916697fa5b599b48290bc745",
+  "schema": "0017",
+  "generator": "ada-question-catalog-v1",
+  "results": [
+    {
+      "id": "new-owner",
+      "set": "development",
+      "checks": {
+        "topic_permission": true,
+        "single_catalogue_question": true,
+        "relevant_topic": true,
+        "no_inferred_premise": true,
+        "no_factual_claims": true,
+        "no_invented_user_events": true
+      },
+      "passed": true
+    },
+    {
+      "id": "personal-blocked",
+      "set": "development",
+      "checks": {
+        "topic_permission": true
+      },
+      "passed": true
+    },
+    {
+      "id": "task-relevance",
+      "set": "development",
+      "checks": {
+        "topic_permission": true,
+        "single_catalogue_question": true,
+        "relevant_topic": true,
+        "no_inferred_premise": true,
+        "no_factual_claims": true,
+        "no_invented_user_events": true
+      },
+      "passed": true
+    },
+    {
+      "id": "original-unicode",
+      "set": "development",
+      "checks": {
+        "topic_permission": true,
+        "single_catalogue_question": true,
+        "relevant_topic": true,
+        "exact_original_premise": true,
+        "no_factual_claims": true,
+        "no_invented_user_events": true
+      },
+      "passed": true
+    },
+    {
+      "id": "repeated-skip",
+      "set": "development",
+      "checks": {
+        "topic_permission": true,
+        "single_catalogue_question": true,
+        "relevant_topic": true,
+        "no_inferred_premise": true,
+        "not_repeated_after_skip": true,
+        "skip_measured": true,
+        "no_factual_claims": true,
+        "no_invented_user_events": true
+      },
+      "passed": true
+    },
+    {
+      "id": "open-owner-answer",
+      "set": "development",
+      "checks": {
+        "topic_permission": true,
+        "single_catalogue_question": true,
+        "relevant_topic": true,
+        "no_inferred_premise": true,
+        "opening_did_not_invent_user": true,
+        "ordinary_answer_completed": true,
+        "duplicate_answer_replay": true,
+        "one_exact_owner_statement": true,
+        "synthetic_feedback_measured": true,
+        "no_factual_claims": true,
+        "no_invented_user_events": true
+      },
+      "passed": true
+    },
+    {
+      "id": "personal-explicit",
+      "set": "holdout",
+      "checks": {
+        "topic_permission": true,
+        "single_catalogue_question": true,
+        "relevant_topic": true,
+        "no_inferred_premise": true,
+        "no_factual_claims": true,
+        "no_invented_user_events": true
+      },
+      "passed": true
+    },
+    {
+      "id": "work-original",
+      "set": "holdout",
+      "checks": {
+        "topic_permission": true,
+        "single_catalogue_question": true,
+        "relevant_topic": true,
+        "exact_original_premise": true,
+        "no_factual_claims": true,
+        "no_invented_user_events": true
+      },
+      "passed": true
+    },
+    {
+      "id": "stale-original",
+      "set": "holdout",
+      "checks": {
+        "topic_permission": true,
+        "single_catalogue_question": true,
+        "relevant_topic": true,
+        "exact_original_premise": true,
+        "stale_premise_hidden": true,
+        "no_factual_claims": true,
+        "no_invented_user_events": true
+      },
+      "passed": true
+    }
+  ],
+  "native": {
+    "model": "qwen3.8:27b",
+    "digest": "aaee06c39dcf2437cde036998d960e1fc1494b8191be7cc9657d01e509097813",
+    "completed_replay": true,
+    "sample_count": 1
+  },
+  "limits": "Topic/trace assertions and synthetic feedback; not independent relevance, factual entailment or real owner helpfulness. One optional native sample is not general model quality."
+}

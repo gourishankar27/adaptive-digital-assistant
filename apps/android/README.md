@@ -770,3 +770,73 @@ normal application IDs, validates APK metadata and uses disposable synthetic
 HTTP/PostgreSQL fixtures. It removes only its validation APKs, reverse and schema.
 Wait for Android to finish booting before running it. Physical accessibility,
 large-font/TalkBack and signed-release HTTPS remain target checks.
+
+## Phase24 public research
+
+Source app17/0.24.0-research adds Chat → Public research, capability-gated exact
+outgoing-request previews, explicit approvals, search-snippet/follow-on controls,
+verified saved W sources, local answers and explicit imported research notes.
+The server feature stays disabled until actual Docker/network isolation passes.
+Journalv13 retains v1–v12 reads, binds exact operation/nonce to verified
+server/owner/scope/conversation and restores through GET only. Cancellation fences
+late responses. No direct internet/provider/database access was added to Android.
+See [the guide](../../docs/SECURE-WEB-RESEARCH.md).
+
+Local verification:244unit tests, lint/debug/instrumentation/unsigned release
+builds; two real HTTP/PostgreSQL approval/recovery stages on a separate API37
+emulator APK, with an actual force-stop between stages. The network broker and
+model in those client tests are explicitly synthetic; actual Docker/native public
+checks are separately recorded in STATUS. One initial restore assertion compared
+a substring as an exact string; correcting it produced both passing stages.
+For the isolated runner, start an owned, fully booted emulator and select the
+dedicated `ADA_TEST_DATABASE_URL`, then run serially from this directory:
+
+```powershell
+./gradlew.bat -PadaValidationApplicationId=dev.ada.validation.phase24 :app:assembleDebug :app:assembleDebugAndroidTest
+../../.venv/Scripts/python.exe -X utf8 ../../scripts/verify_research_android.py --device emulator-5584
+./gradlew.bat :app:assembleDebug :app:assembleDebugAndroidTest
+```
+
+Select the actual owned emulator serial. The runner rejects a physical device or
+normal app ID, creates disposable fixtures and removes only its APKs/reverse/schema.
+The normal APK was rebuilt without installing it on the user's phone. Physical
+S24FE/Android16 approval/recovery, TalkBack/large font, signed-release HTTPS and
+the earlier voice/G-41 gates remain open.
+
+
+## Phase25 opt-in conversational curiosity
+
+Source app18/0.25.0-curiosity adds Settings/Chat → Questions & curiosity: global
+off, topic pause/block, depth and cadence controls, optional companions, a later
+inbox, original-source inspection and explicit conversation opening/ordinary
+answers. Server source needs0017. The feature defaults off and requires the
+ada-curiosity-v1 capability. There are no notifications or timers.
+
+Encrypted journalv14 reads v1–v13. The bounded eight-operation queue reserves its
+last slot for off, preserves each exact owner/server/scope-bound UUID/body, and
+restores through GET only. Receipts bind operation/question/request/conversation
+identity. Epoch/logout/scope fences prevent late private display. Answer text is
+saved as ordinary conversation history, with no automatic claim or preference.
+See [the guide](../../docs/CONVERSATIONAL-CURIOSITY.md) for use/retention/limits.
+
+Local unit/build, real HTTP/PostgreSQL/emulator and native evaluation results are
+recorded in STATUS/WORKLOG; preserve earlier refresh failures/intermittency. The
+separate API37 emulator uses explicit FakeProvider with real password/session,
+HTTP, Keystore and actual force-stop. It simulates a lost action acknowledgement
+by retaining the exact encrypted key after a real server write. Reopen reads the
+receipt and does not invent another message. No normal app/physical phone reset.
+
+To repeat, start an owned, fully booted emulator, set the dedicated test database
+environment, and run serially from apps/android. Quote the complete Gradle
+property argument in PowerShell so dots are not split:
+
+```powershell
+./gradlew.bat '-PadaValidationApplicationId=dev.ada.validation.phase25' :app:assembleDebug :app:assembleDebugAndroidTest
+../../.venv/Scripts/python.exe -X utf8 ../../scripts/verify_curiosity_android.py --device emulator-5584
+./gradlew.bat :app:assembleDebug :app:assembleDebugAndroidTest
+```
+
+Choose the actual owned emulator serial. The runner checks APK/application IDs,
+rejects physical/normal apps and owns only its fixture/reverse/packages. Rebuild
+normal APKs after verification. Physical S24FE/Android16, signed HTTPS/handover,
+TalkBack/large font and earlier voice/G-41 reliability gates remain separate.

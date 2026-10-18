@@ -96,6 +96,7 @@ class ChatService:
         self.semantic = SemanticService(sessions, settings, self.capacity)
         self.expression = ExpressionService(sessions)
         self.learning = None  # Wired to the same proposal/consolidation services by create_app.
+        self.curiosity = None  # Optional versioned navigation, never a factual evidence channel.
 
     def _context(
         self,
@@ -207,6 +208,19 @@ class ChatService:
         if continuity:
             messages.append(continuity)
         messages.append(newest)
+        if self.curiosity is not None:
+            question = self.curiosity.context(db, conversation)
+            if question is not None:
+                # Keep exact existing evidence and the whole prompt budget. Optional context
+                # cannot prevent ordinary text chat when it does not fit.
+                if (
+                    sum(message_cost(m) for m in messages) + message_cost(question)
+                    <= self.settings.prompt_bytes
+                ):
+                    messages.insert(-1, question)
+                    result["budget"]["curiosity_context"] = "ada-curiosity-v1"
+                else:
+                    result["budget"]["curiosity_context"] = "omitted_budget"
         result["budget"].update(
             prompt_limit_bytes=self.settings.prompt_bytes,
             prompt_used_bytes=sum(message_cost(m) for m in messages),

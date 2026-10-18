@@ -37,6 +37,46 @@ private class MemorySessionKeys : SessionKeys {
 }
 
 class SecureSessionStoreTest {
+    @Test fun curiosityQueueReservesFinalSlotForGlobalOff() = runTest {
+        val disk = MemorySessionDisk(); val keys = MemorySessionKeys(); val s = store(disk, keys)
+        s.saveCredential(credential())
+        val scope = UUID.randomUUID()
+        repeat(7) { val id = UUID.randomUUID(); s.saveCuriosityOperation(identity, CuriosityPending(id, "create", scope, body = adaJson.encodeToString(CuriosityCreateDto(id, 1)))) }
+        val extra = UUID.randomUUID()
+        assertThrows(SessionStorageException::class.java) { kotlinx.coroutines.runBlocking {
+            s.saveCuriosityOperation(identity, CuriosityPending(extra, "create", scope, body = adaJson.encodeToString(CuriosityCreateDto(extra, 1))))
+        } }
+        val off = UUID.randomUUID()
+        s.saveCuriosityOperation(identity, CuriosityPending(off, "policy", body = adaJson.encodeToString(CuriosityPolicyWriteDto(off, 1, CuriositySettingsDto()))))
+        assertEquals(8, store(disk, keys).curiosityJournal(identity)!!.operations.size)
+    }
+    @Test fun curiosityQueuePreservesExactOperationsAcrossRestartOffAndEpoch() = runTest {
+        val disk = MemorySessionDisk(); val keys = MemorySessionKeys(); val s = store(disk, keys)
+        s.saveCredential(credential())
+        val scope = UUID.randomUUID(); val createId = UUID.randomUUID(); val offId = UUID.randomUUID()
+        val create = CuriosityPending(createId, "create", scope, body = adaJson.encodeToString(CuriosityCreateDto(createId, 1)))
+        val off = CuriosityPending(offId, "policy", body = adaJson.encodeToString(CuriosityPolicyWriteDto(offId, 1, CuriositySettingsDto())))
+        s.saveCuriosityOperation(identity, create); s.saveCuriosityOperation(identity, off)
+        assertEquals(listOf(create, off), store(disk, keys).curiosityJournal(identity)!!.operations)
+        assertThrows(SessionStorageException::class.java) { kotlinx.coroutines.runBlocking { s.saveCuriosityOperation(identity, create.copy(body = adaJson.encodeToString(CuriosityCreateDto(createId, 2)))) } }
+        s.removeCuriosityOperation(identity, offId)
+        assertEquals(listOf(create), s.curiosityJournal(identity)!!.operations)
+        s.saveCredential(credential().let { StoredCredential(it.identity, it.token, dataEpoch = 1) })
+        assertNull(s.curiosityJournal(identity))
+    }
+    @Test fun releasedV13ReadsButCannotContainNewCuriosityOperations() = runTest {
+        val disk = MemorySessionDisk(); val keys = MemorySessionKeys(); val s = store(disk, keys)
+        s.saveCredential(credential()); s.savePending(message())
+        val cipher = AesGcmSessionCipher(keys)
+        val old = cipher.decrypt(disk.bytes!!).toString(Charsets.UTF_8).replace("\"version\":14", "\"version\":13")
+        disk.bytes = cipher.encrypt(old.toByteArray())
+        assertEquals(message(), store(disk, keys).pending(identity))
+        val id = UUID.randomUUID()
+        s.saveCuriosityOperation(identity, CuriosityPending(id, "create", UUID.randomUUID(), body = adaJson.encodeToString(CuriosityCreateDto(id, 1))))
+        val forged = cipher.decrypt(disk.bytes!!).toString(Charsets.UTF_8).replace("\"version\":14", "\"version\":13")
+        disk.bytes = cipher.encrypt(forged.toByteArray())
+        assertNull(store(disk, keys).readCredential())
+    }
     @Test fun passwordSessionPersistsOnlyRefreshAndKeepsOwnedJournalAcrossRotation() = runTest {
         val disk = MemorySessionDisk(); val keys = MemorySessionKeys(); val s = store(disk, keys)
         s.saveCredential(StoredCredential(identity, "synthetic-refresh-one", passwordSession = true))
@@ -50,20 +90,20 @@ class SecureSessionStoreTest {
         assertFalse(disk.bytes!!.toString(Charsets.UTF_8).contains("synthetic-refresh"))
         val payload = AesGcmSessionCipher(keys).decrypt(disk.bytes!!).toString(Charsets.UTF_8)
         assertFalse(payload.contains("access_token")); assertFalse(payload.contains("synthetic-refresh-one"))
-        assertTrue(payload.contains("\"version\":12"))
+        assertTrue(payload.contains("\"version\":14"))
     }
 
     @Test fun releasedV10WithoutEpochOrSecurityFieldsRestoresAndUpgrades() = runTest {
         val disk = MemorySessionDisk(); val keys = MemorySessionKeys(); val s = store(disk, keys)
         s.saveCredential(credential()); s.savePending(message())
         val cipher = AesGcmSessionCipher(keys)
-        val old = cipher.decrypt(disk.bytes!!).toString(Charsets.UTF_8).replace("\"version\":12", "\"version\":10")
+        val old = cipher.decrypt(disk.bytes!!).toString(Charsets.UTF_8).replace("\"version\":14", "\"version\":10")
             .replace(",\"dataEpoch\":0", "").replace(",\"securityJournal\":null", "")
         disk.bytes = cipher.encrypt(old.toByteArray())
         assertEquals(message(), store(disk, keys).pending(identity))
         assertEquals(0L, store(disk, keys).readCredential()!!.dataEpoch)
         store(disk, keys).saveCredential(credential())
-        assertTrue(cipher.decrypt(disk.bytes!!).toString(Charsets.UTF_8).contains("\"version\":12"))
+        assertTrue(cipher.decrypt(disk.bytes!!).toString(Charsets.UTF_8).contains("\"version\":14"))
     }
     @Test fun privacyEpochClearsEveryJournalAndSecurityReservationsAreEncrypted() = runTest {
         val disk = MemorySessionDisk(); val keys = MemorySessionKeys(); val s = store(disk, keys)
@@ -83,7 +123,7 @@ class SecureSessionStoreTest {
         val disk = MemorySessionDisk(); val keys = MemorySessionKeys(); val s = store(disk, keys)
         s.saveCredential(credential()); s.savePending(message())
         val cipher = AesGcmSessionCipher(keys)
-        val previous = cipher.decrypt(disk.bytes!!).toString(Charsets.UTF_8).replace("\"version\":12", "\"version\":8").replace(",\"learningJournal\":null", "")
+        val previous = cipher.decrypt(disk.bytes!!).toString(Charsets.UTF_8).replace("\"version\":14", "\"version\":8").replace(",\"learningJournal\":null", "")
         assertTrue(previous.contains("\"version\":8")); disk.bytes = cipher.encrypt(previous.toByteArray())
         val restored = store(disk, keys); assertEquals(message(), restored.pending(identity))
         val key = UUID.randomUUID(); val journal = LearningJournal(identity, UUID.randomUUID(), key, "config", adaJson.encodeToString(LearningConfigWriteDto(key, 0, "enrolled")))
@@ -96,7 +136,7 @@ class SecureSessionStoreTest {
         val disk = MemorySessionDisk(); val keys = MemorySessionKeys(); val s = store(disk, keys)
         s.saveCredential(credential()); s.savePending(message())
         val cipher = AesGcmSessionCipher(keys)
-        val old = cipher.decrypt(disk.bytes!!).toString(Charsets.UTF_8).replace("\"version\":12", "\"version\":7").replace(",\"expressionJournal\":null", "").replace(",\"learningJournal\":null", "")
+        val old = cipher.decrypt(disk.bytes!!).toString(Charsets.UTF_8).replace("\"version\":14", "\"version\":7").replace(",\"expressionJournal\":null", "").replace(",\"learningJournal\":null", "")
         assertTrue(old.contains("\"version\":7")); disk.bytes = cipher.encrypt(old.toByteArray())
         val restored = store(disk, keys); assertEquals(message(), restored.pending(identity))
         val id = UUID.randomUUID()
@@ -121,11 +161,11 @@ class SecureSessionStoreTest {
         val disk = MemorySessionDisk(); val keys = MemorySessionKeys(); val s = store(disk, keys)
         s.saveCredential(credential()); s.savePending(message())
         val cipher = AesGcmSessionCipher(keys)
-        val old = cipher.decrypt(disk.bytes!!).toString(Charsets.UTF_8).replace("\"version\":12", "\"version\":6").replace(",\"consolidationJournal\":null", "").replace(",\"expressionJournal\":null", "").replace(",\"learningJournal\":null", "")
+        val old = cipher.decrypt(disk.bytes!!).toString(Charsets.UTF_8).replace("\"version\":14", "\"version\":6").replace(",\"consolidationJournal\":null", "").replace(",\"expressionJournal\":null", "").replace(",\"learningJournal\":null", "")
         assertTrue(old.contains("\"version\":6")); disk.bytes = cipher.encrypt(old.toByteArray())
         assertEquals(message(), store(disk, keys).pending(identity))
         s.saveCredential(credential(token = "synthetic-rotated"))
-        assertEquals(message(), s.pending(identity)); assertTrue(cipher.decrypt(disk.bytes!!).toString(Charsets.UTF_8).contains("\"version\":12"))
+        assertEquals(message(), s.pending(identity)); assertTrue(cipher.decrypt(disk.bytes!!).toString(Charsets.UTF_8).contains("\"version\":14"))
     }
     @Test fun consolidationReservationSurvivesEncryptedRestartAndTokenRotation() = runTest {
         val disk = MemorySessionDisk(); val keys = MemorySessionKeys(); val s = store(disk, keys)
@@ -271,5 +311,37 @@ class SecureSessionStoreTest {
         try { store.savePending(message(body = message().body.copy(as_of = "2026-10-08T00:00:00.0001Z"))); fail("Sub-millisecond instant accepted") } catch (_: SessionStorageException) { }
         store.savePending(message(body = message().body.copy(content = "😀".repeat(4000))))
         assertEquals(4000, store.pending(identity)!!.body.content.codePointCount(0, store.pending(identity)!!.body.content.length))
+    }
+
+    @Test fun researchV13EncryptedRecoveryKeepsExactApprovalAndDropsAtEpochChange() = runTest {
+        val disk = MemorySessionDisk(); val keys = MemorySessionKeys(); val s = store(disk, keys)
+        s.saveCredential(credential())
+        val id = UUID.randomUUID()
+        val journal = ResearchJournal(identity, UUID.randomUUID(), UUID.randomUUID(), id,
+            kotlinx.serialization.json.Json.encodeToString(ResearchCreateDto.serializer(), ResearchCreateDto(id, "Public synthetic question", "search", "Jupiter")))
+        s.saveResearchJournal(journal)
+        val operation = journal.copy(operation = ResearchOperation("approve", kotlinx.serialization.json.Json.encodeToString(ResearchApprovalDto.serializer(), ResearchApprovalDto(UUID.randomUUID(), id, "a".repeat(64)))))
+        s.saveResearchJournal(operation)
+        assertEquals(operation, store(disk, keys).researchJournal(identity))
+        assertFalse(disk.bytes!!.toString(Charsets.UTF_8).contains("Jupiter"))
+        assertThrows(SessionStorageException::class.java) { kotlinx.coroutines.runBlocking { s.saveResearchJournal(operation.copy(operation = ResearchOperation("cancel", "{}"))) } }
+        val cancelled = operation.copy(cancelRequested = true)
+        s.saveResearchJournal(cancelled)
+        assertThrows(SessionStorageException::class.java) { kotlinx.coroutines.runBlocking { s.saveResearchJournal(operation) } }
+        s.saveCredential(credential().let { StoredCredential(it.identity, it.token, dataEpoch = 1) })
+        assertNull(s.researchJournal(identity))
+    }
+
+    @Test fun releasedV12RecordWithoutResearchStillRestoresAsV14() = runTest {
+        val disk = MemorySessionDisk(); val keys = MemorySessionKeys(); val s = store(disk, keys)
+        s.saveCredential(credential()); s.savePending(message())
+        val cipher = AesGcmSessionCipher(keys)
+        val old = cipher.decrypt(disk.bytes!!).toString(Charsets.UTF_8).replace("\"version\":14", "\"version\":12").replace(",\"researchJournal\":null", "")
+        disk.bytes = cipher.encrypt(old.toByteArray())
+        val reopened = store(disk, keys)
+        assertEquals(message(), reopened.pending(identity))
+        assertNull(reopened.researchJournal(identity))
+        reopened.saveCredential(credential())
+        assertTrue(cipher.decrypt(disk.bytes!!).toString(Charsets.UTF_8).contains("\"version\":14"))
     }
 }

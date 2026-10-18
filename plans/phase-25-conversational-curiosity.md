@@ -1,6 +1,9 @@
 # Phase 25 — conversational curiosity and personal follow-up
 
-Status: **Proposed; planning only.** Inputs: 20 scorecard, 14/15 owner settings/
+Status: **A–E implemented in source; local checks and target limits in STATUS.**
+See [usage/architecture](../docs/CONVERSATIONAL-CURIOSITY.md) and
+[WORKLOG](WORKLOG.md) for actual runs and remaining verification.
+Inputs: 20 scorecard, 14/15 owner settings/
 continuity, 11 review, G-26/G-37.23 is preferred for relevance. Follow
 [shared rules](FUTURE-ROADMAP.md). The user wants all three channels: questions
 during chat, a later inbox, and occasional initiated conversations/notifications.
@@ -72,3 +75,42 @@ Exit with complete chat and inbox flows, inspectable personalization and reliabl
 topic/off controls. No scheduler, hidden profile, automatic endorsement or unsolicited
 external message is implemented by this phase. Physical notification checks stay
 deferred until a later selected validation window.
+
+
+## Implemented checkpoint boundary — 2026-10-17 America/Phoenix
+
+- **A:** default-off owner-global five-topic/depth/channel/cadence policy, per-topic
+  enable/pause/block, one companion per saved completed reply, owner-wide two/day
+  normal inbox quota and explicit ten/day interview bound (UTC). Permanent
+  question-type suppression,30day dedup, skip/not-now/dismiss without explanation.
+  Concise/explicit task focus and existing question marks suppress companions.
+  Server and encrypted client bounds reserve a final off slot.
+- **B:** existing answer first, then optional catalogue companion; generic label
+  or exact owner-selected original-source pin with uncertain wording. No model
+  inference selects a personal premise, reads unrelated private sources or grants
+  permission. Source ownership/scope/hash/span/time/current support validated
+  before display/context. Versioned budget-bound navigation preserves old prompts,
+  chat fingerprints and completed replay.
+- **C:** owner-only later inbox with reason/topic/policy/source/expiry/dedup and
+  explicit action controls. Atomic exact-ID opening creates a conversation with
+  no invented user message. Explicit answer stores only typed ordinary owner
+  text; same request replays without another user event or generation.
+- **D:** no automatic claim/preference/relationship profile; use existing explicit
+  review/settings. New three tables are private48-table erasure/60-table recovery
+  inventory. Scrubbed dismissed draft copies, disclosed metadata lifetime and
+  privacy-epoch/source/correction/consent fences. Restored curiosity is disabled
+  after exact row verification, requiring new owner opt-in.
+- **E:** typed ada-curiosity-v1 settings/question/receipt/source contract and
+  notifications=false capability. No timers, push, automatic conversation delivery
+  or chosen quiet hours; Phase27 still needs separate selection/fresh consent.
+
+0017 only; previous migrations/old prompts/locks remain.126paths/168schemas
+preserve all117old paths and155non-capability schemas. Android18/journalv14
+retains v1–v13 reads and exact encrypted queue recovery. A bounded catalogue is
+implemented, not a new conversational model or autonomous insight generator.
+
+Actual test counts, corrected failures, native/public-corpus and repeated emulator
+force-stop evidence are in STATUS/WORKLOG. Remaining independent helpfulness/
+premise quality, physical S24FE/Android16, accessibility/HTTPS/handover/soak and
+existing voice/G-41 gates are not closed by these local checks. No later phase or
+deployment; see [the runbook](../docs/CONVERSATIONAL-CURIOSITY.md).

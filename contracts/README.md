@@ -298,3 +298,51 @@ point-in-time retrieval, citation shapes and old trace schemas are unchanged.
 V4 stays default; v5 is explicit. Calendar resolution is `ada-time-window-v1` and
 retrieval is `ada-window-retrieval-v1`, with valid-time-overlap/current-recorded
 semantics. See [the quality policy](../docs/ANSWER-QUALITY-AND-MEMORY-RELEVANCE.md).
+
+## Phase24 additive public research contract
+
+Head0016 remains unchanged. Eight new path templates/nine methods and thirteen
+schemas export117paths/156schemas. All109earlier paths and142non-capability schema
+definitions are preserved exactly. `web_research` and `web_search` are optional
+capability fields defaulting to `disabled`; neither implies general internet permission.
+Old chat inputs, M/D/C labels, origin enums, snapshots and completed replay remain.
+
+ResearchCreate/Action/Approval use strict versioned bodies and exact UUID/preview
+hash bindings. ResearchOutput carries owner-scoped state, calls/receipts and W
+cards; WebSnapshotOutput returns saved text rather than refetching. W quote
+offsets are Unicode codepoints into SHA256-bound UTF-8 extraction, not bytes or
+UTF-16 indices. Search snippets cannot be used as W cards. All research responses
+use no-store and owner authentication. Failure/unknown GET never retries network
+effects. Saving a note uses the existing typed document-upload result and exact
+owner-provided upload/source UUIDs.
+
+The new HTTP tests exercise live synthetic SQLite/PostgreSQL responses and
+failure/race/recovery paths; they do not replace historical fixtures. Android
+uses typed DTOs and independently checks exact source hashes/spans. The existing
+web dashboard changes only generated contracts, with no new private research
+detail views. See [the runbook](../docs/SECURE-WEB-RESEARCH.md).
+
+
+## Phase25 curiosity contract
+
+Migration0017 adds three owned tables; source exports126paths/168schemas. All117
+earlier path definitions and155non-capability schema definitions remain exact.
+Only optional curiosity_protocol/curiosity_notifications capabilities are added.
+Chat inputs/options/fingerprints, old prompts, M/D/C/W schemas and completed
+replay stay unchanged. Curiosity defaults off for each owner; notifications false.
+
+ada-curiosity-v1 separates generated questions from factual evidence and ordinary
+chat events. Exact operation receipts bind the complete payload/UUID; source pins
+carry an original owner/scope/version/hash/Unicode span. Every follow-up requires
+current topic/depth/channel consent. Opening is atomic and creates no user message;
+answering reserves exact intent, commits, then uses ordinary chat outside the DB
+transaction. The typed text alone becomes a user statement. A completed answer
+with unfinished question bookkeeping returns reconcile_required for exact retry,
+without another generation. GET recovery never resubmits. No scheduled delivery,
+external message, auto-memory endorsement or new private admin view is added.
+
+Backup-v3/0017 adds reviewed60-table inventory and disables restored curiosity
+after original row verification. Old0015/v1 and0016/v2 formats retain compatibility
+and credential quarantine. New private content joins the48-table erasure graph.
+See [usage and limits](../docs/CONVERSATIONAL-CURIOSITY.md) for routes, retention,
+controls, actual local checks and remaining target verification.

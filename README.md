@@ -1,5 +1,20 @@
 # ADA
 
+Phase25 adds **opt-in conversational curiosity**: topic/depth/cadence controls,
+optional questions after replies, a private later inbox and explicit conversation
+opening/answers. No scheduler, notification or automatic factual memory is added.
+Current source requires **0017 / 60 tables**; curiosity stays off until each owner
+opts in. Read [CONVERSATIONAL-CURIOSITY](docs/CONVERSATIONAL-CURIOSITY.md) for usage,
+retention, recovery and validation limits. The live database/service and normal
+phone app were not migrated, installed or deployed during this implementation.
+
+Phase24 adds owner-approved public web research with a verified isolated Docker
+broker, exact outgoing-request previews, saved untrusted W citations and Android
+approval/recovery controls. It is **disabled by default**, stays on schema0016
+and has not been deployed. Read
+[SECURE-WEB-RESEARCH](docs/SECURE-WEB-RESEARCH.md) for setup, privacy boundaries,
+the Python documentation/Wikipedia pilot and remaining target checks.
+
 Phase23 adds explicit calendar-window memory exploration, clearer proposal review
 and an optional audited v5 context policy. New chats retain v4, semantic retrieval
 stays disabled and schema head remains0016. Read
@@ -46,9 +61,9 @@ are opt-in; content is retained until explicit owner deletion. One worker remain
 required. No application database migration or deployment is performed by a checkout.
 
 Future development proposals, starting at Phase 20, are in
-[the roadmap](plans/FUTURE-ROADMAP.md). Public web research,
-scheduled curiosity, idle reflection and new speech models are planned features,
-not current capabilities.
+[the roadmap](plans/FUTURE-ROADMAP.md). Approved public research and opt-in chat/
+inbox curiosity are implemented locally. Scheduled delivery, idle reflection and
+new speech models remain planned features.
 
 Phase 20's [release-readiness guide](docs/RELEASE-READINESS.md) covers the separate
 encrypted schema-0005 recovery tool, current recovery policy, frozen quality

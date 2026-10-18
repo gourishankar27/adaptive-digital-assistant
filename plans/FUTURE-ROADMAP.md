@@ -7,7 +7,11 @@ its client/configuration/local rehearsal work is implemented with explicit targe
 limits. Phase22 password/session source and separately authorized private setup
 are recorded in STATUS. Phase23 now has locally checked calendar windows,
 explicit v5 context upgrade/review controls and a public native comparison; v4
-remains default and semantic remains disabled. **Phases24–31 remain proposed;
+remains default and semantic remains disabled. Phase24 now implements locally
+verified, default-off owner-approved public research; installation and physical
+target gates remain separate. Phase25 now implements default-off topic/cadence
+controls, chat/inbox questions and explicit ordinary answers, with bounded local
+verification and separate target/quality gates in STATUS. **Phases26–31 remain proposed;
 this document does not authorize their
 implementation or deployment.**
 This review excludes physical-Android verification and iOS work. Their existing
@@ -42,8 +46,8 @@ These are planning choices, not consent to enable live schedules or notification
 | 21 | [Private-network connectivity](phase-21-private-network-connectivity.md) | Implemented client profiles/preflight/diagnostics and private-route templates; local rehearsals, actual enrollment/release HTTPS deferred | 20 transport audit; 18 authentication |
 | 22 | [Password login and sessions](phase-22-password-login-and-sessions.md) | Implemented: password/session source and isolated checks; live enrollment/installation and target gates separate | 20; 21 before remote use |
 | 23 | [Answer quality and memory relevance](phase-23-answer-quality-and-memory-relevance.md) | Implemented: explicit windows/review, measured optional v5 with regressions recorded; v4 default/semantic disabled | 20; existing 08–15 |
-| 24 | [Secure web research](phase-24-secure-web-research.md) | Approve an outgoing query/URL; receive a cited answer without exporting private context by default | 20, 12, 18; 21/22 for remote UX |
-| 25 | [Conversational curiosity](phase-25-conversational-curiosity.md) | ADA asks relevant optional follow-ups and remembers only through existing review | 20, 14/15; 23 preferred; no scheduler required |
+| 24 | [Secure web research](phase-24-secure-web-research.md) | Implemented default-off: isolated approved Python/Wikipedia pilot, saved W evidence and Android recovery; target limits in STATUS | 20, 12, 18; 21/22 for remote UX |
+| 25 | [Conversational curiosity](phase-25-conversational-curiosity.md) | Implemented opt-in: bounded chat/inbox questions, inspectable original pins and exact opening/answer recovery; no auto-memory or scheduler | 20, 14/15; 23 preferred; no scheduler required |
 | 26 | [Always-on operations and recovery](phase-26-always-on-operations-and-recovery.md) | One supervised server, automatic recovery, unattended encrypted backups and honest availability | 20; 21 for remote reachability; 18 |
 | 27 | [Durable scheduling and reminders](phase-27-durable-scheduling-and-reminders.md) | Consented schedules survive restart and produce deduplicated inbox items with correct timezone | 26 operational gate; 13/18; 22 for session integration |
 | 28 | [Idle reflection and dream review](phase-28-idle-reflection-and-dream-review.md) | Idle-only summaries, unresolved-thread reports and question drafts in an owner review view | 23, 25, 26, 27 |

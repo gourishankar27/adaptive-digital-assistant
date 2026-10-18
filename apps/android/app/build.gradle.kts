@@ -21,8 +21,8 @@ android {
         manifestPlaceholders["adaAppLabel"] = if (validationId == null) "ADA" else "ADA validation"
         minSdk = 26
         targetSdk = 36
-        versionCode = 16
-        versionName = "0.23.0-quality"
+        versionCode = 18
+        versionName = "0.25.0-curiosity"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

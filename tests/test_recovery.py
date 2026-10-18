@@ -63,7 +63,7 @@ def test_standalone_recovery_import_registers_entire_private_inventory():
         [
             sys.executable,
             "-c",
-            "from ada.inventory import content_tables; assert len(content_tables()) == 45",
+            "from ada.inventory import content_tables; assert len(content_tables()) == 48",
         ],
         capture_output=True,
         timeout=15,

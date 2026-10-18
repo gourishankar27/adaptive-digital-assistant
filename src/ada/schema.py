@@ -1,3 +1,3 @@
 """Supported schema revision; checked against Alembic's actual head by tests."""
 
-SCHEMA_HEAD = "0016"
+SCHEMA_HEAD = "0017"

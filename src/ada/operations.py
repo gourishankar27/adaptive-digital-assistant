@@ -212,8 +212,8 @@ def backup(url, pg_bin, destination, password, settings):
             with conn.begin():
                 conn.execute(text("SET TRANSACTION READ ONLY"))
                 head = conn.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
-                if head not in ("0015", "0016"):
-                    raise RecoveryError("Backup requires reviewed schema head 0015 or 0016")
+                if head not in ("0015", "0016", "0017"):
+                    raise RecoveryError("Backup requires reviewed schema head 0015, 0016 or 0017")
                 from ada.recovery_policy import validate_inventory
 
                 validate_inventory(head, inspect(conn).get_table_names(schema="public"))
@@ -232,9 +232,11 @@ def backup(url, pg_bin, destination, password, settings):
                     pg_environment(url),
                 )
                 manifest = {
-                    "format": "ada-postgres-backup-v2"
-                    if head == "0016"
-                    else "ada-postgres-backup-v1",
+                    "format": {
+                        "0015": "ada-postgres-backup-v1",
+                        "0016": "ada-postgres-backup-v2",
+                        "0017": "ada-postgres-backup-v3",
+                    }[head],
                     "head": head,
                     "snapshot_at": now_ms(),
                     "tables": inventory,
@@ -297,7 +299,11 @@ def unpack(payload):
         if (
             not isinstance(manifest, dict)
             or (manifest.get("format"), manifest.get("head"))
-            not in (("ada-postgres-backup-v1", "0015"), ("ada-postgres-backup-v2", "0016"))
+            not in (
+                ("ada-postgres-backup-v1", "0015"),
+                ("ada-postgres-backup-v2", "0016"),
+                ("ada-postgres-backup-v3", "0017"),
+            )
             or not isinstance(manifest.get("tables"), dict)
             or type(manifest.get("snapshot_at")) is not int
             or (hashlib.sha256(dump).hexdigest() != manifest.get("dump_sha256"))
@@ -373,7 +379,7 @@ def restore(url, pg_bin, target_database, artifact, ledger_path, password):
                 text("UPDATE device_credentials SET revoked_at=COALESCE(revoked_at, :now)"),
                 {"now": now_ms()},
             )
-            if manifest["head"] == "0016":
+            if manifest["head"] in ("0016", "0017"):
                 conn.execute(text("UPDATE password_credentials SET verifier=NULL"))
                 conn.execute(
                     text("UPDATE login_sessions SET revoked_at=COALESCE(revoked_at, :now)"),
@@ -382,13 +388,23 @@ def restore(url, pg_bin, target_database, artifact, ledger_path, password):
         if restored_inventory != manifest["tables"]:
             raise RecoveryError("Restored row hashes/counts differ; credentials quarantined")
         with engine.begin() as conn:
+            if manifest["head"] == "0017":
+                # Restored consent is not authority to resume offering questions.
+                # Verify original hashes first, then require fresh owner opt-in.
+                conn.execute(
+                    text(
+                        "UPDATE curiosity_policies SET settings=jsonb_set(settings::jsonb, '{enabled}', 'false')::json, revision=revision+1, updated_at=:now"
+                    ),
+                    {"now": now_ms()},
+                )
             for entry in ledger["owners"]:
                 epoch = conn.execute(
                     text("SELECT data_epoch FROM users WHERE id=:owner"), {"owner": entry["id"]}
                 ).scalar_one_or_none()
                 if epoch is not None and epoch < entry["data_epoch"]:
                     for table in content_tables():
-                        conn.execute(table.delete().where(table.c.owner_id == entry["id"]))
+                        if table.name in manifest["tables"]:
+                            conn.execute(table.delete().where(table.c.owner_id == entry["id"]))
                     conn.execute(
                         text("DELETE FROM deletion_previews WHERE owner_id=:owner"),
                         {"owner": entry["id"]},

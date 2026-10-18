@@ -68,6 +68,12 @@ sealed interface ApiFailure {
 
 /** Typed owner-authenticated ADA routes; clients never access the provider or database. */
 interface AdaApi {
+    suspend fun curiosityPolicy(connection: ConnectionCredential): ApiResult<CuriosityPolicyDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun curiosityQuestion(connection: ConnectionCredential, question: UUID): ApiResult<CuriosityQuestionDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun curiosityQuestions(connection: ConnectionCredential, scope: UUID): ApiResult<List<CuriosityQuestionDto>> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun curiosityConversation(connection: ConnectionCredential, conversation: UUID): ApiResult<List<CuriosityQuestionDto>> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun curiosityReceipt(connection: ConnectionCredential, operation: UUID): ApiResult<CuriosityReceiptDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun curiosityWrite(connection: ConnectionCredential, operation: CuriosityPending): ApiResult<CuriosityReceiptDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
     suspend fun changePassword(connection: ConnectionCredential, old: String, replacement: String): ApiResult<AuthAcknowledgementDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
     suspend fun passwordLogin(server: String, username: String, password: String, allowDebugHttp: Boolean): ApiResult<PasswordSessionDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
     suspend fun refreshLogin(server: String, refresh: String, allowDebugHttp: Boolean): ApiResult<PasswordSessionDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
@@ -136,6 +142,11 @@ interface AdaApi {
     suspend fun createPersonality(connection: ConnectionCredential, body: PersonalityInputDto): ApiResult<PersonalityDto>
     suspend fun createConversation(connection: ConnectionCredential, body: ConversationInputDto): ApiResult<ConversationDto>
     suspend fun upgradePrompt(connection: ConnectionCredential, id: UUID): ApiResult<PromptUpgradeDto>
+    suspend fun createResearch(connection: ConnectionCredential, conversation: UUID, body: String): ApiResult<ResearchRunDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun researchRun(connection: ConnectionCredential, id: UUID): ApiResult<ResearchRunDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun researchOperation(connection: ConnectionCredential, id: UUID, operation: ResearchOperation): ApiResult<ResearchRunDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun saveResearchNote(connection: ConnectionCredential, id: UUID, body: String): ApiResult<DocumentUploadDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun researchSource(connection: ConnectionCredential, id: UUID, receipt: UUID): ApiResult<WebSnapshotDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
     suspend fun upgradeQualityPrompt(connection: ConnectionCredential, id: UUID): ApiResult<PromptUpgradeDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
     suspend fun retrieveWindow(connection: ConnectionCredential, scope: UUID, body: WindowRetrieveInputDto): ApiResult<WindowRetrievalDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
     suspend fun send(connection: ConnectionCredential, conversation: UUID, body: ChatInputDto): ApiResult<RequestDto>
@@ -424,6 +435,20 @@ class HttpAdaApi(callTimeoutMillis: Long = 65_000) : AdaApi {
     override suspend fun createPersonality(connection: ConnectionCredential, body: PersonalityInputDto) = call<PersonalityDto>(connection, "personalities", adaJson.encodeToString(body))
     override suspend fun createConversation(connection: ConnectionCredential, body: ConversationInputDto) = call<ConversationDto>(connection, "conversations", adaJson.encodeToString(body))
     override suspend fun upgradePrompt(connection: ConnectionCredential, id: UUID) = call<PromptUpgradeDto>(connection, "conversations/$id/prompt-upgrade", "{}")
+    override suspend fun createResearch(connection: ConnectionCredential, conversation: UUID, body: String) = call<ResearchRunDto>(connection, "conversations/$conversation/research-runs", body)
+    override suspend fun curiosityPolicy(connection: ConnectionCredential) = call<CuriosityPolicyDto>(connection, "curiosity/policy")
+    override suspend fun curiosityQuestion(connection: ConnectionCredential, question: UUID) = call<CuriosityQuestionDto>(connection, "curiosity/questions/$question")
+    override suspend fun curiosityQuestions(connection: ConnectionCredential, scope: UUID) = call<List<CuriosityQuestionDto>>(connection, "scopes/$scope/curiosity/questions")
+    override suspend fun curiosityConversation(connection: ConnectionCredential, conversation: UUID) = call<List<CuriosityQuestionDto>>(connection, "conversations/$conversation/curiosity/questions")
+    override suspend fun curiosityReceipt(connection: ConnectionCredential, operation: UUID) = call<CuriosityReceiptDto>(connection, "curiosity/receipts/$operation")
+    override suspend fun curiosityWrite(connection: ConnectionCredential, operation: CuriosityPending) = call<CuriosityReceiptDto>(connection, curiosityPath(operation), operation.body)
+    override suspend fun researchRun(connection: ConnectionCredential, id: UUID) = call<ResearchRunDto>(connection, "research-runs/$id")
+    override suspend fun researchOperation(connection: ConnectionCredential, id: UUID, operation: ResearchOperation): ApiResult<ResearchRunDto> {
+        if (operation.kind !in setOf("approve", "cancel", "answer", "calls")) return ApiResult.Failure(ApiFailure.Validation)
+        return call(connection, "research-runs/$id/${operation.kind}", operation.body)
+    }
+    override suspend fun saveResearchNote(connection: ConnectionCredential, id: UUID, body: String) = call<DocumentUploadDto>(connection, "research-runs/$id/save-note", body)
+    override suspend fun researchSource(connection: ConnectionCredential, id: UUID, receipt: UUID) = call<WebSnapshotDto>(connection, "research-runs/$id/sources/$receipt")
     override suspend fun upgradeQualityPrompt(connection: ConnectionCredential, id: UUID) = call<PromptUpgradeDto>(connection, "conversations/$id/quality-upgrade", "{}")
     override suspend fun retrieveWindow(connection: ConnectionCredential, scope: UUID, body: WindowRetrieveInputDto) = call<WindowRetrievalDto>(connection, "scopes/$scope/retrieve-window", adaJson.encodeToString(body))
     override suspend fun send(connection: ConnectionCredential, conversation: UUID, body: ChatInputDto): ApiResult<RequestDto> {

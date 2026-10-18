@@ -89,15 +89,21 @@ CURRENT_0016_TABLES = CURRENT_0015_TABLES | {
     "login_sessions",
     "refresh_verifiers",
 }
+CURRENT_0017_TABLES = CURRENT_0016_TABLES | {
+    "curiosity_policies",
+    "curiosity_questions",
+    "curiosity_receipts",
+}
 SUPPORTED_TABLES = {
     "0005": LEGACY_0005_TABLES,
     "0015": CURRENT_0015_TABLES,
     "0016": CURRENT_0016_TABLES,
+    "0017": CURRENT_0017_TABLES,
 }
 
 
 def validate_inventory(head, names):
     if head not in SUPPORTED_TABLES or set(names) != SUPPORTED_TABLES[head]:
         raise RecoveryError("Schema inventory is not covered by a reviewed recovery policy")
-    if head in ("0015", "0016"):
+    if head in ("0015", "0016", "0017"):
         content_tables()  # An unclassified new owner model must also fail closed.

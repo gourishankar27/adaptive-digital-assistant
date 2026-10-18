@@ -3,6 +3,7 @@
 from ada import (  # noqa: F401
     agent_models,
     consolidation_models,
+    curiosity_models,
     embedding_models,
     entity_models,
     expression_models,
@@ -29,6 +30,9 @@ CONTENT_TABLES = (
     "consolidation_sources",
     "conversation_prompt_changes",
     "conversations",
+    "curiosity_policies",
+    "curiosity_questions",
+    "curiosity_receipts",
     "document_chunks",
     "document_search",
     "document_uploads",

@@ -4,6 +4,7 @@ from sqlalchemy import create_engine, pool
 from ada import (  # noqa: F401
     agent_models,
     consolidation_models,  # noqa: F401
+    curiosity_models,
     embedding_models,
     entity_models,
     expression_models,

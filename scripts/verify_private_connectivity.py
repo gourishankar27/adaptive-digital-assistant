@@ -22,6 +22,7 @@ from ada.admin import set_admin_grant
 from ada.auth import create_user
 from ada.config import Settings
 from ada.db import connect
+from ada.schema import SCHEMA_HEAD
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -128,7 +129,7 @@ def exercise(origin, context, token, other_token):
     with httpx.Client(
         base_url=origin, verify=context, trust_env=False, timeout=10, follow_redirects=False
     ) as c:
-        assert c.get("/health/ready").json() == {"status": "ready", "schema": "0016"}
+        assert c.get("/health/ready").json() == {"status": "ready", "schema": SCHEMA_HEAD}
         assert c.get("/v1/me").status_code == 401
         assert (
             c.get(

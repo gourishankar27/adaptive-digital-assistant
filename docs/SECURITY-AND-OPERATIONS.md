@@ -1,5 +1,12 @@
 # Security, retention and recovery
 
+Phase25 extends source to **0017 / 60 tables**,48owner-content tables and reviewed
+backup-v3. Old0015/v1 and0016/v2 restore remain supported. Restore disables curiosity
+after original row verification, in addition to quarantining credentials. See
+[the current policy](CONVERSATIONAL-CURIOSITY.md). Existing command forms remain;
+no live backup/restore/erasure/migration was run in Phase25.
+
+
 ## Phase22 extension
 
 Current head0016 adds password_credentials, login_sessions and refresh_verifiers

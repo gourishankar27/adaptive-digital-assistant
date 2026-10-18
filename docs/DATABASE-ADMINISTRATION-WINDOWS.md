@@ -1,5 +1,11 @@
 # ADA database administration on Windows
 
+Current Phase25 source adds **0017 / 60 tables** and backup-v3; old0015/v1 and
+0016/v2 recovery remain supported. See [curiosity](CONVERSATIONAL-CURIOSITY.md).
+Apply migrations only during a separately authorized installation; this phase did
+not access or change the application database. Earlier installation counts are historical.
+
+
 ## Current Phase22 schema and account update
 
 Source head is0016; the earlier live0015 check below is dated historical evidence.

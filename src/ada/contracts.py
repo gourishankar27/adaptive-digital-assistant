@@ -24,6 +24,10 @@ class UserOutput(BaseModel):
 
 
 class CapabilitiesOutput(BaseModel):
+    curiosity_protocol: str = "disabled"
+    curiosity_notifications: bool = False
+    web_research: str = "disabled"
+    web_search: str = "disabled"
     answer_quality: str = "unsupported"
     calendar_windows: str = "unsupported"
     quality_prompt_version: str | None = None
