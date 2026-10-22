@@ -558,3 +558,142 @@ new GPU worker/budget, and one Uvicorn worker. Planning all channels is not live
 notification consent. Existing admin views remain unchanged; only owners see
 question/feedback metrics. Small public/native/emulator evidence is not real
 owner-rated usefulness or release reliability. Stop at Phase25; no deployment.
+
+## 2026-10-19 — Phase 26: owner-logon supervision and independent key recovery
+
+Use native Windows Task Scheduler with InteractiveToken/LeastPrivilege for the
+selected plugged-in laptop. A boot trigger cannot start login-dependent Docker
+Desktop or prove provider GPU access. Keep pre-logon service setup as a separate
+measured target. The supervisor owns only its API and optional pinned loopback
+proxy; external Ollama/PostgreSQL remain operator-managed dependencies. Supported
+foreground and supervised API entries share kernel/database admission ownership.
+The advisory lock is session-scoped and committed before inference.
+
+Keep local configuration, fixed receipts and DPAPI blobs in an owner/SYSTEM-only
+installation directory, outside the private database recovery inventory. No new
+durable operation table, migration, API or archive version is needed. Current-user
+DPAPI supplies unattended access without a plaintext scheduler/env secret. A
+separately passphrase-encrypted portable key capsule provides independent recovery
+after losing that Windows profile; a copied DPAPI blob alone cannot do so.
+
+Reuse the existing consistent encrypted snapshot, independent erasure ledger and
+credential quarantine. Verify before advancing recovery receipts; no pruning or
+retention change. Refresh the encrypted erasure ledger independently of model
+work. Daily backup/26-hour alert are initial proposals pending representative
+RPO/RTO measurements. One narrow OS backup trigger can later be reused/replaced
+by Phase27; this phase adds neither that general scheduler nor dreaming.
+
+Native isolated rehearsals and the authorized four-hour development soak are
+distinct from installation, reboot/sleep, off-device recovery and a24-hour trial.
+No production tasks or host policy were applied by this implementation.
+
+The first long development attempt failed early. Native failure injection then
+confirmed that an ordinary Windows metadata reader can deny atomic replacement.
+Use unique receipt temporary files and a bounded3-second sharing retry, preserving
+the previous complete receipt on persistent failure. Keep safe stage/counter/error
+type diagnostics in the rehearsal so a later failure does not erase its evidence.
+A short corrected fault test does not substitute for the still-open four-hour gate.
+
+## 2026-10-19 — Phase27: reviewed schedules and foreground inbox delivery
+
+Phase26's separately authorized continuous rerun subsequently passed its four-hour
+development gate; installed-host and sustained native-inference gates stay separate.
+Use that source prerequisite without installing a task or changing the live service.
+One lightweight API-owned dispatcher handles only typed reminders and existing
+catalogue questions; retain the OS backup trigger as its sole backup owner. No
+reflection handler, external-person message or model/GPU daemon is introduced.
+
+Choose authenticated foreground in-app polling for this phase. No cloud wake-up
+provider, device registration, notification permission or lock-screen text is
+enabled. Durable inbox acknowledgement is at-least-once transport recovery, never
+proof of delivery/read or exactly-once push. Opening explicitly creates/resumes an
+owned conversation with no user message or automatic inference.
+
+Pin tzdata2026.5 across operating systems and save finite reviewed UTC plans.
+Require explicit fold/gap decisions, same-day allowed hours, expiry and latest-only
+catch-up. Keep reviewed-plan generations distinct from execution generations so
+edit/snooze after a backward clock step cannot skip a new plan. Enforce independent
+durable owner grants and current metadata authority before private background reads,
+then recheck before publication. Session logout/refresh differs intentionally from
+device revocation/password reset/all-session stop. Owner consent/global dispatch
+default off; turning consent on alone does not reactivate paused schedules.
+
+Add unreleased0018 and five private tables to full owner-content erasure and
+versioned backup-v4. Verify original backup hashes before restore quarantine;
+preserve old formats and released migrations. Bound retained schedules/occurrences/
+inbox/receipts and exact encrypted client operations; reserve an off slot and fail
+closed at capacity. No implicit pruning or factual-memory extraction is added.
+Admin sees only fixed aggregate state/error metadata through the existing grant/
+audit boundary. Actual local checks and remaining device/host limits are in STATUS.
+
+Final review reproduced representable-date overflow through both database/API
+fixtures. Normalize calendar arithmetic/offset overflow to the existing422
+calendar-validation result without reserving an operation. A supervised wiring
+test also exposed an unnecessary provider/quiet-period dependency inherited from
+the consolidation gate. Inbox/catalogue publication now has its own fresh-DB/
+resource gate; existing inference/consolidation health and quiet gates remain.
+These bounded corrections follow the frozen full run and have a separate final
+scheduling/host regression record rather than being attributed to that earlier run.
+
+
+## 2026-10-21 — Phase28: bounded review jobs and a smaller initial job set
+
+Reuse the Phase27 dispatcher and Phase13 worker/admission slot. Idle means
+absence of authenticated ADA foreground activity, not screen/keyboard monitoring.
+Use the existing host observer's fresh measurements; never run a potentially slow
+sensor subprocess inside an owner transaction or while reserving inference.
+Unknown safety skips work. Recheck durable origin consent, epoch, policy and
+source metadata before private payload and before publication. Charge reserved
+unit time conservatively; hard UTC-day caps survive timezone changes/restart.
+
+Initial enabled classes are rule-based reports and existing catalogue question
+drafts. They create no factual claim, preference, source correction, automatic
+proposal or external action. Generated episode support reuses Phase13 schema and
+Keep, but model summaries stay separately disabled: a public native adapter
+cancellation return is not proof of server GPU cancellation, useful summaries or
+acceptable foreground inference interference. The plan explicitly permits a
+smaller job set when capacity evidence is inadequate. Do not bypass safety rows.
+
+Deterministic source-set/policy/kind IDs exclude transient day/revision values;
+unordered policy choices are canonicalized. Old attempt/lease outputs are fenced,
+finite retry preserves IDs, and capacity suspends visibly rather than pruning
+retained history. New private tables join explicit erasure/backup-v5; restore
+pauses grants/queues and invalidates model attestation. Non-content provider
+suspension survives owner erasure. Admin receives fixed aggregate metadata only.
+Android journals exact operations before HTTP, retains old formats, and restores
+with GET receipts only. Earlier prompts/replays/migrations remain unchanged.
+
+
+Final review keeps owner-wide question-template metadata in the private artifact
+row even when its text is discarded, with a native uniqueness backstop. It joins
+owner erasure/backup and exposes no new admin/private text. Opening compares the
+created catalogue question to the reviewed draft and rolls back on change.
+A post-selection foreground check stops dispatch, running reflection joins the
+existing deletion quiescence guard, and provider metadata streaming obeys the
+same cancellation/deadline budget. These late corrections have a separate
+post-broad-run validation record; the full-suite result is not relabeled.
+
+
+## 2026-10-22 — Phase30 explicit work and deterministic briefs
+
+The owner selected balanced personal commitments and development projects.
+Explicit structured goals/tasks are owner commitments with immutable revisions,
+not claims or retrieval evidence. Requested chat Save starts a blank editor and
+pins the original generated reply; review does not change its trust. Due dates
+are calendar metadata and never imply completion or a scheduled event.
+
+The first project/day brief deterministically projects selected task revisions,
+changed field names, due grouping, overdue/unknown state and reauthorized original
+pins. This satisfies the selected-work outcome without a new synthesis authority,
+provider call or background process. T-labels navigate work; immutable chat replay
+and factual citations stay separate. Calendar rule versions and resolved instants
+bind preview/cache, and snapshot flags retain their original calendar interpretation.
+
+All work writes are exact owner-reviewed operations with encrypted client recovery.
+Existing owner/scope locks fence revisions; restore includes the new inventory and
+quarantines automation. Optional25 question drafts and27 reminder confirmation use
+existing consent, never a tool inference. Editing work pauses its linked question
+and reminder; generic schedule reauthorization cannot revive completed work.
+Admin remains monitoring only. New head0020 and backup-v6 preserve earlier released
+migrations/formats. Human usefulness/physical accessibility remain verification
+items, not fabricated acceptance results. Phase31 is outside this implementation.

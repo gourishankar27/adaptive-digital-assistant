@@ -1,5 +1,49 @@
 # ADA Android chat, memory, tools, episodes and interaction learning (Phase 17)
 
+Phase30 app24 /0.30.0-work adds **Projects & next actions** from the chat menu and
+Settings, plus requested **Save next action** on completed replies. Goals/tasks,
+source review, revision history, project/day briefs and separately consented
+questions/reminders use authenticated HTTP. Capability `ada-work-v1` gates the UI;
+server schema0020 is required. Journal17 reads v1–v16 and encrypts exact work
+operations before POST; restart checks only GET receipts. No direct provider/DB
+access, inferred commitments or background push. See
+[usage, limits and separate validation APK commands](../../docs/PROJECTS-AND-FOLLOW-THROUGH.md).
+Physical layout/TalkBack and human usefulness remain separate target checks.
+
+Phase29 app23/0.29.0-speech-study adds **Engine & model details** and an explicit
+public **Preview voice** under the microphone controls. Platform ASR/offline TTS
+remain; no candidate runtime/model/importer is enabled. The pure manifest checker
+verifies pinned metadata/bytes without installation or activation. Default voice
+selection requires an en-US match or an explicit voice choice. Journal16 and all
+authenticated HTTP contracts are unchanged. See
+[study, usage and isolated validation commands](../../docs/NATURAL-LOCAL-SPEECH.md).
+S24 FE quality/resource/focus/permission measurements remain pending; no normal
+phone installation or deployment is included.
+
+
+Phase28 adds **While you were away** (Settings/chat menu), source-aware report and
+question review, explicit Keep/Discard/Open, policy/source/time/resource choices
+and encrypted journal16 exact recovery (v1–v15 readable). App22/0.28.0-reflection
+uses authenticated ADA HTTP only. Model summary generation is disabled. See
+[the guide](../../docs/IDLE-REFLECTION-AND-DREAM-REVIEW.md) and root STATUS/WORKLOG
+for actual emulator checks and remaining physical/quality gates. No normal phone
+installation is part of this change.
+
+
+## Phase27 reminders and inbox
+
+App21/0.27.0-scheduling adds **Reminders & inbox** under chat menu/Settings:
+explicit owner consent, owned scopes, once/daily/weekly editor, DST/quiet-hour
+preview and confirmation, pause/edit/snooze/delete/reauthorize, paged receipts and
+inbox acknowledgement/opening. Opening never submits a user turn. Journal15
+preserves v1–v14 and exact pending operations before POST; restart checks with GET
+only, with explicit original retry. Late identity/scope/page callbacks are fenced.
+Polling runs while foregrounded; no push provider, notification permission or
+background delivery service is added. Global dispatch and owner consent default
+off. See [usage and isolated emulator validation](../../docs/DURABLE-SCHEDULING-AND-REMINDERS.md).
+Normal app installation and physical verification were not part of implementation.
+Earlier version summaries below retain their original evidence boundaries.
+
 ## ADA Ambient Intelligence presentation
 
 App19/0.25.1-ambient redesigns the existing Compose UI without changing routes,
@@ -84,14 +128,17 @@ contrast. Each palette has matching light and dark colors:
 
 | Palette | Base color | Default |
 | --- | --- | --- |
-| Oxford Blue | `#002147` | Yes |
+| ADA Ambient | `#8A6CFF` | Yes |
+| Oxford Blue | `#002147` | No |
 | Dark Red | `#350616` | No |
 | Olive Green | `#3C4C24` | No |
 
 The **Dark mode** switch works with every palette. The palette and dark-mode
 choice are saved locally across app restarts; new installations start with
-Oxford Blue in light mode. An absent or unrecognized palette key falls back to
-Oxford Blue. Appearance preferences contain only the palette key and a boolean;
+ADA Ambient in dark mode. An absent or unrecognized palette key falls back to
+ADA Ambient. Follow system appearance is optional; existing explicit palette/mode
+choices stay unchanged. Reduce ambient motion supplements the system animation
+setting. Appearance preferences contain only palette/mode/motion settings;
 credentials and ADA data remain outside this store. Android backups stay disabled.
 Colors use [Material 3 semantic roles](https://developer.android.com/develop/ui/compose/designsystems/material3)
 and do not follow dynamic wallpaper colors, so the selected palette remains consistent.

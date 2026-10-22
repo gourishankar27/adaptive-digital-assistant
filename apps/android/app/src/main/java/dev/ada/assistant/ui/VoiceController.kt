@@ -1,6 +1,7 @@
 package dev.ada.assistant.ui
 
 import dev.ada.assistant.data.*
+import dev.ada.assistant.audio.*
 import java.util.UUID
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -9,7 +10,9 @@ import kotlinx.coroutines.flow.asStateFlow
 enum class SpeechAvailability { Available, UnsupportedDevice, NoMicrophone, NoEngine }
 enum class VoicePhase { Idle, Permission, Checking, Recording, Transcribing, Review, Denied, Interrupted, Unavailable, Error }
 data class SpeechVoice(val id: String, val label: String, val language: String)
+const val VOICE_PREVIEW_TEXT = "The blue notebook is beside the green cup. Tomorrow, we can explore a new idea together."
 interface SpeechCapture {
+    val adapterInfo: SpeechAdapterInfo get() = SpeechAdapterInfo(PLATFORM_ASR_ADAPTER, SpeechTask.Asr)
     val availability: SpeechAvailability
     val version: String
     fun start(language: String, listener: CaptureListener)
@@ -24,12 +27,14 @@ interface CaptureListener {
     fun failed(code: String)
 }
 interface SpeechPlayback {
+    val adapterInfo: SpeechAdapterInfo get() = SpeechAdapterInfo(PLATFORM_TTS_ADAPTER, SpeechTask.Tts)
     fun initialize(ready: (List<SpeechVoice>) -> Unit)
     fun play(text: String, voice: String, speed: Float, finished: (String?) -> Unit)
     fun stop()
     fun close()
 }
 data class VoiceState(val enabled: Boolean = false, val availability: SpeechAvailability = SpeechAvailability.NoEngine,
+    val captureAdapter: SpeechAdapterInfo? = null, val playbackAdapter: SpeechAdapterInfo? = null,
     val phase: VoicePhase = VoicePhase.Idle, val durationMs: Long = 0,
     val language: String = "en-US", val draft: VoiceDraft? = null,
     val savedDraftConversation: UUID? = null, val savedDraftTranscript: UUID? = null,
@@ -61,15 +66,16 @@ class VoiceController(private val api: AdaApi, private val store: SessionStore,
     private fun current(e: Long, s: Long) = e == epoch && s == selection && identity != null
     fun attachAudio(recorder: SpeechCapture, player: SpeechPlayback) {
         detachAudio(); input = recorder; output = player
-        update { it.copy(availability = recorder.availability) }
+        update { it.copy(availability = recorder.availability, captureAdapter = recorder.adapterInfo, playbackAdapter = player.adapterInfo) }
         val key = audioKey
-        player.initialize { voices -> if (key == audioKey) update { it.copy(voices = voices, voiceId = voices.firstOrNull { v -> v.language == it.language }?.id ?: voices.firstOrNull()?.id) } }
+        player.initialize { voices -> if (key == audioKey) update { it.copy(voices = voices, voiceId = voices.firstOrNull { v -> v.language.equals(it.language, true) }?.id) } }
     }
-    fun detachAudio() { audioKey++; interruptCapture(); stopPlayback(); input?.close(); output?.close(); input = null; output = null; update { it.copy(voices = emptyList(), voiceId = null, availability = SpeechAvailability.NoEngine) } }
+    fun detachAudio() { audioKey++; interruptCapture(); stopPlayback(); input?.close(); output?.close(); input = null; output = null; update { it.copy(voices = emptyList(), voiceId = null, captureAdapter = null, playbackAdapter = null, availability = SpeechAvailability.NoEngine) } }
     fun reset() {
         epoch++; selection++; recoveryNeeded = false; saver?.cancel(); interruptCapture(); stopPlayback(); connection = null; identity = null
         conversation = null; scopeId = null; visible = false; pending = false
         mutable.value = VoiceState(availability = input?.availability ?: SpeechAvailability.NoEngine,
+            captureAdapter = input?.adapterInfo, playbackAdapter = output?.adapterInfo,
             voices = state.value.voices, voiceId = state.value.voiceId)
     }
     fun setVerifiedSession(c: ConnectionCredential, verified: SessionIdentity, features: CapabilitiesDto) {
@@ -240,6 +246,16 @@ class VoiceController(private val api: AdaApi, private val store: SessionStore,
     fun language(tag: String) { if (!captureActive && state.value.draft == null) update { it.copy(language = tag, fault = null) } }
     fun selectVoice(id: String) { if (state.value.voices.any { it.id == id }) { stopPlayback(); update { it.copy(voiceId = id) } } }
     fun speed(value: Float) { if (value in setOf(0.75f,1f,1.25f,1.5f)) { stopPlayback(); update { it.copy(speed = value) } } }
+    /** Public, fixed sample only: no HTTP request, microphone, draft or saved reply. */
+    fun previewVoice() {
+        val player = output ?: return; val selected = state.value.voiceId ?: return
+        if (identity == null || !visible || !foreground || captureActive) return
+        stopPlayback(); val key = playbackKey; val e = epoch; val s = selection
+        update { it.copy(playing = true, notice = "Previewing the selected installed voice with a public sample. Nothing is sent or saved.") }
+        player.play(VOICE_PREVIEW_TEXT, selected, state.value.speed) { error ->
+            if (current(e,s) && key == playbackKey) update { it.copy(playing = false, notice = if (error == null) "Voice preview finished" else "Voice preview stopped. Text remains available; choose an installed voice or try again.") }
+        }
+    }
     fun play(request: UUID) {
         val c = connection ?: return; val cid = conversation ?: return; val player = output ?: return
         val selected = state.value.voiceId ?: return

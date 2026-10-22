@@ -26,7 +26,7 @@ class CuriosityUiHttpTest {
         ConnectionCredential.parse(origin(), login.access_token, true)!!
     }
     @Test fun curiosityPrepareBeforeProcessStop() {
-        assumeTrue(compose.activity.packageName in setOf("dev.ada.validation.phase25.debug", "dev.ada.validation.redesign.debug"))
+        assumeTrue(compose.activity.packageName in setOf("dev.ada.validation.phase25.debug", "dev.ada.validation.redesign.debug", "dev.ada.validation.designgaps.debug"))
         val api = HttpAdaApi(); val conn = connection(api)
         val conversation = runBlocking {
             val p = success(api.createPersonality(conn, PersonalityInputDto(name = "Curiosity validation")))
@@ -77,7 +77,7 @@ class CuriosityUiHttpTest {
         }
     }
     @Test fun curiosityRestoreAfterProcessStop() {
-        assumeTrue(compose.activity.packageName in setOf("dev.ada.validation.phase25.debug", "dev.ada.validation.redesign.debug"))
+        assumeTrue(compose.activity.packageName in setOf("dev.ada.validation.phase25.debug", "dev.ada.validation.redesign.debug", "dev.ada.validation.designgaps.debug"))
         val vm = ViewModelProvider(compose.activity)[ChatViewModel::class.java]
         compose.waitUntil(30000) { vm.state.value.account != null && vm.curiosity.state.value.pending.isEmpty() && vm.curiosity.state.value.receipts.values.any { it.action == "action" && it.state == "completed" } }
         val receipt = vm.curiosity.state.value.receipts.values.single { it.action == "action" }

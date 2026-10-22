@@ -208,7 +208,45 @@ def main():
                 # Explicit disposable client fixture; production never falls back to this.
                 settings = settings.model_copy(update={"provider": "fake"})
                 provider = FakeProvider()
+            if os.environ.get("ADA_WEB_TEST_VOICE_FIXTURE") == "1":
+                # Phase29 only: deterministic streaming for reviewed voice HTTP checks.
+                from client_test_server import AndroidChatProvider
+
+                settings = settings.model_copy(update={"provider": "fake"})
+                provider = AndroidChatProvider()
+            if os.environ.get("ADA_WEB_TEST_DESIGN_FIXTURE") == "1":
+                from client_test_server import AndroidChatProvider, seed_android_chat
+
+                seed_android_chat(sessions, OWNERS[0])
+                settings = settings.model_copy(
+                    update={
+                        "provider": "fake",
+                        "device_enrollment_enabled": True,
+                        "deletion_worker_enabled": True,
+                        "web_operator_contact": "https://example.test/ada-validation",
+                    }
+                )
+                provider = AndroidChatProvider()
             app = create_app(settings, provider, sessions)
+            if os.environ.get("ADA_WEB_TEST_WORK_FIXTURE") == "1":
+                from work_test_fixture import enable_work_fixture
+
+                enable_work_fixture(app)
+            if os.environ.get("ADA_WEB_TEST_REFLECTION_FIXTURE") == "1":
+                from reflection_test_fixture import enable_reflection_fixture
+
+                enable_reflection_fixture(app)
+            if os.environ.get("ADA_WEB_TEST_SCHEDULING_FIXTURE") == "1":
+                from scheduling_test_fixture import enable_scheduling_fixture
+
+                enable_scheduling_fixture(app)
+            if os.environ.get("ADA_WEB_TEST_DESIGN_FIXTURE") == "1":
+                from client_test_server import AndroidAgentProvider, AndroidProposalExtractor
+                from research_test_fixture import enable_research_fixture
+
+                app.state.agents.provider = AndroidAgentProvider()
+                app.state.proposals.provider = AndroidProposalExtractor()
+                enable_research_fixture(app)
             if os.environ.get("ADA_WEB_TEST_RESEARCH_FIXTURE") == "1":
                 from research_test_fixture import enable_research_fixture
 

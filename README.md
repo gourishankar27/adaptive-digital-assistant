@@ -1,5 +1,54 @@
 # ADA
 
+Phase30 adds **Projects & next actions**: explicit owner/scoped goals and tasks,
+exact Save review from chat, immutable revisions, balanced selected-work briefs,
+and separately consented questions/reminders. A due date never implies completion
+or scheduling. Source requires **0020 / 74 tables**, owner-content61 and encrypted
+backup-v6 (older formats remain readable). Android24 /0.30.0-work uses encrypted
+journal17 and GET-only recovery; no private task reader was added to admin.
+See [the usage/developer guide](docs/PROJECTS-AND-FOLLOW-THROUGH.md) and dated
+[verification record](plans/STATUS.md). No installed database/app/service upgrade
+or deployment occurred; Phase31 remains planned.
+
+Phase29 adds a [local speech study and contract](docs/NATURAL-LOCAL-SPEECH.md),
+explicit public voice preview and engine/model status. Platform on-device ASR and
+offline TTS remain active; no new model/runtime is installed or selected. The
+manifest byte checker does not install or activate models. Physical S24 FE quality,
+resource and native focus/permission gates remain open. Server contracts, schema0019
+and encrypted journal16 are unchanged; no deployment is included.
+
+Phase28 adds **While you were away**: explicitly consented, source-pinned idle
+reports and optional catalogue question drafts, with exact owner review/recovery.
+Global work defaults off. Model summary support has a separate disabled safety
+and usefulness gate; the initial job set performs no background GPU inference.
+Current source requires **0019 /70 tables**, owner-content inventory57 and
+backup-v5 (old formats remain readable). Read
+[IDLE-REFLECTION-AND-DREAM-REVIEW](docs/IDLE-REFLECTION-AND-DREAM-REVIEW.md) for setup,
+resource budgets, privacy, review, retention and remaining verification. This
+source change does not migrate the live database, update the normal phone app or
+deploy. Earlier phase summaries below retain their milestone boundaries.
+
+Phase27 adds reviewed private reminders, bounded timezone schedules, durable
+inbox delivery and explicit conversation opening. Dispatch and owner consent are
+off by default; Android polls while foregrounded, with **no background push**.
+That Phase27 milestone required **0018 / 65 tables** and supports versioned recovery-v4
+alongside older artifacts. Read
+[DURABLE-SCHEDULING-AND-REMINDERS](docs/DURABLE-SCHEDULING-AND-REMINDERS.md) for
+setup, consent, time/DST behavior, recovery and validation limits. No live migration,
+normal app installation, later phase or deployment is part of this source change.
+Earlier phase summaries below retain their original implementation boundaries.
+
+Phase26 adds reviewed Windows logon supervision, bounded recovery, protected-key
+unattended backups and fixed local health metadata. Source and isolated rehearsals
+do not install tasks, migrate the application database or change host policy.
+Read [ALWAYS-ON-OPERATIONS](docs/ALWAYS-ON-OPERATIONS.md) for setup, restore,
+rollback and remaining reboot/sleep/24-hour/large-data verification. After an
+early failed attempt and receipt-sharing/startup corrections, the continuous
+four-hour isolated rerun passed, including backup, restore and cleanup. This used
+synthetic data and an explicit fake provider; installed-host and sustained native
+inference verification remain separate. One API worker and the existing
+authenticated contracts remain.
+
 The Android presentation now follows **ADA Ambient Intelligence**: a dark-first
 violet theme, state-driven presence, quieter chat and adaptive navigation. Existing
 palette choices, authenticated APIs and encrypted recovery remain intact. See the
@@ -10,7 +59,7 @@ the normal phone app or deployed.
 Phase25 adds **opt-in conversational curiosity**: topic/depth/cadence controls,
 optional questions after replies, a private later inbox and explicit conversation
 opening/answers. No scheduler, notification or automatic factual memory is added.
-Current source requires **0017 / 60 tables**; curiosity stays off until each owner
+That Phase25 milestone requires **0017 / 60 tables**; curiosity stays off until each owner
 opts in. Read [CONVERSATIONAL-CURIOSITY](docs/CONVERSATIONAL-CURIOSITY.md) for usage,
 retention, recovery and validation limits. The live database/service and normal
 phone app were not migrated, installed or deployed during this implementation.
@@ -45,8 +94,8 @@ Python/FastAPI on your Windows laptop, with PostgreSQL and a configurable Ollama
 model. Accounts share model weights. Personality, history and memory remain
 private to each authenticated user.
 
-For the complete current developer walkthrough, read
-[HOW-TO-USE-ADA](docs/HOW-TO-USE-ADA.md): fresh setup or upgrade to head **0016**,
+For the developer walkthrough, read
+[HOW-TO-USE-ADA](docs/HOW-TO-USE-ADA.md), together with the current Phase27 guide above:
 Android/USB and admin login, feature use, daily startup and troubleshooting.
 
 For step-by-step Windows database access, queries, supported changes, migration,
@@ -69,8 +118,9 @@ required. No application database migration or deployment is performed by a chec
 
 Future development proposals, starting at Phase 20, are in
 [the roadmap](plans/FUTURE-ROADMAP.md). Approved public research and opt-in chat/
-inbox curiosity are implemented locally. Scheduled delivery, idle reflection and
-new speech models remain planned features.
+inbox curiosity and consented scheduled inbox delivery are implemented locally.
+Idle reports are implemented with summaries disabled; additional speech models
+remain unselected pending the Phase29 device gate.
 
 Phase 20's [release-readiness guide](docs/RELEASE-READINESS.md) covers the separate
 encrypted schema-0005 recovery tool, current recovery policy, frozen quality
@@ -310,8 +360,9 @@ styles/scopes/conversations, creates or resumes a conversation, sends complete
 replies and displays the original request's source cards. It preserves an exact
 encrypted request reservation before sending, checks that ID after interruption,
 and offers explicit same-payload retry instead of silently sending a new turn.
-Conversation prompt upgrades remain explicit. Oxford Blue is the default palette;
-Dark Red and Olive Green are available in Settings, each with light/dark colors.
+Conversation prompt upgrades remain explicit. ADA Ambient in dark mode is the
+fresh-install default. Oxford Blue, Dark Red and Olive Green remain available;
+all four palettes support light/dark colors and optional system appearance.
 
 Memory offers owned scopes, paginated current/dated/history views, exact source
 versions, explicitly reviewed assertions and atomic corrections through the

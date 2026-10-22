@@ -60,6 +60,45 @@ class VoiceControllerTest {
         c.context(voiceConversation, true, false); runCurrent()
         return Rig(c, api, store, recorder, player)
     }
+    @Test fun publicPreviewDoesNotReadOrWriteServerDataAndLateCompletionIsFenced() = runTest {
+        val (c, api, store, input, output) = ready()
+        api.gate = CompletableDeferred() // Preview must not wait for an HTTP reply.
+        c.previewVoice()
+        assertTrue(c.state.value.playing)
+        assertEquals(VOICE_PREVIEW_TEXT, output.text)
+        assertNull(store.draft); assertEquals(0, input.starts)
+        val late = output.done!!
+        c.stopPlayback(); c.previewVoice(); late("old error")
+        assertTrue(c.state.value.playing)
+        c.observeForeground(false)
+        assertFalse(c.state.value.playing)
+        val previous = output.text; c.previewVoice(); assertEquals(previous, output.text)
+        c.reset()
+    }
+    @Test fun previewCannotInterruptRecordingOrSurviveIdentityOrNavigationChanges() = runTest {
+        val (c, _, _, input, output) = ready()
+        c.requestRecording(); c.permissionResult(true); input.callback!!.ready()
+        c.previewVoice(); assertNull(output.text)
+        c.discard(); c.previewVoice(); assertTrue(c.state.value.playing)
+        c.context(voiceConversation, false, false); assertFalse(c.state.value.playing)
+        c.context(voiceConversation, true, false); c.previewVoice()
+        val late = output.done!!; c.reset(); late(null)
+        assertFalse(c.state.value.playing); c.previewVoice(); assertFalse(c.state.value.playing)
+    }
+    @Test fun missingMatchingLanguageRequiresExplicitVoiceChoiceAndNeverSwitchesSilently() = runTest {
+        val (c, _, _, input) = ready()
+        val player = object : SpeechPlayback {
+            var plays = 0
+            override fun initialize(ready: (List<SpeechVoice>) -> Unit) = ready(listOf(SpeechVoice("fr", "French", "fr-FR")))
+            override fun play(text: String, voice: String, speed: Float, finished: (String?) -> Unit) { plays++ }
+            override fun stop() = Unit
+            override fun close() = Unit
+        }
+        c.attachAudio(input, player); assertNull(c.state.value.voiceId)
+        c.previewVoice(); assertEquals(0, player.plays)
+        c.selectVoice("fr"); c.previewVoice(); assertEquals(1, player.plays)
+        c.reset()
+    }
     @Test fun ownPermissionDialogDefersGrantUntilTheSameHostResumes() = runTest {
         val (c, _, store, input) = ready()
         assertTrue(c.requestRecording()); c.permissionDialogLaunched()

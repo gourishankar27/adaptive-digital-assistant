@@ -1,4 +1,4 @@
-import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import type { AdminApi } from './api/admin';
 import { safeFailure } from './api/errors';
@@ -30,8 +30,14 @@ export function QueryView<T>({ query, children }: { query: UseQueryResult<T>; ch
   useEffect(() => { if (!failure?.retryAfterMs) return; const timer = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(timer); }, [failure?.retryAfterMs]);
   const isVisible = useSyncExternalStore(subscribeVisibility, visible);
   const unavailable = failure && ['not-found', 'authentication', 'forbidden'].includes(failure.kind);
+  const refreshFocus = useRef<HTMLButtonElement | null>(null);
+  useEffect(() => {
+    if (query.isFetching || !isVisible) return;
+    const button = refreshFocus.current; refreshFocus.current = null;
+    if (button?.isConnected && !button.disabled && (document.activeElement === document.body || document.activeElement === button)) button.focus();
+  }, [query.isFetching, isVisible]);
   return <>
-    <div className="refresh-row"><Button secondary disabled={!isVisible || query.isFetching || retryAt > Math.max(now, query.errorUpdatedAt)} onClick={() => void query.refetch()}>{query.isFetching ? 'Refreshing…' : 'Refresh'}</Button><span>{query.dataUpdatedAt ? `Last successful refresh: ${timestamp(BigInt(query.dataUpdatedAt))}` : 'No successful update yet'}</span></div>
+    <div className="refresh-row"><Button secondary disabled={!isVisible || query.isFetching || retryAt > Math.max(now, query.errorUpdatedAt)} onClick={event => { refreshFocus.current = document.activeElement === event.currentTarget ? event.currentTarget : null; void query.refetch(); }}>{query.isFetching ? 'Refreshing…' : 'Refresh'}</Button><span>{query.dataUpdatedAt ? `Last successful refresh: ${timestamp(BigInt(query.dataUpdatedAt))}` : 'No successful update yet'}</span></div>
     {failure && <p className="error-message" role={query.data ? undefined : 'alert'}>{query.data && !unavailable ? 'Stale data — refresh failed. ' : ''}{failure.message}{retryAt > Math.max(now, query.errorUpdatedAt) ? ` Retry available in ${Math.ceil((retryAt - Math.max(now, query.errorUpdatedAt)) / 1000)} seconds.` : ''}</p>}
     {query.isPending && <p role="status">Loading monitoring metadata…</p>}
     {query.data && !unavailable ? children(query.data) : null}

@@ -20,7 +20,7 @@ class AgentUiHttpTest {
     private lateinit var vm: ChatViewModel
     @Test fun exactCalculatorApprovalAndDenialUseRealHttpReceipts() {
         val file = File(InstrumentationRegistry.getInstrumentation().targetContext.filesDir, "foundation-test-token"); assumeTrue(file.isFile)
-        val token = file.readText().trim(); val conn = ConnectionCredential.parse("http://10.0.2.2:18764", token, true)!!; val api = HttpAdaApi()
+        val token = file.readText().trim(); val conn = ConnectionCredential.parse(fixtureOrigin(18764), token, true)!!; val api = HttpAdaApi()
         val profile = runBlocking { success(api.personalities(conn)) }.first()
         val conversation = runBlocking { success(api.createConversation(conn, ConversationInputDto(profile.id, "Synthetic tool UI"))) }
         vm = ViewModelProvider(compose.activity)[ChatViewModel::class.java]; compose.runOnIdle { vm.connect(conn.server.toString(), token) }

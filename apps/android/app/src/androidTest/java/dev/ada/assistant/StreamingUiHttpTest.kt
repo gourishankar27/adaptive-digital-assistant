@@ -27,6 +27,7 @@ class StreamingUiHttpTest {
         val token = file.readText().trim(); val c = ConnectionCredential.parse(dev.ada.assistant.fixtureOrigin(), token, true)!!; val api = HttpAdaApi()
         val profile = runBlocking { success(api.personalities(c)).first() }
         val conversation = runBlocking { success(api.createConversation(c, ConversationInputDto(profile.id, "Synthetic stream UI"))) }
+        repeat(3) { index -> runBlocking { success(api.send(c, conversation.id, ChatInputDto(UUID.randomUUID(), "Public earlier message $index\n" + "Public history line.\n".repeat(16)))) } }
         vm = ViewModelProvider(compose.activity)[ChatViewModel::class.java]
         compose.runOnIdle { vm.connect(c.server.toString(), token) }; compose.waitUntil(20_000) { vm.state.value.account != null }
         compose.runOnIdle { vm.openConversation(conversation.id) }; compose.waitUntil(20_000) { vm.state.value.conversation?.id == conversation.id && !vm.state.value.events.loading }
@@ -52,8 +53,13 @@ class StreamingUiHttpTest {
         compose.waitUntil(20_000) { vm.state.value.streamConnected }
         // Reading earlier history must not strand cancellation below a growing reply.
         compose.onNodeWithTag("chat-history").performScrollToIndex(0)
+        compose.onNodeWithTag("chat-history").performTouchInput { swipeDown() }
+        val earlier = vm.state.value.events.items.first { it.role == "user" && it.request_id != id }
+        compose.onNodeWithTag("event-${earlier.id}").assertIsDisplayed()
         compose.onNodeWithTag("stop-generation").assertIsDisplayed().performClick()
         compose.waitUntil(20_000) { vm.state.value.pending?.response?.error_code == "request_cancelled" }
+        compose.onNodeWithTag("event-${earlier.id}").assertIsDisplayed()
+        compose.onNodeWithTag("jump-latest").assertIsDisplayed()
         val terminal = runBlocking { success(api.streamStatus(c, id)) }
         assertEquals("cancelled", terminal.stream_state); assertEquals(1, terminal.attempt)
         assertNull(terminal.result.response); assertTrue(terminal.provisional.isNotEmpty())

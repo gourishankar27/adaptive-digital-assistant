@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     memory_bytes: int = Field(default=2200, ge=0, le=12000)
     retrieval_limit: int = Field(default=8, ge=1, le=16)
     consolidation_worker_enabled: bool = True
+    scheduler_enabled: bool = False
+    reflection_enabled: bool = False
+    reflection_summary_enabled: bool = False
+    reflection_model_digest: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
     device_enrollment_enabled: bool = False
     browser_origin: str | None = None
     session_access_seconds: int = Field(default=900, ge=60, le=3600)
@@ -27,6 +31,8 @@ class Settings(BaseSettings):
     session_idle_seconds: int = Field(default=604800, ge=600, le=2592000)
     deletion_worker_enabled: bool = False
     web_research_enabled: bool = False
+    pdf_ingestion_enabled: bool = False
+    pdf_parser_manifest: str | None = None
     web_broker_manifest: str | None = None
     web_operator_contact: str | None = None
     private_read_limit_per_minute: int = Field(default=2400, ge=1, le=10000)

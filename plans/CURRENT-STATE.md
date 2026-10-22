@@ -1,5 +1,90 @@
 # Current ADA baseline
 
+**Phase30 source/local verification, 2026-10-22 America/Phoenix:** explicit scoped
+goals/tasks/projects, exact reviewed Save from completed chat, immutable revisions,
+balanced personal/development selected-work briefs, original-source resume,
+GET-only encrypted recovery, optional Phase25 questions and reviewed Phase27
+reminders are implemented. No generated commitment, factual task evidence,
+external action or private admin reader is introduced. Current source requires
+**0020 /74 tables /61 owner-content**, backup-v6, OpenAPI157paths/206schemas;
+Android24 /0.30.0-work uses journal17 (v1–v16 readable).
+[Usage and developer guide](../docs/PROJECTS-AND-FOLLOW-THROUGH.md).
+Actual tests, corrections and remaining target verification are in STATUS/WORKLOG.
+No live migration, normal app installation or deployment. Phase31 remains planned;
+earlier phase records below retain their own evidence and target gates.
+
+**Phase29 study/interface source, 2026-10-21 America/Phoenix:** Android23 adds
+public voice preview, engine/model status, explicit language-matching voice choice
+and pinned local manifest/byte verification without an installer or native loader.
+The license/compatibility shortlist and opt-in installation/removal/activation
+design are in [NATURAL-LOCAL-SPEECH](../docs/NATURAL-LOCAL-SPEECH.md). No additional
+runtime/model is selected, installed or activated. Original ASR/endorsement,
+server/OpenAPI145paths/193schemas, schema0019 and journal16 remain unchanged.
+Actual checks/failures/skips are recorded in STATUS/WORKLOG. Physical S24 FE,
+license clearance for a final distributable bundle and activation remain pending.
+Phases30–31 remain planned; no deployment.
+
+
+**Phase28 source/local verification, 2026-10-21 America/Phoenix:**
+source-pinned opt-in idle reports, optional catalogue question drafts and typed
+owner review are implemented. Existing dispatcher/consolidation hooks share
+admission and fresh host measurements; no second scheduler. Defaults are off;
+model summaries remain disabled after a bounded public cancellation probe left
+GPU cancellation/usefulness unverified. Schema0019/70 tables, owner-content57,
+backup-v5 and restore quarantine; OpenAPI145 paths/193 schemas. Android22/journal16
+retains old formats and GET-only exact recovery; admin exposes counts/budgets only.
+Full1161/32 preceded final guards; final affected282/4 and4 added completed-turn
+checks passed. Android283 units/two final HTTP stages and web72 units/8 Chromium
+cases passed. Detailed provenance and remaining limits are in STATUS/WORKLOG. See
+[the guide](../docs/IDLE-REFLECTION-AND-DREAM-REVIEW.md). No live migration,
+normal app installation, deployment or Phase29–31 implementation.
+
+
+**Phase27 source, 2026-10-19 America/Phoenix:** reviewed reminders and bounded
+question schedules, pinned timezone/DST plans, durable origin-bound consent,
+fenced leases/receipts and private inbox/explicit conversation opening are
+implemented. Current head0018 adds five private tables:65 total /53 owner-content;
+recovery-v4 preserves old formats and quarantines restored scheduling authority.
+OpenAPI138 paths /181 schemas adds authenticated routes and aggregate admin
+metadata. Android21/0.27.0-scheduling uses journal15 (old versions readable),
+GET-only recovery, bounded paging and foreground polling. Global dispatch/owner
+consent default off; push is unavailable. Local verification passed: full1042/30,
+then final affected107/3 after bounded calendar/host-gate corrections, Android275
+units/two real HTTP stages, web71 units/seven Chromium cases. Original2026-10-19
+results were reconciled2026-10-21; actual checks and target limits are in STATUS/WORKLOG and
+[the guide](../docs/DURABLE-SCHEDULING-AND-REMINDERS.md). No live migration, normal
+app install, later-phase implementation or deployment. The following dated records
+retain their earlier schema/evidence boundaries.
+
+**Phase26 source, 2026-10-19 America/Phoenix:** native owner-logon task planning,
+owned single-worker supervision/PG admission gate, finite recovery, honest local
+health, resource/foreground deferral, protected-key encrypted backup/ledger/restore
+and reversible AC-policy tooling are implemented. Local Windows/PG/HTTP/task-key
+and public native-provider rehearsals are recorded in STATUS/WORKLOG. Schema0017,
+60tables and OpenAPI126paths/168schemas remain; no new migrations/dependencies.
+No live tasks, database migration, host policy or deployment was performed.
+The first four-hour attempt failed early at about 3h15. Windows receipt-sharing
+and foreground startup guards were corrected. The authorized continuous rerun
+passed 14,400.39 seconds with 14,278 health checks and zero unavailable samples,
+then verified encrypted backup, isolated restore, shutdown and fixture cleanup.
+This was an explicit-fake development soak, not sustained native inference or an
+installed-host test. Reboot/sleep, 24-hour trial, representative RPO/RTO and
+off-device recovery gates remain separate.
+[Operations runbook](../docs/ALWAYS-ON-OPERATIONS.md).
+Phases29–31 remain planned. Earlier records retain their original scope.
+
+**Android design hardening, 2026-10-18 America/Phoenix:** app20/0.25.2-ui
+addresses verified report findings: reviewed destructive actions, accessible
+feedback/choices/loading,48dp button layout, window-bounded dialogs, grouped
+settings, safe inline links/code spans, reading-preserving stream follow,
+optional system appearance/reduced motion, adaptive launch/icon resources and
+600dp rail. S24FE/API36 automated checks use only a separate synthetic validation
+app and disposable HTTP/PostgreSQL. Manual TalkBack/audio and physical resize
+remain pending. [Verified finding matrix](../docs/ANDROID-DESIGN-GAPS.md#8-verified-follow-up-2026-10-18).
+Actual checks and remaining gates are recorded in STATUS/WORKLOG. Contracts,
+authentication, audio controllers, encrypted journals and migration history remain
+unchanged. No normal installation or deployment.
+
 **Android UI redesign, 2026-10-18 America/Phoenix:** app19/0.25.1-ambient adds
 the shared dark-first Ambient design, state-driven orb, quieter messages,
 keyboard-anchored composer and adaptive navigation. Saved legacy palettes/modes,

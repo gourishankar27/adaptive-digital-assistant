@@ -60,6 +60,15 @@ data class PendingMessage(val identity: SessionIdentity, val conversationId: UUI
 }
 
 interface SessionStore {
+    suspend fun scheduleJournal(identity: SessionIdentity): ScheduleJournal? = null
+    suspend fun saveScheduleOperation(identity: SessionIdentity, operation: SchedulePending) { throw SessionStorageException() }
+    suspend fun removeScheduleOperation(identity: SessionIdentity, operationId: UUID) { throw SessionStorageException() }
+    suspend fun workJournal(identity: SessionIdentity): WorkJournal? = null
+    suspend fun saveWorkOperation(identity: SessionIdentity, operation: WorkPending) { throw SessionStorageException() }
+    suspend fun removeWorkOperation(identity: SessionIdentity, operationId: UUID) { throw SessionStorageException() }
+    suspend fun reflectionJournal(identity: SessionIdentity): ReflectionJournal? = null
+    suspend fun saveReflectionOperation(identity: SessionIdentity, operation: ReflectionPending) { throw SessionStorageException() }
+    suspend fun removeReflectionOperation(identity: SessionIdentity, operationId: UUID) { throw SessionStorageException() }
     suspend fun curiosityJournal(identity: SessionIdentity): CuriosityJournal? = null
     suspend fun saveCuriosityOperation(identity: SessionIdentity, operation: CuriosityPending) { throw SessionStorageException() }
     suspend fun removeCuriosityOperation(identity: SessionIdentity, operationId: UUID) { throw SessionStorageException() }
@@ -143,7 +152,7 @@ class SessionTokenStorageAdapter(private val sessions: SessionStore) : SecureTok
 
 @Serializable
 private data class PersistedSession(
-    val version: Int = 14,
+    val version: Int = 17,
     val credential: StoredCredential,
     val pending: PendingMessage? = null,
     val memoryPending: PendingMemory? = null,
@@ -154,6 +163,9 @@ private data class PersistedSession(
     val agentJournal: AgentJournal? = null,
     val researchJournal: ResearchJournal? = null,
     val curiosityJournal: CuriosityJournal? = null,
+    val scheduleJournal: ScheduleJournal? = null,
+    val reflectionJournal: ReflectionJournal? = null,
+    val workJournal: WorkJournal? = null,
     val consolidationJournal: ConsolidationJournal? = null,
     val expressionJournal: ExpressionJournal? = null,
     val learningJournal: LearningJournal? = null,
@@ -206,6 +218,57 @@ internal class EncryptedSessionStore(
     }
 
     override suspend fun readCredential(): StoredCredential? = transaction { read()?.credential }
+    override suspend fun scheduleJournal(identity: SessionIdentity): ScheduleJournal? = transaction { read()?.takeIf { it.credential.identity == identity }?.scheduleJournal }
+    override suspend fun saveScheduleOperation(identity: SessionIdentity, operation: SchedulePending) = transaction {
+        val previous = read() ?: throw SessionStorageException(SessionStoreFailure.IdentityMismatch)
+        if (previous.credential.identity != identity) throw SessionStorageException(SessionStoreFailure.IdentityMismatch)
+        val operations = previous.scheduleJournal?.operations ?: emptyList()
+        val old = operations.find { it.operationId == operation.operationId }
+        if (old != null && old != operation) throw SessionStorageException(SessionStoreFailure.PendingConflict)
+        val journal = ScheduleJournal(identity, if (old == null) operations + operation else operations)
+        try { validateScheduleJournal(journal) } catch (_: Exception) { throw SessionStorageException(SessionStoreFailure.InvalidPayload) }
+        write(previous.copy(scheduleJournal = journal))
+    }
+    override suspend fun removeScheduleOperation(identity: SessionIdentity, operationId: UUID) = transaction {
+        val previous = read() ?: return@transaction
+        if (previous.credential.identity != identity) return@transaction
+        val remaining = previous.scheduleJournal?.operations?.filter { it.operationId != operationId } ?: return@transaction
+        write(previous.copy(scheduleJournal = if (remaining.isEmpty()) null else ScheduleJournal(identity, remaining)))
+    }
+    override suspend fun workJournal(identity: SessionIdentity): WorkJournal? = transaction { read()?.takeIf { it.credential.identity == identity }?.workJournal }
+    override suspend fun saveWorkOperation(identity: SessionIdentity, operation: WorkPending) = transaction {
+        val previous = read() ?: throw SessionStorageException(SessionStoreFailure.IdentityMismatch)
+        if (previous.credential.identity != identity) throw SessionStorageException(SessionStoreFailure.IdentityMismatch)
+        val operations = previous.workJournal?.operations ?: emptyList()
+        val old = operations.find { it.operationId == operation.operationId }
+        if (old != null && old != operation) throw SessionStorageException(SessionStoreFailure.PendingConflict)
+        val journal = WorkJournal(identity, if (old == null) operations + operation else operations)
+        try { validateWorkJournal(journal) } catch (_: Exception) { throw SessionStorageException(SessionStoreFailure.InvalidPayload) }
+        write(previous.copy(workJournal = journal))
+    }
+    override suspend fun removeWorkOperation(identity: SessionIdentity, operationId: UUID) = transaction {
+        val previous = read() ?: return@transaction
+        if (previous.credential.identity != identity) return@transaction
+        val remaining = previous.workJournal?.operations?.filter { it.operationId != operationId } ?: return@transaction
+        write(previous.copy(workJournal = if (remaining.isEmpty()) null else WorkJournal(identity, remaining)))
+    }
+    override suspend fun reflectionJournal(identity: SessionIdentity): ReflectionJournal? = transaction { read()?.takeIf { it.credential.identity == identity }?.reflectionJournal }
+    override suspend fun saveReflectionOperation(identity: SessionIdentity, operation: ReflectionPending) = transaction {
+        val previous = read() ?: throw SessionStorageException(SessionStoreFailure.IdentityMismatch)
+        if (previous.credential.identity != identity) throw SessionStorageException(SessionStoreFailure.IdentityMismatch)
+        val operations = previous.reflectionJournal?.operations ?: emptyList()
+        val old = operations.find { it.operationId == operation.operationId }
+        if (old != null && old != operation) throw SessionStorageException(SessionStoreFailure.PendingConflict)
+        val journal = ReflectionJournal(identity, if (old == null) operations + operation else operations)
+        try { validateReflectionJournal(journal) } catch (_: Exception) { throw SessionStorageException(SessionStoreFailure.InvalidPayload) }
+        write(previous.copy(reflectionJournal = journal))
+    }
+    override suspend fun removeReflectionOperation(identity: SessionIdentity, operationId: UUID) = transaction {
+        val previous = read() ?: return@transaction
+        if (previous.credential.identity != identity) return@transaction
+        val remaining = previous.reflectionJournal?.operations?.filter { it.operationId != operationId } ?: return@transaction
+        write(previous.copy(reflectionJournal = if (remaining.isEmpty()) null else ReflectionJournal(identity, remaining)))
+    }
     override suspend fun curiosityJournal(identity: SessionIdentity): CuriosityJournal? = transaction { read()?.takeIf { it.credential.identity == identity }?.curiosityJournal }
     override suspend fun saveCuriosityOperation(identity: SessionIdentity, operation: CuriosityPending) = transaction {
         val previous = read() ?: throw SessionStorageException(SessionStoreFailure.IdentityMismatch)
@@ -341,6 +404,9 @@ internal class EncryptedSessionStore(
             proposalDraft = previous?.proposalDraft?.takeIf { sameIdentity && it.identity == credential.identity },
             researchJournal = previous?.researchJournal?.takeIf { sameIdentity && it.identity == credential.identity },
             curiosityJournal = previous?.curiosityJournal?.takeIf { sameIdentity && it.identity == credential.identity },
+            scheduleJournal = previous?.scheduleJournal?.takeIf { sameIdentity && it.identity == credential.identity },
+            reflectionJournal = previous?.reflectionJournal?.takeIf { sameIdentity && it.identity == credential.identity },
+            workJournal = previous?.workJournal?.takeIf { sameIdentity && it.identity == credential.identity },
             agentJournal = previous?.agentJournal?.takeIf { sameIdentity && it.identity == credential.identity },
             consolidationJournal = previous?.consolidationJournal?.takeIf { sameIdentity && it.identity == credential.identity },
             expressionJournal = previous?.expressionJournal?.takeIf { sameIdentity && it.identity == credential.identity },
@@ -492,12 +558,24 @@ internal class EncryptedSessionStore(
             if (plaintext.size > MAX_PLAINTEXT_BYTES) throw IOException("Invalid session record")
             val snapshot = json.decodeFromString<PersistedSession>(plaintext.toString(Charsets.UTF_8))
             if (snapshot.version < 10 && (snapshot.voiceDraft != null || snapshot.pending?.voiceTranscript != null || snapshot.pending?.voiceScopeId != null)) throw IOException("Unsupported session record")
-            if (snapshot.version !in 1..14 || (snapshot.version < 14 && snapshot.curiosityJournal != null) || (snapshot.version < 13 && snapshot.researchJournal != null) || (snapshot.version < 12 && snapshot.credential.passwordSession) || (snapshot.version < 11 && snapshot.securityJournal != null) || (snapshot.version == 1 && snapshot.memoryPending != null) ||
+            if (snapshot.version !in 1..17 || (snapshot.version < 17 && snapshot.workJournal != null) || (snapshot.version < 16 && snapshot.reflectionJournal != null) || (snapshot.version < 15 && snapshot.scheduleJournal != null) || (snapshot.version < 14 && snapshot.curiosityJournal != null) || (snapshot.version < 13 && snapshot.researchJournal != null) || (snapshot.version < 12 && snapshot.credential.passwordSession) || (snapshot.version < 11 && snapshot.securityJournal != null) || (snapshot.version == 1 && snapshot.memoryPending != null) ||
                 (snapshot.version < 3 && snapshot.documentPending != null) || (snapshot.version < 4 && snapshot.entityPending != null) ||
                 (snapshot.version < 5 && (snapshot.proposalPending != null || snapshot.proposalDraft != null)) || (snapshot.version < 6 && snapshot.agentJournal != null) || (snapshot.version < 7 && snapshot.consolidationJournal != null) || (snapshot.version < 8 && snapshot.expressionJournal != null) || (snapshot.version < 9 && snapshot.learningJournal != null)) {
                 throw IOException("Unsupported session record")
             }
             validateCredential(snapshot.credential)
+            snapshot.scheduleJournal?.let {
+                if (it.identity != snapshot.credential.identity) throw IOException("Invalid session binding")
+                validateScheduleJournal(it)
+            }
+            snapshot.workJournal?.let {
+                if (it.identity != snapshot.credential.identity) throw SessionStorageException(SessionStoreFailure.IdentityMismatch)
+                validateWorkJournal(it)
+            }
+            snapshot.reflectionJournal?.let {
+                if (it.identity != snapshot.credential.identity) throw IOException("Invalid session binding")
+                validateReflectionJournal(it)
+            }
             snapshot.curiosityJournal?.let {
                 if (it.identity != snapshot.credential.identity) throw IOException("Invalid session binding")
                 validateCuriosityJournal(it)
@@ -562,7 +640,7 @@ internal class EncryptedSessionStore(
     private fun write(snapshot: PersistedSession) {
         var plaintext: ByteArray? = null
         try {
-            plaintext = json.encodeToString(snapshot.copy(version = 14)).toByteArray(Charsets.UTF_8)
+            plaintext = json.encodeToString(snapshot.copy(version = 17)).toByteArray(Charsets.UTF_8)
             if (plaintext.size > MAX_PLAINTEXT_BYTES) throw SessionStorageException(SessionStoreFailure.InvalidPayload)
             val ciphertext = cipher.encrypt(plaintext)
             if (ciphertext.size > MAX_FILE_BYTES) throw SessionStorageException(SessionStoreFailure.InvalidPayload)

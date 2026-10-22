@@ -144,6 +144,7 @@ class ChatFlowSmokeTest {
         compose.onNodeWithText("Retrieval details", substring = false).assertIsDisplayed()
         compose.onNodeWithTag("nav-settings").performClick()
         compose.onNodeWithTag("logout").performScrollTo().performClick()
+        compose.onNodeWithTag("logout-confirm").performClick()
         compose.waitUntil(10_000) { vm.state.value.account == null }
         assertTrue(vm.state.value.events.items.isEmpty())
         assertTrue(vm.state.value.sources.isEmpty())

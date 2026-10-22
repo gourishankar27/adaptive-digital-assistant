@@ -1,10 +1,27 @@
 import { describe, expect, it, vi } from 'vitest';
-import { decodeDetail, decodeMetadata, decodeOverview, HttpAdminApi } from '../src/api/admin';
+import { decodeReflection, decodeDetail, decodeMetadata, decodeOverview, decodeScheduling, HttpAdminApi } from '../src/api/admin';
 import { ContractError, parseWire } from '../src/api/decode';
 import { amount, timestamp } from '../src/monitor-query';
 import { detail, otherOwner, overview, owner, requestId } from './mock-admin';
 const wire = (value: unknown) => JSON.stringify(value, (_, v) => typeof v === 'bigint' ? Number(v) : v);
 describe('monitoring allowlist and lossless adapter', () => {
+  it('projects reflection safety budgets without private artifacts or forged counts', () => {
+    const safe = decodeReflection({ globally_enabled: false, summary_generation: false, suspended_model_class: true,
+      policies_enabled: 2, runs: { completed: 3, private_text: 'private' }, artifacts: { kept: 1, question: 'private' },
+      maximum_nightly_seconds: 600, maximum_jobs: 3, minimum_idle_seconds: 900, updated_at: 9223372036854775807n,
+      source_quotes: ['private'], owner_id: owner });
+    expect(safe.runs.completed).toBe(3); expect(safe.updated_at).toBe(9223372036854775807n);
+    expect(safe).not.toHaveProperty('owner_id'); expect(safe.runs).not.toHaveProperty('private_text'); expect(safe.artifacts).not.toHaveProperty('question');
+    expect(() => decodeReflection({ ...safe, maximum_jobs: 4 })).toThrow(ContractError);
+    expect(() => decodeReflection({ ...safe, artifacts: { kept: -1 } })).toThrow(ContractError);
+  });
+  it('projects scheduling counts and drops text, devices and forged state keys', () => {
+    const safe = decodeScheduling({ globally_enabled: false, schedules: { active: 2, text: 'private' }, occurrences: { failed: 1, payload: 'private' }, inbox: { unread: 3, topic: 'private' }, updated_at: 9223372036854775807n, registrations: ['private'] });
+    expect(safe.schedules.active).toBe(2); expect(safe.occurrences.failed).toBe(1); expect(safe.inbox.unread).toBe(3);
+    expect(safe.updated_at).toBe(9223372036854775807n); expect(safe).not.toHaveProperty('registrations');
+    expect(safe.schedules).not.toHaveProperty('text'); expect(safe.occurrences).not.toHaveProperty('payload'); expect(safe.inbox).not.toHaveProperty('topic');
+    expect(() => decodeScheduling({ ...safe, schedules: { active: -1 } })).toThrow(ContractError);
+  });
   it('projects measured stream state without private deltas or receipts', () => {
     const safe = decodeDetail({ ...detail, stream: { state: 'cancel_requested', sequence: 18, replay_after: 0, created_at: 9223372036854775807n, finished_at: null, provisional: 'private', messages: ['private'], cancel_receipt: 'private' } });
     expect(safe.stream?.state).toBe('cancel_requested'); expect(safe.stream?.sequence).toBe(18);

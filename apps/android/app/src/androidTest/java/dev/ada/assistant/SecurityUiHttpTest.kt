@@ -29,6 +29,7 @@ class SecurityUiHttpTest {
         compose.waitUntil(20_000) { vm.state.value.account != null && vm.security.state.value.status != null && !vm.security.state.value.busy }
         assumeTrue(vm.security.state.value.status!!.enrollment_enabled)
         compose.runOnIdle { vm.navigate(ChatDestination.Settings) }
+        compose.onNodeWithTag("settings-security").performScrollTo().performClick()
         compose.onNodeWithTag("security-label").performScrollTo().performTextInput("Synthetic validation device")
         androidx.test.espresso.Espresso.closeSoftKeyboard()
         compose.onNodeWithText("Enroll device (30 days)").performScrollTo().performClick()
@@ -53,11 +54,13 @@ class SecurityUiHttpTest {
         val request = UUID.randomUUID()
         assertTrue(runBlocking { api.send(c, conversation.id, ChatInputDto(request, "Synthetic saved content validation")) } is ApiResult.Success)
         compose.runOnIdle { vm.navigate(ChatDestination.Settings) }
+        compose.onNodeWithTag("settings-security").performScrollTo().performClick()
         compose.onNodeWithTag("delete-preview").performScrollTo().performClick()
         compose.waitUntil(20_000) { vm.security.state.value.preview != null && !vm.security.state.value.busy }
         compose.onNodeWithTag("delete-confirm").performScrollTo().assertIsNotEnabled()
         compose.onNodeWithTag("delete-ack").performScrollTo().performClick()
         compose.onNodeWithTag("delete-confirm").performScrollTo().performClick()
+        compose.onNodeWithTag("erase-content-confirm").performClick()
         compose.waitUntil(20_000) { vm.security.state.value.pending?.kind == "delete" || vm.state.value.account == null }
         if (vm.state.value.account != null) {
             // Confirmation queues durable work; a single immediate refresh may still read queued.

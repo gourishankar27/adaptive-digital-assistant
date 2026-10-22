@@ -30,6 +30,9 @@ class ChatViewModel(
     val proposals = ProposalController(api, store, viewModelScope, { expire() })
     val research = ResearchController(api, store, viewModelScope) { expire() }
     val curiosity = CuriosityController(api, store, viewModelScope) { expire() }
+    val work = WorkController(api, store, viewModelScope) { expire() }
+    val reflection = ReflectionController(api, store, viewModelScope) { expire() }
+    val scheduling = ScheduleController(api, store, viewModelScope) { expire() }
     private val curiosityTurns = mutableSetOf<UUID>()
     val agents = AgentController(api, store, viewModelScope, { expire() })
     val episodes = EpisodeController(api, store, viewModelScope, { expire() })
@@ -65,6 +68,7 @@ class ChatViewModel(
         val previousConversation = mutableState.value.conversation?.id
         mutableState.value = block(mutableState.value)
         val next = mutableState.value
+        work.observeVisible(next.destination == ChatDestination.Work)
         voice.context(next.conversation, next.destination == ChatDestination.Chat, next.pending != null)
         val conversationChanged = previousConversation != next.conversation?.id
         if (previous == ChatDestination.Chat && (next.destination != ChatDestination.Chat || conversationChanged)) {
@@ -79,6 +83,7 @@ class ChatViewModel(
     fun observeForeground(visible: Boolean) {
         foreground = visible
         voice.observeForeground(visible)
+        scheduling.observeForeground(visible); reflection.observeForeground(visible); work.observeForeground(visible)
         if (!visible) { renewalJob?.cancel(); renewalJob = null; streamJob?.cancel(); update { it.copy(streamConnected = false) } }
         else if (state.value.destination == ChatDestination.Chat && state.value.pending != null) reconcile()
         if (visible && accessExpiresAt?.let { it - System.currentTimeMillis() < 60_000 } == true) { renewSession(); return }
@@ -112,7 +117,7 @@ class ChatViewModel(
         proposals.reset()
         agents.reset()
         research.reset()
-        curiosity.reset(); curiosityTurns.clear()
+        curiosity.reset(); curiosityTurns.clear(); scheduling.reset(); reflection.reset(); work.reset()
         episodes.reset()
         expression.reset()
         learning.reset()
@@ -279,6 +284,7 @@ class ChatViewModel(
         agents.setVerifiedSession(connection, verified, features)
         research.setVerifiedSession(connection, verified, features)
         curiosity.setVerifiedSession(connection, verified, features)
+        scheduling.setVerifiedSession(connection, verified, features); reflection.setVerifiedSession(connection, verified, features); work.setVerifiedSession(connection, verified, features)
         episodes.setVerifiedSession(connection, verified, features)
         expression.setVerifiedSession(connection, verified, features)
         learning.setVerifiedSession(connection, verified, features)
@@ -313,7 +319,19 @@ class ChatViewModel(
         val epoch = generation
         launchWork { if (current(epoch)) block(connection, epoch) }
     }
+    fun saveNextAction(event: EventDto) {
+        val selected = mutableState.value.conversation?.scope_id ?: return
+        navigate(ChatDestination.Work)
+        work.fromReply(event, selected)
+    }
     fun navigate(destination: ChatDestination) {
+        if (destination == ChatDestination.Work && mutableState.value.capabilities?.work_protocol != WORK_PROTOCOL) return
+        if (destination == ChatDestination.Reflection && mutableState.value.capabilities?.reflection_protocol != "ada-reflection-v1") return
+        if (destination == ChatDestination.Reflection) reflection.refresh()
+        if (destination == ChatDestination.Schedules) {
+            if (mutableState.value.capabilities?.scheduling_protocol != "ada-scheduling-v1") return
+            scheduling.activate(mutableState.value.conversation?.scope_id ?: mutableState.value.scopes.items.firstOrNull()?.id)
+        }
         if (mutableState.value.account == null) return
         if (destination == ChatDestination.Research && mutableState.value.capabilities?.web_research != "ada-web-research-v1") return
         if (destination == ChatDestination.Curiosity) {
@@ -349,6 +367,7 @@ class ChatViewModel(
         ChatDestination.Proposals -> ChatDestination.Memory
         ChatDestination.Research -> if (mutableState.value.conversation == null) ChatDestination.Conversations else ChatDestination.Chat
         ChatDestination.Curiosity -> if (mutableState.value.conversation == null) ChatDestination.Conversations else ChatDestination.Chat
+        ChatDestination.Work, ChatDestination.Reflection, ChatDestination.Schedules -> if (mutableState.value.conversation == null) ChatDestination.Conversations else ChatDestination.Chat
         ChatDestination.Tools -> if (mutableState.value.conversation == null) ChatDestination.Conversations else ChatDestination.Chat
         ChatDestination.Episodes -> if (mutableState.value.conversation == null) ChatDestination.Conversations else ChatDestination.Chat
         ChatDestination.Sources -> if (mutableState.value.conversation == null) ChatDestination.Conversations else ChatDestination.Chat

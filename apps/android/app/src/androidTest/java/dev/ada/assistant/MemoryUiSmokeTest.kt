@@ -175,6 +175,7 @@ class MemoryUiSmokeTest {
         compose.waitUntil(10_000) { vm.state.value.conversation?.id == api.savedConversation.id && !vm.state.value.events.loading }
         val before = vm.state.value.conversation!!
         compose.onNodeWithTag("nav-settings").performClick()
+        compose.onNodeWithTag("settings-styles").performScrollTo().performClick()
         compose.onNodeWithTag("settings-new-profile").performScrollTo().performClick()
         compose.onNodeWithTag("settings-profile-name").performScrollTo().performTextReplacement("Phase7 Formal")
         compose.onNodeWithTag("settings-style-formal").performScrollTo().performClick()

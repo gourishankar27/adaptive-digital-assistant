@@ -203,7 +203,14 @@ def _owned_upload(db, owner, scope_id, *, upload_id=None, source_version_id=None
     return row
 
 
-def _validate_parsed(raw, text, chunks):
+def _validate_parsed(raw, text, chunks, extraction=None):
+    if extraction is not None:
+        from ada.pdfs import pdf_chunks, validate_extraction
+
+        validate_extraction(raw, extraction | {"text": text})
+        if chunks != pdf_chunks(text, extraction["pages"]):
+            raise ServiceError(422, "pdf_invalid_projection")
+        return
     if (
         not isinstance(text, str)
         or text.encode("utf-8") != raw
@@ -438,15 +445,17 @@ class DocumentService:
             db.flush()
             return row, True, True
 
-    def _publish(self, owner, scope_id, upload_id, attempt, text, chunks):
+    def _publish(self, owner, scope_id, upload_id, attempt, text, chunks, extraction=None):
         with self.sessions.begin() as db:
             owned_scope(db, owner, scope_id, lock=True)
             row = _owned_upload(db, owner, scope_id, upload_id=upload_id)
             if row.state != "processing" or row.attempt != attempt:
                 return
-            _validate_parsed(row.raw_bytes, text, chunks)
-            if content_hash(text) != row.raw_hash:
+            _validate_parsed(row.raw_bytes, text, chunks, extraction)
+            parsed_hash = content_hash(text)
+            if (extraction is None and parsed_hash != row.raw_hash) or (extraction is not None and row.media_type != "application/pdf"):
                 raise ServiceError(409, "document_invalid_projection")
+            row.extraction = extraction
             timestamp = now_ms()
             db.add(
                 SourceVersion(
@@ -456,7 +465,7 @@ class DocumentService:
                     source_id=row.source_id,
                     version=row.version,
                     content=text,
-                    content_hash=row.raw_hash,
+                    content_hash=parsed_hash,
                     trust_class="imported_untrusted",
                     created_at=timestamp,
                 )
@@ -475,7 +484,7 @@ class DocumentService:
                     upload_id=upload_id,
                     source_id=row.source_id,
                     source_version_id=row.source_version_id,
-                    content_hash=row.raw_hash,
+                    content_hash=parsed_hash,
                     **fields,
                 )
                 db.add(chunk)
@@ -541,6 +550,7 @@ class DocumentService:
             return [public_upload(row) for row in rows]
 
     def version(self, owner, scope_id, source_version_id):
+        from ada.pdfs import projection_hash
         with self.sessions() as db:
             row = _owned_upload(db, owner, scope_id, source_version_id=source_version_id)
             version = db.scalar(
@@ -554,8 +564,8 @@ class DocumentService:
             )
             if (
                 version is None
-                or content_hash(version.content) != row.raw_hash
-                or version.content_hash != row.raw_hash
+                or content_hash(version.content) != projection_hash(row, version.content)
+                or version.content_hash != projection_hash(row, version.content)
             ):
                 raise ServiceError(409, "document_content_changed")
             return {
@@ -568,9 +578,11 @@ class DocumentService:
                 "trust_class": version.trust_class,
                 "created_at": version.created_at,
                 "upload": public_upload(row),
+                **({"extraction": row.extraction} if row.extraction is not None else {}),
             }
 
     def chunks(self, owner, scope_id, source_version_id, *, limit=50, offset=0):
+        from ada.pdfs import page_location
         with self.sessions() as db:
             row = _owned_upload(db, owner, scope_id, source_version_id=source_version_id)
             chunks = db.scalars(
@@ -585,7 +597,7 @@ class DocumentService:
                 .limit(limit)
                 .offset(offset)
             )
-            return [public_chunk(chunk) for chunk in chunks]
+            return [public_chunk(chunk) | ({"pdf": page_location(row, chunk.span_start, chunk.span_end)} if row.media_type == "application/pdf" else {}) for chunk in chunks]
 
     def raw(self, owner, scope_id, source_version_id):
         with self.sessions() as db:
@@ -599,6 +611,7 @@ class DocumentService:
 
 
 def rebuild_document_search(sessions):
+    from ada.pdfs import projection_hash
     """Local operator rebuild, validating imported evidence before indexing."""
     count = 0
     with sessions.begin() as db:
@@ -634,7 +647,7 @@ def rebuild_document_search(sessions):
                     version.trust_class != "imported_untrusted"
                     or version.content_hash != content_hash(version.content)
                     or chunk.content_hash != version.content_hash
-                    or upload.raw_hash != version.content_hash
+                    or projection_hash(upload, version.content) != version.content_hash
                     or version.content[chunk.span_start : chunk.span_end] != chunk.quote
                     or chunk.quote_hash != content_hash(chunk.quote)
                 ):

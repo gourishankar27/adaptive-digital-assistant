@@ -32,9 +32,14 @@ class MainActivity : ComponentActivity() {
     override fun onStart() { super.onStart(); chatModel?.observeForeground(true) }
     override fun onStop() { chatModel?.voice?.permissionHostStopped(); chatModel?.observeForeground(false); super.onStop() }
     override fun onCreate(savedInstanceState: Bundle?) {
+        val initial = AppearancePreferences(applicationContext).load()
+        val systemDark = resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK == android.content.res.Configuration.UI_MODE_NIGHT_YES
+        setTheme(if (initial.effectiveDark(systemDark)) R.style.Theme_Ada else R.style.Theme_Ada_Light)
         super.onCreate(savedInstanceState)
         window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
-        enableEdgeToEdge()
+        val initialBars = if (initial.effectiveDark(systemDark)) SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
+            else SystemBarStyle.light(android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT)
+        enableEdgeToEdge(statusBarStyle = initialBars, navigationBarStyle = initialBars)
         val viewModel = ViewModelProvider(this, object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T =
@@ -48,12 +53,13 @@ class MainActivity : ComponentActivity() {
             var appearance by remember { mutableStateOf(preferences.load()) }
             var settingsOpen by rememberSaveable { mutableStateOf(false) }
             val focus = LocalFocusManager.current
+            val dark = appearance.effectiveDark(androidx.compose.foundation.isSystemInDarkTheme())
             SideEffect {
-                val barStyle = if (appearance.dark) SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
+                val barStyle = if (dark) SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
                     else SystemBarStyle.light(android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT)
                 enableEdgeToEdge(statusBarStyle = barStyle, navigationBarStyle = barStyle)
             }
-            AdaTheme(palette = appearance.palette, dark = appearance.dark) {
+            AdaTheme(palette = appearance.palette, dark = dark, reduceMotion = appearance.reduceMotion) {
                 AdaAppFrame {
                         ChatApp(viewModel) {
                             focus.clearFocus()

@@ -10,8 +10,12 @@ export type RequestMetadata = Omit<Dto<'AdminRequestOutput'>, 'status'> & { stat
 export type RequestDetail = RequestMetadata & { retrieval: Dto<'RetrievalSummary'>; stream?: Dto<'StreamMetadata'> | null };
 export type RequestPage = Omit<Dto<'AdminRequestsOutput'>, 'items'> & { items: RequestMetadata[] };
 export type AuditPage = Dto<'AdminAuditsOutput'>;
+export type ReflectionMetadata = Dto<'ReflectionAdminOutput'>;
+export type SchedulingMetadata = Dto<'ScheduleAdminOutput'>;
 export type Filters = Record<string, string>;
 export interface AdminApi {
+  reflection?(signal?: AbortSignal): Promise<ReflectionMetadata>;
+  scheduling?(signal?: AbortSignal): Promise<SchedulingMetadata>;
   adminMe(signal?: AbortSignal): Promise<AdminMe>;
   overview(hours: number, signal?: AbortSignal): Promise<Overview>;
   providers(signal?: AbortSignal): Promise<Providers>;
@@ -46,6 +50,26 @@ export const decodeAdminMe = (v: unknown) => {
   if (!result.permissions.includes('monitoring:read')) throw new ContractError();
   return result;
 };
+const schedulingCounts = (states: string[]): Decoder => value => {
+  const input = record(value);
+  return Object.fromEntries(states.map(state => [state, count(input[state] ?? 0)]));
+};
+export const decodeScheduling = (v: unknown) => shape<SchedulingMetadata>(v, {
+  globally_enabled: bool,
+  worker_running: value => bool(value ?? false), process_error_count: value => count(value ?? 0),
+  last_error_code: value => { const code = value == null ? null : text(value); return ['dispatcher_storage_unavailable', 'dispatcher_iteration_failed'].includes(String(code)) ? code : null; },
+  schedules: schedulingCounts(['active', 'paused', 'completed', 'deleted', 'quarantined']),
+  occurrences: schedulingCounts(['queued', 'running', 'delivered', 'suppressed', 'failed']),
+  inbox: schedulingCounts(['unread', 'acknowledged', 'opened', 'dismissed']), updated_at: millis,
+});
+export const decodeReflection = (v: unknown) => shape<ReflectionMetadata>(v, {
+  globally_enabled: bool, summary_generation: bool, suspended_model_class: bool, policies_enabled: count,
+  runs: schedulingCounts(['queued', 'running', 'completed', 'suppressed', 'failed', 'quarantined']),
+  artifacts: schedulingCounts(['pending', 'kept', 'dismissed']),
+  maximum_nightly_seconds: value => { if (value !== 600) throw new ContractError(); return 600; },
+  maximum_jobs: value => { if (value !== 3) throw new ContractError(); return 3; },
+  minimum_idle_seconds: value => { if (value !== 900) throw new ContractError(); return 900; }, updated_at: millis,
+});
 export const decodeOverview = (v: unknown) => shape<Overview>(v, { interaction_learning_counts: nullable(value => shape(value, { config: count, observe: count, review: count, reset: count })), consolidation_job_counts: nullable(value => shape(value, { queued: count, running: count, completed: count, failed: count, stale: count })), consolidation_jobs: nullable(list(value => shape(value, { id: uuid, owner_id: uuid, scope_id: uuid, kind: text, status: text, checkpoint: text, version: text, attempt: count, created_at: millis, started_at: nullable(millis), finished_at: nullable(millis), elapsed_ms: nullable(count) }))), window_hours: count, created_from: millis, updated_at: millis, requests: value => shape(value, { running: count, completed: count, failed: count }), agent_run_counts: nullable(value => shape(value, { running: count, pending_approval: count, completed: count, failed: count, unknown: count })), memory_proposal_counts: nullable(value => shape(value, { pending: count, accepted: count, rejected: count })), input_tokens: nullable(count), output_tokens: nullable(count), input_tokens_known_requests: count, output_tokens_known_requests: count, database_ready: bool, schema_version: nullable(text), provider_health: health, generation_admission: admission });
 export const decodeProviders = (v: unknown) => shape<Providers>(v, { provider: text, model: text, health, generation_admission: admission, context_tokens: count, output_tokens: count, timeout_seconds: count });
 export const decodeRequestPage = (v: unknown) => shape<RequestPage>(v, { items: list(decodeMetadata), limit: count, offset: count, has_more: bool, created_from: millis, created_to: millis, updated_at: millis });
@@ -61,6 +85,8 @@ function query(filters: Filters, allowed: string[]): string {
   return params.toString() ? `?${params}` : '';
 }
 export class HttpAdminApi extends HttpAdaApi implements AdminApi {
+  reflection(signal?: AbortSignal) { return this.get('/v1/admin/reflection', decodeReflection, signal); }
+  scheduling(signal?: AbortSignal) { return this.get('/v1/admin/scheduling', decodeScheduling, signal); }
   protected override async get<T>(path: string, decode: (value: unknown) => T, signal?: AbortSignal, authenticated = true): Promise<T> {
     try { return await super.get(path, decode, signal, authenticated); }
     catch (error) {

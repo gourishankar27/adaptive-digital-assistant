@@ -22,26 +22,28 @@ import java.net.URI
 fun SafeChatText(content: String, modifier: Modifier = Modifier, links: Boolean = true) {
     val uriHandler = LocalUriHandler.current
     val destinations = remember(content, links) { if (links) safeChatLinks(content) else emptyList() }
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
-        SelectionContainer {
-            Text(
-                content,
-                style = MaterialTheme.typography.bodyLarge,
-                // Fenced code remains selectable literal text, including its original delimiters.
-                fontFamily = if (content.startsWith("```")) FontFamily.Monospace else null,
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
-        destinations.forEach { destination ->
-            val host = remember(destination) { URI(destination).host }
-            TextButton(
-                onClick = { runCatching { uriHandler.openUri(destination) } },
-                modifier = Modifier.heightIn(min = AdaSpacing.touch).semantics {
-                    contentDescription = "Open external link to $host in your browser"
-                },
-            ) { Text("Open link to $host") }
+    val primary = MaterialTheme.colorScheme.primary
+    val text = remember(content, destinations, primary, uriHandler) {
+        androidx.compose.ui.text.buildAnnotatedString {
+            append(content)
+            fencedCodeRanges(content).forEach { range ->
+                addStyle(androidx.compose.ui.text.SpanStyle(fontFamily = FontFamily.Monospace), range.first, range.last + 1)
+            }
+            destinations.forEach { destination ->
+                var from = 0
+                while (from < content.length) {
+                    val start = content.indexOf(destination, from)
+                    if (start < 0) break
+                    addLink(androidx.compose.ui.text.LinkAnnotation.Url(destination,
+                        styles = androidx.compose.ui.text.TextLinkStyles(style = androidx.compose.ui.text.SpanStyle(color = primary, textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline)),
+                        linkInteractionListener = { runCatching { uriHandler.openUri(destination) } }), start, start + destination.length)
+                    from = start + destination.length
+                }
+            }
         }
     }
+    SelectionContainer(modifier) { Text(text, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.fillMaxWidth()) }
+
 }
 
 /** Only explicit user clicks open HTTP(S) destinations; embedded credentials are rejected. */
@@ -56,3 +58,16 @@ internal fun safeChatLinks(content: String): List<String> =
                     candidate.none { it.isISOControl() }
             }.getOrDefault(false)
         }.distinct().take(8).toList()
+
+/** UTF-16 display spans only; the original text/quotes and API code-point spans never change. */
+internal fun fencedCodeRanges(content: String): List<IntRange> {
+    val result = mutableListOf<IntRange>()
+    var start: Int? = null
+    Regex("(?m)^[ \t]{0,3}```[^\r\n]*(?:\r?\n|$)").findAll(content).forEach { match ->
+        val opening = start
+        if (opening == null) start = match.range.first
+        else { result += opening..match.range.last; start = null }
+    }
+    start?.let { if (it < content.length) result += it..content.lastIndex }
+    return result
+}

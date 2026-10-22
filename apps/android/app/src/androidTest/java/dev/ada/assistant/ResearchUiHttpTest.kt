@@ -22,7 +22,7 @@ class ResearchUiHttpTest {
         return (result as ApiResult.Success).value
     }
     @Test fun researchApprovalBeforeProcessStop() {
-        assumeTrue(compose.activity.packageName == "dev.ada.validation.phase24.debug")
+        assumeTrue(compose.activity.packageName in setOf("dev.ada.validation.phase24.debug", "dev.ada.validation.designgaps.debug"))
         val origin = InstrumentationRegistry.getArguments().getString("passwordOrigin")!!
         val api = HttpAdaApi()
         val login = runBlocking { success(api.passwordLogin(origin, "synthetic-admin", "Public synthetic Android passphrase 123", true)) }
@@ -59,7 +59,7 @@ class ResearchUiHttpTest {
         assertNull(vm.research.state.value.journal!!.operation)
     }
     @Test fun researchRestoreAfterProcessStop() {
-        assumeTrue(compose.activity.packageName == "dev.ada.validation.phase24.debug")
+        assumeTrue(compose.activity.packageName in setOf("dev.ada.validation.phase24.debug", "dev.ada.validation.designgaps.debug"))
         val vm = ViewModelProvider(compose.activity)[ChatViewModel::class.java]
         compose.waitUntil(30000) { vm.state.value.account != null && vm.research.state.value.run?.state == "completed" }
         val saved = vm.research.state.value.journal!!
@@ -68,7 +68,7 @@ class ResearchUiHttpTest {
         assertEquals(1, run.calls.size)
         assertTrue(run.response!!.contains("[W1]"))
         compose.runOnIdle { vm.navigate(ChatDestination.Research) }
-        compose.onNodeWithTag("research-state").assertTextEquals("State: completed")
+        compose.onNodeWithTag("research-state").assertTextEquals("State: Completed")
         compose.onNodeWithText("Inspect exact saved source").performScrollTo().performClick()
         compose.waitUntil(10000) { vm.research.state.value.source != null }
         assertEquals(run.citations.single(), vm.research.state.value.source!!.citation)

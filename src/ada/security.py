@@ -176,6 +176,9 @@ class CredentialService:
             )
             if original is not None:
                 original.revoked_at = instant
+                from ada.scheduling import pause_origin
+
+                pause_origin(db, owner, "device", original.id, "originating_device_rotated")
             db.add(credential)
             db.flush()
             return {"credential": public_credential(credential), "token": secret}, True
@@ -192,6 +195,9 @@ class CredentialService:
                 raise ServiceError(404, "credential_not_found")
             if row.revoked_at is None:
                 row.revoked_at = now_ms()
+            from ada.scheduling import pause_origin
+
+            pause_origin(db, owner, "device", row.id, "originating_device_revoked")
             return public_credential(row)
 
     def advance_revision(self, owner):

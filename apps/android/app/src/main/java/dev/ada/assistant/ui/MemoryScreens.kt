@@ -40,6 +40,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
@@ -92,8 +93,8 @@ private fun MemoryBrowse(state: MemoryState, controller: MemoryController) {
             Text(scope?.name ?: "Choose a private scope", style = MaterialTheme.typography.bodyLarge)
             Text("A scope controls which knowledge belongs together. Chat style does not change access.", style = MaterialTheme.typography.bodySmall)
             Row(horizontalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
-                OutlinedButton(onClick = { chooseScope = !chooseScope }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("memory-choose-scope")) { Text(if (chooseScope) "Close scope list" else "Choose scope") }
-                TextButton(onClick = controller::refreshScopes, enabled = !state.scopes.loading, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Refresh scopes") }
+                AdaOutlinedButton(onClick = { chooseScope = !chooseScope }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("memory-choose-scope")) { Text(if (chooseScope) "Close scope list" else "Choose scope") }
+                AdaTextButton(onClick = controller::refreshScopes, enabled = !state.scopes.loading, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Refresh scopes") }
             }
         }
         if (chooseScope || state.scopeId == null) {
@@ -104,7 +105,7 @@ private fun MemoryBrowse(state: MemoryState, controller: MemoryController) {
             }
             if (state.scopes.items.isEmpty() && !state.scopes.loading) item { Text("No owned scopes are available. Creating a conversation can create a private personal scope.") }
             if (state.scopes.hasMore && !state.scopes.loading) item {
-                OutlinedButton(onClick = controller::loadMoreScopes, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Load more scopes") }
+                AdaOutlinedButton(onClick = controller::loadMoreScopes, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Load more scopes") }
             }
         }
         if (state.scopes.loading) item { MemoryProgress("Loading owned scopes") }
@@ -123,19 +124,19 @@ private fun MemoryBrowse(state: MemoryState, controller: MemoryController) {
                     OutlinedTextField(state.asOf, controller::updateAsOf, label = { Text("Memory valid at") }, singleLine = true,
                         supportingText = { Text("Include a timezone and at most millisecond precision, for example 2026-10-09T12:00:00.000Z.") },
                         modifier = Modifier.fillMaxWidth().testTag("memory-asof"))
-                    Button(onClick = { focus.clearFocus(); controller.applyQuery() }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("memory-apply-query")) { Text("Apply date") }
+                    AdaButton(onClick = { focus.clearFocus(); controller.applyQuery() }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("memory-apply-query")) { Text("Apply date") }
                 }
                 if (state.mode != MemoryMode.Current) Text("This view uses when a statement was valid. It does not reconstruct what ADA knew or had stored on that date.", style = MaterialTheme.typography.bodySmall)
                 Row(horizontalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
-                    Button(onClick = controller::beginRemember, enabled = state.writesEnabled && state.pending == null && !state.saving,
+                    AdaButton(onClick = controller::beginRemember, enabled = state.writesEnabled && state.pending == null && !state.saving,
                         modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("memory-remember")) { Text("Remember") }
-                    TextButton(onClick = controller::refreshClaims, enabled = !state.claims.loading, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Refresh memory") }
+                    AdaTextButton(onClick = controller::refreshClaims, enabled = !state.claims.loading, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Refresh memory") }
                 }
                 if (!state.writesEnabled) Text("This server offers memory inspection without explicit writes.", style = MaterialTheme.typography.bodySmall)
             }
             if (competing.isNotEmpty()) item { MemoryInfo("Competing assertions", "Some loaded statements have different values in overlapping validity intervals. Review their evidence; this view does not rank truth.") }
             items(state.claims.items, key = { it.id }) { claim ->
-                Card(onClick = { controller.openClaim(claim.id) }, modifier = Modifier.fillMaxWidth().testTag("memory-claim-${claim.id}"),
+                Card(onClick = { controller.openClaim(claim.id) }, modifier = Modifier.fillMaxWidth().testTag("memory-claim-${claim.id}").semantics { role = Role.Button },
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
                     Column(Modifier.padding(AdaSpacing.medium), verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
                         SafeChatText("${claim.subject} · ${claim.predicate}: ${claim.value}", links = false)
@@ -149,7 +150,7 @@ private fun MemoryBrowse(state: MemoryState, controller: MemoryController) {
             if (state.claims.items.isEmpty() && !state.claims.loading && state.fault == null) item { MemoryInfo("No statements in this view", "Choose another date or explicitly Remember a statement supported by your words.") }
             if (state.claims.loading) item { MemoryProgress("Loading recorded memory") }
             if (state.claims.hasMore && !state.claims.loading) item {
-                OutlinedButton(onClick = controller::loadMoreClaims, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("memory-more-claims")) { Text("Load more memory") }
+                AdaOutlinedButton(onClick = controller::loadMoreClaims, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("memory-more-claims")) { Text("Load more memory") }
             }
         }
     }
@@ -180,15 +181,15 @@ private fun MemoryDetail(state: MemoryState, controller: MemoryController) {
                 Text("Original source version ${source.version} · ${sourceTrustLabel(source)}", style = MaterialTheme.typography.titleSmall)
                 MemoryQuote("Full original source", source.content, "memory-detail-source")
             }
-            if (claim.superseded_by != null) OutlinedButton(onClick = controller::openReplacement, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("memory-replacement")) { Text("View replacement") }
-            Button(onClick = controller::beginCorrection,
+            if (claim.superseded_by != null) AdaOutlinedButton(onClick = controller::openReplacement, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("memory-replacement")) { Text("View replacement") }
+            AdaButton(onClick = controller::beginCorrection,
                 enabled = state.writesEnabled && state.evidenceVerified && claim.status == "active" && claim.origin == "user_asserted" && state.pending == null && !state.saving,
                 modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("memory-correct")) { Text("Correct with new evidence") }
-            TextButton(onClick = { controller.openClaim(claim.id) }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Refresh statement") }
-            TextButton(onClick = { details = !details }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text(if (details) "Hide evidence details" else "Evidence details") }
+            AdaTextButton(onClick = { controller.openClaim(claim.id) }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Refresh statement") }
+            AdaTextButton(onClick = { details = !details }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text(if (details) "Hide evidence details" else "Evidence details") }
             if (details) SafeChatText("Claim: ${claim.id}\nScope: ${claim.scope_id}\nSource version: ${claim.evidence.source_version_id}\nOrigin: ${claim.origin}\nStatus: ${claim.status}\nCode-point span: ${claim.evidence.span_start}–${claim.evidence.span_end}\nSHA-256: ${claim.evidence.content_hash}\nUTC milliseconds: ${claim.valid_from} to ${claim.valid_to ?: "open"}", links = false)
         }
-        if (!state.detailLoading && state.detail == null) TextButton(onClick = { controller.back() }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Return to memory") }
+        if (!state.detailLoading && state.detail == null) AdaTextButton(onClick = { controller.back() }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Return to memory") }
     }
 }
 
@@ -223,8 +224,8 @@ private fun MemoryEdit(state: MemoryState, controller: MemoryController) {
         Text("Use ISO 8601 with a timezone and at most three fractional digits. Blank start uses the source version’s recorded time; a new note gets its recorded time from the server. Blank end leaves the interval open.", style = MaterialTheme.typography.bodySmall)
         Text("Supporting evidence", style = MaterialTheme.typography.titleMedium)
         Row(horizontalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
-            OutlinedButton(onClick = controller::selectNote, enabled = canEdit, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("memory-use-note")) { Text("Write a note") }
-            OutlinedButton(onClick = controller::loadSources, enabled = canEdit, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("memory-choose-source")) { Text("Choose user source") }
+            AdaOutlinedButton(onClick = controller::selectNote, enabled = canEdit, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("memory-use-note")) { Text("Write a note") }
+            AdaOutlinedButton(onClick = controller::loadSources, enabled = canEdit, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("memory-choose-source")) { Text("Choose user source") }
         }
         if (draft.selectedSource == null) {
             OutlinedTextField(draft.note, { controller.updateDraft(draft.copy(note = it)) }, enabled = canEdit,
@@ -249,15 +250,15 @@ private fun MemoryEdit(state: MemoryState, controller: MemoryController) {
                 Column(Modifier.padding(AdaSpacing.medium), verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
                     Text("${sourceTrustLabel(source)} · version ${source.version} · ${displayInstant(source.created_at)}")
                     if (source.trust_class != "user_explicit") Text("Model output or unrecognized source trust cannot support a user assertion.", style = MaterialTheme.typography.bodySmall)
-                    OutlinedButton(onClick = { controller.selectSource(source) }, enabled = canEdit && source.trust_class == "user_explicit",
+                    AdaOutlinedButton(onClick = { controller.selectSource(source) }, enabled = canEdit && source.trust_class == "user_explicit",
                         modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("memory-select-source-${source.id}")) { Text("Use this user source") }
                 }
             }
         }
         if (state.sourceChoices.loading) MemoryProgress("Loading owned source versions")
-        if (state.sourceChoices.hasMore && !state.sourceChoices.loading) OutlinedButton(onClick = controller::loadMoreSources, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Load more sources") }
+        if (state.sourceChoices.hasMore && !state.sourceChoices.loading) AdaOutlinedButton(onClick = controller::loadMoreSources, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Load more sources") }
         // CoreTextField collapses its selection on focus loss; capture the reviewed span first.
-        Button(onClick = { controller.preview(); focus.clearFocus() }, enabled = canEdit,
+        AdaButton(onClick = { controller.preview(); focus.clearFocus() }, enabled = canEdit,
             modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("memory-preview")) { Text("Review before saving") }
     }
 }
@@ -272,9 +273,9 @@ private fun MemoryPreview(state: MemoryState, controller: MemoryController) {
         MemoryPending(state, controller)
         if (preview != null) {
             WritePreview(preview, state)
-            OutlinedButton(onClick = controller::editPreview, enabled = state.pending == null && !state.saving,
+            AdaOutlinedButton(onClick = controller::editPreview, enabled = state.pending == null && !state.saving,
                 modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("memory-edit-preview")) { Text("Edit before saving") }
-            Button(onClick = controller::savePreview, enabled = state.writesEnabled && state.pending == null && !state.saving,
+            AdaButton(onClick = controller::savePreview, enabled = state.writesEnabled && state.pending == null && !state.saving,
                 modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("memory-save")) { Text("Save assertion") }
         } else Text("No reviewed write is available. Return to your form before saving.")
         if (state.saving) MemoryProgress("Saving the reviewed assertion")
@@ -299,7 +300,7 @@ private fun WritePreview(preview: PendingMemory, state: MemoryState) {
     Text("Effective from: ${write.validFrom ?: preview.source?.created_at?.let(::displayInstant) ?: "New note’s recorded time, assigned by the server"}\nUntil: ${write.validTo ?: "Open interval"} (exclusive)")
     MemoryQuote("Exact supporting quote", write.evidence?.quote ?: write.note?.content.orEmpty(), "memory-preview-quote")
     Text("This is your assertion, not automatic knowledge extraction or model-verified truth.", style = MaterialTheme.typography.bodySmall)
-    TextButton(onClick = { details = !details }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text(if (details) "Hide write details" else "Write details") }
+    AdaTextButton(onClick = { details = !details }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text(if (details) "Hide write details" else "Write details") }
     if (details) SafeChatText("Claim: ${write.claimId}\nScope: ${write.scopeId}\nSource: ${write.note?.source_id ?: preview.source?.source_id}\nVersion: ${preview.source?.id ?: "Created by the note step"}\nCorrects: ${write.corrects?.id ?: "New assertion"}\nStart UTC milliseconds: ${startMillis ?: "Assigned when the new note is recorded"}\nEnd UTC milliseconds: ${endMillis ?: "open"}" +
         (write.evidence?.let { "\nCode-point span: ${it.span_start}–${it.span_end}\nSHA-256: ${it.content_hash}" } ?: ""), links = false)
 }
@@ -310,29 +311,20 @@ private fun MemoryPending(state: MemoryState, controller: MemoryController) {
     var discard by remember(pending.reservation.claimId) { mutableStateOf(false) }
     MemoryInfo(if (pending.reservation.note != null && pending.source != null) "Note saved; assertion needs checking" else "A saved write needs attention",
         "This write keeps its original scope, IDs and input. The note or assertion may already exist; a lost response does not prove it failed.")
-    TextButton(onClick = controller::checkPending, enabled = !state.saving, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("memory-check-pending")) { Text("Check saved write") }
-    OutlinedButton(onClick = controller::resumePending, enabled = state.writesEnabled && !state.saving, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("memory-resume-pending")) { Text("Resume with original IDs") }
-    TextButton(onClick = { discard = true }, enabled = !state.saving, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("memory-discard-pending")) { Text("Discard local recovery") }
+    AdaTextButton(onClick = controller::checkPending, enabled = !state.saving, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("memory-check-pending")) { Text("Check saved write") }
+    AdaOutlinedButton(onClick = controller::resumePending, enabled = state.writesEnabled && !state.saving, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("memory-resume-pending")) { Text("Resume with original IDs") }
+    AdaTextButton(onClick = { discard = true }, enabled = !state.saving, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("memory-discard-pending")) { Text("Discard local recovery") }
     if (discard) AlertDialog(onDismissRequest = { discard = false }, title = { Text("Discard this local recovery?") },
         text = { Text("The note or assertion may already be saved on the server. This clears only the local recovery record; it deletes no server evidence or history. A new write would use new IDs and may conflict with an existing assertion.") },
-        confirmButton = { TextButton(onClick = { discard = false; controller.discardPending() }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Discard local record") } },
-        dismissButton = { TextButton(onClick = { discard = false }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Keep recovery") } })
+        confirmButton = { AdaTextButton(onClick = { discard = false; controller.discardPending() }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Discard local record") } },
+        dismissButton = { AdaTextButton(onClick = { discard = false }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Keep recovery") } })
 }
 
 @Composable
 private fun MemoryFeedback(state: MemoryState) {
-    val issue = state.validation ?: state.fault?.message()
-    if (issue != null) {
-        val focus = remember { FocusRequester() }
-        LaunchedEffect(issue) { focus.requestFocus() }
-        Surface(color = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.onErrorContainer, shape = MaterialTheme.shapes.medium) {
-            Text(issue, style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.fillMaxWidth().padding(AdaSpacing.medium).testTag("memory-error").focusRequester(focus).focusable().semantics { liveRegion = LiveRegionMode.Polite })
-        }
-    }
-    state.notice?.let { notice -> Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = MaterialTheme.shapes.medium) {
-        Text(notice, modifier = Modifier.fillMaxWidth().padding(AdaSpacing.medium).semantics { liveRegion = LiveRegionMode.Polite }, style = MaterialTheme.typography.bodyMedium)
-    } }
+    (state.validation ?: state.fault?.message())?.let { AdaNotice(it, Modifier.testTag("memory-error"), error = true) }
+    state.notice?.let { AdaNotice(it) }
+
 }
 
 @Composable
@@ -373,15 +365,12 @@ private fun MemoryQuote(title: String, quote: String, tag: String) {
 
 @Composable
 private fun MemoryBack(controller: MemoryController) {
-    TextButton(onClick = { controller.back() }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("memory-back")) { Text("Back to memory") }
+    AdaTextButton(onClick = { controller.back() }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("memory-back")) { Text("Back to memory") }
 }
 
 @Composable
 private fun MemoryProgress(label: String) {
-    Column(verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
-        LinearProgressIndicator(Modifier.fillMaxWidth().semantics { contentDescription = label })
-        Text(label, style = MaterialTheme.typography.bodyMedium)
-    }
+    AdaLoading(label)
 }
 
 private fun intervalLabel(claim: ClaimDto) = "Valid from ${displayInstant(claim.valid_from)} until ${claim.valid_to?.let(::displayInstant) ?: "open"} (exclusive)"

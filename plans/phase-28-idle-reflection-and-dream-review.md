@@ -1,6 +1,6 @@
 # Phase 28 — idle reflection and dream review
 
-Status: **Proposed; planning only.** Inputs: 23 evaluation, 25 question drafts,
+Status: **Initial reports/questions job set implemented and locally verified; native summaries disabled.** Inputs: 23 evaluation, 25 question drafts,
 26 availability/resource budgets, 27 durable consent/scheduling, 13 consolidation,
 11 review and Phase 18 erasure. G-25/G-35/G-36/G-38. Follow
 [shared rules](FUTURE-ROADMAP.md). Existing explicit background jobs are reused.
@@ -75,3 +75,28 @@ Exit only if artifacts are useful and background interference meets the measured
 budget. A valid outcome is a smaller enabled job set or disabled reflection when
 capacity is inadequate. Do not promise that unattended generation continually
 improves model weights or that fluent summaries prove accurate memory.
+
+
+## Implementation record — 2026-10-21
+
+The selected initial job set is rule-only reports and Phase25 catalogue drafts.
+Generated-summary schema/adapter/Phase13 Keep are implemented and exercised with
+explicit synthetic providers, but production summary generation stays disabled.
+The constrained public native probe measured client cancellation return, not
+server GPU cancellation, useful output or foreground native-inference interference.
+This uses the exit provision allowing a smaller enabled job set. No automatic
+memory-proposal generation, later phase or deployment is included.
+
+| Checkpoint | Implemented boundary | Evidence location |
+|---|---|---|
+| A | Separate owner automation/reflection/completed-turn consent; owned scopes, source types/lookback, time/job/resource budgets, version/hash/current availability pins | `test_reflection_policy.py`, `test_reflection.py`, source/read-barrier failures |
+| B | Existing observer/dispatcher/worker;15-minute ADA activity threshold, unknown-safe skip, shared slot/cooperative stop, ignored-cancellation suspension | failure/provider tests, public native probe and bounded host exercise in STATUS |
+| C | Owner-marker/possible-change reports, catalogue drafts, optional generated episodes; no factual/preference/source/external writes | evaluation and review tests; model summaries remain disabled |
+| D | Stable canonical source-set keys, native leases/attempt fences, bounded retry/capacity, origin/consent/epoch/off suppression, restore quarantine | failure/storage/recovery tests, released-v4 compatibility, exact Android receipt recovery |
+| E | Android While you were away: choices, provenance, source inspection, omissions/duration/empty outcomes, Keep/Discard/explicit question opening; admin fixed aggregates only | controller/Keystore tests, separate-emulator real HTTP force-stop stages and real Chromium monitoring |
+
+Actual dated results, failures/corrections, skips and final target gates are in
+[STATUS](STATUS.md), [WORKLOG](WORKLOG.md) and
+[the operational guide](../docs/IDLE-REFLECTION-AND-DREAM-REVIEW.md). Do not interpret
+an implemented checkpoint as installed-host, physical-device, representative
+private-data or native-summary activation verification.

@@ -77,10 +77,10 @@ fun AdaAppFrame(content: @Composable () -> Unit) {
 }
 
 @Composable
-fun AdaGlassSurface(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+fun AdaGlassSurface(modifier: Modifier = Modifier, boundary: Boolean = false, content: @Composable () -> Unit) {
     val visuals = LocalAdaVisuals.current
     Surface(modifier, shape = MaterialTheme.shapes.large, color = visuals.glass,
-        contentColor = MaterialTheme.colorScheme.onSurface, border = BorderStroke(AdaLayout.border, visuals.edge), content = content)
+        contentColor = MaterialTheme.colorScheme.onSurface, border = BorderStroke(AdaLayout.border, if (boundary) MaterialTheme.colorScheme.outline else visuals.edge), content = content)
 }
 
 @Composable

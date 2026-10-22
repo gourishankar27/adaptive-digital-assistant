@@ -1,5 +1,21 @@
 # ADA admin web — Phase 06
 
+Phase28 adds a read-only **Reflection** monitoring route: fixed global safety,
+counts and budgets only. Private draft/source/topic text never enters this view
+or its caches. The existing server admin grant/audit fence remains authoritative.
+See [the guide](../../docs/IDLE-REFLECTION-AND-DREAM-REVIEW.md) and root STATUS for
+actual checks and target limits.
+
+
+Phase27 adds a **Scheduling** metadata page using the server-granted, audited
+`GET /v1/admin/scheduling` route. It displays aggregate schedule/occurrence/inbox
+counts, global dispatch, actual worker-loop liveness and fixed error metadata.
+Private text, source quotes, owners and tokens are excluded by the client decoder
+as well as the server response. The page is read-only; no automation consent or
+configuration is changed from admin. Native keyboard Refresh restores focus after
+fetch without taking it from a user-selected control. See
+[the scheduling guide](../../docs/DURABLE-SCHEDULING-AND-REMINDERS.md).
+
 ## Phase22 HTTPS password sign-in
 
 Ordinary sign-in now asks username/password. Configure the exact server

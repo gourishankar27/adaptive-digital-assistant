@@ -1,6 +1,12 @@
 # How to use ADA — developer setup and everyday operation
 
-Current Phase25 source requires **0017 / 60 tables**. Curiosity is owner opt-in;
+Current Phase27 source requires **0018 / 65 tables**. Follow
+[durable scheduling and reminders](DURABLE-SCHEDULING-AND-REMINDERS.md) for the
+current upgrade/consent/timezone/restore requirements and
+[always-on operations](ALWAYS-ON-OPERATIONS.md) for host startup. These source
+changes have not migrated or deployed your private installation.
+
+The earlier Phase25 source milestone requires **0017 / 60 tables**. Curiosity is owner opt-in;
 see [the current guide](CONVERSATIONAL-CURIOSITY.md) for migration/controls/recovery.
 Earlier dated phase/install counts below remain historical. No live upgrade is implied.
 

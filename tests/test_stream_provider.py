@@ -38,7 +38,7 @@ def test_native_stream_fragmented_unicode_and_final_usage():
         assert request.headers["Accept-Encoding"] == "identity"
         return httpx.Response(200, stream=body)
 
-    stream = StreamingOllamaProvider(Settings(), httpx.MockTransport(handle)).stream(
+    stream = StreamingOllamaProvider(Settings(_env_file=None), httpx.MockTransport(handle)).stream(
         [], threading.Event()
     )
     assert list(stream) == [

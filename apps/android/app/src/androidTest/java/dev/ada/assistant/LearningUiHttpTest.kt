@@ -21,7 +21,7 @@ class LearningUiHttpTest {
     private lateinit var vm: ChatViewModel
     @Test fun exactContinuityCardIsShownFromTheOriginalRequest() {
         val file = File(InstrumentationRegistry.getInstrumentation().targetContext.filesDir, "foundation-test-token"); assumeTrue(file.isFile)
-        val token = file.readText().trim(); val c = ConnectionCredential.parse("http://10.0.2.2:18764", token, true)!!; val api = HttpAdaApi()
+        val token = file.readText().trim(); val c = ConnectionCredential.parse(fixtureOrigin(18764), token, true)!!; val api = HttpAdaApi()
         val profile = runBlocking { success(api.personalities(c)).first() }
         val conversation = runBlocking { success(api.createConversation(c, ConversationInputDto(profile.id, "Synthetic continuity UI"))) }
         val source = runBlocking { success(api.createNote(c, conversation.scope_id, NoteInputDto(UUID.randomUUID(), "Synthetic continuity tea planning."))) }
@@ -48,7 +48,7 @@ class LearningUiHttpTest {
     }
     @Test fun enrollSelectEvidenceReviewEditRejectPauseAndResetOverRealHttp() {
         val file = File(InstrumentationRegistry.getInstrumentation().targetContext.filesDir, "foundation-test-token"); assumeTrue(file.isFile)
-        val token = file.readText().trim(); val c = ConnectionCredential.parse("http://10.0.2.2:18764", token, true)!!; val api = HttpAdaApi()
+        val token = file.readText().trim(); val c = ConnectionCredential.parse(fixtureOrigin(18764), token, true)!!; val api = HttpAdaApi()
         val profile = runBlocking { success(api.personalities(c)).first() }
         val conversation = runBlocking { success(api.createConversation(c, ConversationInputDto(profile.id, "Synthetic learning UI"))) }
         runBlocking { for(text in listOf("Concise planning helps.", "Brief coding explanations please.", "Short reviews are useful.", "Keep this next reply compact.")) success(api.send(c, conversation.id, ChatInputDto(UUID.randomUUID(), text))) }
@@ -59,6 +59,7 @@ class LearningUiHttpTest {
         val settings = compose.onNodeWithTag("nav-settings")
         if (compose.onAllNodesWithTag("expanded-navigation").fetchSemanticsNodes().isNotEmpty()) settings.performScrollTo()
         settings.assertIsDisplayed().performClick()
+        compose.onNodeWithTag("settings-learning").performScrollTo().performClick()
         compose.waitUntil(20_000) { vm.learning.state.value.data != null && !vm.learning.state.value.busy }
         compose.onNodeWithTag("learning-consent").performScrollTo().performClick()
         compose.onNodeWithTag("learning-enroll").performScrollTo().performClick()
@@ -70,8 +71,8 @@ class LearningUiHttpTest {
             compose.waitUntil(20_000) { vm.learning.state.value.source == null && !vm.learning.state.value.busy }
         }
         val proposal = vm.learning.state.value.data!!.proposals.single(); assertTrue(proposal.eligible)
-        compose.onNodeWithText("Reviewed value: concise").performScrollTo().performClick()
-        compose.onNodeWithText("balanced", substring = false).performClick()
+        compose.onNodeWithText("Reviewed value: Concise").performScrollTo().performClick()
+        compose.onNodeWithText("Balanced", substring = false).performClick()
         compose.onNodeWithTag("learning-approve-${proposal.id}").performScrollTo().performClick()
         compose.waitUntil(20_000) { vm.learning.state.value.data?.learned?.size == 1 && !vm.learning.state.value.busy }
         assertEquals("balanced", runBlocking { success(api.learning(c, conversation.scope_id)) }.learned.single().values.verbosity)

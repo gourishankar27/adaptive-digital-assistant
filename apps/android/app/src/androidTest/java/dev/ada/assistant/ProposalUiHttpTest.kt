@@ -23,7 +23,7 @@ class ProposalUiHttpTest {
     private lateinit var vm: ChatViewModel
     @Test fun selectedSourceEditAcceptAndRejectUseRealHttpAndHonestEvidence() {
         val file = File(InstrumentationRegistry.getInstrumentation().targetContext.filesDir, "foundation-test-token"); assumeTrue(file.isFile)
-        val token = file.readText().trim(); val conn = ConnectionCredential.parse("http://10.0.2.2:18764", token, true)!!; val api = HttpAdaApi()
+        val token = file.readText().trim(); val conn = ConnectionCredential.parse(fixtureOrigin(18764), token, true)!!; val api = HttpAdaApi()
         val me = runBlocking { success(api.me(conn)) }; val identity = SessionIdentity(conn.server.toString(), me.id)
         val scope = runBlocking { success(api.createScope(conn, ScopeInputDto("Synthetic proposal UI"))) }
         val text = "Android verification project uses Oxford Blue. 😀 e\u0301"

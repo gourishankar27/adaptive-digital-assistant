@@ -10,9 +10,12 @@ from ada import (  # noqa: F401
     learning_models,
     login_models,
     proposal_models,
+    reflection_models,
+    schedule_models,
     security_models,
     stream_models,
     voice_models,
+    work_models,
 )
 from ada.errors import ServiceError
 from ada.models import Base
@@ -58,14 +61,27 @@ CONTENT_TABLES = (
     "memory_proposals",
     "memory_reviews",
     "personalities",
+    "reflection_artifacts",
+    "reflection_policies",
+    "reflection_receipts",
+    "reflection_runs",
     "requests",
     "retrieval_traces",
+    "schedule_consents",
+    "schedule_inbox",
+    "schedule_occurrences",
+    "schedule_receipts",
+    "schedules",
     "scopes",
     "source_versions",
     "sources",
     "stream_attempts",
     "stream_events",
     "voice_inputs",
+    "work_briefs",
+    "work_items",
+    "work_receipts",
+    "work_revisions",
 )
 
 SECURITY_METADATA_TABLES = frozenset(

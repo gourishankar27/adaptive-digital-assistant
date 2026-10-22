@@ -102,6 +102,9 @@ class PasswordSessions:
                 row = PasswordCredential(owner_id=owner, login=login, changed_at=now_ms())
                 db.add(row)
             row.login, row.verifier, row.changed_at = login, verifier, now_ms()
+            from ada.scheduling import pause_automation
+
+            pause_automation(db, owner, "password_reset")
             db.execute(
                 update(LoginSession)
                 .where(LoginSession.owner_id == owner, LoginSession.revoked_at.is_(None))
@@ -242,6 +245,10 @@ class PasswordSessions:
                     raise ServiceError(404, "session_not_found")
                 query = query.where(LoginSession.id == family_id)
             db.execute(query.values(revoked_at=now_ms()))
+            if family_id is None:
+                from ada.scheduling import pause_automation
+
+                pause_automation(db, owner, "all_sessions_revoked")
 
     def change_password(self, owner, old, new):
         validate_password(new)
@@ -259,6 +266,9 @@ class PasswordSessions:
             if row is None or row.verifier != verifier:
                 raise ServiceError(401, "invalid_login")
             row.verifier, row.changed_at = replacement, now_ms()
+            from ada.scheduling import pause_automation
+
+            pause_automation(db, owner, "password_changed")
             db.execute(
                 update(LoginSession)
                 .where(LoginSession.owner_id == owner, LoginSession.revoked_at.is_(None))

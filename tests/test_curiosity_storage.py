@@ -19,6 +19,7 @@ from ada.curiosity_models import CuriosityPolicy, CuriosityQuestion, CuriosityRe
 from ada.db import connect
 from ada.operations import backup, deletion_ledger, read_artifact, restore, unpack, write_artifact
 from ada.providers import FakeProvider
+from ada.schema import SCHEMA_HEAD
 
 
 def test_native_owner_quota_serializes_across_scopes(harness):
@@ -77,7 +78,7 @@ def test_populated_upgrade_preserves_chat_and_refuses_curiosity_downgrade(harnes
     with pytest.raises(RuntimeError, match="Curiosity history"):
         command.downgrade(h["config"], "0016")
     with h["sessions"]() as db:
-        assert db.scalar(text("SELECT version_num FROM alembic_version")) == "0017"
+        assert db.scalar(text("SELECT version_num FROM alembic_version")) == SCHEMA_HEAD
 
 
 @pytest.mark.parametrize("head", ["0016", "0017"])
@@ -90,6 +91,7 @@ def test_native_versioned_recovery_preserves_replay_and_quarantines_curiosity(
     from alembic.config import Config
 
     url, binary, owned = recovery_database
+
     engine, sessions = connect(url)
     settings = Settings(database_url=url, provider="fake", consolidation_worker_enabled=False)
     owner, token = create_user(sessions, "Public curiosity recovery owner")
@@ -103,14 +105,17 @@ def test_native_versioned_recovery_preserves_replay_and_quarantines_curiosity(
                 "/v1/conversations", headers=headers, json={"personality_id": profile["id"]}
             ).json()
             rid = str(uuid4())
-            original = client.post(
+            original_response = client.post(
                 f"/v1/conversations/{conv['id']}/messages",
                 headers=headers,
                 json={"request_id": rid, "content": "A public synthetic recovery statement."},
-            ).json()
+            )
+            assert original_response.status_code == 200
+            original = original_response.json()
             if head == "0017":
                 enabled(h)
                 q = question(h, create(h, conv["scope_id"])[0].json())
+                command.downgrade(Config("alembic.ini"), "0017")
             else:
                 command.downgrade(Config("alembic.ini"), "0016")
         phrase = "Public synthetic recovery passphrase"

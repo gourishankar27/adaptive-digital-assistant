@@ -182,6 +182,13 @@ class CuriosityService:
     @staticmethod
     def _scrub(row, state, now):
         row.status, row.payload, row.source_version_id, row.closed_at = state, None, None, now
+        from sqlalchemy.orm import object_session
+
+        from ada.scheduling import scrub_question_inbox
+
+        db = object_session(row)
+        if db is not None:
+            scrub_question_inbox(db, row.owner_id, row.id)
 
     def _prune(self, db, owner):
         for row in db.scalars(select(CuriosityQuestion).where(CuriosityQuestion.owner_id == owner)):
@@ -192,6 +199,9 @@ class CuriosityService:
                 and row.closed_at is not None
                 and row.closed_at + 30 * DAY <= self.clock()
             ):
+                from ada.scheduling import scrub_question_inbox
+
+                scrub_question_inbox(db, row.owner_id, row.id, detach=True)
                 db.delete(row)
         db.flush()
 
@@ -208,6 +218,9 @@ class CuriosityService:
             row = current or self._policy(db, owner, True)
             row.revision = body.expected_revision + 1
             row.settings, row.updated_at = body.settings.model_dump(), self.clock()
+            from ada.scheduling import pause_question_schedules
+
+            pause_question_schedules(db, owner)
             for question in db.scalars(
                 select(CuriosityQuestion).where(CuriosityQuestion.owner_id == owner)
             ):
@@ -371,147 +384,74 @@ class CuriosityService:
         policy.metrics = policy.metrics | {key: policy.metrics.get(key, 0) + 1}
 
     def create(self, owner, scope, body):
-        payload = {"action": "create", "scope_id": scope, **body.model_dump(mode="json")}
         with self.sessions.begin() as db:
-            user = self._owner(db, owner)
-            owned_scope(db, owner, scope, lock=True)
-            old = self._old(db, owner, body.operation_id, payload)
-            if old:
-                return self._receipt_output(db, old)
-            policy = self._policy(db, owner)
-            if (
-                not policy
-                or not policy.settings["enabled"]
-                or policy.revision != body.policy_revision
-                or not policy.settings[body.channel + "_enabled"]
-            ):
-                raise ServiceError(409, "curiosity_consent_changed")
-            self._prune(db, owner)
-            settings = policy.settings
-            conv, request = None, None
-            if body.channel == "chat":
-                request = (
-                    db.get(Request, (owner, str(body.request_id))) if body.request_id else None
+            return self.create_in(db, owner, scope, body)
+
+    def create_in(self, db, owner, scope, body):
+        payload = {"action": "create", "scope_id": scope, **body.model_dump(mode="json")}
+        user = self._owner(db, owner)
+        owned_scope(db, owner, scope, lock=True)
+        old = self._old(db, owner, body.operation_id, payload)
+        if old:
+            return self._receipt_output(db, old)
+        policy = self._policy(db, owner)
+        if (
+            not policy
+            or not policy.settings["enabled"]
+            or policy.revision != body.policy_revision
+            or not policy.settings[body.channel + "_enabled"]
+        ):
+            raise ServiceError(409, "curiosity_consent_changed")
+        self._prune(db, owner)
+        settings = policy.settings
+        conv, request = None, None
+        if body.channel == "chat":
+            request = db.get(Request, (owner, str(body.request_id))) if body.request_id else None
+            if request is None:
+                raise ServiceError(404, "request_not_found")
+            conv = db.scalar(
+                select(Conversation).where(
+                    Conversation.owner_id == owner,
+                    Conversation.id == request.conversation_id,
+                    Conversation.scope_id == scope,
                 )
-                if request is None:
-                    raise ServiceError(404, "request_not_found")
-                conv = db.scalar(
-                    select(Conversation).where(
-                        Conversation.owner_id == owner,
-                        Conversation.id == request.conversation_id,
-                        Conversation.scope_id == scope,
-                    )
-                )
-                if conv is None:
-                    raise ServiceError(404, "conversation_not_found")
-                if request.status != "completed":
-                    raise ServiceError(409, "curiosity_reply_not_completed")
-                existing = db.scalar(
-                    select(CuriosityQuestion).where(
-                        CuriosityQuestion.owner_id == owner,
-                        CuriosityQuestion.request_id == request.id,
-                    )
-                )
-                if existing:
-                    return self._receipt_output(
-                        db,
-                        self._receipt(
-                            db,
-                            owner,
-                            body.operation_id,
-                            payload,
-                            "create",
-                            state="created",
-                            question_id=existing.id,
-                        ),
-                    )
-                values, origins, _ = self.chat.expression.effective(db, conv)
-                ordinal = db.scalar(
-                    select(func.count())
-                    .select_from(Request)
-                    .where(
-                        Request.owner_id == owner,
-                        Request.conversation_id == conv.id,
-                        Request.status == "completed",
-                        Request.created_at <= request.created_at,
-                    )
-                )
-                divisor = {"occasional": 3, "rare": 5, "every_reply": 1}[settings["frequency"]]
-                if any(mark in (request.response or "") for mark in ("?", "？", "؟")):
-                    return self._receipt_output(
-                        db,
-                        self._receipt(
-                            db,
-                            owner,
-                            body.operation_id,
-                            payload,
-                            "create",
-                            state="not_offered",
-                            reason="reply_already_contains_question",
-                        ),
-                    )
-                if (
-                    request.finished_at < policy.updated_at
-                    or values["verbosity"] == "concise"
-                    or (
-                        values["initiative"] == "respond" and origins["initiative"] != "personality"
-                    )
-                    or (body.intent != "interview" and ordinal % divisor)
-                ):
-                    return self._receipt_output(
-                        db,
-                        self._receipt(
-                            db,
-                            owner,
-                            body.operation_id,
-                            payload,
-                            "create",
-                            state="not_offered",
-                            reason="cadence_or_task_focus",
-                        ),
-                    )
-            elif body.request_id is not None:
-                raise ServiceError(422, "curiosity_inbox_request_forbidden")
-            topic = body.topic
-            if topic and not self._allowed(settings, topic):
-                raise ServiceError(409, "curiosity_topic_not_allowed")
-            if not topic:
-                text = request.messages[-1]["content"].lower() if request else ""
-                preferred = (
-                    "work"
-                    if any(word in text for word in ("project", "work", "build"))
-                    else "routines"
-                    if any(word in text for word in ("routine", "schedule", "habit"))
-                    else "interests"
-                )
-                topic = next((t for t in [preferred, *CATALOG] if self._allowed(settings, t)), None)
-            source = (
-                self._pin(db, owner, scope, body.source.model_dump(mode="json"))
-                if body.source
-                else None
             )
-            used = set(
-                db.scalars(
-                    select(CuriosityQuestion.template_key).where(
-                        CuriosityQuestion.owner_id == owner,
-                        CuriosityQuestion.created_at > self.clock() - 30 * DAY,
-                    )
+            if conv is None:
+                raise ServiceError(404, "conversation_not_found")
+            if request.status != "completed":
+                raise ServiceError(409, "curiosity_reply_not_completed")
+            existing = db.scalar(
+                select(CuriosityQuestion).where(
+                    CuriosityQuestion.owner_id == owner,
+                    CuriosityQuestion.request_id == request.id,
                 )
-            ) | set(policy.suppressed)
-            choices = (
-                [
-                    (
-                        topic + ".source",
-                        "Would you like to revisit this original statement and tell me what has changed?",
-                    )
-                ]
-                if source and topic
-                else [
-                    (topic + "." + str(i), value) for i, value in enumerate(CATALOG.get(topic, ()))
-                ]
             )
-            choice = next(((key, value) for key, value in choices if key not in used), None)
-            if choice is None:
+            if existing:
+                return self._receipt_output(
+                    db,
+                    self._receipt(
+                        db,
+                        owner,
+                        body.operation_id,
+                        payload,
+                        "create",
+                        state="created",
+                        question_id=existing.id,
+                    ),
+                )
+            values, origins, _ = self.chat.expression.effective(db, conv)
+            ordinal = db.scalar(
+                select(func.count())
+                .select_from(Request)
+                .where(
+                    Request.owner_id == owner,
+                    Request.conversation_id == conv.id,
+                    Request.status == "completed",
+                    Request.created_at <= request.created_at,
+                )
+            )
+            divisor = {"occasional": 3, "rare": 5, "every_reply": 1}[settings["frequency"]]
+            if any(mark in (request.response or "") for mark in ("?", "？", "؟")):
                 return self._receipt_output(
                     db,
                     self._receipt(
@@ -521,72 +461,67 @@ class CuriosityService:
                         payload,
                         "create",
                         state="not_offered",
-                        reason="no_unasked_allowed_question",
+                        reason="reply_already_contains_question",
                     ),
                 )
-            day = self.clock() // DAY
-            daily = (
-                policy.daily
-                if policy.daily.get("day") == day
-                else {"day": day, "inbox": 0, "interview": 0}
-            )
-            if policy.daily.get("day", day) > day:
-                raise ServiceError(429, "curiosity_clock_changed")
-            counter, maximum = ("interview", 10) if body.intent == "interview" else ("inbox", 2)
-            if body.channel == "inbox" or body.intent == "interview":
-                if daily.get(counter, 0) >= maximum:
-                    raise ServiceError(429, "curiosity_owner_daily_limit")
-                daily = daily | {counter: daily.get(counter, 0) + 1}
             if (
-                db.scalar(
-                    select(func.count())
-                    .select_from(CuriosityQuestion)
-                    .where(CuriosityQuestion.owner_id == owner)
-                )
-                >= 100
+                request.finished_at < policy.updated_at
+                or values["verbosity"] == "concise"
+                or (values["initiative"] == "respond" and origins["initiative"] != "personality")
+                or (body.intent != "interview" and ordinal % divisor)
             ):
-                raise ServiceError(413, "curiosity_retained_limit")
-            policy.daily = daily
-            key, text = choice
-            row = CuriosityQuestion(
-                owner_id=owner,
-                id=str(uuid4()),
-                scope_id=scope,
-                conversation_id=conv.id if conv else None,
-                request_id=request.id if request else None,
-                channel=body.channel,
-                topic=topic,
-                status="offered" if conv else "pending",
-                template_key=key,
-                epoch=user.data_epoch,
-                policy_revision=policy.revision,
-                source_version_id=source["source_version_id"] if source else None,
-                payload={
-                    "text": text,
-                    "reason": "owner_selected_original"
-                    if source
-                    else "interview"
-                    if body.intent == "interview"
-                    else "generic_getting_to_know_you",
-                    "source": source,
-                    "policy": {
-                        "version": VERSION,
-                        "revision": policy.revision,
-                        "frequency": settings["frequency"],
-                        "depth": settings["depth"],
-                        "intent": body.intent,
-                        "channel": body.channel,
-                        "topic": topic,
-                        "generator": "ada-question-catalog-v1",
-                    },
-                },
-                created_at=self.clock(),
-                expires_at=self.clock() + DAY,
-                available_at=self.clock(),
+                return self._receipt_output(
+                    db,
+                    self._receipt(
+                        db,
+                        owner,
+                        body.operation_id,
+                        payload,
+                        "create",
+                        state="not_offered",
+                        reason="cadence_or_task_focus",
+                    ),
+                )
+        elif body.request_id is not None:
+            raise ServiceError(422, "curiosity_inbox_request_forbidden")
+        topic = body.topic
+        if topic and not self._allowed(settings, topic):
+            raise ServiceError(409, "curiosity_topic_not_allowed")
+        if not topic:
+            text = request.messages[-1]["content"].lower() if request else ""
+            preferred = (
+                "work"
+                if any(word in text for word in ("project", "work", "build"))
+                else "routines"
+                if any(word in text for word in ("routine", "schedule", "habit"))
+                else "interests"
             )
-            db.add(row)
-            self._metric(policy, "offered")
-            db.flush()
+            topic = next((t for t in [preferred, *CATALOG] if self._allowed(settings, t)), None)
+        source = (
+            self._pin(db, owner, scope, body.source.model_dump(mode="json"))
+            if body.source
+            else None
+        )
+        used = set(
+            db.scalars(
+                select(CuriosityQuestion.template_key).where(
+                    CuriosityQuestion.owner_id == owner,
+                    CuriosityQuestion.created_at > self.clock() - 30 * DAY,
+                )
+            )
+        ) | set(policy.suppressed)
+        choices = (
+            [
+                (
+                    topic + ".source",
+                    "Would you like to revisit this original statement and tell me what has changed?",
+                )
+            ]
+            if source and topic
+            else [(topic + "." + str(i), value) for i, value in enumerate(CATALOG.get(topic, ()))]
+        )
+        choice = next(((key, value) for key, value in choices if key not in used), None)
+        if choice is None:
             return self._receipt_output(
                 db,
                 self._receipt(
@@ -595,10 +530,85 @@ class CuriosityService:
                     body.operation_id,
                     payload,
                     "create",
-                    state="created",
-                    question_id=row.id,
+                    state="not_offered",
+                    reason="no_unasked_allowed_question",
                 ),
             )
+        day = self.clock() // DAY
+        daily = (
+            policy.daily
+            if policy.daily.get("day") == day
+            else {"day": day, "inbox": 0, "interview": 0}
+        )
+        if policy.daily.get("day", day) > day:
+            raise ServiceError(429, "curiosity_clock_changed")
+        counter, maximum = ("interview", 10) if body.intent == "interview" else ("inbox", 2)
+        if body.channel == "inbox" or body.intent == "interview":
+            if daily.get(counter, 0) >= maximum:
+                raise ServiceError(429, "curiosity_owner_daily_limit")
+            daily = daily | {counter: daily.get(counter, 0) + 1}
+        if (
+            db.scalar(
+                select(func.count())
+                .select_from(CuriosityQuestion)
+                .where(CuriosityQuestion.owner_id == owner)
+            )
+            >= 100
+        ):
+            raise ServiceError(413, "curiosity_retained_limit")
+        policy.daily = daily
+        key, text = choice
+        row = CuriosityQuestion(
+            owner_id=owner,
+            id=str(uuid4()),
+            scope_id=scope,
+            conversation_id=conv.id if conv else None,
+            request_id=request.id if request else None,
+            channel=body.channel,
+            topic=topic,
+            status="offered" if conv else "pending",
+            template_key=key,
+            epoch=user.data_epoch,
+            policy_revision=policy.revision,
+            source_version_id=source["source_version_id"] if source else None,
+            payload={
+                "text": text,
+                "reason": "owner_selected_original"
+                if source
+                else "interview"
+                if body.intent == "interview"
+                else "generic_getting_to_know_you",
+                "source": source,
+                "policy": {
+                    "version": VERSION,
+                    "revision": policy.revision,
+                    "frequency": settings["frequency"],
+                    "depth": settings["depth"],
+                    "intent": body.intent,
+                    "channel": body.channel,
+                    "topic": topic,
+                    "generator": "ada-question-catalog-v1",
+                },
+            },
+            created_at=self.clock(),
+            expires_at=self.clock() + DAY,
+            available_at=self.clock(),
+        )
+        db.add(row)
+        self._metric(policy, "offered")
+        db.flush()
+        return self._receipt_output(
+            db,
+            self._receipt(
+                db,
+                owner,
+                body.operation_id,
+                payload,
+                "create",
+                state="created",
+                question_id=row.id,
+            ),
+        )
 
     def action(self, owner, key, body):
         payload = {"question_id": key, **body.model_dump(mode="json")}
@@ -646,59 +656,62 @@ class CuriosityService:
             raise ServiceError(409, "curiosity_question_unavailable")
 
     def open(self, owner, key, body):
-        payload = {"action": "open", "question_id": key, **body.model_dump(mode="json")}
         with self.sessions.begin() as db:
-            self._owner(db, owner)
-            old = self._old(db, owner, body.operation_id, payload)
-            if old:
-                return self._receipt_output(db, old)
-            row = self._question(db, owner, key)
-            self._available(db, row)
-            owned_scope(db, owner, row.scope_id, lock=True)
-            cid = str(body.conversation_id)
-            profile = db.scalar(
-                select(Personality).where(
-                    Personality.owner_id == owner, Personality.id == str(body.personality_id)
-                )
+            return self.open_in(db, owner, key, body)
+
+    def open_in(self, db, owner, key, body):
+        payload = {"action": "open", "question_id": key, **body.model_dump(mode="json")}
+        self._owner(db, owner)
+        old = self._old(db, owner, body.operation_id, payload)
+        if old:
+            return self._receipt_output(db, old)
+        row = self._question(db, owner, key)
+        self._available(db, row)
+        owned_scope(db, owner, row.scope_id, lock=True)
+        cid = str(body.conversation_id)
+        profile = db.scalar(
+            select(Personality).where(
+                Personality.owner_id == owner, Personality.id == str(body.personality_id)
             )
-            if profile is None:
-                raise ServiceError(404, "personality_not_found")
-            if row.opened_conversation_id:
-                if row.opened_conversation_id != cid:
-                    raise ServiceError(409, "curiosity_already_opened")
-            else:
-                if db.get(Conversation, cid) is not None:
-                    raise ServiceError(409, "curiosity_conversation_id_used")
-                scope = owned_scope(db, owner, row.scope_id)
-                snapshot = {k: getattr(profile, k) for k in ("name", "style", "warmth", "detail")}
-                conv = Conversation(
-                    id=cid,
-                    owner_id=owner,
-                    personality_id=profile.id,
-                    scope_id=scope.id,
-                    scope_kind=scope.kind,
-                    title="Conversation starter",
-                    personality_snapshot=snapshot,
-                    system_prompt=build_prompt(snapshot),
-                    prompt_version=PROMPT_VERSION,
-                )
-                db.add(conv)
-                db.flush()
-                self.chat.expression.bind_new(db, conv)
-                row.opened_conversation_id, row.status = cid, "opened"
-            return self._receipt_output(
+        )
+        if profile is None:
+            raise ServiceError(404, "personality_not_found")
+        if row.opened_conversation_id:
+            if row.opened_conversation_id != cid:
+                raise ServiceError(409, "curiosity_already_opened")
+        else:
+            if db.get(Conversation, cid) is not None:
+                raise ServiceError(409, "curiosity_conversation_id_used")
+            scope = owned_scope(db, owner, row.scope_id)
+            snapshot = {k: getattr(profile, k) for k in ("name", "style", "warmth", "detail")}
+            conv = Conversation(
+                id=cid,
+                owner_id=owner,
+                personality_id=profile.id,
+                scope_id=scope.id,
+                scope_kind=scope.kind,
+                title="Conversation starter",
+                personality_snapshot=snapshot,
+                system_prompt=build_prompt(snapshot),
+                prompt_version=PROMPT_VERSION,
+            )
+            db.add(conv)
+            db.flush()
+            self.chat.expression.bind_new(db, conv)
+            row.opened_conversation_id, row.status = cid, "opened"
+        return self._receipt_output(
+            db,
+            self._receipt(
                 db,
-                self._receipt(
-                    db,
-                    owner,
-                    body.operation_id,
-                    payload,
-                    "open",
-                    state="completed",
-                    question_id=key,
-                    conversation_id=cid,
-                ),
-            )
+                owner,
+                body.operation_id,
+                payload,
+                "open",
+                state="completed",
+                question_id=key,
+                conversation_id=cid,
+            ),
+        )
 
     def answer(self, owner, key, body, current):
         payload = {"action": "answer", "question_id": key, **body.model_dump(mode="json")}

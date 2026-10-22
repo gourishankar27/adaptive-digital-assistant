@@ -11,9 +11,27 @@ remains default and semantic remains disabled. Phase24 now implements locally
 verified, default-off owner-approved public research; installation and physical
 target gates remain separate. Phase25 now implements default-off topic/cadence
 controls, chat/inbox questions and explicit ordinary answers, with bounded local
-verification and separate target/quality gates in STATUS. **Phases26–31 remain proposed;
-this document does not authorize their
-implementation or deployment.**
+verification and separate target/quality gates in STATUS. Phase26 was subsequently
+selected: Windows supervision/health/protected backup/recovery source and local
+rehearsals are implemented; installation and target gates remain in STATUS.
+Phase27 was subsequently selected: reviewed schedules, durable inbox/receipts,
+foreground Android polling and aggregate admin controls are implemented locally;
+global dispatch and owner consent default off, with no background push. Actual
+verification/target limits are in STATUS and
+[the guide](../docs/DURABLE-SCHEDULING-AND-REMINDERS.md).
+Phase28 was selected: bounded idle reports/question drafts, owner review and
+recovery are implemented; summaries remain disabled pending separate evidence.
+[The reflection guide](../docs/IDLE-REFLECTION-AND-DREAM-REVIEW.md) records boundaries.
+Phase29 was selected: study/interface, strict local metadata/byte checks and
+platform preview are implemented; additional runtime/model activation awaits
+license/compatibility and physical evidence. See
+[the speech guide](../docs/NATURAL-LOCAL-SPEECH.md).
+Phase30 was selected: explicit owner/scoped work, exact chat Save review, balanced
+selected-work briefs and optional consented follow-ups/reminders are implemented
+and locally verified. See [the guide](../docs/PROJECTS-AND-FOLLOW-THROUGH.md) and
+STATUS/WORKLOG for actual checks and remaining human/physical usefulness gates.
+**Phase31 remains proposed. This roadmap does not authorize its implementation
+or any deployment.**
 This review excludes physical-Android verification and iOS work. Their existing
 gates remain open; they are not prerequisites for independent server, emulator,
 web or planning work. Optional on-device voice is designed here, with its later
@@ -48,10 +66,10 @@ These are planning choices, not consent to enable live schedules or notification
 | 23 | [Answer quality and memory relevance](phase-23-answer-quality-and-memory-relevance.md) | Implemented: explicit windows/review, measured optional v5 with regressions recorded; v4 default/semantic disabled | 20; existing 08–15 |
 | 24 | [Secure web research](phase-24-secure-web-research.md) | Implemented default-off: isolated approved Python/Wikipedia pilot, saved W evidence and Android recovery; target limits in STATUS | 20, 12, 18; 21/22 for remote UX |
 | 25 | [Conversational curiosity](phase-25-conversational-curiosity.md) | Implemented opt-in: bounded chat/inbox questions, inspectable original pins and exact opening/answer recovery; no auto-memory or scheduler | 20, 14/15; 23 preferred; no scheduler required |
-| 26 | [Always-on operations and recovery](phase-26-always-on-operations-and-recovery.md) | One supervised server, automatic recovery, unattended encrypted backups and honest availability | 20; 21 for remote reachability; 18 |
-| 27 | [Durable scheduling and reminders](phase-27-durable-scheduling-and-reminders.md) | Consented schedules survive restart and produce deduplicated inbox items with correct timezone | 26 operational gate; 13/18; 22 for session integration |
-| 28 | [Idle reflection and dream review](phase-28-idle-reflection-and-dream-review.md) | Idle-only summaries, unresolved-thread reports and question drafts in an owner review view | 23, 25, 26, 27 |
-| 29 | [Natural local speech](phase-29-natural-local-speech.md) | Measured local ASR/TTS adapters; optional text model only when it helps | 17/17-A source; actual voice activation awaits device evidence |
+| 26 | [Always-on operations and recovery](phase-26-always-on-operations-and-recovery.md) | Source and four-hour isolated development soak passed after sharing/startup fixes; installation, reboot/sleep, 24-hour and representative recovery gates remain in STATUS | 20; 21 for remote reachability; 18 |
+| 27 | [Durable scheduling and reminders](phase-27-durable-scheduling-and-reminders.md) | Implemented source: previewed finite timezone schedules, durable inbox/receipts and foreground polling; default off/no push, target limits in STATUS | 26 development gate passed; 13/18 and22 source present; installed-host gates separate |
+| 28 | [Idle reflection and dream review](phase-28-idle-reflection-and-dream-review.md) | Implemented initial reports/question drafts and owner review; summaries disabled, checks/limits in STATUS | 23, 25, 26, 27 |
+| 29 | [Natural local speech](phase-29-natural-local-speech.md) | Study/interface and platform preview implemented; new model/runtime unselected and activation pending | 17/17-A source; actual voice activation awaits device/license evidence |
 | 30 | [Projects and personal follow-through](phase-30-projects-and-personal-follow-through.md) | Reviewed goals, next actions and a useful daily brief | 23; 27 only for reminders; 28 optional |
 | 31 | [PDF ingestion and document expansion](phase-31-pdf-ingestion-and-document-expansion.md) | Citable text PDFs first; separately gated OCR when justified | 08, 20; 23 for quality scoring |
 

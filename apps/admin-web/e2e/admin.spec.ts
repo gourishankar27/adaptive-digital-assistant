@@ -4,6 +4,16 @@ async function signIn(page: Page, credential = process.env.ADA_WEB_TEST_TOKEN) {
   if (!credential) throw new Error('Ephemeral browser credential is unavailable.');
   if (await page.getByLabel('Bearer token', { exact: true }).count() === 0) await page.getByLabel('Advanced: legacy bearer token').check(); await page.getByLabel('Bearer token', { exact: true }).fill(credential); await page.getByRole('button', { name: 'Sign in', exact: true }).click();
 }
+test('scheduling view reads only real aggregate metadata and supports keyboard refresh', async ({ page }) => {
+  await page.goto('/admin/scheduling'); await signIn(page);
+  await expect(page.getByRole('heading', { name: 'Scheduling', exact: true })).toBeVisible();
+  await expect(page.getByText('Stopped by global configuration', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Occurrences', exact: true })).toBeVisible();
+  await expect(page.getByRole('main')).not.toContainText('Synthetic browser verification input.');
+  await page.getByRole('button', { name: 'Refresh', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('button', { name: 'Refresh', exact: true })).toBeFocused();
+});
 test('keyboard entry, all palettes/brightness contrast, narrow windows and 200% zoom', async ({ page }) => {
   await page.goto('/admin/overview'); await page.keyboard.press('Tab'); await expect(page.getByRole('link', { name: 'Skip to content' })).toBeFocused(); await page.keyboard.press('Enter'); await expect(page.getByRole('main')).toBeFocused();
   await page.getByRole('button', { name: 'Sign in', exact: true }).click(); await expect(page.getByRole('alert')).toBeFocused();
@@ -99,4 +109,14 @@ test('explicit health fixtures show unknown, degraded and escaped model metadata
   await page.getByRole('link', { name: 'Requests', exact: true }).click(); await expect(page.getByRole('table', { name: 'Request metadata' })).toBeVisible(); await expect(page.locator('th[scope="col"]')).toHaveCount(6);
   await page.getByRole('button', { name: 'Refresh', exact: true }).focus(); await page.keyboard.press('Tab'); await expect(page.getByRole('region', { name: 'Request metadata table' })).toBeFocused(); expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
   await page.setViewportSize({ width: 1280, height: 900 }); await page.evaluate(() => { document.body.style.zoom = '2'; }); expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
+});
+
+test('reflection monitoring is private-metadata only and keyboard refresh works', async ({ page }) => {
+  await page.goto('/admin/reflection'); await signIn(page);
+  await expect(page.getByRole('heading', { name: 'Idle reflection', exact: true })).toBeVisible();
+  await expect(page.getByText('Model summaries disabled', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Review artifacts', exact: true })).toBeVisible();
+  await expect(page.getByRole('main')).not.toContainText('Synthetic browser verification input.');
+  await page.getByRole('button', { name: 'Refresh', exact: true }).focus(); await page.keyboard.press('Enter');
+  await expect(page.getByRole('button', { name: 'Refresh', exact: true })).toBeFocused();
 });

@@ -8,7 +8,7 @@
         <intent><action android:name="android.intent.action.TTS_SERVICE" /></intent>
     </queries>
     <application android:label="${adaAppLabel}" android:allowBackup="false"
-        android:icon="@drawable/ada_icon" android:fullBackupContent="false"
+        android:icon="@mipmap/ada_icon" android:fullBackupContent="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:usesCleartextTraffic="false" android:networkSecurityConfig="@xml/network_security_config"
         android:theme="@style/Theme.Ada">

@@ -1,6 +1,18 @@
 <resources>
-    <style name="Theme.Ada" parent="android:style/Theme.Material.Light.NoActionBar">
+    <style name="Theme.Ada" parent="android:style/Theme.Material.NoActionBar">
         <item name="android:fontFamily">sans</item>
+        <item name="android:windowBackground">#070816</item>
+        <item name="android:colorAccent">#A48CFF</item>
+        <item name="android:statusBarColor">#070816</item>
+        <item name="android:navigationBarColor">#070816</item>
         <item name="android:windowLightStatusBar">false</item>
+    </style>
+    <style name="Theme.Ada.Light" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowBackground">#F7F7FF</item>
+        <item name="android:colorAccent">#6249D8</item>
+        <item name="android:statusBarColor">#F7F7FF</item>
+        <item name="android:navigationBarColor">#F7F7FF</item>
+        <item name="android:windowLightStatusBar">true</item>
     </style>
 </resources>

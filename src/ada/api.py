@@ -77,6 +77,9 @@ from ada.proposal_api import proposal_router
 from ada.proposals import ProposalService
 from ada.providers import FakeProvider
 from ada.quality_api import quality_router
+from ada.reflection import ReflectionService
+from ada.reflection_api import reflection_router
+from ada.reflection_provider import OllamaReflectionProvider
 from ada.research import ResearchService
 from ada.research_api import research_router
 from ada.retrieval import (
@@ -89,6 +92,8 @@ from ada.retrieval import (
     public_trace,
     retrieve,
 )
+from ada.schedule_api import schedule_router
+from ada.scheduling import SchedulingService
 from ada.schema import SCHEMA_HEAD
 from ada.security import CredentialService
 from ada.security_api import security_router
@@ -229,12 +234,16 @@ def create_app(settings=None, provider=None, sessions=None):
             pass  # Readiness reports an unavailable/unmigrated database; no fabricated recovery.
         if settings.consolidation_worker_enabled:
             app.state.consolidation.start()
+        if settings.scheduler_enabled:
+            app.state.scheduling.start()
         app.state.deletion.start()
         try:
             yield
         finally:
+            app.state.reflection.stop()
             app.state.streaming.stop()
             app.state.consolidation.stop()
+            app.state.scheduling.stop()
             app.state.deletion.stop()
             if engine is not None:
                 engine.dispose()
@@ -260,6 +269,8 @@ def create_app(settings=None, provider=None, sessions=None):
         operator_contact=settings.web_operator_contact,
     )
     app.state.curiosity = CuriosityService(sessions, service)
+    app.state.scheduling = SchedulingService(sessions, settings, app.state.curiosity)
+    service.scheduling = app.state.scheduling
     service.curiosity = app.state.curiosity
     app.state.security_gate = SecurityGate(settings)
     app.state.deletion = DeletionService(sessions, settings, app.state.security_gate)
@@ -288,6 +299,17 @@ def create_app(settings=None, provider=None, sessions=None):
         app.state.proposals,
         service.capacity,
     )
+    app.state.reflection = ReflectionService(
+        sessions, settings, app.state.scheduling, app.state.consolidation, service
+    )
+    if settings.provider == "ollama" and settings.reflection_model_digest:
+        app.state.reflection.provider = OllamaReflectionProvider(settings)
+    app.state.scheduling.idle_dispatch = app.state.reflection.queue_once
+    app.state.consolidation.idle_work = app.state.reflection.run_once
+    service.reflection = app.state.reflection
+    from ada.work import WorkService
+
+    app.state.work = WorkService(sessions, app.state.scheduling, app.state.proposals)
     app.state.learning = LearningService(
         sessions, app.state.proposals, app.state.consolidation, settings.learning_threshold
     )
@@ -355,6 +377,15 @@ def create_app(settings=None, provider=None, sessions=None):
         principal = request.scope.get("ada.principal")
         if principal is not None:
             if app.state.security.current(principal):
+                if not request.url.path.startswith("/v1/admin/") and (
+                    request.method == "POST"
+                    or request.url.path == "/v1/me"
+                    or (
+                        request.method == "GET"
+                        and request.url.path.startswith(("/v1/conversations", "/v1/scopes/"))
+                    )
+                ):
+                    app.state.reflection.activity(principal.owner)
                 return principal.owner
             raise HTTPException(401, "invalid_token")
         if credentials is None or credentials.scheme.lower() != "bearer":
@@ -375,6 +406,11 @@ def create_app(settings=None, provider=None, sessions=None):
         curiosity_router(app.state.curiosity, app.state.security, current_user, error_responses)
     )
     app.include_router(admin_router(app.state.admin, current_user))
+    app.include_router(schedule_router(app.state.scheduling, current_user, error_responses))
+    from ada.work_api import work_router
+
+    app.include_router(work_router(app.state.work, current_user, error_responses))
+    app.include_router(reflection_router(app.state.reflection, current_user, error_responses))
     app.include_router(document_router(sessions, current_user, error_responses))
     app.include_router(entity_router(sessions, current_user, error_responses))
     app.include_router(proposal_router(app.state.proposals, current_user, error_responses))
@@ -445,6 +481,10 @@ def create_app(settings=None, provider=None, sessions=None):
             else "disabled",
             "curiosity_protocol": "ada-curiosity-v1",
             "curiosity_notifications": False,
+            "scheduling_protocol": "ada-scheduling-v1",
+            "reflection_protocol": "ada-reflection-v1",
+            "work_protocol": "ada-work-v1",
+            "scheduling_background_push": False,
             "web_search": "wikimedia-rest-v1"
             if app.state.research.broker.available and settings.web_operator_contact
             else "disabled",

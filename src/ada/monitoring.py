@@ -35,6 +35,8 @@ from ada.memory import Timestamp
 from ada.models import AdminAudit, AdminGrant, Conversation, Request, RetrievalTrace, now_ms
 from ada.proposal_models import MemoryProposal
 from ada.providers import OllamaProvider
+from ada.reflection_contracts import ReflectionAdminOutput
+from ada.schedule_contracts import ScheduleAdminOutput
 from ada.schema import SCHEMA_HEAD
 from ada.stream_models import StreamAttempt
 
@@ -310,6 +312,8 @@ def admin_router(monitor, current_user):
             ("requests/{owner_id}/{request_id}", "request"),
             ("providers", "providers"),
             ("audit", "audit"),
+            ("scheduling", "scheduling"),
+            ("reflection", "reflection"),
         )
     }
 
@@ -353,6 +357,14 @@ def admin_router(monitor, current_user):
             raise HTTPException(503, "monitoring_unavailable") from None
 
     admin = Depends(current_admin, scope="function")
+
+    @router.get("/scheduling", response_model=ScheduleAdminOutput, responses=failures)
+    def scheduling(owner: str = admin):
+        return monitor.service.scheduling.metadata()
+
+    @router.get("/reflection", response_model=ReflectionAdminOutput, responses=failures)
+    def reflection(owner: str = admin):
+        return monitor.service.reflection.metadata()
 
     @router.get("/me", response_model=AdminMeOutput, responses=failures)
     def me(owner: str = admin):

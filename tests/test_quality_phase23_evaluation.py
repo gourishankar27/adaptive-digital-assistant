@@ -46,7 +46,7 @@ def test_quality_canonical_digest_handles_windows_newlines(tmp_path):
 def test_validation_runner_rejects_physical_device_and_primary_package(monkeypatch):
     runner = module("phase23_validation_guard", "verify_password_android.py")
     monkeypatch.setenv("ADA_TEST_DATABASE_URL", "dedicated-test-database")
-    with pytest.raises(SystemExit, match="Select an emulator"):
+    with pytest.raises(SystemExit, match="explicit expected device model"):
         runner.run("physical-device")
     with pytest.raises(SystemExit, match="separate validation application"):
         runner.run("emulator-5584", package="dev.ada.assistant.debug")

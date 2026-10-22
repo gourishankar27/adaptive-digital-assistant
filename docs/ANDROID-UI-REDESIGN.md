@@ -1,5 +1,10 @@
 # ADA Ambient Intelligence — Android presentation redesign
 
+Current follow-up: app20/0.25.2-ui adds the verified design-hardening changes
+below. Earlier implementation/test descriptions retain their original scope.
+See [the verified gap matrix](ANDROID-DESIGN-GAPS.md#8-verified-follow-up-2026-10-18)
+and the dated STATUS/WORKLOG entries for current device evidence.
+
 Implementation scope: [the requested redesign](../plans/ADA-Android-UI-Redesign.md).
 Audit/design recorded2026-10-18 America/Phoenix before the screen rollout. Source
 baseline HEAD844d560 includes the existing uncommitted proxy fix and redesign plan;
@@ -187,6 +192,10 @@ dependency locks remain unchanged.
 
 ## Verification boundaries
 
+The following paragraphs record the original redesign/compact verification. The
+subsequent design-hardening section below adds automated S24FE evidence and
+qualifies the earlier physical-device-pending statement.
+
 Automated evidence uses the installed API37 emulator and a separate validation
 application ID. HTTP/password/Keystore/stream/source/recovery flows use disposable
 PostgreSQL and an explicitly selected FakeProvider, never an application account.
@@ -207,3 +216,40 @@ Still required: physical S24FE/Android16, manual TalkBack, physical keyboard/IME
 variations, foldable live-resize, graphics/battery/long-scroll performance and the
 inherited voice/focus/G-41 release gates. Emulator semantics and configuration
 checks do not establish those results. No normal app installation or deployment.
+
+
+## Verified design-hardening follow-up
+
+Settings now groups chat styles, interaction preferences, reviewed learning,
+security, password sessions and advanced token tools into sections that expand
+on tap. Appearance offers Follow system appearance and Reduce ambient motion;
+existing explicit palette/dark choices keep their original values until changed.
+Swatches show both light primary and dark accent colors. App20 uses an Ambient
+adaptive icon, monochrome mask and mode-aware launch resources.
+
+Navigation uses a rail from600dp. Compact navigation shows Docs while retaining
+the full Documents accessibility label; labels remain on one line at larger
+system font sizes. The top/menu navigation returns after hiding the keyboard.
+Back while typing hides the keyboard and retains the current conversation/draft.
+Details, message options and voice remain window-bounded dialogs with reachable
+close controls. Their bodies scroll independently of the frame.
+
+Secondary buttons explicitly reserve48dp of layout space. Readable selected,
+checked, heading and progress semantics are shared. Feedback uses durable polite
+live regions and mapped failures; unknown states remain unconfirmed. Destructive
+account/session/server/token/draft actions require review. Active recording can
+still be stopped/discarded immediately. Full erasure keeps its original preview
+and checkbox and adds a final confirmation. One-time-token Copy is explicit and
+marks the clipboard sensitive.
+
+Streaming follows the latest content until the user scrolls up. Latest message
+resumes following; Stop remains available independently. Literal chat/source
+text retains its content and provenance. Code styling applies only to fenced
+spans; safe HTTP(S) reply links activate explicitly in place. Source quotations
+remain plain text where links are disabled.
+
+S24FE/API36 native automated evidence now supplements the historical emulator
+runs. Only the separate validation app and public synthetic captures are used;
+the ordinary ADA app, secure-window policy and real account data are preserved.
+Manual spoken TalkBack, physical audio/focus, alternative input devices/IMEs,
+physical tablet/foldable resize and performance/battery gates remain open.

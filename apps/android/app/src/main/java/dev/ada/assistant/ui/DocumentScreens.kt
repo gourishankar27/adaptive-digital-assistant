@@ -79,7 +79,7 @@ fun DocumentScreens(controller: DocumentController) {
         contentPadding = androidx.compose.foundation.layout.PaddingValues(AdaSpacing.medium),
         verticalArrangement = Arrangement.spacedBy(AdaSpacing.medium)) {
         item {
-            if (state.screen != DocumentScreen.Browse) TextButton(onClick = { focus.clearFocus(); controller.back() }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Back to documents") }
+            if (state.screen != DocumentScreen.Browse) AdaTextButton(onClick = { focus.clearFocus(); controller.back() }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Back to documents") }
             AdaSectionHeading(when (state.screen) {
                 DocumentScreen.Browse -> "Documents"; DocumentScreen.Edit -> "Import a document"; DocumentScreen.Preview -> "Review document upload"
                 DocumentScreen.Detail -> "Document version"; DocumentScreen.Versions -> "Immutable versions"
@@ -87,9 +87,9 @@ fun DocumentScreens(controller: DocumentController) {
             Text("Imported text and Markdown are untrusted evidence. Uploading creates no explicit user assertion.", style = MaterialTheme.typography.bodyMedium)
         }
         item {
-            state.validation?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.testTag("document-validation")) }
-            state.fault?.let { failure -> Text(if (failure == ApiFailure.TooLarge) "The server rejected a document size or retained-data limit. Review the upload details below." else failure.message(), color = MaterialTheme.colorScheme.error) }
-            state.notice?.let { Text(it, modifier = Modifier.testTag("document-notice")) }
+            state.validation?.let { AdaNotice(it, Modifier.testTag("document-validation"), error = true) }
+            state.fault?.let { failure -> AdaNotice(if (failure == ApiFailure.TooLarge) "The server rejected a document size or retained-data limit. Review the upload details below." else failure.message(), error = true) }
+            state.notice?.let { AdaNotice(it, Modifier.testTag("document-notice")) }
         }
         if (state.pending != null) item { DocumentPending(state, controller) }
         when (state.screen) {
@@ -97,19 +97,16 @@ fun DocumentScreens(controller: DocumentController) {
                 item {
                     Text("Owned scope", style = MaterialTheme.typography.titleMedium)
                     state.scopes.items.forEach { scope ->
-                        Row {
-                            RadioButton(state.scopeId == scope.id, onClick = { controller.selectScope(scope.id) }, enabled = !state.saving)
-                            TextButton(onClick = { controller.selectScope(scope.id) }, enabled = !state.saving, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("document-scope-${scope.id}")) { Text(scope.name) }
-                        }
+                        AdaChoice(state.scopeId == scope.id, scope.name, { controller.selectScope(scope.id) }, Modifier.testTag("document-scope-${scope.id}"), enabled = !state.saving)
                     }
-                    if (state.scopes.hasMore) TextButton(onClick = controller::loadMoreScopes, enabled = !state.scopes.loading) { Text("More scopes") }
-                    Button(onClick = { controller.beginUpload() }, enabled = state.enabled && state.scopeId != null && state.pending == null && !state.saving,
+                    if (state.scopes.hasMore) AdaTextButton(onClick = controller::loadMoreScopes, enabled = !state.scopes.loading) { Text("More scopes") }
+                    AdaButton(onClick = { controller.beginUpload() }, enabled = state.enabled && state.scopeId != null && state.pending == null && !state.saving,
                         modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("document-new")) { Text("Import text / Markdown") }
-                    TextButton(onClick = controller::refreshUploads, enabled = !state.uploads.loading, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Refresh upload status") }
+                    AdaTextButton(onClick = controller::refreshUploads, enabled = !state.uploads.loading, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Refresh upload status") }
                 }
-                if (state.scopes.loading || state.uploads.loading) item { CircularProgressIndicator() }
+                if (state.scopes.loading || state.uploads.loading) item { AdaLoading("Checking document status") }
                 items(state.uploads.items, key = { it.id }) { receipt -> DocumentReceiptCard(receipt) { controller.openUpload(receipt) } }
-                if (state.uploads.hasMore && !state.uploads.loading) item { TextButton(onClick = controller::loadMoreUploads) { Text("More uploads") } }
+                if (state.uploads.hasMore && !state.uploads.loading) item { AdaTextButton(onClick = controller::loadMoreUploads) { Text("More uploads") } }
                 if (!state.uploads.loading && state.scopeId != null && state.uploads.items.isEmpty()) item { Text("No uploads in this scope.") }
             }
             DocumentScreen.Edit -> item {
@@ -117,14 +114,14 @@ fun DocumentScreens(controller: DocumentController) {
                 Column(verticalArrangement = Arrangement.spacedBy(AdaSpacing.medium)) {
                     draft.sourceId?.let { Text("New immutable version of the selected document. Previous versions remain available.") }
                     Text("UTF-8 .txt, .md or .markdown only · ${state.uploadLimit / 1024} KiB maximum on this device. PDF and compressed files are unavailable.")
-                    OutlinedButton(onClick = {
+                    AdaOutlinedButton(onClick = {
                         controller.beginFileSelection()?.let { selection -> fileSelection = selection; focus.clearFocus(); picker.launch(arrayOf("text/plain", "text/markdown", "text/x-markdown", "application/octet-stream")) }
                     }, enabled = !state.saving && fileSelection == null, modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("document-file")) { Text("Choose text / Markdown file") }
                     OutlinedTextField(draft.filename, { controller.updateDraft(draft.copy(filename = it)) }, label = { Text("Display filename") }, singleLine = true,
                         modifier = Modifier.fillMaxWidth().testTag("document-filename"))
                     Row {
-                        TextButton(onClick = { controller.updateDraft(draft.copy(mediaType = "text/plain")) }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text(if (draft.mediaType == "text/plain") "Text selected" else "Text") }
-                        TextButton(onClick = { controller.updateDraft(draft.copy(mediaType = "text/markdown")) }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text(if (draft.mediaType == "text/markdown") "Markdown selected" else "Markdown") }
+                        AdaChoiceChip(draft.mediaType == "text/plain", "Text", { controller.updateDraft(draft.copy(mediaType = "text/plain")) })
+                        AdaChoiceChip(draft.mediaType == "text/markdown", "Markdown", { controller.updateDraft(draft.copy(mediaType = "text/markdown")) })
                     }
                     OutlinedTextField(draft.text, { controller.updateDraft(draft.copy(text = it)) }, label = { Text("Exact UTF-8 document text") }, minLines = 4, maxLines = 10,
                         supportingText = { Text("File content or pasted text is preserved literally, including line endings and Unicode.") }, modifier = Modifier.fillMaxWidth().testTag("document-text"))
@@ -132,7 +129,7 @@ fun DocumentScreens(controller: DocumentController) {
                         supportingText = { Text("Timezone-bearing instant. Blank uses the upload time.") }, modifier = Modifier.fillMaxWidth().testTag("document-from"))
                     OutlinedTextField(draft.availableTo, { controller.updateDraft(draft.copy(availableTo = it)) }, label = { Text("Available until (optional, exclusive)") }, singleLine = true,
                         modifier = Modifier.fillMaxWidth().testTag("document-to"))
-                    Button(onClick = { controller.preview(); focus.clearFocus() }, enabled = !state.saving && draft.text.isNotBlank(),
+                    AdaButton(onClick = { controller.preview(); focus.clearFocus() }, enabled = !state.saving && draft.text.isNotBlank(),
                         modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("document-preview")) { Text("Review upload") }
                 }
             }
@@ -146,9 +143,9 @@ fun DocumentScreens(controller: DocumentController) {
                     SafeChatText(documentText(pending.rawBytes()), Modifier.testTag("document-preview-text").semantics(mergeDescendants = true) {}, links = false)
                     Text("Review this exact text and scope before upload. Embedded instructions are imported content and grant no permissions.")
                     DocumentTechnicalDetails("Scope: ${pending.scopeId}\nSource: ${pending.sourceId}\nUpload: ${pending.uploadId}\nRaw SHA-256: ${documentHash(pending.rawBytes())}", pending.uploadId, "document-preview-details")
-                    Button(onClick = controller::savePreview, enabled = state.pending == null && !state.saving,
+                    AdaButton(onClick = controller::savePreview, enabled = state.pending == null && !state.saving,
                         modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("document-upload")) { Text("Upload reviewed document") }
-                    OutlinedButton(onClick = controller::editPreview, enabled = state.pending == null && !state.saving,
+                    AdaOutlinedButton(onClick = controller::editPreview, enabled = state.pending == null && !state.saving,
                         modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Edit before uploading") }
                 }
             } }
@@ -156,12 +153,12 @@ fun DocumentScreens(controller: DocumentController) {
                 state.detail?.let { receipt -> item {
                     Column(verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
                         DocumentReceiptCard(receipt)
-                        TextButton(onClick = controller::refreshDetail, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Check this version’s status") }
-                        OutlinedButton(onClick = controller::showVersions, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("document-versions")) { Text("All immutable versions") }
-                        OutlinedButton(onClick = { controller.beginUpload(reupload = true) }, enabled = state.pending == null && !state.saving,
+                        AdaTextButton(onClick = controller::refreshDetail, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Check this version’s status") }
+                        AdaOutlinedButton(onClick = controller::showVersions, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("document-versions")) { Text("All immutable versions") }
+                        AdaOutlinedButton(onClick = { controller.beginUpload(reupload = true) }, enabled = state.pending == null && !state.saving,
                             modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("document-reupload")) { Text("Upload a new version") }
                         if (receipt.state == "failed") Text("Ingestion failed. No partial chunks from this version are searchable.")
-                        if (state.detailLoading) CircularProgressIndicator()
+                        if (state.detailLoading) AdaLoading("Checking document status")
                         state.version?.let { version ->
                             Text("Exact parsed text", style = MaterialTheme.typography.titleMedium)
                             SafeChatText(version.content, Modifier.testTag("document-version-text").semantics(mergeDescendants = true) {}, links = false)
@@ -176,12 +173,12 @@ fun DocumentScreens(controller: DocumentController) {
                         DocumentTechnicalDetails("Chunk: ${chunk.id}\nExact code-point span ${chunk.span_start}–${chunk.span_end} (end exclusive)\nQuote SHA-256: ${chunk.quote_hash}", chunk.id, "document-chunk-details-${chunk.id}")
                     } }
                 }
-                if (state.chunks.hasMore) item { TextButton(onClick = controller::loadMoreChunks, enabled = !state.chunks.loading) { Text("More exact chunks") } }
+                if (state.chunks.hasMore) item { AdaTextButton(onClick = controller::loadMoreChunks, enabled = !state.chunks.loading) { Text("More exact chunks") } }
             }
             DocumentScreen.Versions -> {
-                if (state.versions.loading) item { CircularProgressIndicator() }
+                if (state.versions.loading) item { AdaLoading("Checking document status") }
                 items(state.versions.items, key = { it.id }) { receipt -> DocumentReceiptCard(receipt) { controller.openUpload(receipt) } }
-                if (state.versions.hasMore) item { TextButton(onClick = controller::loadMoreVersions, enabled = !state.versions.loading) { Text("More versions") } }
+                if (state.versions.hasMore) item { AdaTextButton(onClick = controller::loadMoreVersions, enabled = !state.versions.loading) { Text("More versions") } }
             }
         }
     }
@@ -196,7 +193,7 @@ private fun DocumentReceiptCard(receipt: DocumentUploadDto, open: (() -> Unit)? 
             Text("${receipt.raw_size} bytes · ${receipt.chunk_count} chunks", style = MaterialTheme.typography.bodySmall)
             Text("Available from ${displayInstant(receipt.available_from)}", style = MaterialTheme.typography.bodySmall)
             Text(receipt.available_to?.let { "Until ${displayInstant(it)} (exclusive)" } ?: "No availability end", style = MaterialTheme.typography.bodySmall)
-            if (open != null) TextButton(onClick = open, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("document-open-${receipt.id}")) { Text("Open exact version") }
+            if (open != null) AdaTextButton(onClick = open, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("document-open-${receipt.id}")) { Text("Open exact version") }
         }
     }
 }
@@ -210,24 +207,24 @@ private fun DocumentPending(state: DocumentState, controller: DocumentController
             Text("Saved document upload", style = MaterialTheme.typography.titleMedium)
             SafeChatText(pending.filename, links = false)
             Text("Original scope: ${state.scopes.items.firstOrNull { it.id == pending.scopeId }?.name ?: "Saved owned scope"}")
-            state.pendingReceipt?.let { Text("Observed status: ${it.state}") }
-            if (state.saving) CircularProgressIndicator()
-            OutlinedButton(onClick = controller::checkPending, enabled = !state.saving && state.enabled,
+            state.pendingReceipt?.let { Text("Observed status: ${statusLabel(it.state)}") }
+            if (state.saving) AdaLoading("Checking document status")
+            AdaOutlinedButton(onClick = controller::checkPending, enabled = !state.saving && state.enabled,
                 modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("document-check")) { Text("Check saved upload") }
-            OutlinedButton(onClick = controller::resumePending, enabled = !state.saving && state.enabled,
+            AdaOutlinedButton(onClick = controller::resumePending, enabled = !state.saving && state.enabled,
                 modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("document-resume")) { Text("Resume with original bytes and IDs") }
-            TextButton(onClick = { discard = true }, enabled = !state.saving, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("document-discard")) { Text("Discard local upload recovery") }
+            AdaTextButton(onClick = { discard = true }, enabled = !state.saving, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("document-discard")) { Text("Discard local upload recovery") }
         }
     }
     if (discard) AlertDialog(onDismissRequest = { discard = false }, title = { Text("Discard local upload recovery?") },
         text = { Text("Any remote upload and its versions remain. The exact input is kept for review; a future upload allocates a new ID. Review status before knowingly creating another version.") },
-        confirmButton = { TextButton(onClick = { discard = false; controller.discardPending() }) { Text("Discard local recovery") } },
-        dismissButton = { TextButton(onClick = { discard = false }) { Text("Keep original upload") } })
+        confirmButton = { AdaTextButton(onClick = { discard = false; controller.discardPending() }) { Text("Discard local recovery") } },
+        dismissButton = { AdaTextButton(onClick = { discard = false }) { Text("Keep original upload") } })
 }
 
 @Composable
 private fun DocumentTechnicalDetails(text: String, identity: Any, tag: String) {
     var open by remember(identity) { mutableStateOf(false) }
-    TextButton(onClick = { open = !open }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag(tag)) { Text(if (open) "Hide technical details" else "Technical details") }
+    AdaTextButton(onClick = { open = !open }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag(tag)) { Text(if (open) "Hide technical details" else "Technical details") }
     if (open) SafeChatText(text, links = false)
 }

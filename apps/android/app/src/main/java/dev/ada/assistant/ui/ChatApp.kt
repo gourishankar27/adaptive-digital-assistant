@@ -1,5 +1,7 @@
 package dev.ada.assistant.ui
 
+import dev.ada.assistant.data.WORK_PROTOCOL
+
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.focusable
@@ -58,6 +60,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -69,9 +74,11 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.error
@@ -104,7 +111,11 @@ fun ChatApp(vm: ChatViewModel, openSettings: () -> Unit) {
     val presence = adaPresenceState(state, voice, state.destination == ChatDestination.Tools && tools.run?.status == "running")
     val focus = LocalFocusManager.current
     val typing = WindowInsets.isImeVisible
-    BackHandler(state.account != null && state.destination != ChatDestination.Conversations) { focus.clearFocus(); vm.back() }
+    val keyboard = LocalSoftwareKeyboardController.current
+    BackHandler(state.account != null && state.destination != ChatDestination.Conversations) {
+        focus.clearFocus()
+        if (typing) keyboard?.hide() else vm.back()
+    }
     BoxWithConstraints(Modifier.fillMaxSize().imePadding()) {
     val rail = maxWidth >= AdaLayout.railAt && state.account != null && !typing
     Scaffold(
@@ -145,16 +156,19 @@ fun ChatApp(vm: ChatViewModel, openSettings: () -> Unit) {
                 ChatDestination.Sources -> SourcesScreen(state, vm)
                 ChatDestination.Retrieval -> RetrievalScreen(state, vm)
                 ChatDestination.Memory -> {
-                    if (state.capabilities?.let { it.memory_review && it.memory_proposals == "selected_sources_v1" } == true) TextButton({ vm.navigate(ChatDestination.Proposals) }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("open-proposals")) { Text("Review memory suggestions") }
-                    if (state.capabilities?.let { it.scoped_entities && it.entity_writes && it.entity_resolution == "explicit_aliases_v1" } == true) TextButton({ vm.navigate(ChatDestination.Entities) }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("open-entities")) { Text("People, projects and aliases") }
+                    if (state.capabilities?.let { it.memory_review && it.memory_proposals == "selected_sources_v1" } == true) AdaTextButton({ vm.navigate(ChatDestination.Proposals) }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("open-proposals")) { Text("Review memory suggestions") }
+                    if (state.capabilities?.let { it.scoped_entities && it.entity_writes && it.entity_resolution == "explicit_aliases_v1" } == true) AdaTextButton({ vm.navigate(ChatDestination.Entities) }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("open-entities")) { Text("People, projects and aliases") }
                     MemoryScreens(vm.memory)
                 }
                 ChatDestination.Entities -> EntityScreens(vm.entities) { vm.navigate(ChatDestination.Memory) }
                 ChatDestination.Proposals -> ProposalScreens(vm.proposals) { vm.navigate(ChatDestination.Memory) }
                 ChatDestination.Research -> ResearchScreen(vm.research, state.conversation)
                 ChatDestination.Curiosity -> CuriosityScreen(vm.curiosity, state.conversation, state.profiles.items, vm::openConversation)
-                ChatDestination.Tools -> AgentScreen(vm.agents, state.conversation, state.account)
-                ChatDestination.Episodes -> EpisodeScreen(vm.episodes, state.conversation)
+                ChatDestination.Work -> WorkScreen(vm.work, vm::openConversation, { vm.navigate(ChatDestination.Schedules) }, { vm.navigate(ChatDestination.Curiosity) })
+                ChatDestination.Reflection -> ReflectionScreen(vm.reflection, state.scopes.items, state.profiles.items, vm::openConversation)
+                ChatDestination.Schedules -> ScheduleScreen(vm.scheduling, state.scopes.items, state.profiles.items, vm::openConversation)
+                ChatDestination.Tools -> AgentScreen(vm.agents, state.conversation, state.account, state.scopes.items.firstOrNull { it.id == state.conversation?.scope_id }?.name)
+                ChatDestination.Episodes -> EpisodeScreen(vm.episodes, state.conversation, state.scopes.items.firstOrNull { it.id == state.conversation?.scope_id }?.name)
                 ChatDestination.Documents -> DocumentScreens(vm.documents)
                 ChatDestination.Settings -> AccountSettingsScreen(state, vm, openSettings)
             }
@@ -175,13 +189,13 @@ private fun AppNavigation(state: ChatState, rail: Boolean, navigate: (ChatDestin
         Item(ChatDestination.Documents, "Documents", 3, state.destination == ChatDestination.Documents, state.capabilities?.let { it.document_uploads && it.document_ingestion == "text_markdown_v1" } == true, "nav-documents"),
         Item(ChatDestination.Settings, "Settings", 2, state.destination == ChatDestination.Settings, true, "nav-settings"),
     )
-    fun itemModifier(item: Item): Modifier = Modifier.testTag(item.tag).then(if (item.target == ChatDestination.Memory) Modifier.semantics {
+    fun itemModifier(item: Item): Modifier = Modifier.testTag(item.tag).semantics { contentDescription = item.label }.then(if (item.target == ChatDestination.Memory) Modifier.semantics {
         stateDescription = if (item.enabled) "Owned statements and evidence" else "This server does not offer structured memory"
     } else Modifier)
     if (rail) NavigationRail(Modifier.fillMaxHeight().verticalScroll(rememberScrollState()).testTag("expanded-navigation"), containerColor = Color.Transparent) {
-        items.forEach { item -> NavigationRailItem(item.selected, { navigate(item.target) }, icon = { NavigationGlyph(item.glyph) }, label = { Text(item.label) }, enabled = item.enabled, modifier = itemModifier(item)) }
+        items.forEach { item -> NavigationRailItem(item.selected, { navigate(item.target) }, icon = { NavigationGlyph(item.glyph) }, label = { Text(item.label, maxLines = 1, overflow = TextOverflow.Ellipsis) }, enabled = item.enabled, modifier = itemModifier(item)) }
     } else NavigationBar(containerColor = Color.Transparent, tonalElevation = 0.dp, windowInsets = WindowInsets(0, 0, 0, 0), modifier = Modifier.testTag("compact-navigation")) {
-        items.forEach { item -> NavigationBarItem(item.selected, { navigate(item.target) }, icon = { NavigationGlyph(item.glyph) }, label = { Text(item.label) }, enabled = item.enabled, modifier = itemModifier(item)) }
+        items.forEach { item -> NavigationBarItem(item.selected, { navigate(item.target) }, icon = { NavigationGlyph(item.glyph) }, label = { Text(if (item.target == ChatDestination.Documents) "Docs" else item.label, maxLines = 1, overflow = TextOverflow.Ellipsis) }, enabled = item.enabled, modifier = itemModifier(item)) }
     }
 }
 
@@ -229,14 +243,14 @@ private fun ChatConnect(state: ChatState, connect: (String, String) -> Unit, cle
                 modifier = Modifier.fillMaxWidth().testTag("connect-password"))
         }
         StateFeedback(state)
-        Button(
+        AdaButton(
             onClick = { focus.clearFocus(); if (legacy) connect(server, token) else passwordLogin(server, username, password); token = ""; password = "" },
             enabled = !state.connecting && server.isNotBlank() && (if (legacy) token.isNotBlank() else username.isNotBlank() && password.isNotEmpty()),
             modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("connect-action"),
         ) { Text(if (state.connecting) "Connecting…" else "Connect") }
         if (state.connecting) BusyIndicator("Checking your account and API compatibility")
-        Text("The credential and pending requests are encrypted on this device. Logging out clears private local state.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        TextButton(onClick = openSettings, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Choose your appearance") }
+        Text("The credential and pending requests are encrypted on this device. Logging out clears private local state.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        AdaTextButton(onClick = openSettings, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Choose your appearance") }
     }
     }
 }
@@ -260,7 +274,7 @@ private fun ConversationsScreen(state: ChatState, vm: ChatViewModel) {
         }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
-                Button(onClick = vm::beginCreate, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("new-conversation")) {
+                AdaButton(onClick = vm::beginCreate, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("new-conversation")) {
                     AdaIconGlyph(AdaIcon.Add)
                     Text("New conversation", Modifier.padding(start = AdaSpacing.small))
                 }
@@ -269,7 +283,7 @@ private fun ConversationsScreen(state: ChatState, vm: ChatViewModel) {
         item { StateFeedback(state) }
         if (state.pending != null) item {
             StatusCard("A message needs attention", "A reserved message is still pending. Return to its conversation to check the original request.") {
-                TextButton(onClick = { vm.openConversation(state.pending.message.conversationId) }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Return to pending message") }
+                AdaTextButton(onClick = { vm.openConversation(state.pending.message.conversationId) }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Return to pending message") }
             }
         }
         if (state.conversations.items.isEmpty() && !state.conversations.loading && state.fault == null) item {
@@ -278,7 +292,7 @@ private fun ConversationsScreen(state: ChatState, vm: ChatViewModel) {
         items(state.conversations.items, key = { it.id }) { conversation ->
             Card(
                 onClick = { vm.openConversation(conversation.id) },
-                modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("conversation-${conversation.id}"),
+                modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("conversation-${conversation.id}").semantics { role = Role.Button },
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
             ) {
                 Column(Modifier.padding(AdaSpacing.medium), verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
@@ -291,7 +305,7 @@ private fun ConversationsScreen(state: ChatState, vm: ChatViewModel) {
         }
         if (state.conversations.loading) item { BusyIndicator("Loading conversations") }
         if (state.conversations.hasMore && !state.conversations.loading) item {
-            OutlinedButton(onClick = vm::loadMoreConversations, modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch)) { Text("Load more conversations") }
+            AdaOutlinedButton(onClick = vm::loadMoreConversations, modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch)) { Text("Load more conversations") }
         }
     }
 }
@@ -314,7 +328,7 @@ private fun NewConversationScreen(state: ChatState, vm: ChatViewModel) {
             modifier = Modifier.fillMaxWidth().testTag("new-title"),
         )
         Text("Chat style", style = MaterialTheme.typography.titleMedium)
-        Text("Style shapes expression. It never changes ownership or permissions.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text("Style shapes expression. It never changes ownership or permissions.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         val offPageProfile = state.selectedProfile?.takeIf { saved -> state.profiles.items.none { it.id == saved.id } }
         Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
             offPageProfile?.let { profile ->
@@ -332,21 +346,21 @@ private fun NewConversationScreen(state: ChatState, vm: ChatViewModel) {
             }
         }
         if (state.profiles.loading) BusyIndicator("Loading your styles")
-        if (state.profiles.hasMore && !state.profiles.loading) TextButton(onClick = vm::loadMoreProfiles, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Load more styles") }
+        if (state.profiles.hasMore && !state.profiles.loading) AdaTextButton(onClick = vm::loadMoreProfiles, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Load more styles") }
         if ((state.profiles.items.isEmpty() && offPageProfile == null) || addStyle) {
             OutlinedTextField(profileName, { profileName = it }, label = { Text("New style name") }, singleLine = true,
                 supportingText = { Text("Starts warm, conversational and balanced. Up to 40 characters.") },
                 enabled = !state.creatingProfile, modifier = Modifier.fillMaxWidth().testTag("new-profile-name"))
             if (state.profileUncertain) StatusCard("Check whether the style was saved", "The connection ended before creation was confirmed. Refresh styles and inspect the list before creating another.") {
-                TextButton(onClick = vm::refreshProfiles, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Refresh styles") }
-                TextButton(onClick = vm::acknowledgeProfileReview, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("I reviewed the list; allow a new style") }
+                AdaTextButton(onClick = vm::refreshProfiles, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Refresh styles") }
+                AdaTextButton(onClick = vm::acknowledgeProfileReview, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("I reviewed the list; allow a new style") }
             }
-            Button(
+            AdaButton(
                 onClick = { focus.clearFocus(); vm.createProfile(profileName) },
                 enabled = !state.creatingProfile && !state.profileUncertain && profileName.isNotBlank() && profileName.codePointCount(0, profileName.length) <= 40,
                 modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("create-profile"),
             ) { Text(if (state.creatingProfile) "Creating style…" else "Create chat style") }
-        } else TextButton(onClick = { addStyle = true }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Add a chat style") }
+        } else AdaTextButton(onClick = { addStyle = true }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Add a chat style") }
         HorizontalDivider()
         Text("Knowledge scope", style = MaterialTheme.typography.titleMedium)
         Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
@@ -364,13 +378,13 @@ private fun NewConversationScreen(state: ChatState, vm: ChatViewModel) {
             }
         }
         if (state.scopes.loading) BusyIndicator("Loading your scopes")
-        if (state.scopes.hasMore && !state.scopes.loading) TextButton(onClick = vm::loadMoreScopes, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Load more scopes") }
+        if (state.scopes.hasMore && !state.scopes.loading) AdaTextButton(onClick = vm::loadMoreScopes, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Load more scopes") }
         if (state.creationUncertain) StatusCard("Creation outcome is uncertain", "The conversation may already exist. Refresh your list and inspect it before creating another.") {
-            TextButton(onClick = vm::refreshConversations, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Refresh conversation list") }
-            TextButton(onClick = { vm.navigate(ChatDestination.Conversations) }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Review conversations") }
-            TextButton(onClick = vm::acknowledgeConversationReview, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("I reviewed the list; allow a new conversation") }
+            AdaTextButton(onClick = vm::refreshConversations, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Refresh conversation list") }
+            AdaTextButton(onClick = { vm.navigate(ChatDestination.Conversations) }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Review conversations") }
+            AdaTextButton(onClick = vm::acknowledgeConversationReview, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("I reviewed the list; allow a new conversation") }
         }
-        Button(
+        AdaButton(
             onClick = { focus.clearFocus(); vm.createConversation() },
             enabled = !state.creating && !state.creationUncertain && state.createProfileId != null && state.createTitle.isNotBlank() && state.createTitle.codePointCount(0, state.createTitle.length) <= 120,
             modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("create-conversation"),
@@ -386,6 +400,14 @@ private fun ConversationScreen(state: ChatState, vm: ChatViewModel, typing: Bool
         return
     }
     val list = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    var followLatest by remember(conversation.id) { mutableStateOf(true) }
+    var autoScrolling by remember(conversation.id) { mutableStateOf(false) }
+    LaunchedEffect(conversation.id) {
+        snapshotFlow { Triple(list.firstVisibleItemIndex, list.firstVisibleItemScrollOffset, list.isScrollInProgress) }.collect {
+            if (list.isScrollInProgress && !autoScrolling) followLatest = !list.canScrollForward
+        }
+    }
     BoxWithConstraints(Modifier.widthIn(max = AdaLayout.reading).fillMaxSize()) {
       val totalMaxHeight = maxHeight
       val hasPending = state.pending?.message?.conversationId == conversation.id
@@ -406,7 +428,7 @@ private fun ConversationScreen(state: ChatState, vm: ChatViewModel, typing: Bool
             item { CuriosityChatCard(vm.curiosity, conversation = conversation.id) }
             if (state.events.loading) item { BusyIndicator("Loading recorded messages") }
             if (state.events.hasMore && !state.events.loading) item {
-                OutlinedButton(onClick = vm::loadMoreEvents, modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch)) { Text("Load more history") }
+                AdaOutlinedButton(onClick = vm::loadMoreEvents, modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch)) { Text("Load more history") }
             }
             state.submittedMessages.values.filter { it.conversationId == conversation.id }.forEach { submitted ->
                 val requestId = submitted.body.request_id
@@ -428,25 +450,34 @@ private fun ConversationScreen(state: ChatState, vm: ChatViewModel, typing: Bool
                                 ReadReplyButton(vm, requestId)
                                 val labels = Regex("\\[([MDC][1-9][0-9]*)]").findAll(response.response).map { it.groupValues[1] }.distinct().toList()
                                 labels.forEach { label ->
-                                    TextButton(onClick = { vm.openSources(requestId, label) }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("source-chip-$label")) { Text("Source [$label]") }
+                                    AdaTextButton(onClick = { vm.openSources(requestId, label) }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("source-chip-$label")) { Text("Source [$label]") }
                                 }
-                                if (labels.isEmpty()) TextButton(onClick = { vm.openSources(requestId) }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Sources for this reply") }
+                                if (labels.isEmpty()) AdaTextButton(onClick = { vm.openSources(requestId) }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Sources for this reply") }
                             }
                         }
                     }
                 }
             }
-            if (hasPending) item(key = "request-recovery") { PendingPanel(state, vm, 170.dp, scrollWithin = false) }
+            if (hasPending) item(key = "request-recovery") { PendingPanel(state, vm, AdaLayout.pendingMax, scrollWithin = false) }
         }
         LaunchedEffect(conversation.id, state.events.items.lastOrNull()?.id, state.pending?.phase) {
             // Follow new messages/status transitions, not every streamed token or a reader's scroll.
-            if (state.events.items.isNotEmpty() || hasPending) {
-                val last = (list.layoutInfo.totalItemsCount - 1).coerceAtLeast(0)
-                list.animateScrollToItem(last)
+            if (followLatest && (state.events.items.isNotEmpty() || hasPending)) {
+                autoScrolling = true
+                try { list.animateScrollToItem((list.layoutInfo.totalItemsCount - 1).coerceAtLeast(0)) }
+                finally { autoScrolling = false }
             }
         }
+        if (!followLatest) AdaTextButton({
+            followLatest = true
+            scope.launch {
+                autoScrolling = true
+                try { list.animateScrollToItem((list.layoutInfo.totalItemsCount - 1).coerceAtLeast(0)) }
+                finally { autoScrolling = false }
+            }
+        }, Modifier.align(Alignment.End).heightIn(min = AdaSpacing.touch).testTag("jump-latest")) { Text("Latest message") }
         // Same composer stays composed while IME opens; thread uses the remaining window.
-        Composer(state, vm, if (typing) totalMaxHeight else (totalMaxHeight * .45f).coerceAtMost(200.dp))
+        Composer(state, vm, if (typing) totalMaxHeight else (totalMaxHeight * AdaLayout.composerFraction).coerceAtMost(AdaLayout.composerMax))
       }
     }
 }
@@ -472,6 +503,9 @@ private fun ConversationToolbar(state: ChatState, vm: ChatViewModel) {
                         enabled = !state.events.loading, onClick = { menu = false; vm.refreshEvents() })
                     if (state.capabilities?.web_research == "ada-web-research-v1") DropdownMenuItem(text = { Text("Public research") }, onClick = { menu = false; vm.navigate(ChatDestination.Research) }, modifier = Modifier.testTag("open-research"))
                     if (state.capabilities?.curiosity_protocol == "ada-curiosity-v1") DropdownMenuItem(text = { Text("Questions & curiosity") }, onClick = { menu = false; vm.navigate(ChatDestination.Curiosity) }, modifier = Modifier.testTag("open-curiosity"))
+                    if (state.capabilities?.work_protocol == WORK_PROTOCOL) DropdownMenuItem(text = { Text("Projects & next actions") }, onClick = { menu = false; vm.navigate(ChatDestination.Work) }, modifier = Modifier.testTag("open-work"))
+                    if (state.capabilities?.reflection_protocol == "ada-reflection-v1") DropdownMenuItem(text = { Text("While you were away") }, onClick = { menu = false; vm.navigate(ChatDestination.Reflection) }, modifier = Modifier.testTag("open-reflection"))
+                    if (state.capabilities?.scheduling_protocol == "ada-scheduling-v1") DropdownMenuItem(text = { Text("Reminders & inbox") }, onClick = { menu = false; vm.navigate(ChatDestination.Schedules) }, modifier = Modifier.testTag("open-schedules"))
                     if (state.capabilities?.hasAgentTools() == true) DropdownMenuItem(text = { Text("Read-only tools") }, onClick = { menu = false; vm.navigate(ChatDestination.Tools) }, modifier = Modifier.testTag("open-tools"))
                     if (state.capabilities?.hasEpisodes() == true) DropdownMenuItem(text = { Text("History & episodes") }, onClick = { menu = false; vm.navigate(ChatDestination.Episodes) }, modifier = Modifier.testTag("open-episodes"))
                     DropdownMenuItem(text = { Text("Settings") }, leadingIcon = { AdaIconGlyph(AdaIcon.Settings) }, onClick = { menu = false; vm.navigate(ChatDestination.Settings) })
@@ -480,15 +514,16 @@ private fun ConversationToolbar(state: ChatState, vm: ChatViewModel) {
         }
     }
     if (details) CompactChatDialog("Conversation details", "conversation-details-dialog", "conversation-details-done", { details = false }) {
-        ConversationContext(state, vm, 600.dp, scrollWithin = false)
+        ConversationContext(state, vm, AdaLayout.dialogMax, scrollWithin = false)
     }
 }
 
 @Composable
 private fun CompactChatDialog(title: String, tag: String, doneTag: String, close: () -> Unit, content: @Composable () -> Unit) {
     Dialog(onDismissRequest = close, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        BoxWithConstraints(Modifier.fillMaxWidth().imePadding()) {
         AdaGlassSurface(Modifier.padding(AdaSpacing.medium).widthIn(max = AdaLayout.form).fillMaxWidth().testTag(tag)) {
-            Column(Modifier.heightIn(max = 600.dp)) {
+            Column(Modifier.heightIn(max = (maxHeight - AdaSpacing.section).coerceAtLeast(AdaSpacing.touch).coerceAtMost(AdaLayout.dialogMax))) {
                 Row(Modifier.fillMaxWidth().padding(start = AdaSpacing.medium, end = AdaSpacing.tiny), verticalAlignment = Alignment.CenterVertically) {
                     Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f).semantics { heading() })
                     AdaIconButton(AdaIcon.Close, "Done", close, Modifier.testTag(doneTag))
@@ -496,6 +531,7 @@ private fun CompactChatDialog(title: String, tag: String, doneTag: String, close
                 Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()).padding(AdaSpacing.medium), verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) { content() }
             }
         }
+    }
     }
 }
 
@@ -512,31 +548,31 @@ private fun ConversationContext(state: ChatState, vm: ChatViewModel, maximumHeig
         Text(conversation.title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
         Text("Scope: ${scope?.name ?: scopeLabel(conversation.scope_kind)}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text("Saved style: ${conversation.personality.name} · ${conversation.personality.style} · ${conversation.personality.warmth} · ${conversation.personality.detail}", style = MaterialTheme.typography.bodySmall)
-        TextButton(onClick = { contextDetails = !contextDetails }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text(if (contextDetails) "Hide conversation details" else "Conversation details") }
+        AdaTextButton(onClick = { contextDetails = !contextDetails }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text(if (contextDetails) "Hide conversation details" else "Conversation details") }
         if (contextDetails) SafeChatText("Saved prompt: ${conversation.prompt_version}\nRevision: ${conversation.revision}\nConversation: ${conversation.id}\nScope: ${conversation.scope_id}", links = false)
         if (conversation.prompt_version in setOf("ada-baseline-v1", "ada-baseline-v2", "ada-baseline-v3") &&
             state.capabilities?.chat_prompt_version in setOf("ada-baseline-v3", "ada-baseline-v4") &&
             conversation.prompt_version != state.capabilities?.chat_prompt_version) {
-            Text("This conversation has an older saved prompt. Updating changes future replies; past answers stay as recorded.", style = MaterialTheme.typography.bodySmall)
-            TextButton(onClick = { confirmUpgrade = true }, enabled = state.pending == null && !state.upgrading, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("prompt-upgrade")) { Text(if (state.upgrading) "Updating prompt…" else "Update saved prompt") }
+            Text("This conversation has an older saved prompt. Updating changes future replies; past answers stay as recorded.", style = MaterialTheme.typography.bodyMedium)
+            AdaTextButton(onClick = { confirmUpgrade = true }, enabled = state.pending == null && !state.upgrading, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("prompt-upgrade")) { Text(if (state.upgrading) "Updating prompt…" else "Update saved prompt") }
         }
         StateFeedback(state, suppressFailure = state.pending?.failure != null && state.pending.failure == state.fault)
         if (state.capabilities?.quality_prompt_version == "ada-baseline-v5" && conversation.prompt_version in setOf("ada-baseline-v1", "ada-baseline-v2", "ada-baseline-v3", "ada-baseline-v4")) {
-            TextButton({ confirmQuality = true }, enabled = state.pending == null && !state.upgrading,
+            AdaTextButton({ confirmQuality = true }, enabled = state.pending == null && !state.upgrading,
                 modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("quality-prompt-upgrade")) { Text("Review context upgrade") }
         }
     }
     if (confirmQuality) AlertDialog(
         onDismissRequest = { confirmQuality = false }, title = { Text("Use the v5 context policy?") },
         text = { Text("This explicitly changes future replies: relevant original excerpts and complete chat pairs are ranked within bounded searches. Missing context stays uncertain. Nothing is automatically saved to memory. Past answers and source snapshots stay as recorded; the server audits this change.") },
-        confirmButton = { TextButton({ confirmQuality = false; vm.upgradePrompt(quality = true) }) { Text("Enable for future replies") } },
-        dismissButton = { TextButton({ confirmQuality = false }) { Text("Keep saved prompt") } },
+        confirmButton = { AdaTextButton({ confirmQuality = false; vm.upgradePrompt(quality = true) }) { Text("Enable for future replies") } },
+        dismissButton = { AdaTextButton({ confirmQuality = false }) { Text("Keep saved prompt") } },
     )
     if (confirmUpgrade) AlertDialog(
         onDismissRequest = { confirmUpgrade = false }, title = { Text("Update the saved prompt?") },
         text = { Text("Future replies will use the current ADA prompt and retrieval behavior. Existing answers, source cards and the saved style remain unchanged. The server records this explicit upgrade.") },
-        confirmButton = { TextButton(onClick = { confirmUpgrade = false; vm.upgradePrompt() }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Update prompt") } },
-        dismissButton = { TextButton(onClick = { confirmUpgrade = false }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Keep saved prompt") } },
+        confirmButton = { AdaTextButton(onClick = { confirmUpgrade = false; vm.upgradePrompt() }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Update prompt") } },
+        dismissButton = { AdaTextButton(onClick = { confirmUpgrade = false }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Keep saved prompt") } },
     )
 }
 
@@ -554,18 +590,19 @@ private fun EventCard(event: EventDto, state: ChatState, vm: ChatViewModel) {
                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             SafeChatText(event.content)
+            if (event.role == "assistant" && event.request_status == "completed" && state.capabilities?.work_protocol == WORK_PROTOCOL) AdaTextButton({ vm.saveNextAction(event) }, modifier = Modifier.testTag("save-next-action-${event.request_id}")) { Text("Save next action") }
             if (event.role == "assistant" && event.request_status == "completed") ReadReplyButton(vm, event.request_id)
             if (event.role == "assistant") {
                 val labels = remember(event.content) { Regex("\\[([MDC][1-9][0-9]*)]").findAll(event.content).map { it.groupValues[1] }.distinct().toList() }
                 labels.forEach { label ->
-                    TextButton(
+                    AdaTextButton(
                         onClick = { vm.openSources(event.request_id, label) },
                         modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("source-chip-$label").semantics { contentDescription = "Open Source [$label] for this reply" },
                     ) { Text("Source [$label]") }
                 }
-                if (labels.isEmpty()) TextButton(onClick = { vm.openSources(event.request_id) }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Sources for this reply") }
+                if (labels.isEmpty()) AdaTextButton(onClick = { vm.openSources(event.request_id) }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Sources for this reply") }
                 val known = state.sources[event.request_id]
-                if (known?.request_id == event.request_id && labels.any { label -> known.citations.none { it.label == label } && known.document_citations.none { it.label == label } && known.continuity_citations.none { it.label == label } }) Text("Some source labels are unavailable for this saved reply.", style = MaterialTheme.typography.bodySmall)
+                if (known?.request_id == event.request_id && labels.any { label -> known.citations.none { it.label == label } && known.document_citations.none { it.label == label } && known.continuity_citations.none { it.label == label } }) Text("Some source labels are unavailable for this saved reply.", style = MaterialTheme.typography.bodyMedium)
             }
         }
     }
@@ -602,7 +639,7 @@ private fun PendingPanel(state: ChatState, vm: ChatViewModel, maximumHeight: Dp,
                 }
                 if (progress.stream_state in setOf("running", "cancel_requested") && progress.available) {
                     Text(if (state.stopping || progress.stream_state == "cancel_requested") "Stop requested; waiting for shutdown" else if (state.streamConnected) "Receiving reply" else "Observer detached; Check request to reconnect")
-                    Button(onClick = vm::stopGeneration, enabled = progress.stream_state == "running" && !state.stopping,
+                    AdaButton(onClick = vm::stopGeneration, enabled = progress.stream_state == "running" && !state.stopping,
                         modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("thread-stop-generation")) { Text("Stop") }
                 }
             }
@@ -626,23 +663,23 @@ private fun PendingPanel(state: ChatState, vm: ChatViewModel, maximumHeight: Dp,
             )
             pending.failure?.let { FailureNotice(it) }
             when (pending.phase) {
-                PendingPhase.Unknown, PendingPhase.Running, PendingPhase.Conflict -> TextButton(onClick = vm::reconcile, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("check-request")) { Text("Check request") }
-                PendingPhase.Failed -> Button(onClick = vm::retry, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("retry-request")) { Text("Retry original request") }
-                PendingPhase.Missing -> Button(onClick = vm::resubmitSamePayload, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("resubmit-request")) { Text("Submit original request") }
-                PendingPhase.Blocked -> if (receivedWithCleanupFailure) TextButton(onClick = vm::reconcile, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("check-request")) { Text("Check request") }
+                PendingPhase.Unknown, PendingPhase.Running, PendingPhase.Conflict -> AdaTextButton(onClick = vm::reconcile, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("check-request")) { Text("Check request") }
+                PendingPhase.Failed -> AdaButton(onClick = vm::retry, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("retry-request")) { Text("Retry original request") }
+                PendingPhase.Missing -> AdaButton(onClick = vm::resubmitSamePayload, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("resubmit-request")) { Text("Submit original request") }
+                PendingPhase.Blocked -> if (receivedWithCleanupFailure) AdaTextButton(onClick = vm::reconcile, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("check-request")) { Text("Check request") }
                 else -> Unit
             }
-            if (pending.phase == PendingPhase.Conflict) TextButton(onClick = vm::refreshEvents, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Refresh history") }
-            if (pending.phase in setOf(PendingPhase.Failed, PendingPhase.Missing, PendingPhase.Conflict)) TextButton(onClick = { confirmNew = true }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("new-message")) { Text("Start a new message") }
-            TextButton(onClick = { details = !details }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text(if (details) "Hide request details" else "Request details") }
+            if (pending.phase == PendingPhase.Conflict) AdaTextButton(onClick = vm::refreshEvents, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Refresh history") }
+            if (pending.phase in setOf(PendingPhase.Failed, PendingPhase.Missing, PendingPhase.Conflict)) AdaTextButton(onClick = { confirmNew = true }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("new-message")) { Text("Start a new message") }
+            AdaTextButton(onClick = { details = !details }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text(if (details) "Hide request details" else "Request details") }
             if (details) SafeChatText("Request: ${pending.message.body.request_id}\nMemory: ${if (pending.message.body.use_memory) "enabled" else "disabled"}\nHistorical instant: ${pending.message.body.as_of ?: "current"}", links = false)
         }
     }
     if (confirmNew) AlertDialog(
         onDismissRequest = { confirmNew = false }, title = { Text("Start a separate message?") },
         text = { Text("The original server request is kept. Your next Send will use a new request ID and the current draft. It will not retry or cancel the original request.") },
-        confirmButton = { TextButton(onClick = { confirmNew = false; vm.discardPending() }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Use a new request") } },
-        dismissButton = { TextButton(onClick = { confirmNew = false }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Keep original request") } },
+        confirmButton = { AdaTextButton(onClick = { confirmNew = false; vm.discardPending() }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Use a new request") } },
+        dismissButton = { AdaTextButton(onClick = { confirmNew = false }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Keep original request") } },
     )
 }
 
@@ -650,7 +687,7 @@ private fun PendingPanel(state: ChatState, vm: ChatViewModel, maximumHeight: Dp,
 private fun Composer(state: ChatState, vm: ChatViewModel, maximumHeight: Dp) {
     // In a short landscape IME window, scroll inside a one-line editor rather
     // than scrolling the entire icon row out of view with a multiline draft.
-    val shortWindow = maximumHeight < 120.dp
+    val shortWindow = maximumHeight < AdaLayout.shortComposer
     var advanced by remember { mutableStateOf(false) }
     var addMenu by remember { mutableStateOf(false) }
     val focus = LocalFocusManager.current
@@ -660,7 +697,7 @@ private fun Composer(state: ChatState, vm: ChatViewModel, maximumHeight: Dp) {
     val canSend = voiceState.phase !in setOf(VoicePhase.Permission, VoicePhase.Checking, VoicePhase.Recording, VoicePhase.Transcribing) && !reserved && state.draft.isNotBlank() && count <= 4000 && state.capabilities?.chat == true
     val progress = state.stream?.takeIf { it.request_id == state.pending?.message?.body?.request_id }
     val canStop = progress?.stream_state in setOf("running", "cancel_requested") && progress?.available == true
-    AdaGlassSurface(Modifier.padding(horizontal = AdaSpacing.small, vertical = AdaSpacing.tiny).testTag("chat-composer-surface")) {
+    AdaGlassSurface(Modifier.padding(horizontal = AdaSpacing.small, vertical = AdaSpacing.tiny).testTag("chat-composer-surface"), boundary = true) {
         Column(Modifier.fillMaxWidth().heightIn(max = maximumHeight).verticalScroll(rememberScrollState()).padding(AdaSpacing.tiny)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Box {
@@ -682,7 +719,7 @@ private fun Composer(state: ChatState, vm: ChatViewModel, maximumHeight: Dp) {
                         contentDescription = "Message ADA"
                         if (count > 4000) error("Shorten this draft to 4,000 Unicode characters.")
                     },
-                    decorationBox = { field -> Box(Modifier.padding(vertical = if (shortWindow) AdaSpacing.small else 14.dp, horizontal = AdaSpacing.tiny)) {
+                    decorationBox = { field -> Box(Modifier.padding(vertical = if (shortWindow) AdaSpacing.small else AdaLayout.fieldInset, horizontal = AdaSpacing.tiny)) {
                         if (state.draft.isEmpty()) Text("Message ADA", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         field()
                     } },
@@ -709,15 +746,15 @@ private fun Composer(state: ChatState, vm: ChatViewModel, maximumHeight: Dp) {
                             modifier = Modifier.testTag("use-documents").semantics { contentDescription = "Use imported documents in this message" })
                         Text("Use imported documents", style = MaterialTheme.typography.bodyMedium)
                     }
-                    if (state.conversation?.prompt_version !in setOf("ada-baseline-v4", "ada-baseline-v5")) Text("Explicitly update this conversation’s saved prompt to use imported documents.", style = MaterialTheme.typography.bodySmall)
-                    else if (!state.useMemory) Text("Turn on saved memory to use scoped evidence, including imported documents.", style = MaterialTheme.typography.bodySmall)
+                    if (state.conversation?.prompt_version !in setOf("ada-baseline-v4", "ada-baseline-v5")) Text("Explicitly update this conversation’s saved prompt to use imported documents.", style = MaterialTheme.typography.bodyMedium)
+                    else if (!state.useMemory) Text("Turn on saved memory to use scoped evidence, including imported documents.", style = MaterialTheme.typography.bodyMedium)
                 }
                 if (state.capabilities?.historical_memory_queries == true) OutlinedTextField(
                     state.asOf, vm::updateAsOf, label = { Text("Historical instant (optional)") },
                     supportingText = { Text("ISO 8601 with a timezone, for example 2026-10-08T12:00:00.000Z. Blank uses current memory.") },
                     enabled = !reserved, singleLine = true, modifier = Modifier.fillMaxWidth().testTag("historical-instant"),
                 )
-                if (reserved) Text("The pending request keeps its original options.", style = MaterialTheme.typography.bodySmall)
+                if (reserved) Text("The pending request keeps its original options.", style = MaterialTheme.typography.bodyMedium)
 
     }
 }
@@ -749,11 +786,11 @@ private fun SourcesScreen(state: ChatState, vm: ChatViewModel) {
             } }
         }
         if (!state.sourceLoading && request == null && id != null) item {
-            TextButton(onClick = { vm.openSources(id, state.sourceLabel) }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Try loading sources again") }
+            AdaTextButton(onClick = { vm.openSources(id, state.sourceLabel) }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Try loading sources again") }
         }
         if (id != null) item {
-            OutlinedButton(onClick = vm::loadTrace, modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("retrieval-details")) { Text("Retrieval details") }
-            Text("Selected context, including uncited material, is shown separately from reply sources.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            AdaOutlinedButton(onClick = vm::loadTrace, modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("retrieval-details")) { Text("Retrieval details") }
+            Text("Selected context, including uncited material, is shown separately from reply sources.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -784,12 +821,13 @@ private fun RetrievalScreen(state: ChatState, vm: ChatViewModel) {
             items(trace.selected, key = { "${it.label}:${it.claim_id}" }) { card -> ChatSourceCard(card, trace.request_id) }
             items(trace.document_selected, key = { "${it.label}:${it.chunk_id}" }) { card -> DocumentSourceCard(card, trace.request_id) }
         }
-        if (!state.traceLoading && !state.traceMissing && trace == null) item { TextButton(onClick = vm::loadTrace, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Try loading retrieval details again") } }
+        if (!state.traceLoading && !state.traceMissing && trace == null) item { AdaTextButton(onClick = vm::loadTrace, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Try loading retrieval details again") } }
     }
 }
 
 @Composable
 private fun AccountSettingsScreen(state: ChatState, vm: ChatViewModel, openSettings: () -> Unit) {
+    var confirmLogout by remember { mutableStateOf<Boolean?>(null) }
     var replacement by remember(state.account?.owner, state.account?.server) { mutableStateOf("") }
     val focus = LocalFocusManager.current
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(AdaSpacing.large), verticalArrangement = Arrangement.spacedBy(AdaSpacing.medium)) {
@@ -804,39 +842,50 @@ private fun AccountSettingsScreen(state: ChatState, vm: ChatViewModel, openSetti
                 }
             }
         }
-        OutlinedButton(onClick = openSettings, modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("appearance")) { Text("Appearance") }
+        AdaOutlinedButton(onClick = openSettings, modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("appearance")) { Text("Appearance") }
         Text("ADA Ambient, Oxford Blue, Dark Red or Olive Green. Light and dark modes keep your system text size.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         HorizontalDivider()
-        SettingsProfiles(state, vm)
+        AdaSettingsGroup("Chat styles", "settings-styles") { SettingsProfiles(state, vm) }
         HorizontalDivider()
-        ExpressionSettings(vm.expression, state.conversation?.id)
+        AdaSettingsGroup("Interaction preferences", "settings-preferences") { ExpressionSettings(vm.expression, state.conversation?.id) }
         HorizontalDivider()
-        LearningSettings(vm.learning, state)
-        if (state.capabilities?.curiosity_protocol == "ada-curiosity-v1") TextButton({ vm.navigate(ChatDestination.Curiosity) }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Questions & curiosity settings") }
+        AdaSettingsGroup("Learning and continuity", "settings-learning") { LearningSettings(vm.learning, state) }
+        if (state.capabilities?.curiosity_protocol == "ada-curiosity-v1") AdaTextButton({ vm.navigate(ChatDestination.Curiosity) }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Questions & curiosity settings") }
+        if (state.capabilities?.work_protocol == WORK_PROTOCOL) AdaTextButton({ vm.navigate(ChatDestination.Work) }, modifier = Modifier.testTag("settings-work")) { Text("Projects & next actions") }
+        if (state.capabilities?.reflection_protocol == "ada-reflection-v1") AdaTextButton({ vm.navigate(ChatDestination.Reflection) }, modifier = Modifier.testTag("settings-reflection")) { Text("While you were away") }
+        if (state.capabilities?.scheduling_protocol == "ada-scheduling-v1") AdaTextButton({ vm.navigate(ChatDestination.Schedules) }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("settings-schedules")) { Text("Reminders & inbox") }
         HorizontalDivider()
-        SecuritySettings(vm.security)
+        AdaSettingsGroup("Devices and saved content", "settings-security") { SecuritySettings(vm.security) }
+        AdaSettingsGroup("Advanced token access", "settings-token") {
         state.account?.let { account ->
             HorizontalDivider()
             Text("Replace this account’s token", style = MaterialTheme.typography.titleMedium)
-            Text("Use a newly issued token for the same account. ADA verifies the owner again before restoring saved recovery state.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("Use a newly issued token for the same account. ADA verifies the owner again before restoring saved recovery state.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             OutlinedTextField(
                 replacement, { replacement = it }, label = { Text("Replacement bearer token") },
                 singleLine = true, visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
                 modifier = Modifier.fillMaxWidth().testTag("replacement-token"),
             )
-            OutlinedButton(
+            AdaOutlinedButton(
                 onClick = { val entered = replacement; replacement = ""; focus.clearFocus(); vm.rotateCredential(account.server, entered) },
                 enabled = !state.connecting && replacement.isNotBlank(),
                 modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("replace-token"),
             ) { Text("Replace token for this account") }
         }
+        }
         Text("Account and server changes clear local conversations, sources, drafts and pending requests. A request already submitted may continue on the server.", style = MaterialTheme.typography.bodyMedium)
-        PasswordSessionPanel(vm)
-        OutlinedButton(onClick = { vm.logout(all = true) }, modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch)) { Text("Sign out all password sessions") }
-        Button(onClick = { vm.logout() }, modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("logout")) { Text("Log out / change server") }
-        Text("Voice uses installed on-device services. Memory extraction requires explicit review.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        AdaSettingsGroup("Password sessions", "settings-password") { PasswordSessionPanel(vm) }
+        AdaOutlinedButton(onClick = { confirmLogout = true }, modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch)) { Text("Sign out all password sessions") }
+        AdaButton(onClick = { confirmLogout = false }, modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("logout")) { Text("Log out / change server") }
+        Text("Voice uses installed on-device services. Memory extraction requires explicit review.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
+    confirmLogout?.let { all -> AdaConfirmation(
+        if (all) "Sign out all password sessions?" else "Log out of this device?",
+        if (all) "This signs out password sessions on every device. Local private views and recovery are cleared. Saved server content and separate device tokens remain."
+        else "This clears local conversations, drafts and recovery. Submitted server requests may continue; saved server content remains.",
+        if (all) "Sign out all sessions" else "Log out", { confirmLogout = null }, { confirmLogout = null; vm.logout(all = all) }, "logout") }
+
 }
 
 @Composable
@@ -847,13 +896,12 @@ private fun SettingsProfiles(state: ChatState, vm: ChatViewModel) {
     val focus = LocalFocusManager.current
     val selected = state.profiles.items.firstOrNull { it.id == state.createProfileId }
         ?: state.selectedProfile?.takeIf { it.id == state.createProfileId }
-    Text("Chat styles", style = MaterialTheme.typography.titleMedium)
     Text("Choose an expression style for a new conversation. Existing conversations keep their saved style, prompt and knowledge scope.", style = MaterialTheme.typography.bodyMedium)
     state.conversation?.let { conversation ->
         Text("Saved in ${conversation.title}: ${conversation.personality.name} · ${conversation.personality.style} · ${conversation.personality.warmth} · ${conversation.personality.detail}", style = MaterialTheme.typography.bodySmall)
     }
     Text(selected?.let { "For a new conversation: ${it.name} · ${it.style} · ${it.warmth} · ${it.detail}" } ?: "Choose a style when starting a new conversation.", style = MaterialTheme.typography.bodySmall)
-    OutlinedButton(onClick = { choosing = !choosing; if (choosing) vm.refreshProfiles() }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("settings-choose-profile")) { Text(if (choosing) "Close style list" else "Choose for a new conversation") }
+    AdaOutlinedButton(onClick = { choosing = !choosing; if (choosing) vm.refreshProfiles() }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("settings-choose-profile")) { Text(if (choosing) "Close style list" else "Choose for a new conversation") }
     if (choosing) {
         Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
             state.selectedProfile?.takeIf { saved -> state.profiles.items.none { it.id == saved.id } }?.let { profile ->
@@ -866,9 +914,9 @@ private fun SettingsProfiles(state: ChatState, vm: ChatViewModel) {
             }
         }
         if (state.profiles.loading) BusyIndicator("Loading owned styles")
-        if (state.profiles.hasMore && !state.profiles.loading) TextButton(onClick = vm::loadMoreProfiles, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Load more styles") }
+        if (state.profiles.hasMore && !state.profiles.loading) AdaTextButton(onClick = vm::loadMoreProfiles, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Load more styles") }
     }
-    OutlinedButton(onClick = { creating = !creating }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("settings-new-profile")) { Text(if (creating) "Close new style" else "Create a chat style") }
+    AdaOutlinedButton(onClick = { creating = !creating }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("settings-new-profile")) { Text(if (creating) "Close new style" else "Create a chat style") }
     if (creating) {
         OutlinedTextField(profileDraft.name, { vm.updateProfileDraft(profileDraft.copy(name = it)) }, label = { Text("Profile name") }, singleLine = true,
             supportingText = { Text("Up to 40 letters, numbers, spaces, underscores, dots or hyphens.") },
@@ -895,11 +943,11 @@ private fun SettingsProfiles(state: ChatState, vm: ChatViewModel) {
             }
         }
         if (state.profileUncertain) {
-            Text("The profile creation outcome is unknown. Refresh and review the owned list before consciously allowing a new creation.", style = MaterialTheme.typography.bodySmall)
-            TextButton(onClick = { choosing = true; vm.refreshProfiles() }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Refresh and review styles") }
-            TextButton(onClick = vm::acknowledgeProfileReview, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("settings-review-profile")) { Text("I reviewed the list; allow a new style") }
+            Text("The profile creation outcome is unknown. Refresh and review the owned list before consciously allowing a new creation.", style = MaterialTheme.typography.bodyMedium)
+            AdaTextButton(onClick = { choosing = true; vm.refreshProfiles() }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Refresh and review styles") }
+            AdaTextButton(onClick = vm::acknowledgeProfileReview, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("settings-review-profile")) { Text("I reviewed the list; allow a new style") }
         }
-        Button(onClick = { focus.clearFocus(); vm.createProfile(profileDraft.name, profileDraft.style, profileDraft.warmth, profileDraft.detail) },
+        AdaButton(onClick = { focus.clearFocus(); vm.createProfile(profileDraft.name, profileDraft.style, profileDraft.warmth, profileDraft.detail) },
             enabled = !state.creatingProfile && !state.profileUncertain && profileDraft.name.isNotBlank(), modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("settings-create-profile")) {
             Text(if (state.creatingProfile) "Creating style…" else "Create for new conversations")
         }
@@ -909,23 +957,12 @@ private fun SettingsProfiles(state: ChatState, vm: ChatViewModel) {
 @Composable
 private fun StateFeedback(state: ChatState, suppressFailure: Boolean = false) {
     if (!suppressFailure) state.fault?.let { FailureNotice(it) }
-    state.notice?.let { notice ->
-        Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = MaterialTheme.shapes.medium) {
-            Text(notice, modifier = Modifier.fillMaxWidth().padding(AdaSpacing.medium).semantics { liveRegion = LiveRegionMode.Polite }, style = MaterialTheme.typography.bodyMedium)
-        }
-    }
+    state.notice?.let { AdaNotice(it) }
 }
 
 @Composable
 private fun FailureNotice(failure: ApiFailure) {
-    val focus = remember { FocusRequester() }
-    LaunchedEffect(failure) { focus.requestFocus() }
-    Surface(color = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.onErrorContainer, shape = MaterialTheme.shapes.medium) {
-        Column(Modifier.fillMaxWidth().padding(AdaSpacing.medium).testTag("failure-notice").focusRequester(focus).focusable().semantics { liveRegion = LiveRegionMode.Polite }, verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
-            Text(if (failure is ApiFailure.Busy) "ADA is busy. Wait before trying this action again." else failure.message(), style = MaterialTheme.typography.bodyMedium)
-            if (failure is ApiFailure.Busy && failure.retryAfterSeconds != null) Text("Wait at least ${failure.retryAfterSeconds} seconds before retrying.", style = MaterialTheme.typography.bodySmall)
-        }
-    }
+    AdaFailureNotice(failure, Modifier.testTag("failure-notice"))
 }
 
 @Composable
@@ -958,40 +995,16 @@ private fun ChoiceRow(selected: Boolean, title: String, detail: String, enabled:
 }
 
 @Composable
-private fun BackButton(back: () -> Unit) { TextButton(onClick = back, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("screen-back")) { Text("Back") } }
+private fun BackButton(back: () -> Unit) { AdaTextButton(onClick = back, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("screen-back")) { Text("Back") } }
 
 @Composable
 private fun BusyIndicator(label: String) {
-    Row(Modifier.fillMaxWidth().padding(AdaSpacing.small), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(AdaSpacing.medium)) {
-        AdaPresence(AdaPresenceState.Unconfirmed, Modifier.size(AdaSpacing.touch), motion = false, describe = false)
-        Text(label, style = MaterialTheme.typography.bodyMedium)
-    }
+    AdaLoading(label)
 }
 
 private fun scopeLabel(kind: String): String = when (kind) { "personal" -> "Private personal scope"; "project" -> "Private project scope"; else -> "Private scope" }
 
 @Composable
 private fun NavigationGlyph(kind: Int) {
-    val color = LocalContentColor.current
-    Canvas(Modifier.size(24.dp)) {
-        val stroke = Stroke(1.7.dp.toPx())
-        if (kind == 0) {
-            drawRoundRect(color, Offset(3.dp.toPx(), 3.dp.toPx()), Size(18.dp.toPx(), 15.dp.toPx()), CornerRadius(4.dp.toPx()), style = stroke)
-            drawLine(color, Offset(8.dp.toPx(), 18.dp.toPx()), Offset(6.dp.toPx(), 22.dp.toPx()), strokeWidth = stroke.width)
-            drawLine(color, Offset(6.dp.toPx(), 22.dp.toPx()), Offset(13.dp.toPx(), 18.dp.toPx()), strokeWidth = stroke.width)
-        } else if (kind == 1) {
-            val path = Path().apply { moveTo(6.dp.toPx(), 3.dp.toPx()); lineTo(18.dp.toPx(), 3.dp.toPx()); lineTo(18.dp.toPx(), 21.dp.toPx()); lineTo(12.dp.toPx(), 17.dp.toPx()); lineTo(6.dp.toPx(), 21.dp.toPx()); close() }
-            drawPath(path, color, style = stroke)
-        } else if (kind == 3) {
-            drawRoundRect(color, Offset(5.dp.toPx(), 2.dp.toPx()), Size(14.dp.toPx(), 20.dp.toPx()), CornerRadius(2.dp.toPx()), style = stroke)
-            repeat(3) { line -> drawLine(color, Offset(8.dp.toPx(), (8 + line * 4).dp.toPx()), Offset(16.dp.toPx(), (8 + line * 4).dp.toPx()), strokeWidth = stroke.width) }
-        } else {
-            drawCircle(color, 6.dp.toPx(), style = stroke)
-            drawCircle(color, 2.dp.toPx(), style = stroke)
-            repeat(8) { index ->
-                val angle = index * Math.PI / 4
-                drawLine(color, center + Offset((cos(angle) * 8.dp.toPx()).toFloat(), (sin(angle) * 8.dp.toPx()).toFloat()), center + Offset((cos(angle) * 11.dp.toPx()).toFloat(), (sin(angle) * 11.dp.toPx()).toFloat()), strokeWidth = stroke.width)
-            }
-        }
-    }
+    AdaIconGlyph(when (kind) { 0 -> AdaIcon.Chat; 1 -> AdaIcon.Memory; 3 -> AdaIcon.Sources; else -> AdaIcon.Settings })
 }

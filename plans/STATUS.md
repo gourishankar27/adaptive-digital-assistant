@@ -1,8 +1,85 @@
 # Phase status
 
-Current overview updated 2026-10-17 America/Phoenix; historical entries retain their
+Current overview updated 2026-10-22 America/Phoenix; historical entries retain their
 own dates and verification provenance. Update after implementation and verification.
 “Planned” means a specification exists, not that code or a working UI exists.
+
+**Phase30 source/local verification (2026-10-22):** explicit scoped projects,
+goals/tasks, requested exact Save review, immutable revisions/source resume,
+balanced personal/development selected-work briefs and encrypted GET-only recovery
+are implemented. Optional questions use25 consent/cadence; only27 schedules a
+separately reviewed reminder. Task edits pause linked automation; no inferred
+commitment, external execution or private admin reader. Current source:
+**0020 /74 tables /61 owner-content /backup-v6**, OpenAPI157paths/206schemas,
+Android24 /0.30.0-work and journal17 (v1–v16 readable).
+Full1206 passed/33 skipped preceded final guards; post-guard affected221/5,
+final Phase30 selection49/1 and linked-automation native restore1 passed.
+Android300 units/no lint errors/debug+unsigned-release and web72 units/8Chromium
+cases passed. Real HTTP/emulator force-stop recovery and final closeout provenance
+are in the dated record below and WORKLOG. Human usefulness and physical
+accessibility remain open. No installed DB/app/service upgrade or deployment;
+Phase31 remains planned. [Guide](../docs/PROJECTS-AND-FOLLOW-THROUGH.md).
+
+**Phase29 study/interface locally checked (2026-10-21):** Android23 adds explicit
+public voice preview, engine/model status, strict local manifest/byte validation
+and playback guards. The candidate/license study and opt-in installation/removal
+design are documented; no new runtime/model/installer/activation is enabled.
+Existing platform ASR/offline TTS, schema0019, OpenAPI145paths/193schemas and
+journal16 are preserved. Target device/quality/resource/focus/permission gates
+remain pending under the phase's permitted study-only exit. See the dated record
+below and [NATURAL-LOCAL-SPEECH](../docs/NATURAL-LOCAL-SPEECH.md). No deployment.
+
+**Phase28 initial job set implemented and locally verified (2026-10-21):**
+opt-in source-pinned idle reports and catalogue question drafts, typed Android
+review/GET-only recovery, aggregate admin monitoring, source/foreground/consent/
+lease/erasure fences and restore quarantine. Model summaries remain disabled;
+the public cancellation probe does not establish GPU stop or useful native output.
+Current source requires0019/70 tables, owner-content57 and backup-v5; OpenAPI145
+paths/193 schemas. Android22/0.28.0-reflection uses encrypted journal16 (v1–v15 read).
+Global reflection/owner consent default off. Full1161 passed/32 skips preceded
+final guards; final affected282 passed/4 skips, plus4 completed-turn checks passed.
+Android283 units/no lint errors/two final real HTTP force-stop stages; web72 units/
+8 Chromium cases passed. See the detailed dated record below and
+[the guide](../docs/IDLE-REFLECTION-AND-DREAM-REVIEW.md). No live migration, normal
+app installation, later phase or deployment. Physical/installed-host/native-summary
+quality and GPU gates remain explicit.
+
+**Phase27 source/local verification:** reviewed timezone reminders/catalogue
+questions, durable origin-bound consent, fenced dispatch, private inbox/receipts,
+Android21/journal15 and read-only admin counts are implemented. Source requires
+0018/65 tables; recovery-v4 includes53 owner-content tables and restore quarantine.
+Global dispatch/owner consent default off; foreground in-app polling only, no push.
+The preceding run passed1042 tests/30 skips, then107 affected tests/3 skips after
+two final calendar/host-gate corrections. Android275 units/two real emulator HTTP
+stages and web71 units/seven Chromium cases passed. The 2026-10-21 reconciliation
+below records the original 2026-10-19 evidence, rather than claiming a new run.
+No live migration, normal app installation or deployment. See
+[the guide](../docs/DURABLE-SCHEDULING-AND-REMINDERS.md) for controls and target gates.
+
+**Phase 26 source and isolated validation:** owner-logon supervision, single API
+ownership, bounded recovery, fixed health/resource metadata, reversible AC tools
+and protected unattended backup/restore are implemented. No API/schema/prompt
+change. Native Windows/PostgreSQL, same-identity Task Scheduler key access,
+owned-proxy/crash/replay and configured-model short rehearsals passed. The first
+four-hour disposable soak failed after approximately 3h15; its evidence remains
+below. Windows receipt-sharing and foreground port guards were corrected, and
+the final full suite passed 975 tests with 27 skips. The separately authorized
+continuous rerun passed 14,400.39 seconds: 14,278 health checks, zero unavailable
+samples, 1,428 public replies, encrypted backup, protected-key isolated restore,
+graceful stop and verified cleanup. This closes the four-hour development gate
+using an explicit fake provider; it does not establish sustained native inference
+or installed-host uptime.
+Installation, reboot/logon, sleep/resume, representative RPO/RTO, off-device
+recovery and a separately authorized 24-hour trial remain target gates. See the
+[operations guide](../docs/ALWAYS-ON-OPERATIONS.md). No production tasks, power
+changes, live database migration or deployment.
+
+**Android design hardening:** app20/0.25.2-ui fixes verified presentation,
+feedback, selection, confirmation, short-window, appearance and reading-position
+gaps. S24FE/API36 automated checks use a separate synthetic validation app;
+manual TalkBack/audio remain pending. See the dated entry below and
+[verified gap matrix](../docs/ANDROID-DESIGN-GAPS.md#8-verified-follow-up-2026-10-18).
+Server contracts/private state remain unchanged; no normal app update/deployment.
 
 **Phase25 source/local verification:** opt-in topic/depth/cadence controls,
 bounded chat/inbox questions, original-source pins and explicit conversation/
@@ -78,7 +155,11 @@ release-reliability gates remain separate. See the follow-up entry at the end an
 | 23 | A–E implemented; measured opt-in/disabled decision, local verification | Explicit claim intervals/time clarification, original-source/history ranking under optional audited v5, request diagnostics and Android review cues. V4 remains default; semantic disabled because supported weights absent. Public fixture/native comparison and remaining cases in dated entry; no migration/deployment. |
 | 24 | A–E implemented; default-off, local verification and target limits recorded | Verified isolated approved Python/Wikipedia pilot, immutable W sources, explicit imported notes and Android v13 exact recovery. Actual Docker/public/native/PG/emulator checks and corrected failures below. No migration, activation or deployment. |
 | 25 | A–E implemented; opt-in local chat/inbox verification, target/quality limits remain | Migration0017, owner-wide controls/quotas, inspectable catalogue/original pins, atomic opening/ordinary answer and Android v14 queued recovery. Dated full/affected/PG/native/emulator evidence and skips below. No scheduler, auto-memory or deployment. |
-| 26–31 | Proposed roadmap; no implementation | See [FUTURE-ROADMAP](FUTURE-ROADMAP.md). No later-phase implementation or deployment. |
+| 26 | Source and four-hour development soak passed; target gates remain | Final full 975 passed/27 skipped. Corrected continuous explicit-fake rerun passed 14,400.39 s, 14,278 healthy samples, backup/restore and cleanup. Prior failed attempt preserved; installation/reboot/sleep/large-data/off-device/24-hour verification remains. |
+| 27 | A–F implemented for foreground-inbox selection; local checks passed | 0018/65 tables, recovery-v4, default-off consent/dispatcher; backend1042/30 then final affected107/3, Android275 units/two HTTP force-stop stages, web71/seven Chromium. Physical/installed-host gates remain; no push/deployment. |
+| 28 | Initial reports/question drafts implemented; local verification, summaries disabled | Detailed Phase28 record below preserves the full/affected/native/emulator evidence and open target gates. |
+| 29 | Study/interface/platform preview locally checked; physical activation pending | License-qualified shortlist, pinned byte contract, unchanged server/journal; no new runtime/model/installer. Dated checks and skips below. |
+| 30–31 | Proposed roadmap; no implementation | See [FUTURE-ROADMAP](FUTURE-ROADMAP.md). Each requires explicit selection. |
 
 Phase 02A's Windows fixture gate is closed. Phase 03's foundation builds and
 local HTTP/browser/emulator gates passed. Phase 04 now implements the Android
@@ -3459,3 +3540,767 @@ Separate validation packages/reverses absent. Emulator restored1080x2400/density
 font1.0/gesture navigation/free rotation/default rotation policy/unset animator
 scale, then stopped. Test ports55421/18423/18424/18425 absent. Preexisting normal
 emulator apps were left untouched. Private services and application DB unchanged.
+
+
+## 2026-10-18 — Android design-gap verification and hardening (app20)
+
+Requested scope: verify `docs/ANDROID-DESIGN-GAPS.md` and fix genuine Android
+presentation gaps. Baseline HEAD `b2a383e`; the user report was the only initial
+untracked file. Read root/Android rules, README/architecture/current state and
+planning workflow/status; inspected current UI, released OpenAPI and test state
+before changes. Original report is preserved byte-for-byte beneath an inserted
+banner and appended [verified disposition matrix](../docs/ANDROID-DESIGN-GAPS.md#8-verified-follow-up-2026-10-18).
+The user requested automated checks only; no manual TalkBack/audio result is claimed.
+
+Implemented app20/0.25.2-ui: shared readable live feedback and labelled loading,
+merged selected/checked choices, explicit48dp button layout, destructive-action
+review with safe initial keyboard focus, available-height chat dialogs, grouped
+settings, readable status/preference/job/date copy and technical details. Added
+Follow system appearance/Reduce ambient motion without changing old explicit
+choices, dual swatches, adaptive/monochrome icons and mode-aware launch resources.
+Navigation uses the shared icon family/600dp rail; compact Docs label avoids
+large-font fragmentation while retaining Documents semantics. Streaming preserves
+an older reading position and offers Latest message. Back hides the keyboard
+before leaving chat. Literal fenced-code spans/explicit safe inline links retain
+text/source fidelity. Server removal/rotation/erasure and voice-draft discard
+require review; active recording discard remains immediate. Token Copy is explicit
+and marks the clipboard sensitive; tests did not overwrite the user's clipboard.
+
+Report corrections: Curiosity already renders controller errors through notice
+and has no fault field; Tools really omitted its fault. Native LazyColumn already
+supplies collection semantics, and native dialogs provide modal containment.
+Material expands touch regions, but phone tests measured40dp of button layout;
+shared buttons now reserve48dp. Decorative glass edges are distinct from the
+functional composer boundary, which now uses the opaque outline. Distinct
+provenance cards/captions, system font scaling, explicit Refresh, durable notices
+and immediate destination changes remain intentional. No generic card framework,
+blanket dp lint ban, Snackbar requirement or automatic appearance migration.
+
+Checks actually run (each invocation retains its own evidence, not cumulative totals):
+
+- Baseline Gradle units/lint/debug passed20s,258units. Baseline contract/schema
+  pytest6passed/2PG-unconfigured skips12.26s; dedicated nativePG18.6 rerun8passed
+  21.98s. Final focused nativePG/installer guards:12passed21.52s. An initial final
+  command used nonexistent test filenames, so no tests ran; corrected invocation
+  uses test_android_validation_guards.py/test_client_contract.py/test_schema_contract.py.
+  Existing Starlette/httpx deprecation remains.
+- S24FE SM-S721U1/Android16/API36, physical1080x2340/density450/gesture navigation:
+  separate dev.ada.validation.designgaps.debug only; actual local authenticated
+  HTTP/password/Keystore/disposable PostgreSQL, explicit fake provider/research/
+  audio drivers and public synthetic data. MainActivity secure window retained.
+- Native semantics/loading/48dp/Cancel Enter/explicit safe-link activation4.934s
+  passed. Earlier1.802s detected native40dp layout;2.304s detected Cancel focus
+  requested before the dialog window was focused. Both fixed and retested.
+- Primary-screen Ambient dark20.140s/light20.480s and portrait dialogs9.716s
+  passed. At system font1.6, dark27.159s/light26.074s, dialogs11.646s and keyboard
+  Back/multiline-emoji draft9.915s passed. Visual review found Documents wrapping
+  into fragments; compact label corrected. Final large-font dark21.421s passed
+  with exact frozen M1 source card. One0.907s repeat correctly rejected a reset
+  font configuration before testing UI; reapplying1.6 produced that final pass.
+- Actual physical landscape2340x1080/font1.3: primary screens/source/safe
+  confirmations21.324s, bounded details/options9.950s and keyboard Back/draft8.107s
+  passed. Initial0.815s invocation rejected portrait configuration. The isolated
+  test activity now explicitly requests landscape and checks actual dimensions;
+  no claimed landscape pass depends only on a shell rotation command.
+- Reviewed HTTP feature regressions on the phone passed: entities/merge/undo
+  9.517s; exact document upload4.900s; proposal source/edit/accept/reject8.119s;
+  streaming/Stop/detach/exact retry plus older-reading position13.002s; security
+  device rotation/revocation/reviewed erasure7.289s (disposable owner only).
+- Synthetic voice review/approval/lineage/independent playback7.606s and
+  denial/background/encrypted recovery3.093s passed. Added draft-discard review
+  3.738s proves Cancel preserves encrypted draft and Confirm clears it without
+  chat submission. These exercise UI/controller invariants, not real ASR/TTS.
+- Expression4.949s, approved/denied calculator5.760s, reviewed learning6.822s,
+  Curiosity actual process-stop recovery5.186s+3.134s and synthetic research
+  approval/source/recovery6.089s+1.852s passed. Expression's first11.225s failure
+  used the emulator-only origin; test now accepts explicit fixture origin while
+  preserving its old fallback. Learning's old raw-label expectation failed;
+  corrected to human-readable labels, preserving API-value assertions.
+- Real MainActivity secure-window/all palettes/saved mode/system bars8.555s and
+  opt-in system appearance/reduced-motion/adaptive-icon persistence4.976s passed.
+- Intermediate builds exposed a missing local draft flag, test opt-in and role
+  imports; corrected, subsequent builds passed. Latest validation units/lint/
+  debug/androidTest passed1m21s;5new unit invariants bring the suite to263.
+  Final normal artifact, expanded emulator and cleanup results follow below.
+- Ruff initially requested formatting of4changed Python files; applied and
+  subsequent lint/format285files passed. Interim protected-file audit:640baseline,
+  388protected byte-identical, no deletions; original report reconstruction hash
+  matches. Final audit/checks follow below.
+
+Safety/limits: backend/OpenAPI, ownership, client data/audio/controllers/ViewModels,
+journals, migrations, lockfiles/wrapper and later phase plans remain unchanged.
+Manifest changes only the icon resource; MainActivity changes launch presentation
+while retaining secure-window/audio/lifecycle wiring. No normal app install,
+application DB write/migration, private-service activation, external research or
+native model inference. Manual spoken TalkBack/focus restoration, hardware
+keyboard/switch traversal, alternate IMEs, physical tablet/foldable live resize,
+graphics/battery/long-scroll and inherited voice/focus/G-41 release gates remain
+pending. Full backend/web/connected suites were not run. Physical settings were
+restored to font1.0/lock0/default rotation policy/accelerometer0/userRotation0;
+animator scale remains unset. Separate phone packages/reverse absent; normal
+app19/0.25.1-ambient last update03:57:24 remains unchanged.
+
+
+Android design-gap closeout: expanded API37 emulator2560x1800/density320/font1.6
+passed native feedback/selection/safe-link/Cancel keyboard semantics9.534s,
+Ambient dark32.088s/light32.806s primary-screen/source walkthroughs, dialog
+bounds16.425s and keyboard Back/draft14.112s. Representative physical and emulator public app-layer
+images were reviewed; dimensions read directly from PNG headers. An auxiliary
+Pillow-based dimension probe could not run (dependency absent); no dependency was
+added. Windows console lint-message inspection needed JSON escaping for a Unicode
+message. Neither auxiliary failure was counted as a passed check.
+
+Final normal Gradle `testDebugUnitTest lintDebug assembleDebug
+assembleDebugAndroidTest assembleRelease` passed1m3s, then26s after removing an
+unused legacy icon and moving the adaptive default to unqualified mipmap-anydpi
+(minSdk26 already guarantees adaptive-icon support). The first lint had25warnings;
+a cached empty-folder warning remained after resource cleanup. Explicit final
+`lintDebug --rerun-tasks` passed38s,0errors/23existing dependency/debug-localization
+warnings. Final XML verifies263units/0failures/0errors/0skips. Normal debug APK
+contents/metadata are dev.ada.assistant.debug/app20/0.25.2-ui; normal instrumentation
+and unsigned release artifacts also verified. No normal phone installation.
+
+Final audit against640pre-task files:64changed/new and one intentional deletion
+(the obsolete drawable icon),388protected files byte-identical. OpenAPI remains
+126paths/168schemas byte-identical. Manifest differs only by icon reference;
+backend/controllers/audio/data/journals/migrations/locks/later phase plans and
+preexisting proxy work are preserved. Seven UTF-8 docs/118local links checked;
+configured-credential/operator-contact scan found zero matches in changed and
+new ignored non-image artifacts. Original static report reconstruction matches
+its initial hash. Final Ruff lint/format285files, pip check and whitespace checks
+passed; no dependency upgrades or new production permissions.
+
+Cleanup observed: zero disposable fixture schemas/public relations on owned
+PG55421 before guarded workspace/loopback stop. Owned emulator reset1080x2400/
+density420/font1.0/free rotation/default policy, then stopped. Fixture listen
+ports55421/18423/18424/18425 absent; validation packages/reverses absent. S24FE
+original font/rotation/animator settings and normal app version/update timestamp
+verified unchanged. No application database, private service, normal app or
+later phase was deployed. Manual and full-suite limits stated above remain open.
+
+
+### 2026-10-19 — Phase 26 — always-on operations and recovery — b2a383e + working tree
+
+Scope: only Phase 26. Read required instructions/plans, current source/OpenAPI,
+migration and test baseline first. Preserve the pre-existing Android work and
+private configuration. No live migration, application database writes, production
+task installation, power-policy change or deployment.
+
+Implemented checkpoints:
+
+- A/B: native Windows owner-logon Task Scheduler plan/install/remove; one owned
+  single-worker API and optional pinned Caddy child. Protected kernel and committed
+  PostgreSQL advisory ownership prevent supported duplicate admission owners.
+  Job Objects contain only assigned children. Bounded startup/backoff, persistent
+  API crash stop, cooperative shutdown and existing request/stream/job fences
+  retain exact completed replay. External Ollama/DB processes are never managed.
+- C: fixed DB/schema/API/provider/residency and host metadata, honest unknowns,
+  pressure/quiet-period discretionary gates and explicit snapshot/WhatIf/reversible
+  AC tools. Empty consolidation polls no longer take an inference slot; the guard
+  runs before private job reads/claims. No policy was applied.
+- D/E: current-user DPAPI secret provider, independent encrypted recovery capsule,
+  selected-profile backup path, consistent snapshot plus current encrypted erasure
+  ledger, verified atomic receipts, singleton daily task and protected-key isolated
+  restore. Failed/deferred attempts retain the last good point. No pruning/source
+  retention change. Daily 03:00/26-hour freshness are proposed, not agreed RPO/RTO.
+- F: disposable real Windows/PostgreSQL/HTTP harness with explicit fake/native
+  modes, admission/restart/replay/proxy/identity/key/backup/restore measurements.
+  The user explicitly authorized the four-hour soak; its result is recorded below.
+
+Contracts/data: schema remains 0017/60 tables; OpenAPI 126 paths/168 schemas.
+No HTTP/auth/prompt/snapshot/request-ID/source-trust, migration, archive-format,
+recovery inventory or dependency change. Protected OS metadata/key files remain
+installation state outside database inventory. PG backup preflight now bounds
+connection/query time and timestamps the snapshot before reading its contents.
+Three legacy test-only corrections isolate default-payload tests from changed
+user .env settings and match the prior UI runner's physical opt-in wording.
+
+Checks actually run; ignored evidence is under .pytest_cache/phase26:
+
+| Check | Actual result |
+| --- | --- |
+| Targeted baseline without PG | 23 passed / 19 skipped, 25.18 s. |
+| Initial native PG baseline | 41 passed / 1 connection error, 212.98 s; first fixture raced failed default-port startup. |
+| Corrected native PG baseline | 42 passed, 84.12 s, explicit loopback 55421. |
+| Failure tests before implementation | 8 failed / 2 skipped, 2.29 s; missing modules and old empty-poll admission confirmed. |
+| Initial invariants | 8 passed / 2 skipped, 2.73 s. |
+| First native checkpoint | 11 passed / 3 failed, 7.98 s; inherited PS7 module path broke PS5 ACL imports. Explicit native imports corrected it. |
+| Corrected checkpoints | 14 passed, 13.87 s; then 15 passed, 19.22 s, including actual owned-child containment. |
+| PG/Windows failure matrix | 20 passed, 57.10 s: wrong schema, DB/provider down, duplicate ownership/no open advisory transaction and bounded child crash loop plus earlier host tests. |
+| Final affected/legacy checks | 40 passed, 48.23 s. |
+| First full suite | 955 passed / 5 failed / 27 skipped, 1552.07 s. Two failures came from editing imported code during that run; two default-payload tests read user-modified settings; one stale quality guard expected old runner wording. Corrected, then source frozen. |
+| Pre-soak full suite, original frozen source | 966 passed / 27 skipped / 1 existing warning, 1469.00 s (24:28). Later receipt/startup changes require the fresh run below. |
+| Final full suite after failure hardening, new frozen source | 975 passed / 27 skipped / 1 existing warning, 1414.93 s (23:34), exit0. All1002 collected; same27 skip cases verified. |
+| Native power tools | Snapshot and WhatIf passed after numeric-range parser correction; AC sleep/hibernate/lid values all zero. No Apply/Restore executed. |
+| Ruff | Python lint/format passed before final run; final audit below. An accidental PS-file lint selection was corrected without file changes. |
+
+Existing Starlette/httpx TestClient deprecation remains; no dependency upgrade.
+The27 skips were19 SQLite variants requiring PostgreSQL locking (their native
+counterparts ran), two opt-in generation-free Ollama admin probes and six opt-in
+native agent/tool probes. Those optional switches were unset in the full suite;
+the separate Phase26 public native rehearsal is not relabeled as those tests.
+
+During-soak interim checks: Ruff lint passed and298 Python files formatted; pip check
+found no broken requirements; whitespace check passed. All four affected PS
+scripts parsed with zero errors in Windows PowerShell5.1.26100.9711 and
+PowerShell7.6.6. Audit:651 initial files,637 protected unchanged,30 phase-specific
+changed/new,225 frozen code hashes unchanged,141 local Markdown links resolved,
+zero configured credential/operator-contact matches in103 checked source/evidence
+files. These are interim audit counts; repeat after final records/cleanup.
+
+Public/synthetic disposable host rehearsals:
+
+- First fake: 30.22 s, 30 health checks/zero unavailable, three replies mean/max
+  0.031 s; three HTTP 200/five 503 under eight concurrent requests. Backup
+  202,248 bytes/0.546 s, restore 1.188 s. Scheduled identity/key, duplicate refusal,
+  child crash/exact replay, quarantine and stop passed.
+- First configured-native: 18.62 s, 11 health checks/zero unavailable, first reply
+  18.172 s, two warm replies mean 3.7815 s/max 3.813 s; one 200/seven 503.
+  Backup 201,744 bytes/0.812 s, restore 1.734 s. No model resident before,
+  one configured model after.
+- Final short fake with pinned proxy and Task Scheduler: 60.64 s, 60 health checks/
+  zero unavailable, six replies mean 0.070 s/max 0.109 s; two 200/six 503.
+  Backup 202,849 bytes/0.532 s; actual protected-key CLI isolated restore 2.969 s.
+  Same-user demand-start key access, owned proxy, duplicate refusal, child crash/
+  replay, quarantine and cooperative stop passed.
+- Final configured-native: 18.75 s, 11 health checks/zero unavailable;
+  qwen3.8-27b-uncensored, context 16,384/output 1,024; first reply 17.718 s,
+  two warm replies mean 3.859 s/max 3.953 s; one 200/seven 503.
+  Backup 201,811 bytes/0.640 s; actual protected-key CLI restore 3.328 s.
+  Zero resident models before/one configured model after; duplicate, recovery,
+  replay, credential quarantine and stop passed. User settings preserved.
+- Last native host sample: AC true, battery 100%, RAM available 26.2%, NVIDIA
+  VRAM 13,968/16,376 MiB, utilization 7%, temperature 53 C, about 989 GB free.
+  Final short fake sample: RAM 41.6%, VRAM 405 MiB, GPU utilization 21%, 50 C.
+  These are host observations, not peaks or isolated ADA attribution. CPU
+  temperature is unknown; tiny fixtures do not establish production capacity.
+
+**Original four-hour attempt — failed; successful rerun recorded below.** Authorized explicit-fake run started at
+2026-10-19 08:20:46.054 UTC and ended11:35:46.788 UTC (01:20–04:35 Phoenix),
+11,700.734 seconds wall time including startup/cleanup, approximately3h15.
+ConnectError interrupted it before14,400 seconds; actual timed-loop counters
+were not retained by that original harness. End-of-run backup/restore was not
+reached. No availability percentage or completed four-hour result is claimed.
+Disposable PG18.6/profile/proxy were used; owned API/proxy stopped and fixture DBs
+were dropped. All225 original frozen source hashes still matched after failure.
+
+The218 external observations included217 ready supervisor snapshots and one
+stopped snapshot retaining last-known healthy fields. These partial samples do
+not replace missing harness totals. Maximum observation gap103s includes observer
+restarts; host sample minimum RAM available43.7%, maximum observed NVIDIA44C,
+no sampled pressure. No sustained native inference was performed in this soak.
+
+Skipped/remaining: installed reboot/logon and Docker startup order; actual sleep/
+resume/lid and applied power rollback; pre-logon service/GPU access; a separately
+authorized 24-hour trial; representative private quality/latency and sustained
+thermal/RAM/VRAM budgets; large-data cap/growth and agreed RPO/RTO; selected
+off-device copies and actual machine/profile-loss capsule recovery; hardware
+disk-full/power-loss recovery. Synthetic pressure/key/corruption/stale-ledger/
+restore failure coverage does not prove physical scenarios. The configured
+application database was unavailable during read-only prerequisite inspection;
+it was not started or modified. Native Ollama metadata/public inference worked.
+Android/web suites and physical-device tests were not rerun because their code/
+contracts are unchanged by this phase. Phases 27–31 remain unimplemented.
+
+Additional closeout finding during the soak: an isolated foreground-launcher
+reproduction confirmed that an occupied port still reaches the ownership/runtime
+step (unreachable test DB, disposable profile). The supervised path already
+refuses occupied ports. After the failed frozen run, added a start.ps1 preflight
+and six native occupied/free-port cases across PS5/7 and IPv4/IPv6. No live DB used.
+
+Failure hardening after the long attempt: a controlled real supervisor/HTTP reader
+rehearsal reproduced PermissionError in receipt publication, five unavailable
+health checks and failed graceful-stop assertion. It restored a quarantined
+fixture before reporting failure. Reported19.91s included post-loop recovery and
+shutdown; that original diagnostic elapsed value is not a completed soak duration.
+The first long run lacked supervisor-error detail, so its exact original cause
+cannot be established from its saved record. The reproduced sharing failure is
+confirmed independently. Receipt writes now use distinct temporary files and
+bounded3s retries for Windows sharing/access collisions. Persistent failure keeps
+the prior complete receipt and exits within the bound. The harness now retains
+failure stage/counters/child exits/supervisor exception types and preserves timed
+loop duration; it retries only brief backup-lease contention, never pressure or
+integrity failure.
+
+Before these fixes: five new cases failed/three passed in39.92s (reader collision
+and four occupied-port failures; free-port/concurrent cases passed). Afterward:
+28 host checks passed in61.91s, plus all three atomic cases in3.46s including a
+persistently held reader. Corrected reader-contention/Task Scheduler/proxy rehearsal:
+60.47s,60health checks/zero unavailable, six public replies mean0.047s/max0.063s,
+two200/six503, backup202842B/0.547s and protected-key isolated restore2.953s.
+Duplicate/crash/exact replay/quarantine/clean stop passed, supervisor errors empty,
+zero backup-busy retries. Host sample RAM available45.4%, GPU210MiB/0%/44C;
+host counters only, not sustained native workload. Ruff lint/format300files passed.
+Fresh227-file freeze backed the completed final suite. A new continuous four-hour
+window is required; additional laptop-awake availability was requested separately
+and has not been confirmed. No second long run was started.
+
+Final cleanup observed: only the expected ada_phase2_test/postgres databases,
+zero disposable fixture schemas/public relations, zero ADA26/validation tasks and
+zero remaining fixture listeners. Verified workspace datadir/loopback55421/PID
+identity before stopping only the owned native PG18 server. Power scheme and all
+captured AC values matched their originals; no Apply/Restore was performed. No
+production API/database/Ollama/Tailscale/phone/task configuration was changed.
+Final Ruff lint/format300files, pip, native PS5/7 syntax and whitespace checks
+passed. Scope/UTF8/link/secret audit:651 initial files,637 protected unchanged,
+32 phase-specific changed/new,227 current frozen source hashes unchanged,
+141 local Markdown links resolved, zero configured credential/operator-contact
+matches across149 checked source/evidence files. OpenAPI remains126/168 and all
+released migrations, dependencies, clients and prior UI edits retain their hashes.
+At that preceding closeout, Phase26 source was implemented and its continuous
+four-hour gate remained failed/open. The separately authorized rerun below closes
+only the development-soak gate. Do not infer installed/unattended-production
+readiness or advance automatically to Phase27.
+
+### 2026-10-19 — authorized continuous four-hour rerun — passed
+
+The user confirmed an additional plugged-in/awake window after the fixes.
+Preflight verified all227 frozen source files unchanged, the earlier975/27 full
+result and60.47s injected-reader success. Restarted only the owned native test
+PG18.6 at127.0.0.1:55421 after verifying workspace path/free port; metadata showed
+only expected base/postgres databases and zero fixture schemas/public relations.
+Started a separate14400s explicit-fake run atabout15:03:39UTC/08:03:39Phoenix,
+with pinned proxy, temporary same-user Task Scheduler key check and deliberate
+receipt-reader contention. New evidence: ignored run-dbbe30e84a/result.json and
+soak-four-hour-rerun.log. The prior failed attempt is preserved unchanged.
+No live application DB, production task, external provider, power policy or
+later phase was changed. Final measured result and cleanup:
+
+| Check | Actual rerun result |
+| --- | --- |
+| Continuous timed soak | **14,400.39 seconds**, requested 14,400; passed, process exit 0. |
+| Full harness wall window | 2026-10-19 15:03:39.282–19:04:23.459 UTC / 08:03:39–12:04:23 Phoenix; 14,444.177 s including startup/recovery/cleanup. |
+| Timed health | **14,278 samples, zero unavailable**. This is sampled development availability, not a production SLA. |
+| Public fake-provider chat | 1,428 replies, mean 0.0375 s / maximum 0.188 s; first public reply 0.047 s. Native-model readiness/latency explicitly not measured in this run. |
+| Single-slot admission | Eight concurrent requests: two HTTP 200, six HTTP 503. |
+| Recovery and identity | Temporary same-user Task Scheduler key access, pinned owned proxy, duplicate refusal, deliberate API crash recovery with exact completed replay, and native receipt-reader contention all passed. Two child starts total; child exit codes [1, 0] reflect the deliberate crash and final graceful exit. |
+| Backup | Verified encrypted artifact 682,629 bytes / 0.984 s; zero backup-lease retries. |
+| Restore | Protected-key CLI isolated restore 9.985 s; credentials quarantined. |
+| Shutdown | Graceful supervisor stop, no supervisor errors, API/proxy PID fields null and no remaining fixture listeners on 59904/59905. |
+
+Independent metadata observations: 285 snapshots, 284 ready and one final stopped;
+maximum two child starts, no sampled pressure, minimum observed RAM available
+35.0%, maximum observed NVIDIA temperature 43 C. These partial host observations
+are not peak/ADA-only resource measurements and do not replace harness totals.
+Last host sample: AC true, battery 100%, RAM available 47.2%, GPU 0/16,376 MiB,
+0% utilization / 39 C, disk free 988,799,766,528 bytes. CPU temperature unknown.
+
+Cleanup independently verified only ada_phase2_test/postgres databases, zero
+fixture schemas/public relations, zero ADA26/validation tasks and zero remaining
+fixture API/proxy listeners. Resolved workspace datadir, postmaster identity and
+127.0.0.1:55421 owning PID were checked before stopping only the owned native
+PG18.6 server; its listener is absent. A new read-only power snapshot matches
+the original scheme and captured AC sleep/hibernate/lid values. No Apply/Restore
+or production task installation was performed. Unrelated email.txt appeared
+during the run; its contents were not displayed or edited and its hash is
+preserved separately from Phase26 change accounting.
+
+The earlier 975 passed/27 skipped full suite still applies to the same 227 frozen
+source/script/config files; no source changed during the rerun. No redundant full
+suite, client/device test, 24-hour trial or installed reboot/sleep test was run.
+Final Ruff lint/format (300 files), pip check and whitespace passed. Final audit:
+651 baseline files, 637 protected files unchanged, 32 Phase26 changed/new files,
+227 frozen source/script/config hashes unchanged, 141 local Markdown links
+resolved and zero configured credential/operator-contact matches across 167
+checked source/evidence files. One unrelated file is preserved separately.
+OpenAPI remains 126 paths/168 schemas; prior UI work, released migrations,
+dependencies and client contracts retain their baseline hashes. The initial
+scope check correctly flagged the unrelated new file before that accounting was
+made explicit; it was not a phase implementation change.
+
+**Four-hour development gate passed.** Remaining target verification is unchanged:
+installed logon/reboot/Docker startup, real sleep/resume/lid and applied power
+rollback, service-identity/GPU access, sustained native workloads and representative
+backup size/RPO/RTO, off-device/lost-profile recovery, physical power/disk failure,
+and a separately authorized 24-hour trial. Stop at Phase26; no deployment or
+Phase27–31 implementation.
+
+
+### 2026-10-19 — Phase27 durable scheduling — implementation in progress — b2a383e + working tree
+
+Scope: only Phase27. Required instructions/current source/OpenAPI/schema/test state
+inspected before implementation. Phase26 development-soak gate is closed; its
+installed-host/physical/24-hour limits remain separate. Initial snapshot covers
+670 files and OpenAPI126paths/168schemas. Existing Android/Phase26 changes and
+unrelated email.txt are preserved. No live database, task installation or deployment.
+
+Current implementation: migration0018 adds five private scheduling tables and an
+additive admin audit action; finite previewed IANA/UTC plans, explicit owner
+consent and originating-credential grants, deterministic occurrence keys, committed
+leases/attempt fences, latest-only catch-up, quiet hours, expiry, pause/snooze/edit,
+durable inbox/acknowledgement and explicit empty-conversation opening. Typed jobs
+are reminders and existing Phase25 catalogue questions; no inference process,
+backup scheduler, arbitrary executable kind, cloud registration or background push.
+Windows uses the existing pinned tzdata2026.5, now a direct cross-platform dependency.
+Current recovery-v4/0018 inventory includes all new private content and quarantines
+restored schedules after original hash verification. Older recovery remains supported.
+Android v15 encrypted exact-operation journal/controller/screens and read-only admin
+aggregate view are being connected; client/complete regression verification pending.
+
+Checks actually run so far (ignored evidence under .pytest_cache/phase27): existing
+SQLite/nativePG baseline185passed/3skipped/one existing warning,314.06s. Calendar
+invariants before implementation10failed/0.17s; afterward10passed/0.10s. Missing-API
+probe1failed/1PGskip/10deselected,1.30s (that isolated probe omitted the PG env).
+First new HTTP/calendar checks22passed,17.43s. Expanded matrix44passed/3failed/
+1expectedSQLite skip,55.26s: additive audit action needed the database constraint,
+and one SQLite table-count assertion included native FTS shadow tables. Corrected
+matrix47passed/1skip,56.09s. Additional stale-auth/pruned-question fences first
+4failed,5.84s, then4passed,5.62s. Native backup/restore checks and client builds
+are running separately; their final results are not yet claimed.
+
+Migration generation first caught native FTS indexes as spurious diffs and aborted
+before writing the migration; applied the existing exclusions and generated only
+five scheduling tables/three indexes, preserving released migration bytes. Extended
+the released audit constraint only in0018. One auxiliary web-edit script hit Windows
+locale decoding; explicit UTF-8 follow-up succeeded. Long pytest failure output
+included ephemeral synthetic fixture credentials; those cache logs were redacted,
+and subsequent test runs use short tracebacks. No configured/private credentials
+were displayed or copied. No optional target gate is being counted as passed.
+
+### 2026-10-21 — Phase27 verification reconciliation before Phase28
+
+This closes the pending record from the preceding2026-10-19 implementation run;
+it does not redate its tests as new executions. Frozen full regression passed
+**1042/30 skipped/one existing Starlette warning in1600.15s**, all1072 cases accounted
+for. Exact skip mapping preserves all27 prior skips and adds three SQLite copies:
+native multi-claimer, abrupt process/lease recovery and MVCC inbox/read concurrency.
+Total:22 SQLite lock/process copies (native variants executed) and eight opt-in
+real-Ollama health/agent probes left off; no new inference path needed those probes.
+
+After that full run, three pure calendar range probes failed0.41s and six real
+HTTP/SQLite/PG cases failed11.52s with representable-date overflow. Normalize it
+to the existing422 validation result, without reserving an operation. The host
+wiring fixture initially tried adding middleware to a started app (two fixture
+failures3.15s); a fresh unstarted app reproduced the actual provider/quiet gate
+problem (two failures4.26s). Non-inference inbox/catalogue dispatch now retains
+fresh database/resource gates without requiring model readiness/inference quiet;
+consolidation's existing gates are unchanged. Five source/test files differ from
+the frozen full run. **Final complete scheduling plus host-operation regressions:
+107 passed/3 expected SQLite skips/one existing warning,171.76s**, exit0. All343
+final-run source hashes remained unchanged. No second full run is attributed to
+these small post-run corrections; every affected scheduling/host path was retested.
+
+Android final275 units, lint0errors/23 existing warnings, debug/test/unsigned-release
+builds and separate emulator HTTP12.857s +3.001s force-stop stages passed. Normal
+APK outputs restored; validation package/reverse/schema removed and owned emulator
+stopped after checking its AVD identity. No physical or normal-app installation.
+Web contracts/type/lint/71 units/production build/seven real Chromium cases passed;
+new Refresh focus failure/correction and prior failures remain above. Final Ruff
+check/format313files, pip check and source/export OpenAPI equality passed. Contracts
+138paths/181schemas retain126old paths/168schemas apart from two additive capability
+fields and monitor.scheduling in the audit enum/query. Released migrations and
+client dependency versions remain; existing tzdata2026.5 is now pinned on every OS.
+
+Last observed cleanup after the final tests: only expected ada_phase2_test/postgres
+DBs, zero fixture schemas/public relations, zero validation tasks/listeners on
+18423/18763/5173; ADB inventory empty. The owned loopback55421 PostgreSQL cluster
+had not yet been stopped when the next phase was requested. Its identity/state
+must be checked afresh before reuse or stop; no production cluster may be adopted.
+Early scope/link/secret audit is retained above; Phase28 must take a fresh baseline.
+
+Remaining target verification: S24FE/API36 manual accessibility/layout/timezone/
+offline use; selected installed-host0018 upgrade with matching PG-major tools,
+logon/reboot/sleep/OS-clock behavior, representative RPO/RTO/off-device recovery,
+sustained native inference and separately authorized24-hour operation. Push/doze/
+provider-registration/lock-screen checks are not run because that channel remains
+unavailable. No live DB change, system-task/power change, normal app deployment or
+later-phase implementation was performed. Phase28 is now explicitly selected by
+the user; its baseline/implementation is a separate run.
+
+
+### 2026-10-21 — Phase28 idle reflection/review: final local record
+
+Scope: only the selected Phase28, against b2a383e plus the preserved pre-existing
+working tree. Existing13/18/23/25/26/27 source prerequisites were inspected; the
+preceding Phase27 evidence retains its Oct19 provenance. A date-sensitive Phase27
+test fixture was corrected for Oct21 note creation; no production calendar rule
+or earlier implementation was expanded.
+
+Implemented checkpoints A–E for the initial rule-only job set:
+
+- Separate durable automation/reflection/completed-turn consent; owned scopes,
+  included source types/lookback, IANA hours, resource/time/job bounds and empty
+  selection policy. Owner/epoch/origin/version/hash/current availability checks
+  precede payload and publication. Completed model turns remain unendorsed.
+- Existing dispatcher/consolidation hooks, fresh host readings outside DB/model
+  admission,15-minute ADA inactivity default, foreground cancellation/shared slot,
+  finite leases/retry/quotas/reserved off and visible skip/capacity decisions.
+- Owner-marker and possible-change reports, Phase25 question drafts and explicit
+  Keep/Discard/Open with no factual claim or invented user turn. Owner-wide
+  template metadata survives discard; changed catalogue wording cannot substitute
+  for a reviewed question. Generated-summary/Phase13 Keep support is tested with
+  synthetic providers but remains disabled for production use.
+- New unreleased0019 adds five tables, native uniqueness/fencing and the audit
+  action. Owner-content57 and backup-v5 include all new private rows; populated
+  restore preserves dedup metadata and pauses authority/queues/provider attestation.
+  Older formats remain supported; released-v4 restore/upgrade was rehearsed.
+  Running reflection joins deletion quiescence. Released0001–0018 are unchanged.
+- Android While you were away: source/time/resource controls, original quotes/
+  hashes/scope/provenance, omissions/duration/empty outcomes and exact journal16
+  mutation recovery, old versions readable. Admin projects fixed counts/budgets
+  only under the existing current grant/audit checks.
+
+Checks actually run, with provenance:
+
+- Source-fixed full `pytest --assert=plain -q --tb=short`: **1161 passed /32 skipped**
+  in2169.59s. This is before the final review guards/internal dedup column below.
+- Final review first reproduced10 SQLite/PostgreSQL failures, plus one real TCP
+  trickling-metadata cancellation failure. After the documented fixes, guard/
+  provider/native-schema selection **33 passed in40.30s**. Final affected run:
+  all then-current reflection tests plus security, recovery, consolidation,
+  curiosity, schedules, streaming and host foreground/backup — **282 passed /
+  4 expected SQLite skips in599.06s**. This includes populated0018→0019 upgrade,
+  `alembic check`, original completed replay, downgrade refusal, owner erasure,
+  native duplicate/crash fencing and real encrypted v5 restore with a question
+  artifact plus running job. The separate final positive automatic-completed-turn
+  and request-state-change selection passed **4 tests in6.89s**, on both databases.
+  These runs overlap; their counts are not added into a fictitious full-suite run.
+- Whole-tree Ruff/format and `pip check` passed. Dependency locks/wrappers stayed
+  unchanged from the Phase28 boundary. Python retains one existing Starlette/httpx
+  deprecation warning.32 broad-run skips cover SQLite counterparts of native
+  concurrency cases and non-enabled unrelated local Ollama health/agent probes;
+  the required native PostgreSQL cases and separate Phase28 public probe ran.
+- Native PostgreSQL18.6 on an owned loopback disposable cluster. Latest host exercise
+  **60.09s /29 foreground replies**, one report, one verified encrypted backup,
+  one run and **zero factual claims**. Fake provider and explicit synthetic safe
+  resource inputs; baseline median47ms, foreground p95=78ms, observed delta+31ms,
+  below the500ms test budget. Hardware snapshot separately showed AC,51°C GPU,
+  23.7% available memory. GPU time is unknown. Earlier61.97s exercise and its
+  cold/warm timing limitation remain in WORKLOG; neither is a native-model soak.
+- Constrained public qwen3.8:27b probe: client returned cancellation at1219ms,
+  719ms after request. No private input, model launch/unload or live setting change.
+  This is not server-GPU stop/usefulness proof; summaries stay disabled. Real TCP
+  tests cover stall/trickling/deadline handling separately from native evidence.
+- Android **283 units**, zero lint errors/23 pre-existing warnings, normal debug
+  and separately identified validation APK builds. Final server's real owner HTTP/
+  Keystore/actual force-stop stages passed **5.943s /2.969s** and verified exactly
+  three reflection POSTs across restart. Earlier failed test synchronization,
+  command quoting/build diagnostics and successful stages remain in WORKLOG.
+- Web `npm ci`, contracts generate/check, typecheck/lint, **72 units**, final build
+  and **8 real Chromium cases (26.1s)** passed. The first7/1 browser run exposed new
+  navigation overflow at200% zoom; wrapping fixed it. No screenshots/traces or
+  browser credential persistence were introduced.
+
+Evaluation is deliberately narrow: one owner-marked report accepted per synthetic
+backend; three non-conflict cases produced zero false flags and the overlapping
+endorsed pair produced a possible-change flag without selecting truth. Same-source,
+cross-scope and discarded-question cases produce no duplicate draft after the
+final fix. Completed model TODOs produce no owner finding and all reflection paths
+create zero factual claims. This does not establish broad personal-memory quality.
+
+Skips/remaining target verification: physical S24 FE/TalkBack/new-screen large-font
+and resize review were not performed; the connected phone/normal app were untouched.
+Installed-host overnight/resource behavior, representative private-data usefulness,
+native-summary quality/cancellation/GPU interference and sustained native operation
+remain open. No production summary attestation/enabling workflow is supplied by
+this smaller initial job set. Prior host/device recovery gates remain separate.
+Global work remains off until an operator and owner explicitly configure it.
+
+Cleanup: final validation APKs/reverse mapping removed; owned emulator stopped.
+Only base ada_phase2_test remained, with zero fixture schemas/recovery databases;
+resolved data directory/postmaster/listener/executable identity was verified before
+stopping the owned PG cluster. No live application database/service/private-proxy configuration, scheduled
+task, power, Tailscale, normal app or later phase was changed/deployed. Final
+scope/contract/link/secret audit is recorded in WORKLOG.
+
+### 2026-10-21 — Phase29 natural local speech: study/interface boundary
+
+Base b2a383e plus the preserved existing working tree; a fresh boundary snapshot
+covered715 files. Required/root/scoped instructions, architecture/current state,
+OpenAPI145paths/193schemas, migration0019 and existing voice source/tests were
+inspected before edits. Phase17 reviewed voice and17-A hardening are present;
+17-A's physical audible focus/active permission gates remain unresolved. Fresh ADB
+inventory was empty. This phase explicitly permits the study/interface exit without
+a connected phone; no runtime choice is inferred from desktop or emulator results.
+
+Checkpoint disposition:
+
+- A: primary-source comparison of installed platform, sherpa-onnx1.13.8/English
+  Zipformer20M, whisper.cpp1.9.5/tiny.en and a conditional Kokoro TTS route. Exact
+  revisions, separate runtime/model/voice/phonemizer license findings, metadata
+  sizes/digests and unresolved native/redistribution questions are in the guide.
+  No model binary/package was downloaded or installed; no candidate is approved.
+- B: local versioned ASR/TTS/task/system-managed status, fixed public voice preview,
+  rate choice, explicit unsupported style and platform/text fallback. A strict
+  manifest/byte checker enforces external pins, bounds, hashes and portable paths
+  without writing/loading/executing. Opt-in download/import/staging/removal and
+  activation are specified, not exposed as working controls or an installer.
+- C: original ASR, editable endorsement/approval and safe completed-reply playback
+  retain their existing lineage/journal/API. No cleanup LLM, shorter adaptation,
+  extra synced private cache or audio upload. Default voice selection no longer
+  chooses an unmatched language implicitly. Native playback rechecks installation
+  and ignores stale utterance errors. Preview/Stop cannot cancel server generation.
+- D: pending. Reopen17-A, measure the actual en-US platform baseline, then freeze
+  device-specific quality/latency/resource/human thresholds before candidate
+  scoring. Native permissions/focus/calls/routes, memory/removal/battery/thermals,
+  privacy/lifecycle/late output and final bundle-license clearance remain gates.
+
+Checks actually run (Windows; machine evidence2026-10-22UTC, displayed dateOct21
+America/Phoenix):
+
+- Existing focused SQLite baseline `pytest tests/test_voice.py
+  tests/test_client_contract.py tests/test_schema_contract.py --assert=plain -q
+  --tb=short`: **34 passed/30 skipped,55.20s**. The PostgreSQL parameterizations
+  were unavailable to that command and not counted as passes.
+- Same selection with owned native PostgreSQL18.6/disposable database:
+  **64 passed,134.72s**, including real schema/replay/concurrency and exported
+  contract checks. Separate validator guards: **4 passed,0.08s**. One existing
+  Starlette/httpx deprecation warning remains; no dependency upgrade to hide it.
+- Android baseline wrapper unit/lint/debug passed. New invariants first failed
+  compilation because their contract/preview functions did not yet exist. Focused
+  implementation checks passed, then full Android **292 units/zero failures,
+  errors or skips**; lint **0 errors/23 existing warnings**, normal debug and
+  unsigned release builds passed. JDK21.0.12.1, pinned Gradle8.13/SDK36; wrappers,
+  dependency catalog/locks and minSDK26 unchanged. Final-source build evidence is
+  appended to WORKLOG. App23/0.29.0-speech-study; encrypted journal16 unchanged.
+- Separate emulator API37 validation app with synthetic audio drivers, real
+  authenticated HTTP/native PostgreSQL/Compose/Keystore: **three checks passed**
+  (8.307/13.740/9.074s): public preview/no capture/no event, reviewed Send and
+  separate playback/generation Stop, denial/navigation/background/late callbacks
+  and encrypted draft recovery. The runner force-stops between independent tests;
+  this is not new evidence for the separately staged process-death journal test.
+- Ruff lint/format passed; format reported248 Python files. Contract bytes are
+  unchanged from the fresh boundary. Production backend/admin source, migrations,
+  contracts, locks, later phase plans and pre-existing private file stayed intact.
+  New guide/index/architecture links passed the local link audit.
+
+Retained failures/corrections: the first emulator assertion needed an explicit
+substring matcher; its node contained the correct status. The next attempt passed
+preview but failed to find Record because the shared admin fixture deliberately
+used a non-streaming provider. A new explicit **test-only** voice-fixture switch
+uses the existing deterministic streaming driver; production capability gates
+were preserved. The corrected three-check run passed. One new Python import-order
+lint issue was fixed. A documentation patch failed context matching and made no
+partial edit; corrected against current text.
+
+Not run: full unrelated backend/web suites (no production server/web change),
+physical S24FE/audio/permission/focus/TalkBack/older-API/battery/resource trials,
+new native runtime builds/model inference/download/install/removal/pressure tests
+and human ratings. No such adapter/installer is active. Candidate redistribution,
+Kokoro converted-bundle/voice/phonemizer clearance and Android native-page alignment
+remain unverified; retain platform speech until the explicit device gate is met.
+No live schema/configuration/service change, normal phone installation, deployment
+or Phase30/31 implementation. Schema0019/70tables, owner-content57, backup-v5,
+OpenAPI145paths/193schemas, prompts and completed replay remain. No migration or
+server upgrade is needed for this client/study change. Cleanup/final audit are in
+WORKLOG; [usage/study/verification](../docs/NATURAL-LOCAL-SPEECH.md).
+
+
+### 2026-10-22 — Phase30 projects and personal follow-through
+
+Implemented A–D in source. The owner selected **balanced personal commitments and
+development projects**. Inspected requested docs/current source/OpenAPI and the
+0019 migration/test baseline first. Existing23 source relevance/private scopes,
+18 erasure/recovery,25 question consent and27 scheduling prerequisites exist;
+29 physical/native speech gates remain independent. A719-file starting hash
+inventory preserved the preceding uncommitted work boundary.
+
+Explicit reserved projects and scoped goals/tasks require authenticated exact
+owner review, expected revisions and stable operation IDs. Status includes
+planned/done/deferred/unknown/dismissed; time never completes work. Original pins
+retain trust/hash/code-point spans. Requested chat Save starts blank and pins its
+completed generated reply; review does not make it factual evidence. No tool or
+background path creates commitments. Briefs deterministically project selected
+revisions/source pins/changed fields, overdue and uncertainty; task T-labels are
+navigation. Owner/scope/epoch/revision/calendar/overdue cache keys, immutable status
+and day flags, source reauthorization and late-result fences preserve history.
+Optional25 questions and27 reminder preview/confirmation retain current consent;
+editing work pauses related automation and cannot revive a done task via generic
+scheduling. No new background worker, model call or private admin reader.
+
+Migration0020 adds four tables after immutable0019:74 total,61 owner-content.
+Backup-v6 includes them; released0019/v5 restore then upgrade is tested. Erasure
+covers all four tables, and restore preserves work/history while disabling
+question/scheduling authority and quarantining schedules/credentials. Source
+requires migration0020 before an operator later installs it; no live migration,
+reset or deployment was performed. Existing145 paths/193 schemas are preserved
+with only an additive work capability; current export157paths/206schemas.
+Android24 /0.30.0-work uses journal17, reads1–16, encrypts before POST, checks GET
+on reconnect and retries only the exact original operation after explicit action.
+
+Checks actually run (Windows; native PostgreSQL18.6, isolated loopback55421):
+
+- Prior relevant backend baseline45 passed/1 SQLite lock skip (85.17s); Android
+  unit/lint/debug baseline passed10s. New write-path tests first failed before
+  implementation (8 failed/10 skipped); subsequent focused runs are retained in
+  WORKLOG rather than presented as separate final-source acceptance.
+- Full backend **1206 passed/33 skipped**,2457.14s. This process imported source
+  before final typed-source/calendar/storage-error/epoch/receipt guards. It is
+  not relabeled as a full run of those later changes. Affected intermediate
+  selection210 passed/5 skips471.53s; then post-guard selection **221 passed/5
+  skips**,510.00s. The final safe calendar arithmetic was checked by a fresh
+  Phase30 selection **49 passed/1 SQLite row-lock skip**,113.62s. Native row-lock
+  and revision/idempotency cases ran. Final linked task/question/reminder encrypted
+  backup-v6 restore check **1 passed**,4.67s, including preserved revisions and
+  disabled/quarantined automation. Populated0019 upgrade, unchanged old replay,
+  downgrade refusal, schema drift, erasure, v5 restore/upgrade, owner/scope/source/
+  epoch/revocation, DST and sanitized storage failure are covered.
+- Android final **300 units**,0failures/errors/skips; lint0errors/23existingwarnings;
+  debug and unsigned release passed53s. Separate synthetic API37 emulator tests
+  use real HTTP, Keystore and actual force-stop: final project creation, completed
+  chat review/Save/brief stage10.429s and restoration/retry stage4.405s passed
+  before the final receipt validation additions. Final rerun evidence follows in
+  WORKLOG. Server POST counts proved restart made no work POST; explicit retry
+  applied exactly one edit and preserved history.
+- Admin `npm ci` baseline, regenerated contract/check/typecheck/lint,72 units and
+  build passed; initial browser8cases passed35.8s. Final generated-contract checks,
+  72units (32.11s total),build passed; corrected native fixture environment rerun
+  **8 Chromium cases passed27.0s**. No private work view was added to admin.
+- Whole-tree Ruff lint/format passed,348 files formatted. Strict OpenAPI comparison
+  preserved every earlier path and non-capability schema. Dependency locks,
+  wrappers and released migrations remain unchanged. Final audit/cleanup are in
+  WORKLOG; they do not attest an installed service or physical app.
+
+Retained failures/corrections: chat-review HTTP testing found an incorrect event/
+source-version join; fixed against actual relations. LazyColumn collapsed/virtual
+nodes needed explicit expansion/scrolling. Journal writes initially retained16
+instead of17; the new recovery test caught it. Appending the capability field
+preserved old positional Kotlin constructors. Legacy journal fixture versions,
+a corrected UTF-8 read and menu indentation closed unit/lint failures. Final
+receipt tests reject wrong revisions/definitions while accepting equivalent expiry
+instants; a test reset required explicit scope refresh, corrected after two failed
+runs. A final browser launch lacked the dedicated DB environment and timed out;
+rerun with the isolated fixture succeeded. No failure is treated as a pass.
+
+Skipped/remaining: five affected-selection skips are SQLite cases requiring native
+row locks/MVCC/process behavior; native counterparts ran. The full run's33 skips
+are retained as reported, without claiming individually unexpanded skip reasons.
+No physical S24FE/TalkBack/older-API/real-content acceptance or sustained personal/
+project usefulness study, native inference, long-running operation soak, installed
+host reboot/dispatch or external actions were run. Synthetic held-out workflows
+are correctness evidence, not human acceptance ratings. Prior29 speech/license/
+physical gates remain open. Scope picker shows first100 scopes; retained work,
+revision, brief and journal quotas are explicit. No automatic completion, push,
+shared projects, model-synthesized brief or Phase31 work. See
+[usage, migration, limits and verification](../docs/PROJECTS-AND-FOLLOW-THROUGH.md).
+
+
+Phase30 final-source closeout (2026-10-22 America/Phoenix): after the receipt
+revision/definition/normalized-expiry guards, separate validation APK build passed
+23s and both actual HTTP/Keystore emulator stages reran successfully:
+**9.389s /3.863s**. Project creation, chat Save, brief creation, real force-stop,
+GET-only lost/unsent recovery and one explicit original retry passed. Earlier
+failed and successful attempts retain their provenance. Normal debug/test APK
+outputs were restored afterward (build passed, no installation). Final Android
+300-unit/lint/debug/unsigned-release result above covers this production source.
+
+Final audit: **57 changed/new files** relative to the719-file starting
+inventory. Released migrations0001–0019, dependency locks/wrappers, Phase31 plans,
+and existing auth/password/chat/curiosity/reflection/admin runtime files checked
+against the baseline retained their bytes. The pre-existing email.txt was absent
+at closeout; this work did not read, delete or restore it. The already-deleted
+legacy icon remains outside the Phase30 change set. No unrelated deletion or
+reset was used. Strict OpenAPI compatibility and local Markdown links passed;
+configured-secret scan found **0matches** without printing values. Whole-tree
+Ruff lint/format passed (348files); diff whitespace check passed with existing
+Git LF/CRLF notices. No private chat/source quote/credential was added to plans.
+
+Cleanup verified no Phase30 validation APK/reverse mapping,0fixture schemas and
+only the base ada_phase2_test besides PostgreSQL system databases. Verified the
+owned55421 listener/postmaster executable and resolved workspace data directory
+before stopping that isolated18.6 cluster. Verified emulator5584's
+Medium_Phone_API_37.0 identity before stopping it. Only owned test infrastructure
+was stopped; no physical device, installed database/service/proxy, Ollama,
+Task Scheduler, power policy or Tailscale setup was operated. Final checks found no listeners on owned test ports55421/18423/19822/5584/5585
+and no ADB devices remaining. Normal APK output restoration passed22s.
+No deployment/Phase31 work.

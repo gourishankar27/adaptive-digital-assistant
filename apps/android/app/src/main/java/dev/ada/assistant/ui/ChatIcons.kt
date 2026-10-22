@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import kotlin.math.cos
 import kotlin.math.sin
 
-enum class AdaIcon { Back, More, Add, Refresh, Settings, Microphone, Attach, Send, Options, Sources, Close, Stop, Expand }
+enum class AdaIcon { Chat, Memory, Back, More, Add, Refresh, Settings, Microphone, Attach, Send, Options, Sources, Close, Stop, Expand }
 
 /** Compact visual controls retain a full native touch target and a spoken action label. */
 @Composable fun AdaIconButton(
@@ -53,7 +53,7 @@ enum class AdaIcon { Back, More, Add, Refresh, Settings, Microphone, Attach, Sen
         onClick = onClick,
         enabled = enabled,
         colors = colors,
-        modifier = modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp).semantics { contentDescription = label },
+        modifier = modifier.sizeIn(minWidth = AdaSpacing.touch, minHeight = AdaSpacing.touch).semantics { contentDescription = label },
     ) { AdaIconGlyph(icon) }
 }
 
@@ -67,6 +67,11 @@ enum class AdaIcon { Back, More, Add, Refresh, Settings, Microphone, Attach, Sen
         fun path(block: Path.() -> Unit) = drawPath(Path().apply(block), ink, style = stroke)
         withTransform({ scale(size.width / 24f, size.height / 24f, pivot = Offset.Zero) }) {
             when (icon) {
+                AdaIcon.Chat -> {
+                    drawRoundRect(ink, Offset(3f, 3f), Size(18f, 15f), CornerRadius(4f), style = stroke)
+                    path { moveTo(8f, 18f); lineTo(6f, 22f); lineTo(13f, 18f) }
+                }
+                AdaIcon.Memory -> path { moveTo(6f, 3f); lineTo(18f, 3f); lineTo(18f, 21f); lineTo(12f, 17f); lineTo(6f, 21f); close() }
                 AdaIcon.Back -> { line(19f, 12f, 5f, 12f); path { moveTo(11f, 6f); lineTo(5f, 12f); lineTo(11f, 18f) } }
                 AdaIcon.More -> listOf(5f, 12f, 19f).forEach { drawCircle(ink, 1.6f, Offset(it, 12f)) }
                 AdaIcon.Add -> { line(5f, 12f, 19f, 12f); line(12f, 5f, 12f, 19f) }

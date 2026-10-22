@@ -97,6 +97,14 @@ class ChatService:
         self.expression = ExpressionService(sessions)
         self.learning = None  # Wired to the same proposal/consolidation services by create_app.
         self.curiosity = None  # Optional versioned navigation, never a factual evidence channel.
+        self.reflection = None
+
+    def acquire_foreground(self, owner):
+        background = self.reflection.activity(owner) if self.reflection is not None else False
+        if self.capacity.acquire(blocking=False):
+            return True
+        # Preserve ordinary busy behavior; only a preempted idle unit gets a bounded handoff.
+        return bool(background and self.capacity.acquire(timeout=2))
 
     def _context(
         self,
@@ -268,7 +276,7 @@ class ChatService:
                 self._same(old, conversation_id, fingerprint)
                 if old.status == "completed":
                     return public_request(old, db.get(RetrievalTrace, (owner, request_id)))
-        if not self.capacity.acquire(blocking=False):
+        if not self.acquire_foreground(owner):
             raise ServiceError(503, "generation_capacity_busy")
         try:
             attempt, messages, completed = self.reserve(

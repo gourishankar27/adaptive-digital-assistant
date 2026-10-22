@@ -28,6 +28,8 @@ Action = Literal[
     "monitor.request",
     "monitor.providers",
     "monitor.audit",
+    "monitor.scheduling",
+    "monitor.reflection",
 ]
 
 

@@ -11,9 +11,12 @@ from ada import (  # noqa: F401
     learning_models,
     login_models,
     proposal_models,
+    reflection_models,
+    schedule_models,
     security_models,
     stream_models,
     voice_models,
+    work_models,
 )
 from ada.config import Settings
 from ada.models import Base

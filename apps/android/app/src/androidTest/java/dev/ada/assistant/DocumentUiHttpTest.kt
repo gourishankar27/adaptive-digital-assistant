@@ -30,7 +30,7 @@ class DocumentUiHttpTest {
     @Test fun reviewedExactPastedTextUploadsOnlyAfterExplicitButton() {
         val file = File(InstrumentationRegistry.getInstrumentation().targetContext.filesDir, "foundation-test-token")
         assumeTrue("Provision the disposable Android HTTP fixture server", file.isFile)
-        val token = file.readText().trim(); val connection = ConnectionCredential.parse("http://10.0.2.2:18764", token, true)!!
+        val token = file.readText().trim(); val connection = ConnectionCredential.parse(fixtureOrigin(18764), token, true)!!
         val api = HttpAdaApi(); val scope = runBlocking { success(api.createScope(connection, ScopeInputDto("Document reviewed UI verification"))) }
         vm = ViewModelProvider(compose.activity)[ChatViewModel::class.java]
         compose.runOnIdle { vm.connect(connection.server.toString(), token) }

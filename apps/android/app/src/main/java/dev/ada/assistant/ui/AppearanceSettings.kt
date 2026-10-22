@@ -27,6 +27,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -34,7 +35,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.core.content.edit
 
-data class AppearanceSettings(val palette: ThemePalette = ThemePalette.AmbientViolet, val dark: Boolean = true)
+data class AppearanceSettings(val palette: ThemePalette = ThemePalette.AmbientViolet, val dark: Boolean = true,
+    val followSystem: Boolean = false, val reduceMotion: Boolean = false) {
+    fun effectiveDark(systemDark: Boolean) = if (followSystem) systemDark else dark
+}
 
 /** Device-local, non-private appearance only. Never use this store for credentials or ADA data. */
 class AppearancePreferences(context: Context) {
@@ -43,12 +47,16 @@ class AppearancePreferences(context: Context) {
     fun load() = AppearanceSettings(
         palette = ThemePalette.fromPreference(preferences.getString("palette", null)),
         dark = preferences.getBoolean("dark", true),
+        followSystem = preferences.getBoolean("follow_system", false),
+        reduceMotion = preferences.getBoolean("reduce_motion", false),
     )
 
     fun save(settings: AppearanceSettings) {
         preferences.edit {
             putString("palette", settings.palette.preferenceKey)
             putBoolean("dark", settings.dark)
+            putBoolean("follow_system", settings.followSystem)
+            putBoolean("reduce_motion", settings.reduceMotion)
         }
     }
 }
@@ -68,8 +76,8 @@ class AppearancePreferences(context: Context) {
                 modifier = Modifier.verticalScroll(rememberScrollState()).padding(AdaSpacing.large),
                 verticalArrangement = Arrangement.spacedBy(AdaSpacing.medium),
             ) {
-                Text("Settings", style = MaterialTheme.typography.headlineMedium)
-                Text("Appearance", style = MaterialTheme.typography.titleLarge)
+                Text("Settings", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.semantics { heading() })
+                AdaSettingsHeading("Appearance")
                 Text("Choose the colors that feel right for you.")
                 Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
                     ThemePalette.entries.forEach { palette ->
@@ -87,7 +95,10 @@ class AppearancePreferences(context: Context) {
                                 horizontalArrangement = Arrangement.spacedBy(AdaSpacing.small),
                             ) {
                                 RadioButton(selected = selected, onClick = null)
-                                Box(Modifier.size(24.dp).background(palette.seed, CircleShape).border(1.dp, MaterialTheme.colorScheme.outline, CircleShape))
+                                Row {
+                                    Box(Modifier.size(16.dp).background(palette.colorScheme(false).primary, CircleShape).border(AdaLayout.border, MaterialTheme.colorScheme.outline, CircleShape))
+                                    Box(Modifier.size(16.dp).background(palette.colorScheme(true).primary, CircleShape).border(AdaLayout.border, MaterialTheme.colorScheme.outline, CircleShape))
+                                }
                                 Column(Modifier.weight(1f)) {
                                     Text(palette.label, style = MaterialTheme.typography.bodyLarge)
                                     if (palette == ThemePalette.AmbientViolet) Text("Ambient Intelligence · default", style = MaterialTheme.typography.bodySmall)
@@ -96,16 +107,12 @@ class AppearancePreferences(context: Context) {
                         }
                     }
                 }
-                Row(
-                    modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Text("Dark mode", modifier = Modifier.weight(1f))
-                    Switch(settings.dark, { change(settings.copy(dark = it)) }, modifier = Modifier.semantics { contentDescription = "Dark mode" })
-                }
+                AdaToggle(settings.followSystem, "Follow system appearance", { change(settings.copy(followSystem = it)) }, switch = true)
+                AdaToggle(settings.dark, "Dark mode", { change(settings.copy(dark = it)) }, enabled = !settings.followSystem, switch = true,
+                    modifier = Modifier.semantics { contentDescription = "Dark mode" })
+                AdaToggle(settings.reduceMotion, "Reduce ambient motion", { change(settings.copy(reduceMotion = it)) }, switch = true)
                 Text("Your choice is saved on this device.", style = MaterialTheme.typography.bodySmall)
-                TextButton(onClick = close, modifier = Modifier.align(Alignment.End).heightIn(min = AdaSpacing.touch)) { Text("Done") }
+                AdaTextButton(onClick = close, modifier = Modifier.align(Alignment.End).heightIn(min = AdaSpacing.touch)) { Text("Done") }
             }
         }
     }

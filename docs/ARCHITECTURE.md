@@ -1,5 +1,159 @@
 # ADA architecture decisions
 
+## Phase30 explicit work and selected briefs
+
+The current source adds four owner-content tables after0019: WorkItem,
+WorkRevision, WorkReceipt and WorkBrief. Head0020 has74 tables,61 owner-content,
+and backup-v6; released migrations and older backup formats are retained.
+Owned scope/owner locks serialize revisions and operation receipts. Review hashes
+bind owner, scope, epoch, item, expected revision, exact fields, source pins,
+parent revision, resolved due instant and timezone rules. No model/network call
+occurs in this path. All writes revalidate the current principal in transaction.
+
+A requested chat draft pins its original completed reply, without promoting
+model/imported text to fact or automatically adopting a commitment. Tasks never
+enter the factual retrieval inventory. An owner-requested brief deterministically
+projects selected task revisions and authorized original sources; T-labels are task
+navigation. Cache keys include owner/scopes/epoch/revisions/calendar rules and
+overdue state; immutable snapshots retain status and day flags, while source reads
+are reauthorized. Completed chat replay is not rewritten.
+
+Optional task questions use Phase25 consent/cadence; only Phase27 can schedule a
+reviewed reminder. Task edits pause linked pending questions/reminders. Generic
+schedule confirmation and reauthorization cannot bypass task revision/status
+bindings. Restore quarantines automation and credentials, preserving work/history.
+Android24/journal17 retains exact encrypted operations and checks GET on reconnect;
+late owner/selection/lifecycle results are fenced. Admin gains no private reader.
+The balanced personal/development focus and deterministic brief choice are detailed
+in [the guide](PROJECTS-AND-FOLLOW-THROUGH.md) and plans/DECISIONS.md. Phase31 remains
+planned; this source was not deployed.
+
+## Phase29 local speech study boundary
+
+Android23/0.29.0-speech-study retains platform-only ASR and offline TTS. Versioned
+local adapter/task/model-status metadata, public preview and a strict pinned
+manifest/byte checker add no server capability, native dependency or installer.
+Verification of a bundle cannot grant activation. A separately reviewed catalogue,
+license/transitive inventory, compatible runtime and measured physical device gates
+are prerequisites for any future adapter. No model is selected or redistributed.
+Preview is authenticated-context/foreground/navigation fenced and uses the existing
+audio focus path; it sends/saves nothing. Voice selection avoids an implicit
+different-language fallback; playback rechecks system voice availability and fences
+old utterance errors. Original ASR/review lineage, encrypted journal16, schema0019,
+OpenAPI145paths/193schemas, prompts and completed replay remain unchanged. See
+[the study, installation design and target protocol](NATURAL-LOCAL-SPEECH.md).
+
+
+## Phase28 bounded idle review
+
+Current source requires0019 /70 tables and exports145 paths /193 schemas.
+Four owner-content tables hold reflection policy, exact receipts, leased runs and
+typed artifacts; inventory57 joins explicit erasure and encrypted backup-v5.
+A fifth table contains only a model fingerprint/safety suspension, preventing
+owner erasure from clearing an ignored-cancellation ban. Restore verifies original
+hashes first, then pauses grants/queues and invalidates model attestation.
+
+The Phase27 dispatcher selects deterministic bounded source-set/policy/kind IDs;
+the existing consolidation worker consumes idle units after explicit work. There
+is no second scheduler or inference process. Fresh host-observer readings are
+sampled outside owner transactions and the model slot. Unknown safety state skips
+work. Global switches, origin/consent/data epoch, idle window and source metadata
+are checked before private input and again before publication. Foreground activity
+requests cooperative cancellation; the existing semaphore stays held until actual
+provider return. Resource/deadline checks, finite attempts, quotas, source pins
+and generation/lease fences reject late output.
+
+The initial rule-only class reports owner-marked open items and possible differing
+endorsed statements, and prepares Phase25 catalogue questions. Exact owner review
+can keep a report, explicitly open a question, discard, or (when separately
+validated) keep a generated summary through Phase13. No claim, preference, source
+or external action is automatically changed. Summaries remain disabled after the
+bounded native probe; client return timing is not proof of GPU cancellation or
+usefulness. Old prompts/completed replay and existing API contracts stay intact.
+
+Android22 uses encrypted journal16, v1–v15 reads and GET-only recovery of exact
+operations. The read-only admin route uses the existing grant/audit boundary and
+fixed counts/budgets only. See
+[the detailed guide](IDLE-REFLECTION-AND-DREAM-REVIEW.md) and dated STATUS/WORKLOG
+for actual evidence, skips and target limits. No installation/deployment occurred.
+
+
+## Phase27 durable scheduling
+
+The Phase27 milestone required0018 /65 tables, exports138 paths /181 schemas and adds
+five private tables: scheduling consent, schedules, occurrences, inbox and exact
+operation receipts. They join53-table owner-content erasure and recovery-v4;
+released0001–0017 and v1/v2/v3 restore remain supported. Restore verifies original
+archive hashes before disabling consent, quarantining schedules/credentials and
+fencing pending leases. Old prompt snapshots and completed replay are unchanged.
+
+One API-lifespan non-inference dispatcher claims bounded typed reminder or existing
+catalogue-question jobs. There is no Phase28 handler, model/GPU process, external
+message channel or parallel backup scheduler. Global enable and owner consent
+default off. Explicit finite plans record pinned IANA rules, UTC occurrences,
+fold/gap choices, quiet hours and expiry. Latest-only catch-up avoids backlog floods.
+Owner locks, origin/epoch/source checks, generations, deterministic occurrence IDs,
+leases and exact receipts fence concurrent/crashed/late workers. Background checks
+validate metadata authority before loading private payloads and before publication;
+no network inference runs inside a scheduling transaction.
+
+Durable consent is independent of an ordinary expiring password-session family.
+Origin-device revoke/rotate/expiry and legacy rotation pause corresponding grants;
+password changes/all-session revocation pause automation and disable consent.
+Owner off and explicit reauthorization remain separate. Source hashes/quotes and
+scope are pinned at preview, confirmation and publication. Owner reads use MVCC
+without unnecessary scope-write locks; paged history/client caches are bounded.
+
+Inbox commits before client acknowledgement. Explicit open creates/resumes an
+owned conversation and never fabricates a user turn. Android v15 journals reserve
+exact writes before POST, retain v1–v14 compatibility, and recover with GET only.
+Foreground polling is the sole enabled notice mechanism; background push and
+lock-screen delivery are unavailable. Admin receives fixed aggregate counts and
+loop/error metadata through a server-granted, audited read-only route. See
+[the scheduling guide](DURABLE-SCHEDULING-AND-REMINDERS.md) and STATUS for actual
+checks, remaining device/host gates and the no-deployment boundary.
+
+Earlier sections describe their dated milestones, not the current schema total.
+
+## Phase26 local Windows operations
+
+The selected startup boundary is Task Scheduler2.0 under the current interactive
+owner, LeastPrivilege, using the pinned Python environment. Plan mode emits XML;
+installation is separate. A supervised API child owns both a kernel file lease
+and a PostgreSQL session advisory lock, committed before inference. The supported
+foreground script uses the same ownership gate. Recovery fences abandoned requests;
+completed replay, stream instance fences and existing job leases remain unchanged.
+Optional pinned Caddy is an owned loopback child; API shutdown drains first. A
+Windows Job Object contains only assigned children on supervisor death. External
+Ollama/DB/Docker/Serve processes remain outside that ownership.
+
+Host observation separates process/HTTP liveness, DB/schema readiness, provider
+installed/resident metadata and backup/ledger freshness. No health probe warms a
+model. Supervised discretionary consolidation respects server-observed foreground
+activity and AC/disk/RAM/thermal pressure; unknown sensors remain unknown. Empty
+polls do not acquire inference admission. There is no new inference process,
+notification scheduler, dreaming behavior or automatic factual-memory write.
+
+No server table, HTTP route, capability or migration is added: schema0017/60tables,
+OpenAPI126paths/168schemas and released recovery-v3/v2/v1 remain. New local files
+are protected **operator/security metadata**, not ADA owner evidence: selected
+Windows SID/profile/path configuration, fixed supervisor/backup receipts, task XML,
+DPAPI key blob and encrypted latest erasure ledger. Existing database backups stay
+outside source erasure under the disclosed operator policy. None of these files
+contains plaintext credentials, private messages or source quotes; secrets/ledger
+payloads are protected/encrypted. They grant no HTTP/admin permission.
+
+The unattended secret-provider function uses current-user DPAPI. A separately
+passphrase-encrypted portable capsule recovers its random key independently of
+Windows. Backup success requires the consistent dump plus a sufficiently fresh,
+consistent post-snapshot ledger and read-back/hash checks. Latest verified state
+advances atomically; failures preserve older points and pruning remains off.
+Protected-key restore targets only a new isolated database and retains credential/
+curiosity quarantine. An uncertain or out-of-date erasure ledger cannot justify
+re-enabling recovered access. Source retention remains explicit-owner deletion.
+See [the operational guide](ALWAYS-ON-OPERATIONS.md) for bounded retries, crash-stop
+reset, power opt-in, RPO/RTO selection and target gates. No live deployment occurred.
+
 ## Android Ambient Intelligence presentation
 
 The 2026-10-18 redesign retains MainActivity, existing ChatDestination values,

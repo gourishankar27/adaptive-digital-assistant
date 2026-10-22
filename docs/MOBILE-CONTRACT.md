@@ -1,5 +1,29 @@
 # Android / iOS boundary
 
+Phase28 adds capability `reflection_protocol=ada-reflection-v1` and authenticated
+owner policy, exact receipts, typed review artifacts/actions and job metadata.
+Android22/journal16 retains versions1–15. Every mutation is encrypted before HTTP;
+restart checks the original GET receipt and never automatically POSTs. Source
+trust/pins, server/owner/epoch binding, paging and late-response fences remain.
+"While you were away" shows generated provenance, exact original quotes,
+omissions, duration and honest empty/skip outcomes. Keep is not factual acceptance;
+question opening never inserts a user turn. Summary generation remains disabled.
+See [the reflection guide](IDLE-REFLECTION-AND-DREAM-REVIEW.md) and exported OpenAPI.
+Current source requires0019; the following records retain earlier boundaries.
+
+
+Phase27 exports `ada-scheduling-v1` in capabilities and keeps
+`scheduling_background_push=false`. Authenticated owners read/write scheduling
+policy, reserve exact preview/confirm/action operations, page inbox/occurrences
+and GET operation receipts. Every write requires an operation UUID and its exact
+body; confirmation binds preview ID, consent revision and generation. User/server/
+scope/epoch checks remain authoritative. See exported OpenAPI for implemented
+routes and [the scheduling guide](DURABLE-SCHEDULING-AND-REMINDERS.md) for time,
+durable grant and recovery semantics. Android journal15 retains v1–v14; restart
+does GET only, explicit retries preserve keys, and foreground polling does not
+imply background push. Explicit inbox opening never invents a user turn.
+The Phase27 milestone required0018; older phase descriptions below retain their scope.
+
 The generated `contracts/openapi.json` is the implemented Phase 2 contract.
 It also includes implemented Phase 08/09 additions and Phase 10's optional
 semantic diagnostics. Clients may ignore absent/additive `plan.semantic` and

@@ -1,0 +1,10 @@
+<resources>
+    <style name="Theme.Ada" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#070816</item><item name="android:windowSplashScreenBackground">#070816</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ada_icon_foreground</item><item name="android:windowLightStatusBar">false</item>
+    </style>
+    <style name="Theme.Ada.Light" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">#F7F7FF</item><item name="android:windowSplashScreenBackground">#F7F7FF</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ada_icon_foreground</item><item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>

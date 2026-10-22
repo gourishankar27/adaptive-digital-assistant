@@ -100,7 +100,11 @@ class CitationOutput(BaseModel):
     entity: EntityChoice | None = None
 
 
+from ada.document_contracts import PdfLocationOutput
+
+
 class DocumentCitationOutput(BaseModel):
+    pdf: PdfLocationOutput | None = None
     label: str = Field(pattern=r"^D[1-9][0-9]*$")
     origin: Literal["imported_document"]
     trust_class: Literal["imported_untrusted"]
@@ -111,7 +115,7 @@ class DocumentCitationOutput(BaseModel):
     upload_id: UUID
     chunk_id: UUID
     filename: str
-    media_type: Literal["text/plain", "text/markdown"]
+    media_type: Literal["text/plain", "text/markdown", "application/pdf"]
     raw_hash: str
     available_from: Timestamp
     available_to: Timestamp | None
@@ -451,10 +455,17 @@ def _document_fts_condition(db, terms):
 
 
 def _valid_document(chunk, source, upload, projection):
+    from ada.pdfs import page_location, projection_hash
+
     if not (0 <= chunk.span_start < chunk.span_end <= len(source.content)):
         return False
+    try:
+        expected = projection_hash(upload, source.content)
+        page_location(upload, chunk.span_start, chunk.span_end)
+    except (ServiceError, ValueError, TypeError, KeyError):
+        return False
     return (
-        source.content_hash == chunk.content_hash == upload.raw_hash == content_hash(source.content)
+        source.content_hash == chunk.content_hash == expected == content_hash(source.content)
         and upload.raw_hash == hashlib.sha256(upload.raw_bytes).hexdigest()
         and upload.raw_size == len(upload.raw_bytes)
         and source.content[chunk.span_start : chunk.span_end] == chunk.quote
@@ -467,7 +478,10 @@ def _valid_document(chunk, source, upload, projection):
 
 
 def _document_citation(chunk, source, upload):
+    from ada.pdfs import page_location
+
     return {
+        **({"pdf": page_location(upload, chunk.span_start, chunk.span_end)} if upload.media_type == "application/pdf" else {}),
         "origin": "imported_document",
         "trust_class": "imported_untrusted",
         "scope_id": chunk.scope_id,

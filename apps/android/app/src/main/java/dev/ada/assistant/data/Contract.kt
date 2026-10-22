@@ -59,6 +59,9 @@ val adaJson = Json { ignoreUnknownKeys = true; explicitNulls = false; encodeDefa
     val quality_prompt_version: String? = null,
     val web_research: String = "disabled", val web_search: String = "disabled",
     val curiosity_protocol: String = "disabled", val curiosity_notifications: Boolean = false,
+    val reflection_protocol: String = "disabled",
+    val scheduling_protocol: String = "disabled", val scheduling_background_push: Boolean = false,
+    val work_protocol: String = "unsupported",
 )
 @Serializable data class PersonalitySnapshotDto(
     val name: String, val style: String, val warmth: String, val detail: String,

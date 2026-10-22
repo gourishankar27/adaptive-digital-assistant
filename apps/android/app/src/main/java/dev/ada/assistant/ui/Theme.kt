@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 object AdaSpacing { val tiny = 4.dp; val small = 8.dp; val medium = 16.dp; val large = 24.dp; val section = 32.dp; val touch = 48.dp }
-object AdaLayout { val content = 1040.dp; val reading = 840.dp; val form = 560.dp; val railAt = 840.dp; val orb = 128.dp; val presence = 64.dp; val border = 1.dp }
+object AdaLayout { val content = 1040.dp; val reading = 840.dp; val form = 560.dp; val railAt = 600.dp; val orb = 128.dp; val presence = 64.dp; val border = 1.dp; val dialogMax = 600.dp; val shortComposer = 120.dp; val composerMax = 200.dp; val pendingMax = 170.dp; val fieldInset = 14.dp; const val composerFraction = .45f }
 object AdaMotion { const val transition = 240; const val breathing = 3600; const val orbit = 18000 }
 
 enum class ThemePalette(val preferenceKey: String, val label: String, val seed: Color) {
@@ -125,11 +125,17 @@ private val AdaTypography = Typography(
     labelLarge = adaText(14, 20, FontWeight.Medium), labelMedium = adaText(13, 18, FontWeight.Medium), labelSmall = adaText(12, 18, FontWeight.Medium),
 )
 
-@Composable fun AdaTheme(palette: ThemePalette = ThemePalette.AmbientViolet, dark: Boolean = true, content: @Composable () -> Unit) {
+internal fun ThemePalette.glassColor(dark: Boolean): Color {
+    val scheme = colorScheme(dark)
+    return if (dark && this == ThemePalette.AmbientViolet) Color(0xFF171A34).copy(alpha = .86f)
+        else if (dark) scheme.surfaceContainerHigh.copy(alpha = .88f) else scheme.surface.copy(alpha = .94f)
+}
+
+@Composable fun AdaTheme(palette: ThemePalette = ThemePalette.AmbientViolet, dark: Boolean = true, reduceMotion: Boolean = false, content: @Composable () -> Unit) {
     val scheme = palette.colorScheme(dark)
-    val glass = if (dark && palette == ThemePalette.AmbientViolet) Color(0xFF171A34).copy(alpha = .86f) else if (dark) scheme.surfaceContainerHigh.copy(alpha = .88f) else scheme.surface.copy(alpha = .94f)
+    val glass = palette.glassColor(dark)
     val visuals = AdaVisuals(dark, glass, scheme.outline.copy(alpha = .32f), if (dark) Color(0xFF68D8FF) else Color(0xFF006581), if (dark) Color(0xFFEFA5C8) else Color(0xFF894464))
-    CompositionLocalProvider(LocalAdaVisuals provides visuals) {
+    CompositionLocalProvider(LocalAdaVisuals provides visuals, LocalAdaMotionEnabled provides (LocalAdaMotionEnabled.current && !reduceMotion)) {
     MaterialTheme(
         colorScheme = scheme,
         typography = AdaTypography,

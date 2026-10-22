@@ -73,6 +73,26 @@ class FoundationSmokeTest {
         compose.onNodeWithText("Done").performScrollTo().performClick()
         compose.onNodeWithText("Welcome back.").performScrollTo().assertIsDisplayed()
     }
+    @Test fun systemAppearanceMotionAndAdaptiveIconPreserveExplicitLegacyChoice() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val preferences = AppearancePreferences(context)
+        preferences.save(AppearanceSettings(ThemePalette.OxfordBlue, dark = false, reduceMotion = true))
+        compose.activityRule.scenario.recreate()
+        org.junit.Assert.assertTrue(androidx.core.view.WindowInsetsControllerCompat(compose.activity.window, compose.activity.window.decorView).isAppearanceLightStatusBars)
+        org.junit.Assert.assertTrue(context.packageManager.getApplicationIcon(context.packageName) is android.graphics.drawable.AdaptiveIconDrawable)
+        compose.onNodeWithTag("top-settings").performClick()
+        compose.onNodeWithText("Oxford Blue").performScrollTo().assertIsSelected()
+        compose.onNodeWithText("Reduce ambient motion").performScrollTo().assertIsOn()
+        compose.onNodeWithText("Follow system appearance").performScrollTo().performClick().assertIsOn()
+        compose.onNodeWithContentDescription("Dark mode").performScrollTo().assertIsNotEnabled()
+        compose.activityRule.scenario.recreate()
+        org.junit.Assert.assertTrue(preferences.load().followSystem)
+        org.junit.Assert.assertTrue(preferences.load().reduceMotion)
+        org.junit.Assert.assertFalse(preferences.load().dark)
+        val systemDark = context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK == android.content.res.Configuration.UI_MODE_NIGHT_YES
+        org.junit.Assert.assertEquals(!systemDark, androidx.core.view.WindowInsetsControllerCompat(compose.activity.window, compose.activity.window.decorView).isAppearanceLightStatusBars)
+    }
+
     @Test fun rejectedCredentialDisplaysSanitizedErrorWithRealHttp() {
         assumeTrue("Disposable HTTP helper must be explicitly provisioned", InstrumentationRegistry.getArguments().getString("adaHttpIntegration") == "true")
         compose.onNodeWithText("ADA server URL").performScrollTo().performTextInput("http://10.0.2.2:18764")

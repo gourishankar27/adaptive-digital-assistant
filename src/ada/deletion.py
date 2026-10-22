@@ -13,6 +13,7 @@ from ada.consolidation_models import ConsolidationJob
 from ada.errors import ServiceError
 from ada.inventory import content_tables
 from ada.models import Request, User, now_ms
+from ada.reflection_models import ReflectionRun
 from ada.security_models import DeletedRequest, DeletionJob, DeletionPreview
 
 LEASE_MS = 120_000
@@ -72,6 +73,7 @@ class DeletionService:
         for model, states in (
             (Request, ("running",)),
             (ConsolidationJob, ("queued", "running")),
+            (ReflectionRun, ("running",)),
             (AgentRun, ("running", "pending_approval")),
         ):
             if db.scalar(

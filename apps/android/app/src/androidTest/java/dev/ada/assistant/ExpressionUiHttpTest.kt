@@ -20,7 +20,7 @@ class ExpressionUiHttpTest {
     private lateinit var vm: ChatViewModel
     @Test fun explicitScopedPreferencesToneDisableAndResetOverRealHttp() {
         val file = File(InstrumentationRegistry.getInstrumentation().targetContext.filesDir, "foundation-test-token"); assumeTrue(file.isFile)
-        val token = file.readText().trim(); val c = ConnectionCredential.parse("http://10.0.2.2:18764", token, true)!!; val api = HttpAdaApi()
+        val token = file.readText().trim(); val c = ConnectionCredential.parse(fixtureOrigin(18764), token, true)!!; val api = HttpAdaApi()
         val profile = runBlocking { success(api.personalities(c)).first() }
         val conversation = runBlocking { success(api.createConversation(c, ConversationInputDto(profile.id, "Synthetic expression UI"))) }
         vm = ViewModelProvider(compose.activity)[ChatViewModel::class.java]
@@ -29,6 +29,7 @@ class ExpressionUiHttpTest {
         val settings = compose.onNodeWithTag("nav-settings")
         if (compose.onAllNodesWithTag("expanded-navigation").fetchSemanticsNodes().isNotEmpty()) settings.performScrollTo()
         settings.assertIsDisplayed().performClick()
+        compose.onNodeWithTag("settings-preferences").performScrollTo().performClick()
         compose.waitUntil(20_000) { vm.expression.state.value.preference?.target_id == conversation.id && !vm.expression.state.value.busy }
         compose.onNodeWithTag("expression-field-verbosity").performScrollTo().performClick()
         compose.onNodeWithTag("expression-choice-verbosity-concise").performClick()

@@ -35,7 +35,7 @@ fun DocumentSourceCard(card: DocumentCitationDto, requestId: UUID) {
             Text("Available from ${displayInstant(card.available_from)}", style = MaterialTheme.typography.bodySmall)
             Text(card.available_to?.let { "Available until ${displayInstant(it)} (exclusive)" } ?: "No availability end", style = MaterialTheme.typography.bodySmall)
             Text("Imported text is not a user assertion. Availability describes this version, not whether its statements are true.", style = MaterialTheme.typography.bodySmall)
-            TextButton(onClick = { details = !details }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text(if (details) "Hide source details" else "Source details") }
+            AdaTextButton(onClick = { details = !details }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text(if (details) "Hide source details" else "Source details") }
             if (details) SafeChatText("Request: $requestId\nSource: ${card.source_id}\nVersion: ${card.source_version_id}\nUpload: ${card.upload_id}\nChunk: ${card.chunk_id}\nScope: ${card.scope_id}\nOrigin: ${card.origin}\nTrust: ${card.trust_class}\nCode-point span: ${card.evidence.span_start}–${card.evidence.span_end}\nText SHA-256: ${card.evidence.content_hash}\nRaw SHA-256: ${card.raw_hash}\nPublished UTC milliseconds: ${card.published_at}", links = false)
         }
     }

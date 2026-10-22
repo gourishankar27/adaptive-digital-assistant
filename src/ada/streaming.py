@@ -112,7 +112,7 @@ class StreamingService:
                         if db.get(StreamAttempt, (owner, rid, old.attempt)) is None:
                             raise ServiceError(409, "request_in_progress")
                         return self.status(owner, rid)
-            if not self.chat.capacity.acquire(blocking=False):
+            if not self.chat.acquire_foreground(owner):
                 raise ServiceError(503, "generation_capacity_busy")
             transferred = False
             try:

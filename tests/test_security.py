@@ -7,6 +7,7 @@ import pytest
 from sqlalchemy import select, text
 
 from ada.models import Request, User
+from ada.schema import SCHEMA_HEAD
 
 
 def enroll(h, headers=None, **extra):
@@ -432,7 +433,7 @@ def test_populated_0014_upgrade_and_downgrade_guard(harness):
     with pytest.raises(RuntimeError):
         command.downgrade(h["config"], "0014")
     with h["sessions"]() as db:
-        assert db.scalar(text("SELECT version_num FROM alembic_version")) == "0017"
+        assert db.scalar(text("SELECT version_num FROM alembic_version")) == SCHEMA_HEAD
 
 
 def test_ambiguous_authorization_cannot_mix_principals(harness):

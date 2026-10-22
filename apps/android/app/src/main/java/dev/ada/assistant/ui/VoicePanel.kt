@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -60,14 +61,14 @@ import java.util.UUID
         BoxWithConstraints(Modifier.fillMaxWidth().imePadding()) {
             AdaGlassSurface(Modifier.widthIn(max = AdaLayout.form).fillMaxWidth()
                 .heightIn(max = (maxHeight - 24.dp).coerceAtLeast(96.dp)).testTag("voice-controls-dialog")) {
-                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(Modifier.padding(AdaSpacing.medium), verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("Voice controls", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                         AdaIconButton(AdaIcon.Close, "Close voice controls", onClick = { expanded = false },
                             enabled = canDismiss, modifier = Modifier.testTag("voice-controls-close"))
                     }
                     Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
                         if (!canDismiss) Text("Stop or discard the recording before closing.", style = MaterialTheme.typography.bodySmall)
                         VoiceControlsContent(vm, state, chat) {
                             if (vm.voice.requestRecording()) {
@@ -89,14 +90,28 @@ import java.util.UUID
 @OptIn(ExperimentalLayoutApi::class)
 @Composable private fun VoiceControlsContent(vm: ChatViewModel, state: VoiceState, chat: ChatState, record: () -> Unit) {
     val context = LocalContext.current
+    var discardDraft by remember { mutableStateOf(false) }
     val focus = LocalFocusManager.current
     val keyboard = LocalSoftwareKeyboardController.current
     AdaPresenceHeading("On-device voice", adaPresenceState(chat, state).label, adaPresenceState(chat, state), compact = true)
     Text("Tap Record to use the microphone. Review and approve generated words before sending. ADA uploads no audio.", style = MaterialTheme.typography.bodySmall)
+    var engineDetails by remember { mutableStateOf(false) }
+    AdaTextButton(onClick = { engineDetails = !engineDetails }, modifier = Modifier.testTag("voice-engine-details-toggle")) {
+        Text(if (engineDetails) "Hide engine & model details" else "Engine & model details")
+    }
+    if (engineDetails) {
+        Text("Recognition: Android on-device service · ${speechAvailabilityLabel(state.availability)}", modifier = Modifier.testTag("voice-engine-status"))
+        Text("Playback: installed offline Android voices. Android manages their model files; ADA does not verify their model digests.")
+        Text("Additional local models: none installed or enabled. Candidate engines await license, compatibility and physical-device checks.")
+        Text("Voice names describe playback only, not recognition accuracy. Changing engines, importing or downloading models is unavailable in this build. Text entry remains available.")
+        Text("Style: normal. This adapter offers voice and rate selection; no separate style or generated shorter reply is applied.")
+        state.captureAdapter?.let { Text(it.id, style = MaterialTheme.typography.bodySmall) }
+        state.playbackAdapter?.let { Text(it.id, style = MaterialTheme.typography.bodySmall) }
+    }
     if (state.draftLoading) Text("Checking encrypted voice draft…")
     state.savedDraftConversation?.let { saved ->
-        OutlinedButton(onClick = { vm.openConversation(saved) }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Open saved voice draft") }
-        OutlinedButton(onClick = vm.voice::discard, modifier = Modifier.heightIn(min = 48.dp)) { Text("Discard saved voice draft") }
+        AdaOutlinedButton(onClick = { vm.openConversation(saved) }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Open saved voice draft") }
+        AdaOutlinedButton(onClick = { discardDraft = true }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Discard saved voice draft") }
     }
     if (!state.enabled) Text("Reviewed voice input is unavailable on this server. You can type your message.")
     else if (state.draft == null && !vm.voice.captureActive) {
@@ -106,65 +121,74 @@ import java.util.UUID
             SpeechAvailability.NoMicrophone -> "This device has no microphone. Text entry remains available."
             else -> "No on-device recognition engine is available. Text entry remains available."
         })
-        Button(onClick = { focus.clearFocus(); keyboard?.hide(); record() }, enabled = chat.pending == null && !state.saving && !state.draftLoading && state.savedDraftConversation == null, modifier = Modifier.heightIn(min = 48.dp).testTag("voice-record")) { Text("Record voice") }
+        AdaButton(onClick = { focus.clearFocus(); keyboard?.hide(); record() }, enabled = chat.pending == null && !state.saving && !state.draftLoading && state.savedDraftConversation == null, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("voice-record")) { Text("Record voice") }
     }
     if (vm.voice.captureActive) {
-        Text("${state.phase.name} · ${state.durationMs / 1000}s · limit 60s", modifier = Modifier.testTag("voice-recording-state"))
-        if (state.phase == VoicePhase.Recording) Button(onClick = vm.voice::stopCapture, modifier = Modifier.heightIn(min = 48.dp).testTag("voice-stop-recording")) { Text("Stop recording") }
-        OutlinedButton(onClick = vm.voice::discard, modifier = Modifier.heightIn(min = 48.dp).testTag("voice-discard-recording")) { Text("Discard recording") }
+        Text("${voicePhaseLabel(state.phase)} · ${state.durationMs / 1000}s · limit 60s", modifier = Modifier.testTag("voice-recording-state"))
+        if (state.phase == VoicePhase.Recording) AdaButton(onClick = vm.voice::stopCapture, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("voice-stop-recording")) { Text("Stop recording") }
+        AdaOutlinedButton(onClick = vm.voice::discard, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("voice-discard-recording")) { Text("Discard recording") }
     }
-    state.notice?.let { Text(it, style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("voice-notice")) }
-    if (state.phase == VoicePhase.Denied && state.permissionPermanent) OutlinedButton(onClick = {
+    state.notice?.let { AdaNotice(it, Modifier.testTag("voice-notice")) }
+    if (state.phase == VoicePhase.Denied && state.permissionPermanent) AdaOutlinedButton(onClick = {
         context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, "package:${context.packageName}".toUri()))
-    }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Open microphone settings") }
+    }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Open microphone settings") }
     state.draft?.let { draft ->
         Text("Review generated transcript", style = MaterialTheme.typography.titleMedium)
         Text("Speech recognition may mishear words. Only your approved wording becomes the conversational input.")
         var showOriginal by remember(draft.transcript.transcript_id) { mutableStateOf(false) }
-        TextButton(onClick = { showOriginal = !showOriginal }, modifier = Modifier.heightIn(min = 48.dp)) { Text(if (showOriginal) "Hide original ASR words" else "Original ASR words (generated)") }
+        AdaTextButton(onClick = { showOriginal = !showOriginal }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text(if (showOriginal) "Hide original ASR words" else "Original ASR words (generated)") }
         if (showOriginal) SafeChatText(draft.transcript.original_text, links = false)
         OutlinedTextField(draft.reviewedText, vm.voice::edit, label = { Text("Reviewed wording") }, supportingText = { Text("${draft.reviewedText.codePointCount(0, draft.reviewedText.length)}/4000 characters") }, enabled = chat.pending == null, modifier = Modifier.fillMaxWidth().testTag("voice-review"))
-        Row {
-            Checkbox(draft.approved, vm.voice::approve, enabled = chat.pending == null && voiceTextValid(draft.reviewedText), modifier = Modifier.testTag("voice-approve"))
-            Text("I approve this wording for this conversation")
-        }
+        AdaToggle(draft.approved, "I approve this wording for this conversation", vm.voice::approve, Modifier.testTag("voice-approve"), enabled = chat.pending == null && voiceTextValid(draft.reviewedText))
         if (state.saving) Text("Saving encrypted review draft…")
-        if (state.fault != null && !state.saving) OutlinedButton(onClick = vm.voice::saveAgain, modifier = Modifier.heightIn(min = 48.dp)) { Text("Try saving draft again") }
-        Button(onClick = vm::sendReviewedVoice, enabled = vm.voice.approvedDraft() != null, modifier = Modifier.heightIn(min = 48.dp).testTag("voice-send")) { Text("Send reviewed voice") }
-        OutlinedButton(onClick = vm.voice::discard, enabled = !state.saving && chat.pending == null, modifier = Modifier.heightIn(min = 48.dp).testTag("voice-discard")) { Text("Discard voice draft") }
+        if (state.fault != null && !state.saving) AdaOutlinedButton(onClick = vm.voice::saveAgain, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Try saving draft again") }
+        AdaButton(onClick = vm::sendReviewedVoice, enabled = vm.voice.approvedDraft() != null, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("voice-send")) { Text("Send reviewed voice") }
+        AdaOutlinedButton(onClick = { discardDraft = true }, enabled = !state.saving && chat.pending == null, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("voice-discard")) { Text("Discard voice draft") }
     }
     Text("Reply playback", style = MaterialTheme.typography.titleMedium)
     if (state.voices.isEmpty()) Text("No installed offline playback voice is available. Replies remain readable.")
     else {
         var menu by remember { mutableStateOf(false) }
         Box {
-            OutlinedButton(onClick = { menu = true }, modifier = Modifier.heightIn(min = 48.dp).testTag("voice-choice")) { Text(state.voices.firstOrNull { it.id == state.voiceId }?.label ?: "Choose playback voice") }
+            AdaOutlinedButton(onClick = { menu = true }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("voice-choice")) { Text(state.voices.firstOrNull { it.id == state.voiceId }?.label ?: "Choose playback voice") }
             DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                state.voices.forEach { voice -> DropdownMenuItem(text = { Text(voice.label) }, onClick = { vm.voice.selectVoice(voice.id); menu = false }) }
+                state.voices.forEach { voice -> DropdownMenuItem(text = { Text(voice.label) }, onClick = { vm.voice.selectVoice(voice.id); menu = false }, modifier = Modifier.heightIn(min = AdaSpacing.touch).semantics { selected = state.voiceId == voice.id }) }
             }
         }
-        FlowRow { listOf(.75f, 1f, 1.25f, 1.5f).forEach { speed -> TextButton(onClick = { vm.voice.speed(speed) }, modifier = Modifier.heightIn(min = 48.dp)) { Text(if (speed == state.speed) "✓ ${speed}×" else "${speed}×") } } }
+        FlowRow { listOf(.75f, 1f, 1.25f, 1.5f).forEach { speed -> AdaChoiceChip(speed == state.speed, "${speed}×", { vm.voice.speed(speed) }) } }
+        if (state.voiceId == null) Text("No voice matches the default en-US language. Choose an installed voice explicitly; ADA will not switch languages for you.")
+        AdaOutlinedButton(onClick = vm.voice::previewVoice, enabled = state.voiceId != null && !vm.voice.captureActive,
+            modifier = Modifier.testTag("voice-preview")) { Text("Preview voice") }
     }
-    if (state.playing || state.playbackLoading) Button(onClick = vm.voice::stopPlayback, modifier = Modifier.heightIn(min = 48.dp).testTag("voice-stop-playback")) { Text("Stop playback") }
+    if (state.playing || state.playbackLoading) AdaButton(onClick = vm.voice::stopPlayback, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("voice-stop-playback")) { Text("Stop playback") }
     if (state.history.isNotEmpty()) {
         var historyOpen by remember { mutableStateOf(false) }
-        TextButton(onClick = { historyOpen = !historyOpen }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Recent reviewed voice inputs (up to 25)") }
+        AdaTextButton(onClick = { historyOpen = !historyOpen }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Recent reviewed voice inputs (up to 25)") }
         if (historyOpen) state.history.forEach { VoiceLineageCard(it) }
     }
+    if (discardDraft) AdaConfirmation("Discard this voice draft?", "This removes the saved transcript review from this device. It does not cancel a submitted message or delete server history.", "Discard draft", { discardDraft = false }, { discardDraft = false; vm.voice.discard() }, "voice-discard")
+
+}
+
+private fun speechAvailabilityLabel(value: SpeechAvailability) = when (value) {
+    SpeechAvailability.Available -> "engine available; selected language checked when recording"
+    SpeechAvailability.UnsupportedDevice -> "requires Android 12 or later"
+    SpeechAvailability.NoMicrophone -> "microphone unavailable"
+    SpeechAvailability.NoEngine -> "engine unavailable"
 }
 
 @Composable fun ReadReplyButton(vm: ChatViewModel, request: UUID) {
     val state by vm.voice.state.collectAsStateWithLifecycle()
-    if (state.voices.isNotEmpty()) TextButton(onClick = { vm.voice.play(request) }, enabled = !vm.voice.captureActive,
-        modifier = Modifier.heightIn(min = 48.dp).testTag("read-reply-$request")) { Text("Read reply") }
+    if (state.voices.isNotEmpty()) AdaTextButton(onClick = { vm.voice.play(request) }, enabled = !vm.voice.captureActive && state.voiceId != null,
+        modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("read-reply-$request")) { Text("Read reply") }
 }
 
 @Composable fun VoiceLineageCard(row: VoiceLineageDto) {
-    Card(Modifier.fillMaxWidth().testTag("voice-lineage-${row.request_id}")) { Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Reviewed voice input · user_reviewed", style = MaterialTheme.typography.titleSmall)
-        Text("Original recognition · generated_interpretation")
+    Card(Modifier.fillMaxWidth().testTag("voice-lineage-${row.request_id}")) { Column(Modifier.padding(AdaSpacing.medium), verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
+        Text("Reviewed voice input", style = MaterialTheme.typography.titleSmall)
+        Text("Original recognition · generated interpretation")
         SafeChatText(row.original_text, links = false)
-        Text("Approved wording · user_explicit endorsement")
+        Text("Approved wording · explicit user endorsement")
         SafeChatText(row.reviewed_text, links = false)
         Text("${row.language} · ${row.duration_ms}ms · ${row.engine_version} (client reported)", style = MaterialTheme.typography.bodySmall)
         Text("Audio was not received by the server. No server audio hash exists.", style = MaterialTheme.typography.bodySmall)

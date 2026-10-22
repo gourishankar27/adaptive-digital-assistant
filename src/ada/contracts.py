@@ -24,8 +24,12 @@ class UserOutput(BaseModel):
 
 
 class CapabilitiesOutput(BaseModel):
+    work_protocol: str = "unsupported"
+    reflection_protocol: str = "unsupported"
     curiosity_protocol: str = "disabled"
     curiosity_notifications: bool = False
+    scheduling_protocol: str = "disabled"
+    scheduling_background_push: bool = False
     web_research: str = "disabled"
     web_search: str = "disabled"
     answer_quality: str = "unsupported"

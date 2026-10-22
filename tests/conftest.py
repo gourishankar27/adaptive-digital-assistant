@@ -55,7 +55,11 @@ def harness(request, tmp_path, monkeypatch):
     command.upgrade(config, "head")
     engine, sessions = connect(url)
     settings = Settings(
-        database_url=url, provider="fake", max_parallel=2, consolidation_worker_enabled=False
+        database_url=url,
+        provider="fake",
+        max_parallel=2,
+        consolidation_worker_enabled=False,
+        scheduler_enabled=False,
     )
     provider = RecordingProvider()
     app = create_app(settings, provider, sessions)

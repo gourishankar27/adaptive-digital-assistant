@@ -1,10 +1,15 @@
 # ADA implementation plans
 
-Phase25 adds opt-in conversational curiosity and a later inbox with explicit
-source/topic/cadence control, ordinary owned answers and Android exact recovery.
-Current source needs0017; local evidence/target limits are in STATUS and
-[the guide](../docs/CONVERSATIONAL-CURIOSITY.md). No scheduler, notification,
-automatic memory or Phase26–31 implementation/deployment is included.
+Current source includes Phase28 bounded idle reports and catalogue question drafts
+with exact owner review, encrypted Android recovery and aggregate admin monitoring.
+Head0019 adds five tables; global reflection and separate owner consent default
+off. Model summaries stay disabled. Actual checks and target limits are in STATUS
+and [the guide](../docs/IDLE-REFLECTION-AND-DREAM-REVIEW.md). Phase29 now adds the
+speech study/interface contract and platform preview; new adapters await physical,
+license and compatibility gates. Phase30 now implements explicit scoped work, reviewed Save, balanced briefs and
+GET-only recovery with separately consented questions/reminders; head0020, Android24.
+See [the guide](../docs/PROJECTS-AND-FOLLOW-THROUGH.md). Phase31 remains
+planned; no deployment is included. Earlier summaries retain milestone boundaries.
 
 These plans continue the implemented Phase 0–2 server. Phase numbers in the earlier
 architecture prompt were suggestions; this directory uses the actual release
@@ -75,10 +80,10 @@ are designs until implemented and exported in OpenAPI. The existing
 | 23 | [phase-23-answer-quality-and-memory-relevance.md](phase-23-answer-quality-and-memory-relevance.md) | Implemented/local checks: explicit intervals, review cues, measured opt-in v5; v4 default/semantic disabled; remaining limits in STATUS | 20; existing memory features |
 | 24 | [phase-24-secure-web-research.md](phase-24-secure-web-research.md) | Proposed: approved public research, isolated egress and saved web citations | 20, 12, 18 |
 | 25 | [phase-25-conversational-curiosity.md](phase-25-conversational-curiosity.md) | Proposed: personal follow-up questions, topic controls and later inbox | 20, 14/15; 23 preferred |
-| 26 | [phase-26-always-on-operations-and-recovery.md](phase-26-always-on-operations-and-recovery.md) | Proposed: supervised laptop service and unattended encrypted recovery | 20, 18; 21 for remote reachability |
-| 27 | [phase-27-durable-scheduling-and-reminders.md](phase-27-durable-scheduling-and-reminders.md) | Proposed: consented schedules, private inbox and controlled notifications | 26 operational gate; 13/18 |
-| 28 | [phase-28-idle-reflection-and-dream-review.md](phase-28-idle-reflection-and-dream-review.md) | Proposed: bounded idle summaries, reports and question drafts | 23, 25, 26, 27 |
-| 29 | [phase-29-natural-local-speech.md](phase-29-natural-local-speech.md) | Proposed: speech-model study; physical activation separately gated | 17/17-A source; later device evidence |
+| 26 | [phase-26-always-on-operations-and-recovery.md](phase-26-always-on-operations-and-recovery.md) | Source and four-hour development soak passed; installed-host gates remain in STATUS | 20, 18; 21 for remote reachability |
+| 27 | [phase-27-durable-scheduling-and-reminders.md](phase-27-durable-scheduling-and-reminders.md) | Implemented source: reviewed timezone schedules, durable inbox/receipts and foreground polling; default off/no push | 26 development gate passed; 13/18/22 source present |
+| 28 | [phase-28-idle-reflection-and-dream-review.md](phase-28-idle-reflection-and-dream-review.md) | Implemented initial reports/questions and review; model summaries disabled, target limits in STATUS | 23, 25, 26, 27 |
+| 29 | [phase-29-natural-local-speech.md](phase-29-natural-local-speech.md) | Study/interface and platform preview implemented; no new runtime/model; physical activation pending | 17/17-A source; later device/license evidence |
 | 30 | [phase-30-projects-and-personal-follow-through.md](phase-30-projects-and-personal-follow-through.md) | Optional proposal: reviewed goals, next actions and useful briefs | 23; 27 only for reminders |
 | 31 | [phase-31-pdf-ingestion-and-document-expansion.md](phase-31-pdf-ingestion-and-document-expansion.md) | Optional proposal: bounded text-PDF extraction; OCR separately gated | 08, 20; 23 evaluation |
 

@@ -15,22 +15,22 @@ fun MemoryWindowPanel(state: MemoryState, controller: MemoryController) {
     var expression by remember(state.scopeId) { mutableStateOf("yesterday") }
     var timezone by remember(state.scopeId) { mutableStateOf(ZoneId.systemDefault().id) }
     var reference by remember(state.scopeId) { mutableStateOf(OffsetDateTime.now().withNano(0).toString()) }
-    TextButton({ expanded = !expanded }, Modifier.heightIn(min = AdaSpacing.touch).testTag("memory-window-toggle")) { Text("Explore a calendar interval") }
+    AdaTextButton({ expanded = !expanded }, Modifier.heightIn(min = AdaSpacing.touch).testTag("memory-window-toggle")) { Text("Explore a calendar interval") }
     if (!expanded) return
     Column(verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
         Text("Read-only lookup of saved assertions over a whole interval. Nothing is sent to chat or saved as new memory.")
         OutlinedTextField(query, { query = it }, label = { Text("Memory question") }, modifier = Modifier.fillMaxWidth().testTag("window-query"))
         Row {
             listOf("yesterday", "last week").forEach { option ->
-                TextButton({ expression = option }) { Text(if (expression == option) "$option (selected)" else option) }
+                AdaChoiceChip(expression == option, option.replaceFirstChar(Char::titlecase), { expression = option })
             }
         }
         Text("Last week means the previous Monday-to-Monday calendar week.")
         OutlinedTextField(timezone, { timezone = it }, label = { Text("Timezone (IANA name)") }, modifier = Modifier.fillMaxWidth().testTag("window-timezone"))
         OutlinedTextField(reference, { reference = it }, label = { Text("Reference date/time with offset") }, modifier = Modifier.fillMaxWidth().testTag("window-reference"))
-        Button({ controller.retrieveWindow(query, expression, timezone, reference) }, enabled = query.isNotBlank() && !state.windowLoading,
+        AdaButton({ controller.retrieveWindow(query, expression, timezone, reference) }, enabled = query.isNotBlank() && !state.windowLoading,
             modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("window-search")) { Text("Resolve and find assertions") }
-        if (state.windowLoading) LinearProgressIndicator(Modifier.fillMaxWidth())
+        if (state.windowLoading) AdaLoading("Resolving the memory interval")
         state.window?.let { result ->
             val time = result.resolution
             if (time.state != "resolved") Text(when (time.reason) {
@@ -49,7 +49,7 @@ fun MemoryWindowPanel(state: MemoryState, controller: MemoryController) {
                     Text("Valid ${displayInstant(card.valid_from)} until ${card.valid_to?.let(::displayInstant) ?: "open"}")
                     SafeChatText(card.evidence.quote, links = false)
                     if (card.conflict) Text("Different values in this interval need comparison or clarification.")
-                    TextButton({ controller.openClaim(card.claim_id) }) { Text("Review source or correct explicitly") }
+                    AdaTextButton({ controller.openClaim(card.claim_id) }) { Text("Review source or correct explicitly") }
                 } }
             }
         }

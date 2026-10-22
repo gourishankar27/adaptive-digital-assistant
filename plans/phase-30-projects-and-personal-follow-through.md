@@ -1,10 +1,36 @@
 # Phase 30 — projects and personal follow-through
 
-Status: **Optional proposal; planning only.** Inputs: 23 relevance, private scopes,
+Status: **Implemented in source; local verification recorded 2026-10-22.** Inputs: 23 relevance, private scopes,
 explicit owner review and Phase 18 erasure. Phase 27 is needed only for reminders; 28 optional.
 Addresses useful daily outcomes behind G-23, not a required addition to every ADA
 installation. Follow [shared rules](FUTURE-ROADMAP.md). Confirm task priorities
 with the owner before selecting this phase.
+
+## Implementation record
+
+Selected explicitly by the owner. Brief priority: **balanced personal commitments
+and development projects**. Prerequisites were inspected in source/OpenAPI and
+existing tests: Phase23 owner/scope/source relevance, Phase18 inventory/erasure,
+Phase25 optional questions and Phase27 consented schedules exist. Phase29 native
+speech gates are independent and remain open.
+
+- [x] A: explicit scoped projects/goals/tasks, reviewed status/due changes,
+  immutable revisions and original source pins; elapsed time never completes work.
+- [x] B: requested Save from completed reply, blank action editor, exact preview,
+  stable operation/item IDs, encrypted journal and GET-only reconnect recovery.
+- [x] C: owner-requested selected-work brief/resume, overdue/unknown/changed fields,
+  immutable revision/calendar snapshot, reauthorized originals and scoped cache.
+- [x] D: optional consented/cadence-limited questions; only27 reminder preview and
+  confirmation; task edits pause linked automation, with no external actions.
+- [x] Native schema/revision/idempotency/recovery and actual HTTP/Android process
+  stop checks; exact results/failures/skips in STATUS and WORKLOG.
+- [ ] Human acceptance and sustained personal/project usefulness; physical
+  accessibility/layout on the S24 FE. Synthetic workflows are not human ratings.
+
+The initial brief is deterministic: it projects selected records and field
+changes without model synthesis. Task T-labels are navigation, not factual
+citations. No installed database/app/service upgrade or deployment occurred.
+[Guide and limitations](../docs/PROJECTS-AND-FOLLOW-THROUGH.md).
 
 ## Outcome
 

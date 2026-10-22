@@ -54,7 +54,7 @@ import androidx.compose.ui.unit.sp
             verticalArrangement = Arrangement.spacedBy(AdaSpacing.medium),
         ) {
             Text("ADA", style = MaterialTheme.typography.headlineLarge)
-            TextButton(onClick = openSettings, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Settings") }
+            AdaTextButton(onClick = openSettings, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Settings") }
             Text("Development foundation", style = MaterialTheme.typography.titleMedium)
             Text("Connect to your ADA server to check your account and API compatibility. Chat and Memory are planned screens.")
             if (state is ConnectionState.Connected) {
@@ -64,7 +64,7 @@ import androidx.compose.ui.unit.sp
                         Text("Account: ${state.account.name}")
                         Text("Server: ${state.account.server}")
                         Text("Model: ${state.account.model}")
-                        Button(onClick = { token = ""; disconnect() }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Disconnect") }
+                        AdaButton(onClick = { token = ""; disconnect() }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Disconnect") }
                     }
                 }
             } else {
@@ -77,12 +77,12 @@ import androidx.compose.ui.unit.sp
                     Text(error, color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.focusRequester(errorFocus).focusable().semantics { liveRegion = LiveRegionMode.Polite })
                 }
-                Button(onClick = { connect(server, token); token = "" }, enabled = !validating && server.isNotBlank() && token.isNotBlank(),
+                AdaButton(onClick = { connect(server, token); token = "" }, enabled = !validating && server.isNotBlank() && token.isNotBlank(),
                     modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch)) { Text(if (validating) "Connecting…" else "Connect") }
                 if (validating) CircularProgressIndicator(Modifier.semantics { contentDescription = "Validating the ADA connection" })
             }
             Text("Appearance preview", style = MaterialTheme.typography.titleMedium)
-            TextButton(onClick = { largePreview = !largePreview }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text(if (largePreview) "Use normal text preview" else "Preview larger text") }
+            AdaTextButton(onClick = { largePreview = !largePreview }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text(if (largePreview) "Use normal text preview" else "Preview larger text") }
             Text("Readable text, clear actions, and room for your words.", fontSize = if (largePreview) 24.sp else 16.sp)
             Text("Screen map", style = MaterialTheme.typography.titleMedium)
             screenMap.forEach {

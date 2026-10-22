@@ -28,9 +28,25 @@ class VoiceUiHttpTest {
         vm = ViewModelProvider(compose.activity)[ChatViewModel::class.java]
         compose.runOnIdle { vm.voice.attachAudio(input, output); vm.connect(c.server.toString(), token) }
         compose.waitUntil(20_000) { vm.state.value.account != null }
+        assertTrue("Disposable fixture must enable reviewed streaming voice", vm.voice.state.value.enabled)
         compose.runOnIdle { vm.openConversation(conversation.id) }
         compose.waitUntil(20_000) { vm.state.value.conversation?.id == conversation.id && !vm.state.value.events.loading }
         return api to c
+    }
+    @Test fun publicVoicePreviewAndEngineStatusNeverCaptureOrSubmit() {
+        val (api, c) = connect()
+        compose.onNodeWithTag("voice-toggle").performScrollTo().performClick()
+        compose.onNodeWithTag("voice-engine-details-toggle").performScrollTo().performClick()
+        compose.onNodeWithTag("voice-engine-status").performScrollTo().assertTextContains("Android on-device service", substring = true)
+        compose.onNodeWithTag("voice-preview").performScrollTo().performClick()
+        compose.waitUntil(5000) { vm.voice.state.value.playing }
+        assertEquals(VOICE_PREVIEW_TEXT, output.text)
+        assertNull(input.callback); assertNull(vm.voice.state.value.draft); assertNull(vm.state.value.pending)
+        compose.onNodeWithTag("voice-stop-playback").performScrollTo().performClick()
+        assertFalse(vm.voice.state.value.playing)
+        assertTrue(runBlocking { (api.events(c, vm.state.value.conversation!!.id) as ApiResult.Success).value }.isEmpty())
+        compose.runOnIdle { vm.voice.previewVoice(); vm.voice.observeForeground(false) }
+        assertFalse(vm.voice.state.value.playing)
     }
     @Test fun explicitRecordReviewSendLineageAndPlaybackStopAreIndependentOfGeneration() {
         val (api, c) = connect()
@@ -97,6 +113,23 @@ class VoiceUiHttpTest {
         compose.waitUntil(5000) { vm.voice.state.value.lineage?.request_id == id }
         compose.onNodeWithTag("sources-list").performScrollToNode(hasTestTag("voice-lineage-$id"))
         compose.onNodeWithTag("voice-lineage-$id").assertIsDisplayed()
+    }
+    @Test fun reviewedDraftDiscardRequiresConfirmationAndNeverSends() {
+        val (api, c) = connect()
+        compose.runOnIdle { vm.voice.requestRecording(); vm.voice.permissionResult(true); input.callback!!.result("Public discard validation transcript") }
+        compose.waitUntil(5000) { vm.voice.state.value.draft != null && !vm.voice.state.value.saving }
+        val identity = SessionIdentity(c.server.toString(), vm.state.value.account!!.owner)
+        val store = AndroidSessionStore(compose.activity.applicationContext)
+        compose.onNodeWithTag("voice-discard").performScrollTo().performClick()
+        compose.onNodeWithTag("voice-discard-cancel").assertIsFocused().performClick()
+        assertNotNull(vm.voice.state.value.draft)
+        assertNotNull(runBlocking { store.voiceDraft(identity) })
+        compose.onNodeWithTag("voice-discard").performScrollTo().performClick()
+        compose.onNodeWithTag("voice-discard-confirm").performClick()
+        compose.waitUntil(5000) { vm.voice.state.value.draft == null && !vm.voice.state.value.saving }
+        assertNull(runBlocking { store.voiceDraft(identity) })
+        assertNull(vm.state.value.pending)
+        assertTrue(runBlocking { (api.events(c, vm.state.value.conversation!!.id) as ApiResult.Success).value }.isEmpty())
     }
     @Test fun denialBackgroundLateResultsAndEncryptedDraftRecoveryDoNotSend() {
         val (api, c) = connect()

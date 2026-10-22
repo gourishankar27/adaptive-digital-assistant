@@ -1,6 +1,8 @@
 # Phase 26 — always-on operations and unattended recovery
 
-Status: **Proposed; planning only.** Inputs: 20 safe upgrade/recovery, 18 operational
+Status: **Source/local checks and four-hour development soak passed; installed-host target verification remains.**
+No live deployment or host-policy change. See the dated STATUS/WORKLOG entry and
+[operational guide](../docs/ALWAYS-ON-OPERATIONS.md). Inputs: 20 safe upgrade/recovery, 18 operational
 bounds, G-08/G-09/G-34/G-35.21 is needed for remote reachability. Follow
 [shared rules](FUTURE-ROADMAP.md). Confirmed target: existing Windows laptop
 plugged in and awake. This cannot provide availability while powered off/asleep.
@@ -70,3 +72,36 @@ soak from unit mocks. Installation/system-policy changes require selected scope.
 Exit with a reproducible supervised setup and rehearsed recovery, measured uptime
 limits and actionable health states. Dreaming28 remains off/unimplemented here.
 Primary Windows reference: [Task Scheduler](https://learn.microsoft.com/en-us/windows/win32/taskschd/task-scheduler-start-page).
+
+
+## Implementation/evidence boundary — 2026-10-19
+
+- A: native InteractiveToken/LeastPrivilege Task Scheduler plan/install/remove;
+  one owned API plus optional pinned loopback proxy, kernel/PG ownership gates,
+  and owned Job Object cleanup. Real same-identity task/key and native provider/
+  isolated PostgreSQL rehearsals recorded. No boot/pre-logon service claim.
+- B: fixed local health, DB/schema/provider/residency separation, bounded startup/
+  crash recovery, persisted crash stop, graceful owned API shutdown and existing
+  request/job fences. Real child-crash/replay and native failure cases checked.
+- C: snapshot/WhatIf/reversible AC tooling, measured sensors with explicit unknowns,
+  pressure/foreground deferral. No sleep/lid/firewall/login policy applied.
+- D: current-user DPAPI key provider, independent encrypted key capsule, consistent
+  backup/post-snapshot ledger pair, ongoing encrypted ledger refresh, atomic
+  verified receipts and protected-key isolated restore. No backup-format/schema
+  change or pruning; old credential/curiosity quarantine retained.
+- E: narrowly scoped daily backup task, singleton lease, latest attempt versus
+  last verified freshness,26-hour alert. Cadence/RPO/RTO require selection before
+  live use; no second general scheduler/Phase27 framework added.
+- F: public fake/native short rehearsals measured startup/reply/admission, native
+  host counters and backup/restore cost. The first four-hour attempt failed early
+  at about 3h15; Windows receipt-sharing/startup fixes and a short fault rehearsal
+  followed. The authorized continuous explicit-fake rerun passed 14,400.39 seconds:
+  14,278 health checks, zero unavailable samples, 1,428 public replies, encrypted
+  backup, isolated credential-quarantined restore and clean fixture shutdown.
+  It does not establish sustained native inference or installed uptime.
+  Installed reboot/logon/sleep, large-data/off-device and 24-hour
+  target results must be recorded separately; short tests never close those gates.
+
+All original checkpoints above remain the acceptance criteria. Implemented source
+is not proof that the user's normal installation is unattended-ready. Stop here;
+Phase27 scheduling and Phase28 dreaming remain unimplemented.

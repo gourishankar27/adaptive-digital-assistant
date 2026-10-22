@@ -1,5 +1,38 @@
 # Existing ADA HTTP contract
 
+## Phase30 additive explicit work
+
+Current export: **157 paths /206 schemas**, schema0020. The previous145 paths and
+193 schemas are preserved; only `CapabilitiesOutput.work_protocol` is added to an
+existing schema. `work_protocol=ada-work-v1` gates new owner-only work routes.
+They provide scoped list/detail/history, reserved project creation, exact Save
+preview/confirmation, operation receipts, selected-work brief creation/original
+GET, and separately reviewed follow-up/reminder operations. Existing scheduler,
+request/prompt/source trust, authentication and admin contracts are preserved.
+See [the endpoint map and recovery rules](../docs/PROJECTS-AND-FOLLOW-THROUGH.md).
+No new general tool or private admin task reader is registered.
+
+## Phase28 additive idle review
+
+Current export has145 paths/193 schemas and requires schema0019. Added owner
+routes are GET/POST `/v1/reflection/policy`, GET `/v1/reflection/receipts/{operation_id}`,
+GET `/v1/reflection/artifacts` and detail, POST artifact `/actions`, and GET
+`/v1/reflection/runs`. Capability `reflection_protocol=ada-reflection-v1` gates
+these tested flows; policy reports the independently disabled summary class.
+`/v1/admin/reflection` projects only fixed aggregate counts, safety and budgets
+under the existing current grant/audit fence (`monitor.reflection`).
+
+Every mutation binds an exact operation UUID/body to the authenticated owner;
+receipt replay never authorizes another owner. Policy is compare-and-swap by
+revision; enabling requires separate Phase27 automation consent and owned scopes.
+Completed-turn auto-selection is a distinct opt-in. Reviewed report Keep does not
+create a claim; explicit question opening creates no user turn. Summary Keep uses
+generated Phase13 episodes only when such a retained draft exists. Old prompt,
+request/citation and snapshot/replay contracts remain; old synthetic fixture
+snapshots are retained intentionally. See
+[the guide](../docs/IDLE-REFLECTION-AND-DREAM-REVIEW.md) for limits/recovery.
+
+
 ## Phase22 additive authentication
 
 The exported contract adds `/v1/auth` login/refresh, browser cookie equivalents,

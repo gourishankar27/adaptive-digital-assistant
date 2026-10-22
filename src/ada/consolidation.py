@@ -80,6 +80,9 @@ class ConsolidationService:
             capacity,
         )
         self.clock = clock
+        # Host operations may defer discretionary jobs; never grants authority.
+        self.discretionary_allowed = lambda: True
+        self.idle_work = lambda: False
         self._stop, self._thread = threading.Event(), None
 
     @property
@@ -469,7 +472,7 @@ class ConsolidationService:
                 ):
                     raise ServiceError(422, "consolidation_unselected_evidence")
 
-    def _generate(self, job):
+    def _generate(self, job, completion_fn=None):
         schema = SummaryResult if job.kind == "episode" else ExtractionResult
         selected = [
             pin
@@ -488,7 +491,7 @@ class ConsolidationService:
         )
         if sum(len(m["content"].encode("utf-8")) + 64 for m in messages) + 2048 + 512 > 8192:
             raise ServiceError(413, "consolidation_context_bound")
-        completion = self.provider.complete(messages, schema.model_json_schema())
+        completion = (completion_fn or self.provider.complete)(messages, schema.model_json_schema())
         if completion.model != job.model or len(completion.text.encode("utf-8")) > MAX_OUTPUT_BYTES:
             raise ServiceError(422, "consolidation_invalid_response")
         raw = json.loads(
@@ -575,6 +578,102 @@ class ConsolidationService:
         db.add_all(staged)
         return {"extraction_id": key, "proposal_ids": [p.id for p in staged]}
 
+    def _episode_in(self, db, job, result):
+        key = job_id(job.owner_id, job.id, "episode")
+        times = [source["created_at"] for source in job.snapshot]
+        db.add(
+            Episode(
+                owner_id=job.owner_id,
+                scope_id=job.scope_id,
+                id=key,
+                job_id=job.id,
+                summary_version=SUMMARY_VERSION,
+                model=job.model,
+                trust_class="model_generated",
+                summary=result,
+                sources=job.snapshot,
+                range_start=min(times),
+                range_end=max(times) + 1,
+                created_at=self.clock(),
+            )
+        )
+        return {"episode_id": key}
+
+    def keep_idle_summary(self, db, owner, scope, artifact, summary, pins, snapshot):
+        """An explicit owner review saves generated navigation, never a personal fact."""
+        owned_scope(db, owner, scope, lock=True)
+        checked = SummaryResult.model_validate(summary)
+        self._validate_support(checked.sections, pins)
+        key = job_id(owner, artifact, "reviewed-idle-summary")
+        old = db.get(ConsolidationJob, (owner, key))
+        if old:
+            if old.status != "completed" or old.scope_id != scope or old.snapshot != snapshot:
+                raise ServiceError(409, "consolidation_conflict")
+            return old.receipt["episode_id"]
+        if (
+            db.scalar(
+                select(func.count())
+                .select_from(ConsolidationJob)
+                .where(ConsolidationJob.owner_id == owner, ConsolidationJob.scope_id == scope)
+            )
+            >= MAX_JOBS
+        ):
+            raise ServiceError(413, "consolidation_retained_limit")
+        payload = {"job_id": key, "kind": "episode", "sources": pins}
+        policy = self._policy("episode")
+        digest = fingerprint(
+            {
+                "kind": "episode",
+                "policy": policy,
+                "model": self.provider.model,
+                "snapshot": snapshot,
+                "reviewed_idle_artifact": artifact,
+            }
+        )
+        job = ConsolidationJob(
+            owner_id=owner,
+            scope_id=scope,
+            id=key,
+            kind="episode",
+            version=VERSION,
+            model=self.provider.model,
+            write_hash=fingerprint(
+                {
+                    "domain": VERSION,
+                    "scope": scope,
+                    "input": payload,
+                    "reviewed_idle_artifact": artifact,
+                }
+            ),
+            input_hash=digest,
+            input=payload | {"policy": policy, "reviewed_idle_artifact": artifact},
+            snapshot=snapshot,
+            status="queued",
+            checkpoint="reserved",
+            attempt=0,
+            created_at=self.clock(),
+        )
+        db.add(job)
+        db.flush()
+        self._fresh(db, job)
+        for i, item in enumerate(snapshot):
+            db.add(
+                ConsolidationSource(
+                    owner_id=owner,
+                    scope_id=scope,
+                    job_id=key,
+                    ordinal=i,
+                    source_version_id=item["evidence"]["source_version_id"],
+                    source_hash=item["evidence"]["content_hash"],
+                    conversation_id=item["conversation_id"],
+                    event_id=item["event_id"],
+                )
+            )
+        job.attempt, job.started_at = 1, self.clock()
+        result = self._episode_in(db, job, checked.model_dump(mode="json"))
+        self._terminal(job, "completed", **result)
+        return result["episode_id"]
+
     def finish(self, reserved, result=None, error=None):
         with self.sessions.begin() as db:
             if db.bind.dialect.name == "postgresql":
@@ -605,25 +704,7 @@ class ConsolidationService:
                 return
             receipt = {}
             if job.kind == "episode":
-                key = job_id(job.owner_id, job.id, "episode")
-                times = [s["created_at"] for s in job.snapshot]
-                db.add(
-                    Episode(
-                        owner_id=job.owner_id,
-                        scope_id=job.scope_id,
-                        id=key,
-                        job_id=job.id,
-                        summary_version=SUMMARY_VERSION,
-                        model=job.model,
-                        trust_class="model_generated",
-                        summary=result,
-                        sources=job.snapshot,
-                        range_start=min(times),
-                        range_end=max(times) + 1,
-                        created_at=self.clock(),
-                    )
-                )
-                receipt = {"episode_id": key}
+                receipt = self._episode_in(db, job, result)
             elif job.kind == "proposals":
                 try:
                     receipt = self._publish_proposals(db, job, result)
@@ -658,9 +739,31 @@ class ConsolidationService:
             db.flush()
 
     def run_once(self):
+        try:
+            if not self.discretionary_allowed():
+                return self.idle_work()
+        except Exception:
+            return False
+        # Idle polling must not briefly occupy foreground inference admission.
+        with self.sessions() as db:
+            due = db.scalar(
+                select(ConsolidationJob.id)
+                .where(
+                    or_(
+                        ConsolidationJob.status == "queued",
+                        (ConsolidationJob.status == "running")
+                        & (ConsolidationJob.lease_until <= self.clock()),
+                    )
+                )
+                .limit(1)
+            )
+        if due is None:
+            return self.idle_work()
         if not self.capacity.acquire(blocking=False):
             return False
         try:
+            if not self.discretionary_allowed():
+                return False
             reserved = self.claim()
             if reserved is None:
                 return False

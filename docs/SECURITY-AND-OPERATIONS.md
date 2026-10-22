@@ -1,5 +1,15 @@
 # Security, retention and recovery
 
+Phase27 extends source to **0018 / 65 tables**,53 owner-content tables and
+`ada-postgres-backup-v4`. Scheduling consent, definitions, occurrences, inbox and
+receipts join erasure/recovery. Restore verifies original row hashes before
+disabling consent, quarantining schedules and fencing pending leases, in addition
+to existing credential/curiosity quarantine. Old0015/v1,0016/v2,0017/v3 and the
+separate0005 recovery path remain supported. See
+[the current guide](DURABLE-SCHEDULING-AND-REMINDERS.md). No live migration,
+backup/restore or content erasure was performed by this implementation; earlier
+dated policy sections retain their original scope.
+
 Phase25 extends source to **0017 / 60 tables**,48owner-content tables and reviewed
 backup-v3. Old0015/v1 and0016/v2 restore remain supported. Restore disables curiosity
 after original row verification, in addition to quarantining credentials. See

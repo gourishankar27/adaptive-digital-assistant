@@ -387,6 +387,7 @@ class DocumentUpload(Base):
     input_hash: Mapped[str] = mapped_column(String(64))
     raw_hash: Mapped[str] = mapped_column(String(64))
     raw_bytes: Mapped[bytes] = mapped_column(LargeBinary)
+    extraction: Mapped[dict | None] = mapped_column(JSON)
     raw_size: Mapped[int] = mapped_column(Integer)
     available_from: Mapped[int] = mapped_column(BigInteger)
     available_to: Mapped[int | None] = mapped_column(BigInteger)
@@ -485,7 +486,7 @@ class AdminAudit(Base):
         CheckConstraint("actor_kind IN ('user', 'local_operator')", name="admin_audit_actor"),
         CheckConstraint(
             "action IN ('role.grant', 'role.revoke', 'monitor.me', 'monitor.overview', "
-            "'monitor.requests', 'monitor.request', 'monitor.providers', 'monitor.audit')",
+            "'monitor.requests', 'monitor.request', 'monitor.providers', 'monitor.audit', 'monitor.scheduling', 'monitor.reflection')",
             name="admin_audit_action",
         ),
         CheckConstraint(

@@ -24,7 +24,7 @@ def test_ollama_payload_and_usage():
             },
         )
 
-    out = OllamaProvider(Settings(), httpx.MockTransport(handle)).complete(
+    out = OllamaProvider(Settings(_env_file=None), httpx.MockTransport(handle)).complete(
         [{"role": "user", "content": "hello"}]
     )
     assert out.text == "reply" and out.input_tokens == 5

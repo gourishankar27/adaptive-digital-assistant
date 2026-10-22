@@ -1,6 +1,7 @@
 # Phase 29 — natural local speech, with a measured device gate
 
-Status: **Proposed; planning/design first.** Inputs: 17/17-A source, en-US primary
+Status: **Study/interface and platform-preview source locally checked; new runtime
+selection and physical activation pending (2026-10-21).** Inputs: 17/17-A source, en-US primary
 language, target S24 FE/Android16, G-22/G-27. The current review excludes connected
 phone testing. Follow [shared rules](FUTURE-ROADMAP.md). Do not mark voice ready
 or select a device runtime solely from desktop/emulator results.
@@ -65,3 +66,21 @@ Primary candidates: [sherpa-onnx Android](https://k2-fsa.github.io/sherpa/onnx/a
 [whisper.cpp](https://github.com/ggml-org/whisper.cpp),
 [Kokoro model card](https://huggingface.co/hexgrad/Kokoro-82M).
 Recheck exact versions/licenses at implementation; none establishes S24 FE quality.
+
+## Selected implementation boundary — 2026-10-21
+
+[Study, local contract, usage and target protocol](../docs/NATURAL-LOCAL-SPEECH.md)
+records exact candidate revisions, separate license findings and unresolved bundle
+clearance. A is closed as an evidence-qualified study, **not** runtime selection or
+permission to redistribute a final bundle. B defines opt-in installation/removal,
+buffers/failures/fallback; implements versioned adapter/task/status metadata,
+strict pinned manifest/byte validation and platform public preview/rate choices.
+No downloader, importer, installer, model loader or activation control exists.
+Style remains normal and explicitly unsupported as a separate platform control.
+C preserves original ASR, explicit endorsement and completed reply; generated
+cleanup/shorter adaptations remain off. D is deferred as this phase's exit permits:
+no phone is connected and no new model is enabled. Reopen17-A's audible focus and
+native permission gates, then measure baseline/thresholds before candidate scoring.
+Host/emulator evidence and retained failures/skips are in STATUS/WORKLOG. No server
+contract, schema, journal, dependency, live configuration or later-phase change;
+no deployment.

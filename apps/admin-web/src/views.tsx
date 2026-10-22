@@ -40,7 +40,7 @@ const requestKeys = ['owner_id', 'request_id', 'status', 'provider', 'created_fr
 const auditKeys = ['actor_id', 'action', 'outcome', 'limit', 'offset'];
 const allowedFilters = (params: URLSearchParams, keys: string[]) => Object.fromEntries([...params].filter(([key, value]) => keys.includes(key) && value.length <= 80));
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const auditActions = ['role.grant', 'role.revoke', 'monitor.me', 'monitor.overview', 'monitor.providers', 'monitor.requests', 'monitor.request', 'monitor.audit'];
+const auditActions = ['role.grant', 'role.revoke', 'monitor.me', 'monitor.overview', 'monitor.providers', 'monitor.requests', 'monitor.request', 'monitor.audit', 'monitor.scheduling', 'monitor.reflection'];
 function FilterForm({ filters, audit = false, apply }: { filters: Filters; audit?: boolean; apply: (value: Filters) => void }) {
   const [error, setError] = useState('');
   function submit(event: FormEvent<HTMLFormElement>) {

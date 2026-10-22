@@ -29,4 +29,7 @@ def rotate_token(sessions, name: str) -> str:
         if user is None:
             raise ValueError("User not found")
         user.token_hash = token_hash(token)
+        from ada.scheduling import pause_origin
+
+        pause_origin(db, user.id, "legacy", user.id, "originating_credential_rotated")
     return token

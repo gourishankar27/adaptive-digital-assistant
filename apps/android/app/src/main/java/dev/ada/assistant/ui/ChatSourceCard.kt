@@ -64,7 +64,7 @@ fun ChatSourceCard(source: CitationDto, requestId: UUID, modifier: Modifier = Mo
             )
             if (source.conflict) Text("Other selected assertions have different values. Review the context.", color = MaterialTheme.colorScheme.error)
             Text("A source records provenance. It does not guarantee that an assertion or ADA’s reply is correct.", style = MaterialTheme.typography.bodySmall)
-            TextButton(onClick = { details = !details }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) {
+            AdaTextButton(onClick = { details = !details }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) {
                 Text(if (details) "Hide source details" else "Source details")
             }
             if (details) {
