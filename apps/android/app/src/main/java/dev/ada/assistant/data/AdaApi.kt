@@ -173,6 +173,10 @@ interface AdaApi {
     suspend fun createClaim(connection: ConnectionCredential, scope: UUID, body: ClaimInputDto): ApiResult<ClaimDto>
     suspend fun supersede(connection: ConnectionCredential, id: UUID, body: SupersedeInputDto): ApiResult<ClaimDto>
     suspend fun retrieve(connection: ConnectionCredential, scope: UUID, body: RetrieveInputDto): ApiResult<RetrievalDto>
+    suspend fun edgeDevices(connection:ConnectionCredential):ApiResult<List<EdgeDeviceDto>> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun edgeDeviceWrite(connection:ConnectionCredential,op:EdgePending):ApiResult<EdgeDeviceDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun edgeSync(connection:ConnectionCredential,op:EdgePending):ApiResult<EdgeProposalDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
+    suspend fun edgeProposal(connection:ConnectionCredential,id:UUID):ApiResult<EdgeProposalDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
     suspend fun uploadDocument(connection: ConnectionCredential, pending: PendingDocument): ApiResult<DocumentUploadDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
     suspend fun documentUpload(connection: ConnectionCredential, id: UUID): ApiResult<DocumentUploadDto> = ApiResult.Failure(ApiFailure.IncompatibleContract)
     suspend fun documentUploads(connection: ConnectionCredential, scope: UUID, limit: Int = 50, offset: Int = 0): ApiResult<List<DocumentUploadDto>> = ApiResult.Failure(ApiFailure.IncompatibleContract)
@@ -498,9 +502,13 @@ class HttpAdaApi(callTimeoutMillis: Long = 65_000) : AdaApi {
     override suspend fun createClaim(connection: ConnectionCredential, scope: UUID, body: ClaimInputDto) = call<ClaimDto>(connection, "scopes/$scope/claims", adaJson.encodeToString(body))
     override suspend fun supersede(connection: ConnectionCredential, id: UUID, body: SupersedeInputDto) = call<ClaimDto>(connection, "claims/$id/supersede", adaJson.encodeToString(body))
     override suspend fun retrieve(connection: ConnectionCredential, scope: UUID, body: RetrieveInputDto) = call<RetrievalDto>(connection, "scopes/$scope/retrieve", adaJson.encodeToString(body))
+    override suspend fun edgeDevices(connection:ConnectionCredential)=call<List<EdgeDeviceDto>>(connection,"edge/devices")
+    override suspend fun edgeDeviceWrite(connection:ConnectionCredential,op:EdgePending)=call<EdgeDeviceDto>(connection,edgePath(op),op.body)
+    override suspend fun edgeSync(connection:ConnectionCredential,op:EdgePending)=call<EdgeProposalDto>(connection,edgePath(op),op.body)
+    override suspend fun edgeProposal(connection:ConnectionCredential,id:UUID)=call<EdgeProposalDto>(connection,"edge/proposals/$id")
     override suspend fun uploadDocument(connection: ConnectionCredential, pending: PendingDocument): ApiResult<DocumentUploadDto> {
         try { validateDocument(pending) } catch (_: SessionStorageException) { return ApiResult.Failure(ApiFailure.Validation) }
-        return call(connection, "scopes/${pending.scopeId}/documents/uploads/${pending.uploadId}",
+        return call(connection, "scopes/${pending.scopeId}/documents/${if (pending.mediaType == "application/pdf") "pdf-uploads" else "uploads"}/${pending.uploadId}",
             query = mapOf("source_id" to pending.sourceId.toString(), "filename" to pending.filename,
                 "available_from" to pending.availableFrom, "available_to" to pending.availableTo),
             raw = pending.rawBytes(), mediaType = pending.mediaType)

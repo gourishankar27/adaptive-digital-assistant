@@ -32,7 +32,7 @@ def test_populated_0019_upgrade_replay_and_schema_drift(harness):
     command.check(h["config"])
     assert send(h, cid, "Public phase30 migration replay.", key).json() == saved
     with h["sessions"]() as db:
-        assert db.scalar(text("SELECT version_num FROM alembic_version")) == "0020"
+        assert db.scalar(text("SELECT version_num FROM alembic_version")) == "0021"
         assert (
             len(
                 [
@@ -41,7 +41,7 @@ def test_populated_0019_upgrade_replay_and_schema_drift(harness):
                     if not n.startswith(("claim_fts", "document_fts"))
                 ]
             )
-            == 74
+            == 76
         )
 
 
@@ -197,8 +197,8 @@ def test_native_encrypted_v6_work_snapshot_survives_restore(recovery_database, t
         phrase = "Public synthetic work recovery phrase"
         artifact = backup(url, binary, tmp_path, phrase, settings)["artifact"]
         manifest, _ = unpack(read_artifact(artifact, phrase))
-        assert manifest["head"] == "0020" and manifest["format"] == "ada-postgres-backup-v6"
-        assert len(manifest["tables"]) == 74 and manifest["tables"]["work_items"]["rows"] == 1
+        assert manifest["head"] == "0021" and manifest["format"] == "ada-postgres-backup-v7"
+        assert len(manifest["tables"]) == 76 and manifest["tables"]["work_items"]["rows"] == 1
         with sessions() as db:
             ledger = deletion_ledger(db.connection())
         ledger_path = write_artifact(

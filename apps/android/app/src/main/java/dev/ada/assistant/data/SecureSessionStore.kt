@@ -63,6 +63,11 @@ interface SessionStore {
     suspend fun scheduleJournal(identity: SessionIdentity): ScheduleJournal? = null
     suspend fun saveScheduleOperation(identity: SessionIdentity, operation: SchedulePending) { throw SessionStorageException() }
     suspend fun removeScheduleOperation(identity: SessionIdentity, operationId: UUID) { throw SessionStorageException() }
+    suspend fun edgeJournal(identity:SessionIdentity):EdgeJournal?=null
+    suspend fun saveEdgeOperation(identity:SessionIdentity,operation:EdgePending) { throw SessionStorageException() }
+    suspend fun removeEdgeOperation(identity:SessionIdentity,operationId:UUID) { throw SessionStorageException() }
+    suspend fun saveEdgeDraft(identity:SessionIdentity,draft:EdgeLocalDraft?) { throw SessionStorageException() }
+    suspend fun acknowledgeEdgeProposal(identity:SessionIdentity,id:UUID) { throw SessionStorageException() }
     suspend fun workJournal(identity: SessionIdentity): WorkJournal? = null
     suspend fun saveWorkOperation(identity: SessionIdentity, operation: WorkPending) { throw SessionStorageException() }
     suspend fun removeWorkOperation(identity: SessionIdentity, operationId: UUID) { throw SessionStorageException() }
@@ -152,7 +157,7 @@ class SessionTokenStorageAdapter(private val sessions: SessionStore) : SecureTok
 
 @Serializable
 private data class PersistedSession(
-    val version: Int = 17,
+    val version: Int = 18,
     val credential: StoredCredential,
     val pending: PendingMessage? = null,
     val memoryPending: PendingMemory? = null,
@@ -166,6 +171,7 @@ private data class PersistedSession(
     val scheduleJournal: ScheduleJournal? = null,
     val reflectionJournal: ReflectionJournal? = null,
     val workJournal: WorkJournal? = null,
+    val edgeJournal:EdgeJournal?=null,
     val consolidationJournal: ConsolidationJournal? = null,
     val expressionJournal: ExpressionJournal? = null,
     val learningJournal: LearningJournal? = null,
@@ -234,6 +240,35 @@ internal class EncryptedSessionStore(
         if (previous.credential.identity != identity) return@transaction
         val remaining = previous.scheduleJournal?.operations?.filter { it.operationId != operationId } ?: return@transaction
         write(previous.copy(scheduleJournal = if (remaining.isEmpty()) null else ScheduleJournal(identity, remaining)))
+    }
+    override suspend fun edgeJournal(identity: SessionIdentity): EdgeJournal? = transaction { read()?.takeIf { it.credential.identity == identity }?.edgeJournal }
+    override suspend fun saveEdgeOperation(identity: SessionIdentity, operation: EdgePending) = transaction {
+        val previous = read() ?: throw SessionStorageException(SessionStoreFailure.IdentityMismatch)
+        if (previous.credential.identity != identity) throw SessionStorageException(SessionStoreFailure.IdentityMismatch)
+        val operations = previous.edgeJournal?.operations ?: emptyList()
+        val old = operations.find { it.operationId == operation.operationId }
+        if (old != null && old != operation) throw SessionStorageException(SessionStoreFailure.PendingConflict)
+        val journal = (previous.edgeJournal ?: EdgeJournal(identity)).copy(operations = if (old == null) operations + operation else operations)
+        try { validateEdgeJournal(journal) } catch (_: Exception) { throw SessionStorageException(SessionStoreFailure.InvalidPayload) }
+        write(previous.copy(edgeJournal = journal))
+    }
+    override suspend fun removeEdgeOperation(identity: SessionIdentity, operationId: UUID) = transaction {
+        val previous = read() ?: return@transaction
+        if (previous.credential.identity != identity) return@transaction
+        val remaining = previous.edgeJournal?.operations?.filter { it.operationId != operationId } ?: return@transaction
+        write(previous.copy(edgeJournal = previous.edgeJournal?.copy(operations = remaining)))
+    }
+    override suspend fun saveEdgeDraft(identity:SessionIdentity,draft:EdgeLocalDraft?) = transaction {
+        val previous=read() ?: throw SessionStorageException(SessionStoreFailure.IdentityMismatch)
+        if(previous.credential.identity!=identity) throw SessionStorageException(SessionStoreFailure.IdentityMismatch)
+        val journal=(previous.edgeJournal ?: EdgeJournal(identity)).copy(draft=draft)
+        validateEdgeJournal(journal);write(previous.copy(edgeJournal=journal))
+    }
+    override suspend fun acknowledgeEdgeProposal(identity:SessionIdentity,id:UUID) = transaction {
+        val previous=read() ?: return@transaction
+        if(previous.credential.identity!=identity) return@transaction
+        val journal=previous.edgeJournal ?: return@transaction
+        write(previous.copy(edgeJournal=journal.copy(operations=journal.operations.filter{it.operationId!=id},draft=journal.draft?.takeUnless{it.proposalId==id},lastProposal=id)))
     }
     override suspend fun workJournal(identity: SessionIdentity): WorkJournal? = transaction { read()?.takeIf { it.credential.identity == identity }?.workJournal }
     override suspend fun saveWorkOperation(identity: SessionIdentity, operation: WorkPending) = transaction {
@@ -407,6 +442,7 @@ internal class EncryptedSessionStore(
             scheduleJournal = previous?.scheduleJournal?.takeIf { sameIdentity && it.identity == credential.identity },
             reflectionJournal = previous?.reflectionJournal?.takeIf { sameIdentity && it.identity == credential.identity },
             workJournal = previous?.workJournal?.takeIf { sameIdentity && it.identity == credential.identity },
+            edgeJournal = previous?.edgeJournal?.takeIf { sameIdentity && it.identity==credential.identity },
             agentJournal = previous?.agentJournal?.takeIf { sameIdentity && it.identity == credential.identity },
             consolidationJournal = previous?.consolidationJournal?.takeIf { sameIdentity && it.identity == credential.identity },
             expressionJournal = previous?.expressionJournal?.takeIf { sameIdentity && it.identity == credential.identity },
@@ -558,7 +594,7 @@ internal class EncryptedSessionStore(
             if (plaintext.size > MAX_PLAINTEXT_BYTES) throw IOException("Invalid session record")
             val snapshot = json.decodeFromString<PersistedSession>(plaintext.toString(Charsets.UTF_8))
             if (snapshot.version < 10 && (snapshot.voiceDraft != null || snapshot.pending?.voiceTranscript != null || snapshot.pending?.voiceScopeId != null)) throw IOException("Unsupported session record")
-            if (snapshot.version !in 1..17 || (snapshot.version < 17 && snapshot.workJournal != null) || (snapshot.version < 16 && snapshot.reflectionJournal != null) || (snapshot.version < 15 && snapshot.scheduleJournal != null) || (snapshot.version < 14 && snapshot.curiosityJournal != null) || (snapshot.version < 13 && snapshot.researchJournal != null) || (snapshot.version < 12 && snapshot.credential.passwordSession) || (snapshot.version < 11 && snapshot.securityJournal != null) || (snapshot.version == 1 && snapshot.memoryPending != null) ||
+            if (snapshot.version !in 1..18 || (snapshot.version < 18 && (snapshot.edgeJournal != null || snapshot.documentPending?.mediaType == "application/pdf")) || (snapshot.version < 17 && snapshot.workJournal != null) || (snapshot.version < 16 && snapshot.reflectionJournal != null) || (snapshot.version < 15 && snapshot.scheduleJournal != null) || (snapshot.version < 14 && snapshot.curiosityJournal != null) || (snapshot.version < 13 && snapshot.researchJournal != null) || (snapshot.version < 12 && snapshot.credential.passwordSession) || (snapshot.version < 11 && snapshot.securityJournal != null) || (snapshot.version == 1 && snapshot.memoryPending != null) ||
                 (snapshot.version < 3 && snapshot.documentPending != null) || (snapshot.version < 4 && snapshot.entityPending != null) ||
                 (snapshot.version < 5 && (snapshot.proposalPending != null || snapshot.proposalDraft != null)) || (snapshot.version < 6 && snapshot.agentJournal != null) || (snapshot.version < 7 && snapshot.consolidationJournal != null) || (snapshot.version < 8 && snapshot.expressionJournal != null) || (snapshot.version < 9 && snapshot.learningJournal != null)) {
                 throw IOException("Unsupported session record")
@@ -568,6 +604,7 @@ internal class EncryptedSessionStore(
                 if (it.identity != snapshot.credential.identity) throw IOException("Invalid session binding")
                 validateScheduleJournal(it)
             }
+            snapshot.edgeJournal?.let { require(it.identity==snapshot.credential.identity);validateEdgeJournal(it) }
             snapshot.workJournal?.let {
                 if (it.identity != snapshot.credential.identity) throw SessionStorageException(SessionStoreFailure.IdentityMismatch)
                 validateWorkJournal(it)
@@ -640,7 +677,7 @@ internal class EncryptedSessionStore(
     private fun write(snapshot: PersistedSession) {
         var plaintext: ByteArray? = null
         try {
-            plaintext = json.encodeToString(snapshot.copy(version = 17)).toByteArray(Charsets.UTF_8)
+            plaintext = json.encodeToString(snapshot.copy(version = 18)).toByteArray(Charsets.UTF_8)
             if (plaintext.size > MAX_PLAINTEXT_BYTES) throw SessionStorageException(SessionStoreFailure.InvalidPayload)
             val ciphertext = cipher.encrypt(plaintext)
             if (ciphertext.size > MAX_FILE_BYTES) throw SessionStorageException(SessionStoreFailure.InvalidPayload)

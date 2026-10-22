@@ -4101,3 +4101,106 @@ was stopped; no physical device, installed database/service/proxy, Ollama,
 Task Scheduler, power policy or Tailscale setup was operated. Final checks found no listeners on owned test ports55421/18423/19822/5584/5585
 and no ADB devices remaining. Normal APK output restoration passed22s.
 No deployment/Phase31 work.
+
+
+### 2026-10-22 — selected19A offline-draft study and31 text PDFs — source0021
+
+Scope: user selected19A offline draft replies and31 text PDFs; after SmolLM2
+failed, explicitly approved Qwen3-0.6B evaluation on the connected S24 FE. No19B
+integration, later phase, production migration/reset or deployment. The existing
+736-file starting inventory and Phase30 OpenAPI were retained under ignored
+validation cache; unrelated edits were preserved. Root/Android/admin rules,
+requested architecture/state/workflow/roadmap, source/OpenAPI/migrations/tests
+were inspected before implementation.
+
+Changed behavior: a real secret-free Docker parser, immutable original/derived
+PDF hashes, parser/image identity, page/code-point maps, atomic publish, fail-closed
+retrieval, exact binary Android review and page source cards. Text/Markdown routes
+and old prompts/replay remain unchanged. OCR stays disabled; scans/blank or active,
+encrypted/malformed input is unsupported, with a visible fixed failed state. No
+filesystem crawl, URL/Office/archive ingestion or visual PDF renderer.
+
+Selected19A adds owner/device P-256 enrollment/revocation, exact signed proposal
+receipts and monotonic sequences, source/epoch/hash checks, encrypted recovery
+and a dormant isolated-UID CPU JNI adapter. Generated drafts cannot create chat
+turns, factual claims, tools or server replies. Both models failed quality, so
+EDGE_QUALITY_APPROVED=false and edge_inference=false. Normal APKs omit JNI and
+weights; PDF and draft sync are separately off by default. Protocol support is
+not a model-quality claim. Guides: docs/PDF-INGESTION.md and ON-DEVICE-DRAFTS.md.
+
+Data/API: new immutable migration0021 (released0001–0020 retained), nullable upload
+extraction and two edge tables.76 installed/75 metadata tables;63 owner-content.
+Backup-v7 includes all projections/drafts, reads v1–v6, and revokes device signing
+registrations on restore. Owner erasure covers the new inventory. Export164paths/
+216schemas; all157 earlier paths remain. Android25/0.31.0-documents-drafts,
+journal18 reads1–17. No private admin reader, prompt upgrade or dependency/wrapper
+upgrade; pypdf is a separate exact hash-locked container dependency.
+
+Checks actually run before closeout (Windows, native PostgreSQL18.6 disposable
+loopback55421; actual local Docker Engine29.8.2):
+
+- Relevant baseline50passed/46skips81.75s without native env; relevant native
+  baseline93passed/3SQLite-onlyskips303.18s. New PDF/edge red collection initially
+  failed before their modules existed. Initial Android300-unit/lint/debug baseline
+  passed before later PDF preview, edge and recovery additions.
+- Actual PDF publication flow19passed71.79s; real boundary/egress/secret-env,
+  crash/hang/stdout-flood/compressed-expansion selection5passed24.31s. The probe
+  verified UID65534,256MiB memory/address-space,1CPU,16processes, no application
+  environment and failed outbound connection. Fresh reviewed migration/backup/
+  work/edge/PDF selection32passed133.82s. Later signature/source/sequence/erasure/
+  PDF selection28passed/1SQLite-onlynative-race skip125.86s. Recovery and exported
+  contract selection8passed40.74s, including populated0020 upgrade/replay and
+  actual encrypted v7 original/map/draft restore with revoked registration.
+- Admin regenerated contract/check/type/lint,72units27.98s and build passed;
+  npmci completed270packages/0reportedvulnerabilities with existing encoding
+  deprecation. Actual PostgreSQL/Chromium8cases passed27.6s. No runtime admin UI
+  was added. Existing Starlette/httpx deprecation remains.
+- New encrypted draft journal tests and Android unit/lint/debug passed2m19s;
+  first native validation build collided with a concurrent Gradle R.jar lock.
+  Sequential retry passed25s. The optional library builder compiled all77targets,
+  verified AArch64/16KiB ELF loads, and produced source/library hash metadata.
+  This is a build check, not packaged runtime acceptance.
+- A separate API37 x86_64 emulator with real HTTP/Keystore/public PDF passed
+  binary review/upload, page-linked source display and actual force-stop exact
+  GET-only recovery/explicit identical upload retry:4.449s/4.461s. First attempt
+  used an exact-text assertion against a longer correct preview; corrected to
+  substring. No automatic upload, claim or private content was created.
+
+Physical/model evidence: SM-S721U1, Android16/API36, arm64-v8a, SoC s5e9945,
+4KiB pages,7397724KiB RAM, about2.18GiB initially available and12GB storage free.
+Only public synthetic CPU CLI prompts, fresh processes and USB charging were used.
+SmolLM2 Q8 (386404992bytes) ran roughly1–2s/~417MiB RSS but invented context,
+leaked instructions or misdirected replies. An initial log-disable trial suppressed
+output and is not quality evidence. Corrected public runs established the failure.
+User-approved official Qwen Q8_0 (639446688bytes, full SHA verified) measured
+2.515–3.515s/720.41–720.84MiB peak RSS,39.9→40.3C battery sensor. Fresh held-out
+v2 after explicit first-person instructions:2.907–3.485s,3/4 met all constraints;
+one missed the requested deadline question. The strict all-cases gate failed.
+No larger model was selected or downloaded. Model licenses/support were checked
+against official cards; pinned llama.cpp is MIT, model cards Apache-2.0, pypdf
+BSD-3-Clause. Source lock and license/build details are in the study guide.
+
+Retained failures/corrections: an intermediate storage/retrieval selection had
+6failures/103pass/3skips from newly registered inventory and stale table counts;
+fresh processes/counts corrected closure. Initial migration autogeneration included
+unrelated native GIN index drops; these were removed from unreleased0021 only.
+The first frozen-migration run3fail/14pass/15errors was followed by the reviewed
+32-pass run above. Gradle MessageDigest shadowing and Long/Int PSS typing were
+corrected. The broad backend run began before final receipt/model/principal guards
+and before contract regeneration; early contract failures are not final evidence.
+It also exposed the existing extraction benchmark racing unrelated background
+transactions; its standalone corpus now disables those workers without weakening
+the no-transaction provider assertion. Fresh SQLite/PostgreSQL corpus2passed12.90s
+after an intervening1pass/1fail run. Fresh final affected checks follow below.
+
+Remaining gates: the phone disconnected before the isolated-service APK/native
+FD/UID/network-permission/cancellation/signed recovery probe could start. Its
+physical runner failed the device-identity read and installed nothing. A reconnect
+request is pending; CLI trials do not prove JNI/service behavior. No human draft
+acceptance, sustained thermal/low-memory study, unplugged battery, physical PDF
+layout/TalkBack, older Android/16KiB target, representative personal-document
+acceptance, OCR need/quality, distributable-model approval or deployment was run.
+PSS return checking is not an Android OS RSS cap. A future candidate needs fresh
+quality and packaged-runtime evidence before activation. Full final-source suite
+status, final affected checks, audits and owned infrastructure cleanup follow in
+the closeout entry; no unfinished run is claimed as a pass.

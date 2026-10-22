@@ -48,7 +48,10 @@ def build(output):
             + "\n",
             encoding="utf-8",
         )
-        print("Built immutable PDF parser image; not enabled or deployed. Manifest:", output.as_posix())
+        print(
+            "Built immutable PDF parser image; not enabled or deployed. Manifest:",
+            output.as_posix(),
+        )
 
 
 if __name__ == "__main__":

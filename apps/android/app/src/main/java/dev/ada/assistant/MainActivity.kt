@@ -43,7 +43,7 @@ class MainActivity : ComponentActivity() {
         val viewModel = ViewModelProvider(this, object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T =
-                ChatViewModel(HttpAdaApi(), AndroidSessionStore(applicationContext), BuildConfig.DEBUG, voiceClock = android.os.SystemClock::elapsedRealtime)
+                ChatViewModel(HttpAdaApi(), AndroidSessionStore(applicationContext), BuildConfig.DEBUG, voiceClock = android.os.SystemClock::elapsedRealtime, edgePlatform = dev.ada.assistant.edge.EdgePlatform(applicationContext))
                     .also { it.restore() } as T
         })[ChatViewModel::class.java]
         chatModel = viewModel

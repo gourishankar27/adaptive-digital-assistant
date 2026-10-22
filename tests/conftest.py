@@ -60,6 +60,10 @@ def harness(request, tmp_path, monkeypatch):
         max_parallel=2,
         consolidation_worker_enabled=False,
         scheduler_enabled=False,
+        # Owner .env opt-ins must never activate real optional boundaries in fixtures.
+        web_research_enabled=False,
+        pdf_ingestion_enabled=False,
+        edge_draft_sync_enabled=False,
     )
     provider = RecordingProvider()
     app = create_app(settings, provider, sessions)

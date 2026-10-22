@@ -1,6 +1,7 @@
 package dev.ada.assistant.ui
 
 import dev.ada.assistant.data.WORK_PROTOCOL
+import dev.ada.assistant.data.EDGE_PROTOCOL
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
@@ -165,6 +166,7 @@ fun ChatApp(vm: ChatViewModel, openSettings: () -> Unit) {
                 ChatDestination.Research -> ResearchScreen(vm.research, state.conversation)
                 ChatDestination.Curiosity -> CuriosityScreen(vm.curiosity, state.conversation, state.profiles.items, vm::openConversation)
                 ChatDestination.Work -> WorkScreen(vm.work, vm::openConversation, { vm.navigate(ChatDestination.Schedules) }, { vm.navigate(ChatDestination.Curiosity) })
+                ChatDestination.Edge -> EdgeScreen(vm.edge)
                 ChatDestination.Reflection -> ReflectionScreen(vm.reflection, state.scopes.items, state.profiles.items, vm::openConversation)
                 ChatDestination.Schedules -> ScheduleScreen(vm.scheduling, state.scopes.items, state.profiles.items, vm::openConversation)
                 ChatDestination.Tools -> AgentScreen(vm.agents, state.conversation, state.account, state.scopes.items.firstOrNull { it.id == state.conversation?.scope_id }?.name)
@@ -852,6 +854,7 @@ private fun AccountSettingsScreen(state: ChatState, vm: ChatViewModel, openSetti
         AdaSettingsGroup("Learning and continuity", "settings-learning") { LearningSettings(vm.learning, state) }
         if (state.capabilities?.curiosity_protocol == "ada-curiosity-v1") AdaTextButton({ vm.navigate(ChatDestination.Curiosity) }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Questions & curiosity settings") }
         if (state.capabilities?.work_protocol == WORK_PROTOCOL) AdaTextButton({ vm.navigate(ChatDestination.Work) }, modifier = Modifier.testTag("settings-work")) { Text("Projects & next actions") }
+        if (state.capabilities?.device_draft_sync == EDGE_PROTOCOL) AdaTextButton({ vm.navigate(ChatDestination.Edge) }, modifier = Modifier.testTag("settings-edge")) { Text("Device drafts · study") }
         if (state.capabilities?.reflection_protocol == "ada-reflection-v1") AdaTextButton({ vm.navigate(ChatDestination.Reflection) }, modifier = Modifier.testTag("settings-reflection")) { Text("While you were away") }
         if (state.capabilities?.scheduling_protocol == "ada-scheduling-v1") AdaTextButton({ vm.navigate(ChatDestination.Schedules) }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("settings-schedules")) { Text("Reminders & inbox") }
         HorizontalDivider()

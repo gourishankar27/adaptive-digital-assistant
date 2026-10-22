@@ -30,6 +30,7 @@ from ada.models import (
     SourceVersion,
     now_ms,
 )
+from ada.pdfs import projection_hash
 from ada.proposal_contracts import Candidate, ExtractionResult
 from ada.proposal_models import MemoryExtraction, MemoryProposal
 from ada.proposals import MAX_EXTRACTIONS, MAX_PROPOSALS, canonical, fingerprint, stable_id
@@ -215,7 +216,7 @@ class ConsolidationService:
                 v.trust_class != "imported_untrusted"
                 or v.content_hash != content_hash(v.content)
                 or c.content_hash != v.content_hash
-                or u.raw_hash != v.content_hash
+                or projection_hash(u, v.content) != v.content_hash
                 or not 0 <= c.span_start < c.span_end <= len(v.content)
                 or v.content[c.span_start : c.span_end] != c.quote
                 or c.quote_hash != content_hash(c.quote)

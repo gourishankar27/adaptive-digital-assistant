@@ -1,3 +1,4 @@
+import java.security.MessageDigest
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult
 
@@ -21,9 +22,29 @@ android {
         manifestPlaceholders["adaAppLabel"] = if (validationId == null) "ADA" else "ADA validation"
         minSdk = 26
         targetSdk = 36
-        versionCode = 24
-        versionName = "0.30.0-work"
+        versionCode = 25
+        versionName = "0.31.0-documents-drafts"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+    val edgeNativeDir = providers.gradleProperty("adaEdgeNativeDir").orNull
+    defaultConfig.buildConfigField("boolean", "EDGE_RUNTIME", if(edgeNativeDir == null) "false" else "true")
+    if(edgeNativeDir != null) {
+        val nativeRoot = file(edgeNativeDir)
+        val library = nativeRoot.resolve("arm64-v8a/libada_edge.so")
+        require(library.isFile && nativeRoot.resolve("runtime-manifest.json").isFile) { "Build the verified optional native runtime first" }
+        val manifest = groovy.json.JsonSlurper().parse(nativeRoot.resolve("runtime-manifest.json")) as Map<*, *>
+        val digest = MessageDigest.getInstance("SHA-256").digest(library.readBytes()).joinToString("") { "%02x".format(it) }
+        require(manifest["runtime"] == "llama.cpp-620d2225cc436ab0b001e3200e590e3b286ef9ab" && manifest["library_sha256"] == digest && manifest["abi"] == "arm64-v8a") { "Optional native library or runtime manifest changed" }
+        require(manifest["version"] == "ada-edge-native-v1" && manifest["source_archive_sha256"] == "1d4a987d9bd048f6e93107e838026438df70fbde237fc0c69c63d600512b4bd9" && manifest["ndk"] == "30.0.16248370" && (manifest["minimum_load_alignment"] as? Number)?.toLong()?.let { it >= 16384 } == true) { "Optional native build provenance is incomplete" }
+        val inputs = manifest["files"] as Map<*, *>
+        for(name in listOf("ops/edge-runtime/native.cpp", "ops/edge-runtime/CMakeLists.txt")) {
+            val source = rootProject.file("../../$name").readText().replace("\r\n", "\n").toByteArray()
+            require(inputs[name] == MessageDigest.getInstance("SHA-256").digest(source).joinToString("") { "%02x".format(it) }) { "Rebuild the optional native runtime after source edits" }
+        }
+        sourceSets["main"].jniLibs.srcDir(nativeRoot)
+        require(nativeRoot.resolve("notices/ada-edge-third-party.txt").isFile) { "Native source license notices are required" }
+        sourceSets["main"].assets.srcDir(nativeRoot.resolve("notices"))
+        defaultConfig.ndk.abiFilters.add("arm64-v8a")
     }
     buildTypes {
         debug { applicationIdSuffix = ".debug" }

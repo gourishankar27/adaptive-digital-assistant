@@ -1,5 +1,12 @@
 # ADA development roadmap — Phase 20 onward
 
+Subsequent selection, 2026-10-22: Phase31 text-PDF source and19A offline-draft
+study/protocol are implemented with actual checks/limits in STATUS/WORKLOG.
+Both measured mobile candidates failed reply quality, so local drafting remains
+disabled;19A exit is open. OCR and19B integrations remain conditional. Current
+0021/backup-v7 and Android25/journal18 are source requirements, not deployment.
+See [PDF](../docs/PDF-INGESTION.md) and [draft study](../docs/ON-DEVICE-DRAFTS.md).
+
 Planning proposal, 2026-10-16 America/Phoenix, against source `fa2cbba`.
 The user subsequently selected Phase 20; its tooling/non-device baseline is now
 implemented and recorded in STATUS. The user subsequently selected Phase21;

@@ -1,5 +1,18 @@
 # Existing ADA HTTP contract
 
+## Phase31 and selected19A additions
+
+Export: **164 paths /216 schemas**, head0021. All157 earlier paths remain. The old
+text binary route still rejects PDF. Separate PDF upload/original-download routes
+use current authentication; optional page/extraction fields extend version/chunk/D
+citation outputs, whose media enum gains application/pdf. PDF capability reflects
+an actual verified isolation probe. Device sync has a separate default-off
+capability; edge_inference remains false after measured quality failures.
+Five device-draft paths bind registration/revocation, signatures, owner/scope/epoch,
+model/digest, source pins, proposal IDs and sequences. Generated drafts grant no
+chat, factual or tool authority. Old prompts/snapshots/replay remain frozen.
+See [PDF](../docs/PDF-INGESTION.md) and [draft recovery](../docs/ON-DEVICE-DRAFTS.md).
+
 ## Phase30 additive explicit work
 
 Current export: **157 paths /206 schemas**, schema0020. The previous145 paths and

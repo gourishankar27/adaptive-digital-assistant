@@ -1,9 +1,12 @@
 """No network/files/credentials: one bounded PDF on stdin, extracted pages on stdout."""
+
 import hashlib
 import io
 import json
 import logging
+import os
 import resource
+import socket
 import sys
 
 resource.setrlimit(resource.RLIMIT_AS, (256 * 1024 * 1024, 256 * 1024 * 1024))
@@ -14,45 +17,116 @@ from pypdf import PdfReader  # noqa: E402
 from pypdf.generic import ArrayObject, DictionaryObject, IndirectObject  # noqa: E402
 
 PARSER = "pypdf-6.21.2-text-v1"
-FORBIDDEN = {"/JS", "/JavaScript", "/EmbeddedFiles", "/Filespec", "/Launch", "/GoToR", "/URI", "/RichMedia", "/XFA", "/AcroForm", "/AA", "/OpenAction", "/Encrypt"}
+FORBIDDEN = {
+    "/JS",
+    "/JavaScript",
+    "/EmbeddedFiles",
+    "/Filespec",
+    "/Launch",
+    "/GoToR",
+    "/URI",
+    "/RichMedia",
+    "/XFA",
+    "/AcroForm",
+    "/AA",
+    "/OpenAction",
+    "/Encrypt",
+}
+
 
 def main():
     raw = sys.stdin.buffer.read(262145)
-    if not 1 <= len(raw) <= 262144 or not raw.startswith(b"%PDF-") or not raw.rstrip().endswith(b"%%EOF"):
+    if raw == b"ADA_PDF_BOUNDARY_PROBE_V1":
+        network = False
+        try:
+            with socket.create_connection(("192.0.2.1", 9), timeout=0.1):
+                network = True
+        except OSError:
+            pass
+        from pathlib import Path
+
+        return {
+            "probe": "ada-pdf-boundary-v1",
+            "network": network,
+            "app_env": any(k.startswith("ADA_") for k in os.environ),
+            "uid": os.getuid(),
+            "memory": Path("/sys/fs/cgroup/memory.max").read_text().strip(),
+            "pids": Path("/sys/fs/cgroup/pids.max").read_text().strip(),
+            "cpu": Path("/sys/fs/cgroup/cpu.max").read_text().strip(),
+            "address_space": resource.getrlimit(resource.RLIMIT_AS)[0],
+        }
+    if (
+        not 1 <= len(raw) <= 262144
+        or not raw.startswith(b"%PDF-")
+        or not raw.rstrip().endswith(b"%%EOF")
+    ):
         raise ValueError("pdf_invalid")
     reader = PdfReader(io.BytesIO(raw), strict=True)
     if reader.is_encrypted:
         raise ValueError("pdf_encrypted")
     visited, stack, count = set(), [reader.trailer], 0
     while stack:
-        value = stack.pop(); count += 1
+        value = stack.pop()
+        count += 1
         if count > 50000:
             raise ValueError("pdf_object_limit")
         if isinstance(value, IndirectObject):
             key = (value.idnum, value.generation)
-            if key in visited: continue
-            visited.add(key); stack.append(value.get_object())
+            if key in visited:
+                continue
+            visited.add(key)
+            stack.append(value.get_object())
         elif isinstance(value, DictionaryObject):
-            if any(str(k) in FORBIDDEN for k in value) or value.get('/Subtype') == '/Link':
+            if any(str(k) in FORBIDDEN for k in value) or value.get("/Subtype") == "/Link":
                 raise ValueError("pdf_active_content")
             stack.extend(value.values())
-        elif isinstance(value, ArrayObject): stack.extend(value)
+        elif isinstance(value, ArrayObject):
+            stack.extend(value)
     if not 1 <= len(reader.pages) <= 16:
         raise ValueError("pdf_page_limit")
     pages, text = [], ""
     for index, page in enumerate(reader.pages, 1):
         extracted = (page.extract_text() or "").replace("\r\n", "\n").replace("\r", "\n")
-        if not extracted.strip(): raise ValueError("pdf_ocr_required")
+        if not extracted.strip():
+            raise ValueError("pdf_ocr_required")
         extracted = extracted.rstrip("\n") + "\n"
-        start = len(text); text += extracted
-        if len(text.encode('utf-8')) > 262144: raise ValueError("pdf_text_limit")
-        pages.append({"page":index,"span_start":start,"span_end":len(text),"text_hash":hashlib.sha256(extracted.encode()).hexdigest()})
-    return {"text":text,"pages":pages,"raw_hash":hashlib.sha256(raw).hexdigest(),"text_hash":hashlib.sha256(text.encode()).hexdigest(),"parser":PARSER,"normalization":"lf-page-newline-v1","warnings":["Reading order, columns, tables and hidden text require visual verification; OCR is disabled."]}
+        start = len(text)
+        text += extracted
+        if len(text.encode("utf-8")) > 262144:
+            raise ValueError("pdf_text_limit")
+        pages.append(
+            {
+                "page": index,
+                "span_start": start,
+                "span_end": len(text),
+                "text_hash": hashlib.sha256(extracted.encode()).hexdigest(),
+            }
+        )
+    return {
+        "text": text,
+        "pages": pages,
+        "raw_hash": hashlib.sha256(raw).hexdigest(),
+        "text_hash": hashlib.sha256(text.encode()).hexdigest(),
+        "parser": PARSER,
+        "normalization": "lf-page-newline-v1",
+        "warnings": [
+            "Reading order, columns, tables and hidden text require visual verification; OCR is disabled."
+        ],
+    }
+
 
 try:
     result = main()
 except Exception as error:
-    allowed = {"pdf_invalid","pdf_encrypted","pdf_object_limit","pdf_active_content","pdf_page_limit","pdf_ocr_required","pdf_text_limit"}
+    allowed = {
+        "pdf_invalid",
+        "pdf_encrypted",
+        "pdf_object_limit",
+        "pdf_active_content",
+        "pdf_page_limit",
+        "pdf_ocr_required",
+        "pdf_text_limit",
+    }
     code = str(error)
-    result = {"error":code if code in allowed else "pdf_malformed"}
-sys.stdout.write(json.dumps(result,ensure_ascii=True,separators=(',',':')))
+    result = {"error": code if code in allowed else "pdf_malformed"}
+sys.stdout.write(json.dumps(result, ensure_ascii=True, separators=(",", ":")))

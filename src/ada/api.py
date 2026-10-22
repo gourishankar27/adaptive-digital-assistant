@@ -310,6 +310,16 @@ def create_app(settings=None, provider=None, sessions=None):
     from ada.work import WorkService
 
     app.state.work = WorkService(sessions, app.state.scheduling, app.state.proposals)
+    from ada.edge import EdgeService
+
+    app.state.edge = EdgeService(sessions, settings, app.state.scheduling, app.state.work)
+    from ada.pdf_sandbox import DockerPdfParser
+    from ada.pdf_service import PdfService
+
+    app.state.pdfs = PdfService(
+        sessions,
+        DockerPdfParser(settings.pdf_parser_manifest if settings.pdf_ingestion_enabled else None),
+    )
     app.state.learning = LearningService(
         sessions, app.state.proposals, app.state.consolidation, settings.learning_threshold
     )
@@ -321,7 +331,8 @@ def create_app(settings=None, provider=None, sessions=None):
         if request.url.path.startswith("/v1/admin/") or (
             request.url.path.startswith("/v1/")
             and (
-                "/document-" in request.url.path
+                "/edge/" in request.url.path
+                or "/document-" in request.url.path
                 or "/documents" in request.url.path
                 or "/semantic-index/" in request.url.path
                 or "/memory-proposals" in request.url.path
@@ -410,8 +421,16 @@ def create_app(settings=None, provider=None, sessions=None):
     from ada.work_api import work_router
 
     app.include_router(work_router(app.state.work, current_user, error_responses))
+    from ada.edge_api import edge_router
+
+    app.include_router(edge_router(app.state.edge, current_user, error_responses))
     app.include_router(reflection_router(app.state.reflection, current_user, error_responses))
     app.include_router(document_router(sessions, current_user, error_responses))
+    from ada.pdf_api import pdf_router
+
+    app.include_router(
+        pdf_router(app.state.pdfs, sessions, current_user, app.state.scheduling, error_responses)
+    )
     app.include_router(entity_router(sessions, current_user, error_responses))
     app.include_router(proposal_router(app.state.proposals, current_user, error_responses))
     app.include_router(agent_router(app.state.agents, current_user, error_responses))
@@ -518,6 +537,10 @@ def create_app(settings=None, provider=None, sessions=None):
             else "disabled",
             "admin_monitoring": True,
             "document_ingestion": "text_markdown_v1",
+            "device_draft_sync": "ada-device-drafts-v1"
+            if settings.edge_draft_sync_enabled
+            else "disabled",
+            "pdf_ingestion": "ada-text-pdf-v1" if app.state.pdfs.parser.available else "disabled",
             "document_uploads": True,
             "document_retrieval": True,
             "document_citations": True,

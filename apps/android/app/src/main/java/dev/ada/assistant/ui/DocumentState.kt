@@ -11,8 +11,10 @@ class DocumentFileSelection internal constructor(
 data class DocumentDraft(
     val filename: String = "document.txt", val mediaType: String = "text/plain", val text: String = "",
     val availableFrom: String = "", val availableTo: String = "", val sourceId: UUID? = null,
+    val binaryBase64: String? = null,
 ) { override fun toString() = "DocumentDraft(redacted)" }
 data class DocumentState(
+    val pdfEnabled: Boolean = false,
     val enabled: Boolean = false, val uploadLimit: Int = 0, val screen: DocumentScreen = DocumentScreen.Browse,
     val scopes: ChatPage<ScopeDto> = ChatPage(), val scopeId: UUID? = null,
     val uploads: ChatPage<DocumentUploadDto> = ChatPage(), val versions: ChatPage<DocumentUploadDto> = ChatPage(),

@@ -1,6 +1,12 @@
 # Phase 19 — optional mobile inference and selected integrations
 
-Status: conditional plan. Prerequisites: Phases 12/18 plus measured device or
+Status: **19A study/protocol implemented; activation and exit remain open.** User
+selected offline draft replies, then Qwen3-0.6B evaluation after SmolLM2 failed.
+Both failed reply quality; local drafting stays disabled, edge_inference=false.
+19B remains conditional/unselected. See [study](../docs/ON-DEVICE-DRAFTS.md) and
+dated STATUS/WORKLOG for actual checks and outstanding target evidence. No deployment.
+
+Prerequisites: Phases 12/18 plus measured device or
 explicit integration requirements. Apply STANDARDS and CODEX-WORKFLOW. Choose one
 bounded subphase; do not implement every option in this document by default.
 

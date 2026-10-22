@@ -29,7 +29,7 @@ fun DocumentSourceCard(card: DocumentCitationDto, requestId: UUID) {
             Text(if (card.origin == "imported_document" && card.trust_class == "imported_untrusted")
                 "Imported document · untrusted evidence · version ${card.source_version}" else "Unrecognized imported evidence", style = MaterialTheme.typography.bodyMedium)
             SafeChatText(card.filename, links = false)
-            Text("Lines ${card.line_start}–${card.line_end}", style = MaterialTheme.typography.labelLarge)
+            Text(card.pdf?.let { "PDF page ${it.page} · extracted lines ${card.line_start}–${card.line_end}" } ?: "Lines ${card.line_start}–${card.line_end}", style = MaterialTheme.typography.labelLarge)
             Text("Exact document excerpt", style = MaterialTheme.typography.labelLarge)
             SafeChatText(card.evidence.quote, Modifier.testTag("source-quote-${card.label}").semantics(mergeDescendants = true) {}, links = false)
             Text("Available from ${displayInstant(card.available_from)}", style = MaterialTheme.typography.bodySmall)

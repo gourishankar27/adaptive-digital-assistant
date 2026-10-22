@@ -1,5 +1,26 @@
 # Architecture decisions and open inputs
 
+## 2026-10-22 — selected text PDF and rejected local-draft activation
+
+The user selected31 text PDFs and19A offline replies, then approved a larger
+Qwen3-0.6B trial after SmolLM2 failed. Both candidates missed reply constraints:
+ship no activation, keep edge_inference=false, retain reproducible study inputs.
+CPU speed alone does not establish usefulness. No19B integration is selected.
+
+PDF parsing uses a hash-pinned pypdf wheel only inside an actually probed local
+Docker boundary. No in-process fallback, network, secrets, mounts, OCR or executable
+attachment/link handling. Existing upload quotas stay fixed; derived text/page/time/
+memory bounds are explicit. Original bytes, normalized text and page/code-point
+maps remain separate immutable evidence. A selected new version is required to
+reprocess; old prompt/citation replay is preserved.
+
+Two owner-content device tables and nullable PDF projection metadata share new
+head0021/backup-v7. Owner/scope/epoch/signature/sequence and current source hashes
+fence untrusted drafts; signatures do not attest inference or truth. Android18
+journal encrypts before HTTP and restores with GET only. Restore revokes device
+authority while preserving content. No automatic fact/chat/tool promotion, private
+admin reader, external action, production migration or deployment is introduced.
+
 Recorded 2026-10-08. Change a decision with rationale, compatibility impact and
 verification; do not silently rewrite the historical reason.
 

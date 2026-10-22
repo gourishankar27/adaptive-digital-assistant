@@ -244,6 +244,7 @@ def backup(url, pg_bin, destination, password, settings):
                         "0018": "ada-postgres-backup-v4",
                         "0019": "ada-postgres-backup-v5",
                         "0020": "ada-postgres-backup-v6",
+                        "0021": "ada-postgres-backup-v7",
                     }[head],
                     "head": head,
                     "snapshot_at": snapshot_at,
@@ -314,6 +315,7 @@ def unpack(payload):
                 ("ada-postgres-backup-v4", "0018"),
                 ("ada-postgres-backup-v5", "0019"),
                 ("ada-postgres-backup-v6", "0020"),
+                ("ada-postgres-backup-v7", "0021"),
             )
             or not isinstance(manifest.get("tables"), dict)
             or type(manifest.get("snapshot_at")) is not int
@@ -390,6 +392,11 @@ def restore(url, pg_bin, target_database, artifact, ledger_path, password):
                 text("UPDATE device_credentials SET revoked_at=COALESCE(revoked_at, :now)"),
                 {"now": now_ms()},
             )
+            if manifest["head"] == "0021":
+                conn.execute(
+                    text("UPDATE edge_devices SET revoked_at=:now, revision=revision+1"),
+                    {"now": now_ms()},
+                )
             if manifest["head"] in ("0016", "0017", "0018", "0019", "0020", "0021"):
                 conn.execute(text("UPDATE password_credentials SET verifier=NULL"))
                 conn.execute(

@@ -1,5 +1,14 @@
 # Current ADA baseline
 
+**Phase31 source and selected19A study, 2026-10-22 America/Phoenix:** selected text
+PDFs, immutable originals/extracted page maps and signed generated-device-draft
+protocol. Both measured S24 FE models failed reply quality: local generation is
+disabled, edge_inference=false. Source: **0021 /76 tables /63 owner-content**,
+backup-v7, OpenAPI164 paths/216 schemas. Android25 /0.31.0-documents-drafts uses
+journal18 (v1–v17 readable). PDF/sync default off; no OCR,19B integration, deployment.
+[PDF guide](../docs/PDF-INGESTION.md), [study](../docs/ON-DEVICE-DRAFTS.md).
+Actual checks and remaining gates are in STATUS/WORKLOG; historical entries follow.
+
 **Phase30 source/local verification, 2026-10-22 America/Phoenix:** explicit scoped
 goals/tasks/projects, exact reviewed Save from completed chat, immutable revisions,
 balanced personal/development selected-work briefs, original-source resume,

@@ -35,7 +35,7 @@ class DocumentController(
     fun setVerifiedSession(connection: ConnectionCredential, identity: SessionIdentity, features: CapabilitiesDto) {
         reset(); this.connection = connection; this.identity = identity
         update { it.copy(enabled = features.document_uploads && features.document_ingestion == "text_markdown_v1" && features.document_max_bytes > 0,
-            uploadLimit = features.document_max_bytes.coerceIn(0, MOBILE_DOCUMENT_MAX_BYTES)) }
+            uploadLimit = features.document_max_bytes.coerceIn(0, MOBILE_DOCUMENT_MAX_BYTES), pdfEnabled = features.pdf_ingestion == "ada-text-pdf-v1") }
         work { _, epoch ->
             val pending = store.documentPending(identity)
             if (current(epoch) && pending?.identity == identity) update { it.copy(pending = pending, scopeId = pending.scopeId,
@@ -138,12 +138,17 @@ class DocumentController(
     fun updateDraft(draft: DocumentDraft) {
         if (state.value.screen != DocumentScreen.Edit || state.value.saving) return
         fileSelection++
-        update { it.copy(draft = draft.copy(sourceId = it.draft.sourceId), validation = null, fault = null) }
+        update { it.copy(draft = draft.copy(sourceId = it.draft.sourceId, binaryBase64 = if (draft.mediaType == "application/pdf") draft.binaryBase64 else null), validation = null, fault = null) }
     }
     private fun applyFile(filename: String, bytes: ByteArray) {
         if (state.value.screen != DocumentScreen.Edit || state.value.saving) return
         try {
             require(bytes.size in 1..state.value.uploadLimit)
+            if (filename.endsWith(".pdf",ignoreCase=true)) {
+                require(state.value.pdfEnabled && bytes.take(5).toByteArray().contentEquals("%PDF-".toByteArray()))
+                updateDraft(state.value.draft.copy(filename=filename,mediaType="application/pdf",text="",binaryBase64=Base64.getEncoder().encodeToString(bytes)))
+                return
+            }
             val text = documentText(bytes)
             val media = if (filename.substringAfterLast('.', "").lowercase() in setOf("md", "markdown")) "text/markdown" else "text/plain"
             updateDraft(state.value.draft.copy(filename = filename, mediaType = media, text = text))
@@ -171,7 +176,9 @@ class DocumentController(
         try {
             val encoder = Charsets.UTF_8.newEncoder().onMalformedInput(java.nio.charset.CodingErrorAction.REPORT)
                 .onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT)
-            val buffer = encoder.encode(java.nio.CharBuffer.wrap(s.draft.text)); val bytes = ByteArray(buffer.remaining()); buffer.get(bytes)
+            val bytes = if (s.draft.mediaType == "application/pdf") {
+                require(s.pdfEnabled); Base64.getDecoder().decode(requireNotNull(s.draft.binaryBase64))
+            } else { val buffer = encoder.encode(java.nio.CharBuffer.wrap(s.draft.text)); ByteArray(buffer.remaining()).also { buffer.get(it) } }
             require(bytes.size <= s.uploadLimit)
             val pending = PendingDocument(verified, scope, UUID.randomUUID(), s.draft.sourceId ?: UUID.randomUUID(),
                 s.draft.filename, s.draft.mediaType, Base64.getEncoder().encodeToString(bytes),
@@ -238,7 +245,7 @@ class DocumentController(
             store.removeDocumentPending(pending.identity, pending.uploadId)
             if (!current(epoch)) return@work
             update { it.copy(saving = false, pending = null, pendingReceipt = null, preview = null, screen = DocumentScreen.Edit,
-                draft = DocumentDraft(pending.filename, pending.mediaType, documentText(pending.rawBytes()), pending.availableFrom ?: "", pending.availableTo ?: "", pending.sourceId),
+                draft = DocumentDraft(pending.filename, pending.mediaType, if(pending.mediaType=="application/pdf") "" else documentText(pending.rawBytes()), pending.availableFrom ?: "", pending.availableTo ?: "", pending.sourceId, if(pending.mediaType=="application/pdf") pending.rawBase64 else null),
                 notice = "Local recovery was discarded. Any remote upload remains unchanged. Review versions before knowingly uploading new bytes.") }
         }
     }

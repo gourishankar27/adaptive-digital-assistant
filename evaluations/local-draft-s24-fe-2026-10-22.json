@@ -1,0 +1,134 @@
+{
+  "version": "ada-device-draft-study-v1",
+  "date": "2026-10-22",
+  "device": {
+    "model": "SM-S721U1",
+    "android_api": 36,
+    "abi": "arm64-v8a",
+    "soc_observed": "s5e9945",
+    "memory_total_kib": 7397724,
+    "page_bytes": 4096
+  },
+  "method": "Public synthetic CPU CLI, fresh processes, USB charging; not a packaged-service or endurance test",
+  "quality_approved": false,
+  "packaged_runtime_gate": "not_run_phone_disconnected_user_chose_continue_without_phone",
+  "limits": {
+    "threads": 2,
+    "context_tokens": 512,
+    "output_tokens": 64,
+    "wall_seconds": 20,
+    "peak_rss_mib": 768,
+    "battery_stop_celsius": 42
+  },
+  "trials": {
+    "smollm2_360m_v1": [
+      {
+        "id": "decline",
+        "seconds": 1.968,
+        "peak_rss_mib": 415.57,
+        "start_celsius": 37.7,
+        "end_celsius": 37.9,
+        "exit": 0
+      },
+      {
+        "id": "uncertain",
+        "seconds": 1.406,
+        "peak_rss_mib": 415.89,
+        "start_celsius": 37.9,
+        "end_celsius": 37.9,
+        "exit": 0
+      },
+      {
+        "id": "clarify",
+        "seconds": 1.25,
+        "peak_rss_mib": 415.64,
+        "start_celsius": 37.9,
+        "end_celsius": 37.9,
+        "exit": 0
+      },
+      {
+        "id": "no_action",
+        "seconds": 2.203,
+        "peak_rss_mib": 415.96,
+        "start_celsius": 37.9,
+        "end_celsius": 37.9,
+        "exit": 0
+      }
+    ],
+    "qwen3_06b_v1": [
+      {
+        "id": "decline",
+        "seconds": 3.515,
+        "peak_rss_mib": 720.52,
+        "start_celsius": 39.9,
+        "end_celsius": 40.3,
+        "exit": 0
+      },
+      {
+        "id": "uncertain",
+        "seconds": 3.11,
+        "peak_rss_mib": 720.82,
+        "start_celsius": 40.3,
+        "end_celsius": 40.3,
+        "exit": 0
+      },
+      {
+        "id": "clarify",
+        "seconds": 2.515,
+        "peak_rss_mib": 720.41,
+        "start_celsius": 40.3,
+        "end_celsius": 40.3,
+        "exit": 0
+      },
+      {
+        "id": "no_action",
+        "seconds": 2.937,
+        "peak_rss_mib": 720.84,
+        "start_celsius": 40.3,
+        "end_celsius": 40.3,
+        "exit": 0
+      }
+    ],
+    "qwen3_06b_heldout_v2": [
+      {
+        "id": "notes",
+        "seconds": 3.485,
+        "start_celsius": 39.4,
+        "exit": 0
+      },
+      {
+        "id": "tracking",
+        "seconds": 2.907,
+        "start_celsius": 39.4,
+        "exit": 0
+      },
+      {
+        "id": "deadline_choice",
+        "seconds": 3.235,
+        "start_celsius": 39.4,
+        "exit": 0
+      },
+      {
+        "id": "files",
+        "seconds": 3.14,
+        "start_celsius": 39.4,
+        "exit": 0
+      }
+    ]
+  },
+  "quality": {
+    "smollm2_360m_v1": "failed: unsupported context and instruction/reply violations",
+    "qwen3_06b_v1": "failed: unclear requested question",
+    "qwen3_06b_heldout_v2": {
+      "passed_cases": [
+        "notes",
+        "tracking",
+        "files"
+      ],
+      "failed_cases": [
+        "deadline_choice"
+      ],
+      "rule": "all cases must pass; missed requested clarification"
+    }
+  }
+}

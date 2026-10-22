@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     session_idle_seconds: int = Field(default=604800, ge=600, le=2592000)
     deletion_worker_enabled: bool = False
     web_research_enabled: bool = False
+    edge_draft_sync_enabled: bool = False
     pdf_ingestion_enabled: bool = False
     pdf_parser_manifest: str | None = None
     web_broker_manifest: str | None = None

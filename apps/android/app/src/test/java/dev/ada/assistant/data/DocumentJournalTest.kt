@@ -34,6 +34,21 @@ class DocumentJournalTest {
     private val identity = SessionIdentity("https://ada.example/", UUID.randomUUID())
     private val scope = UUID.randomUUID()
     private val exact = "Synthetic 😀 e\u0301\r\nதமிழ் <script>untrusted</script>  "
+    @Test fun pdfPageOffsetsCountCodePointsAndCannotSubstituteTheOriginalHash() {
+        val first="😀 first\n";val second="Second e\u0301\n";val text=first+second
+        val boundary=first.codePointCount(0,first.length);val end=text.codePointCount(0,text.length)
+        val raw="%PDF-public-binary".toByteArray()+byteArrayOf(0xff.toByte())
+        val rawHash=documentHash(raw);val hash=documentHash(text.toByteArray())
+        val receipt=DocumentUploadDto(UUID.randomUUID(),UUID.randomUUID(),scope,UUID.randomUUID(),1,"public.pdf","application/pdf",rawHash,raw.size,0,state="ready",created_at=0,published_at=1,chunk_count=2)
+        val projection=PdfExtractionDto("pypdf-6.21.2-text-v1","lf-page-newline-v1",rawHash,hash,"sha256:"+"0".repeat(64),listOf(PdfPageDto(1,0,boundary,documentHash(first.toByteArray())),PdfPageDto(2,boundary,end,documentHash(second.toByteArray()))),emptyList())
+        val version=DocumentVersionDto(receipt.source_version_id,receipt.source_id,scope,1,text,hash,"imported_untrusted",0,receipt,projection)
+        assertTrue(verifyDocumentVersion(version,receipt));assertNotEquals(rawHash,hash)
+        val chunk=DocumentChunkDto(UUID.randomUUID(),receipt.source_id,version.id,scope,receipt.id,1,0,boundary,first,hash,documentHash(first.toByteArray()),1,1,PdfLocationDto(1,0,boundary,projection.parser,hash,rawHash))
+        assertTrue(verifyDocumentChunk(chunk,version))
+        assertFalse(verifyDocumentChunk(chunk.copy(span_end=first.length),version))
+        assertFalse(verifyDocumentVersion(version.copy(extraction=projection.copy(pages=listOf(projection.pages[0].copy(span_end=first.length),projection.pages[1]))),receipt))
+        assertFalse(verifyDocumentVersion(version.copy(content_hash=rawHash),receipt))
+    }
     private fun reservation(text: String = exact) = PendingDocument(identity, scope, UUID.randomUUID(), UUID.randomUUID(),
         "synthetic.md", "text/markdown", Base64.getEncoder().encodeToString(text.toByteArray(Charsets.UTF_8)),
         "2026-10-09T00:00:00Z", "2026-11-09T00:00:00Z")

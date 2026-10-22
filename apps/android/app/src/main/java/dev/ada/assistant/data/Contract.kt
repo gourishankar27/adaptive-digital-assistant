@@ -62,6 +62,8 @@ val adaJson = Json { ignoreUnknownKeys = true; explicitNulls = false; encodeDefa
     val reflection_protocol: String = "disabled",
     val scheduling_protocol: String = "disabled", val scheduling_background_push: Boolean = false,
     val work_protocol: String = "unsupported",
+    val pdf_ingestion: String = "disabled",
+    val device_draft_sync:String="disabled",
 )
 @Serializable data class PersonalitySnapshotDto(
     val name: String, val style: String, val warmth: String, val detail: String,
@@ -177,6 +179,7 @@ enum class ObservedRequestState { Running, Completed, Failed, Unknown }
 )
 @Serializable data class RetrieveInputDto(
     val query: String, val as_of: String? = null, val limit: Int = 8, val budget_bytes: Int = 2200,
+    val use_documents: Boolean = false,
 )
 @Serializable data class ErrorEnvelopeDto(val detail: ErrorDetailDto)
 @Serializable data class ValidationIssueDto(val type: String, val loc: List<JsonPrimitive>, val msg: String)

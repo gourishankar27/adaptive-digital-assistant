@@ -24,6 +24,8 @@ class UserOutput(BaseModel):
 
 
 class CapabilitiesOutput(BaseModel):
+    device_draft_sync: str = "disabled"
+    pdf_ingestion: str = "disabled"
     work_protocol: str = "unsupported"
     reflection_protocol: str = "unsupported"
     curiosity_protocol: str = "disabled"

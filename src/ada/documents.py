@@ -348,8 +348,11 @@ class DocumentService:
         media_type,
         available_from,
         available_to,
+        authorize=None,
     ):
         with self.sessions.begin() as db:
+            if authorize is not None:
+                authorize(db)
             # Cross-scope quotas serialize on the owner first; all document writes
             # use owner -> scope -> upload. Retrieval/claims need only scope locks.
             if db.scalar(select(User).where(User.id == owner).with_for_update()) is None:
@@ -445,15 +448,21 @@ class DocumentService:
             db.flush()
             return row, True, True
 
-    def _publish(self, owner, scope_id, upload_id, attempt, text, chunks, extraction=None):
+    def _publish(
+        self, owner, scope_id, upload_id, attempt, text, chunks, extraction=None, authorize=None
+    ):
         with self.sessions.begin() as db:
+            if authorize is not None:
+                authorize(db)
             owned_scope(db, owner, scope_id, lock=True)
             row = _owned_upload(db, owner, scope_id, upload_id=upload_id)
             if row.state != "processing" or row.attempt != attempt:
                 return
             _validate_parsed(row.raw_bytes, text, chunks, extraction)
             parsed_hash = content_hash(text)
-            if (extraction is None and parsed_hash != row.raw_hash) or (extraction is not None and row.media_type != "application/pdf"):
+            if (extraction is None and parsed_hash != row.raw_hash) or (
+                extraction is not None and row.media_type != "application/pdf"
+            ):
                 raise ServiceError(409, "document_invalid_projection")
             row.extraction = extraction
             timestamp = now_ms()
@@ -551,6 +560,7 @@ class DocumentService:
 
     def version(self, owner, scope_id, source_version_id):
         from ada.pdfs import projection_hash
+
         with self.sessions() as db:
             row = _owned_upload(db, owner, scope_id, source_version_id=source_version_id)
             version = db.scalar(
@@ -583,6 +593,7 @@ class DocumentService:
 
     def chunks(self, owner, scope_id, source_version_id, *, limit=50, offset=0):
         from ada.pdfs import page_location
+
         with self.sessions() as db:
             row = _owned_upload(db, owner, scope_id, source_version_id=source_version_id)
             chunks = db.scalars(
@@ -597,7 +608,15 @@ class DocumentService:
                 .limit(limit)
                 .offset(offset)
             )
-            return [public_chunk(chunk) | ({"pdf": page_location(row, chunk.span_start, chunk.span_end)} if row.media_type == "application/pdf" else {}) for chunk in chunks]
+            return [
+                public_chunk(chunk)
+                | (
+                    {"pdf": page_location(row, chunk.span_start, chunk.span_end)}
+                    if row.media_type == "application/pdf"
+                    else {}
+                )
+                for chunk in chunks
+            ]
 
     def raw(self, owner, scope_id, source_version_id):
         with self.sessions() as db:
@@ -609,9 +628,20 @@ class DocumentService:
                 raise ServiceError(409, "document_content_changed")
             return row.raw_bytes, row.media_type, row.filename
 
+    def raw_upload(self, owner, upload_id):
+        with self.sessions() as db:
+            row = _owned_upload(db, owner, None, upload_id=upload_id)
+            if (
+                hashlib.sha256(row.raw_bytes).hexdigest() != row.raw_hash
+                or len(row.raw_bytes) != row.raw_size
+            ):
+                raise ServiceError(409, "document_content_changed")
+            return row.raw_bytes, row.media_type
+
 
 def rebuild_document_search(sessions):
     from ada.pdfs import projection_hash
+
     """Local operator rebuild, validating imported evidence before indexing."""
     count = 0
     with sessions.begin() as db:

@@ -46,10 +46,10 @@ def test_unattended_pair_receipts_restore_and_fail_closed(recovery_database, tmp
         ),
     )
     result = run_backup(config, root, settings)
-    assert result["state"] == "verified" and result["tables"] == 74
+    assert result["state"] == "verified" and result["tables"] == 76
     artifact, ledger = destination / result["artifact"], destination / result["ledger"]
     manifest = verify_pair(artifact, ledger, key(root))
-    assert manifest["head"] == "0020"
+    assert manifest["head"] == "0021"
     refresh_ledger(config, root, settings)
     value = json.loads(read_artifact(ledger, phrase))
     stale = write_artifact(

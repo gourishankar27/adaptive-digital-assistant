@@ -101,7 +101,7 @@ fun DocumentScreens(controller: DocumentController) {
                     }
                     if (state.scopes.hasMore) AdaTextButton(onClick = controller::loadMoreScopes, enabled = !state.scopes.loading) { Text("More scopes") }
                     AdaButton(onClick = { controller.beginUpload() }, enabled = state.enabled && state.scopeId != null && state.pending == null && !state.saving,
-                        modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("document-new")) { Text("Import text / Markdown") }
+                        modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("document-new")) { Text(if(state.pdfEnabled) "Import document" else "Import text / Markdown") }
                     AdaTextButton(onClick = controller::refreshUploads, enabled = !state.uploads.loading, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Refresh upload status") }
                 }
                 if (state.scopes.loading || state.uploads.loading) item { AdaLoading("Checking document status") }
@@ -113,23 +113,23 @@ fun DocumentScreens(controller: DocumentController) {
                 val draft = state.draft
                 Column(verticalArrangement = Arrangement.spacedBy(AdaSpacing.medium)) {
                     draft.sourceId?.let { Text("New immutable version of the selected document. Previous versions remain available.") }
-                    Text("UTF-8 .txt, .md or .markdown only · ${state.uploadLimit / 1024} KiB maximum on this device. PDF and compressed files are unavailable.")
+                    Text("UTF-8 text/Markdown${if (state.pdfEnabled) " or text PDF" else ""} · ${state.uploadLimit / 1024} KiB maximum. Scanned PDFs/OCR and archives are unavailable.")
                     AdaOutlinedButton(onClick = {
-                        controller.beginFileSelection()?.let { selection -> fileSelection = selection; focus.clearFocus(); picker.launch(arrayOf("text/plain", "text/markdown", "text/x-markdown", "application/octet-stream")) }
-                    }, enabled = !state.saving && fileSelection == null, modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("document-file")) { Text("Choose text / Markdown file") }
+                        controller.beginFileSelection()?.let { selection -> fileSelection = selection; focus.clearFocus(); picker.launch(if(state.pdfEnabled) arrayOf("application/pdf", "text/plain", "text/markdown") else arrayOf("text/plain", "text/markdown", "text/x-markdown", "application/octet-stream")) }
+                    }, enabled = !state.saving && fileSelection == null, modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("document-file")) { Text(if(state.pdfEnabled) "Choose text / Markdown / PDF file" else "Choose text / Markdown file") }
                     OutlinedTextField(draft.filename, { controller.updateDraft(draft.copy(filename = it)) }, label = { Text("Display filename") }, singleLine = true,
                         modifier = Modifier.fillMaxWidth().testTag("document-filename"))
                     Row {
                         AdaChoiceChip(draft.mediaType == "text/plain", "Text", { controller.updateDraft(draft.copy(mediaType = "text/plain")) })
                         AdaChoiceChip(draft.mediaType == "text/markdown", "Markdown", { controller.updateDraft(draft.copy(mediaType = "text/markdown")) })
                     }
-                    OutlinedTextField(draft.text, { controller.updateDraft(draft.copy(text = it)) }, label = { Text("Exact UTF-8 document text") }, minLines = 4, maxLines = 10,
+                    if(draft.mediaType != "application/pdf") OutlinedTextField(draft.text, { controller.updateDraft(draft.copy(text = it)) }, label = { Text("Exact UTF-8 document text") }, minLines = 4, maxLines = 10,
                         supportingText = { Text("File content or pasted text is preserved literally, including line endings and Unicode.") }, modifier = Modifier.fillMaxWidth().testTag("document-text"))
                     OutlinedTextField(draft.availableFrom, { controller.updateDraft(draft.copy(availableFrom = it)) }, label = { Text("Available from (optional)") }, singleLine = true,
                         supportingText = { Text("Timezone-bearing instant. Blank uses the upload time.") }, modifier = Modifier.fillMaxWidth().testTag("document-from"))
                     OutlinedTextField(draft.availableTo, { controller.updateDraft(draft.copy(availableTo = it)) }, label = { Text("Available until (optional, exclusive)") }, singleLine = true,
                         modifier = Modifier.fillMaxWidth().testTag("document-to"))
-                    AdaButton(onClick = { controller.preview(); focus.clearFocus() }, enabled = !state.saving && draft.text.isNotBlank(),
+                    AdaButton(onClick = { controller.preview(); focus.clearFocus() }, enabled = !state.saving && (draft.text.isNotBlank() || draft.binaryBase64 != null),
                         modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("document-preview")) { Text("Review upload") }
                 }
             }
@@ -139,8 +139,8 @@ fun DocumentScreens(controller: DocumentController) {
                     Text("Scope: ${state.scopes.items.firstOrNull { it.id == pending.scopeId }?.name ?: "Selected owned scope"}")
                     Text("${pending.mediaType} · ${pending.rawBytes().size} exact bytes")
                     Text("Availability: ${pending.availableFrom ?: "upload time"} until ${pending.availableTo ?: "open"} (exclusive)")
-                    Text("Exact imported text", style = MaterialTheme.typography.titleMedium)
-                    SafeChatText(documentText(pending.rawBytes()), Modifier.testTag("document-preview-text").semantics(mergeDescendants = true) {}, links = false)
+                    Text(if(pending.mediaType=="application/pdf") "Selected original PDF" else "Exact imported text", style = MaterialTheme.typography.titleMedium)
+                    if(pending.mediaType == "application/pdf") Text("Exact binary PDF selected. Original bytes are retained; text/page extraction happens after upload. No OCR.",Modifier.testTag("document-preview-text")) else SafeChatText(documentText(pending.rawBytes()), Modifier.testTag("document-preview-text").semantics(mergeDescendants = true) {}, links = false)
                     Text("Review this exact text and scope before upload. Embedded instructions are imported content and grant no permissions.")
                     DocumentTechnicalDetails("Scope: ${pending.scopeId}\nSource: ${pending.sourceId}\nUpload: ${pending.uploadId}\nRaw SHA-256: ${documentHash(pending.rawBytes())}", pending.uploadId, "document-preview-details")
                     AdaButton(onClick = controller::savePreview, enabled = state.pending == null && !state.saving,
@@ -160,6 +160,7 @@ fun DocumentScreens(controller: DocumentController) {
                         if (receipt.state == "failed") Text("Ingestion failed. No partial chunks from this version are searchable.")
                         if (state.detailLoading) AdaLoading("Checking document status")
                         state.version?.let { version ->
+                            version.extraction?.let { Text("${it.pages.size} extracted PDF pages · OCR disabled"); it.warnings.forEach { warning -> Text(warning) } }
                             Text("Exact parsed text", style = MaterialTheme.typography.titleMedium)
                             SafeChatText(version.content, Modifier.testTag("document-version-text").semantics(mergeDescendants = true) {}, links = false)
                             DocumentTechnicalDetails("Version: ${version.id}\nText SHA-256: ${version.content_hash}\nRaw SHA-256: ${receipt.raw_hash}\nImported trust: ${version.trust_class}", version.id, "document-version-details")
@@ -168,7 +169,7 @@ fun DocumentScreens(controller: DocumentController) {
                 } }
                 items(state.chunks.items, key = { it.id }) { chunk ->
                     Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(AdaSpacing.medium), verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
-                        Text("Chunk ${chunk.ordinal} · lines ${chunk.line_start}–${chunk.line_end}")
+                        Text("${chunk.pdf?.let { "PDF page ${it.page} · " } ?: ""}Chunk ${chunk.ordinal} · extracted lines ${chunk.line_start}–${chunk.line_end}")
                         SafeChatText(chunk.quote, links = false)
                         DocumentTechnicalDetails("Chunk: ${chunk.id}\nExact code-point span ${chunk.span_start}–${chunk.span_end} (end exclusive)\nQuote SHA-256: ${chunk.quote_hash}", chunk.id, "document-chunk-details-${chunk.id}")
                     } }
@@ -191,6 +192,7 @@ private fun DocumentReceiptCard(receipt: DocumentUploadDto, open: (() -> Unit)? 
             SafeChatText(receipt.filename, links = false)
             Text("Imported document · version ${receipt.version} · ${when (receipt.state) { "ready" -> "Ready"; "processing" -> "Processing"; "failed" -> "Failed"; else -> "Unrecognized state" }}")
             Text("${receipt.raw_size} bytes · ${receipt.chunk_count} chunks", style = MaterialTheme.typography.bodySmall)
+            if(receipt.state=="failed") Text(documentFailureText(receipt.error_code))
             Text("Available from ${displayInstant(receipt.available_from)}", style = MaterialTheme.typography.bodySmall)
             Text(receipt.available_to?.let { "Until ${displayInstant(it)} (exclusive)" } ?: "No availability end", style = MaterialTheme.typography.bodySmall)
             if (open != null) AdaTextButton(onClick = open, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("document-open-${receipt.id}")) { Text("Open exact version") }
@@ -207,11 +209,11 @@ private fun DocumentPending(state: DocumentState, controller: DocumentController
             Text("Saved document upload", style = MaterialTheme.typography.titleMedium)
             SafeChatText(pending.filename, links = false)
             Text("Original scope: ${state.scopes.items.firstOrNull { it.id == pending.scopeId }?.name ?: "Saved owned scope"}")
-            state.pendingReceipt?.let { Text("Observed status: ${statusLabel(it.state)}") }
+            state.pendingReceipt?.let { Text("Observed status: ${statusLabel(it.state)}");if(it.state=="failed")Text(documentFailureText(it.error_code)) }
             if (state.saving) AdaLoading("Checking document status")
             AdaOutlinedButton(onClick = controller::checkPending, enabled = !state.saving && state.enabled,
                 modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("document-check")) { Text("Check saved upload") }
-            AdaOutlinedButton(onClick = controller::resumePending, enabled = !state.saving && state.enabled,
+            AdaOutlinedButton(onClick = controller::resumePending, enabled = !state.saving && state.enabled && state.pendingReceipt?.state!="failed",
                 modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("document-resume")) { Text("Resume with original bytes and IDs") }
             AdaTextButton(onClick = { discard = true }, enabled = !state.saving, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("document-discard")) { Text("Discard local upload recovery") }
         }
@@ -220,6 +222,15 @@ private fun DocumentPending(state: DocumentState, controller: DocumentController
         text = { Text("Any remote upload and its versions remain. The exact input is kept for review; a future upload allocates a new ID. Review status before knowingly creating another version.") },
         confirmButton = { AdaTextButton(onClick = { discard = false; controller.discardPending() }) { Text("Discard local recovery") } },
         dismissButton = { AdaTextButton(onClick = { discard = false }) { Text("Keep original upload") } })
+}
+
+private fun documentFailureText(code:String?):String=when(code) {
+    "pdf_ocr_required"->"This PDF has a scanned or blank page. OCR is unavailable; choose a PDF with selectable text on every page."
+    "pdf_encrypted"->"Encrypted PDFs are unsupported. Choose an unencrypted text PDF."
+    "pdf_active_content"->"This PDF contains unsupported links, forms, attachments or active content. Choose a plain text PDF."
+    "pdf_page_limit","pdf_text_limit"->"This PDF exceeds the page or extracted-text limit. Choose a smaller section."
+    "pdf_parser_busy"->"The PDF parser was busy. This attempt was retained as failed; review it before starting a new upload."
+    else->"This version could not be imported safely. Its original bytes are retained and no partial text is searchable. Choose corrected bytes in an explicitly new upload."
 }
 
 @Composable

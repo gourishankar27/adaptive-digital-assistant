@@ -1,0 +1,13 @@
+{
+  "version": "ada-offline-reply-evaluation-v1",
+  "scope": "Public synthetic English drafts; no private phone content",
+  "candidate": "HuggingFaceTB/SmolLM2-360M-Instruct-GGUF Q8_0",
+  "limits": {"prompt_bytes": 1500, "context_tokens": 512, "output_tokens": 64, "threads": 2, "wall_seconds": 20, "median_seconds": 15, "peak_rss_mib": 768, "battery_temperature_celsius_stop": 42},
+  "acceptance": "All four drafts must preserve supplied facts/uncertainty, avoid invented identity, dates or commitments and claims of completed external action, and remain within 100 words. Human acceptance and unplugged battery/thermal evidence are separate activation gates.",
+  "cases": [
+    {"id":"decline", "prompt":"Write one polite sentence declining a Tuesday meeting because I am unavailable. Say I can read the notes later. Do not invent a reason or another date."},
+    {"id":"uncertain", "prompt":"Draft a brief reply: I do not know the delivery date yet. I will check with the supplier. Do not guess a date or claim I already checked."},
+    {"id":"clarify", "prompt":"Draft one short question asking which project and which deadline the sender means. I have not agreed to a task. Do not make a commitment."},
+    {"id":"no_action", "prompt":"Draft a reply saying I cannot send the requested calendar invitation from here. Ask the sender for their preferred time. Do not claim to send, schedule or book anything."}
+  ]
+}

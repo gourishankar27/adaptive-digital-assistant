@@ -99,7 +99,7 @@ class MemoryJournalTest {
         store.saveMemoryPending(reserved())
         assertEquals(chat, store(disk, keys).pending(identity)); assertEquals(reserved(), store(disk, keys).memoryPending(identity))
         val plaintext = AesGcmSessionCipher(keys).decrypt(checkNotNull(disk.bytes))
-        try { assertTrue(plaintext.toString(Charsets.UTF_8).contains("\"version\":17")) } finally { plaintext.fill(0) }
+        try { assertTrue(plaintext.toString(Charsets.UTF_8).contains("\"version\":18")) } finally { plaintext.fill(0) }
     }
 
     @Test fun rotationRetainsBothJournalsButIdentitySwitchAndLogoutClearThem() = runTest {
@@ -209,7 +209,7 @@ class MemoryJournalTest {
         initialize(store); store.savePending(chat()); store.saveMemoryPending(reserved())
         val plain = AesGcmSessionCipher(keys).decrypt(checkNotNull(disk.bytes))
         try {
-            val unknown = plain.toString(Charsets.UTF_8).replace("\"version\":17", "\"version\":149")
+            val unknown = plain.toString(Charsets.UTF_8).replace("\"version\":18", "\"version\":149")
             disk.bytes = AesGcmSessionCipher(keys).encrypt(unknown.toByteArray(Charsets.UTF_8))
         } finally { plain.fill(0) }
         assertNull(store.readCredential()); assertNull(store.pending(identity)); assertNull(store.memoryPending(identity))

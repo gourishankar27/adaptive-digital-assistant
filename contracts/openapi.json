@@ -9412,6 +9412,743 @@
         }
       }
     },
+    "/v1/edge/devices": {
+      "get": {
+        "tags": [
+          "device-drafts"
+        ],
+        "summary": "Devices",
+        "operationId": "devices_v1_edge_devices_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/EdgeDeviceOutput"
+                  },
+                  "type": "array",
+                  "title": "Response Devices V1 Edge Devices Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
+          }
+        ]
+      }
+    },
+    "/v1/edge/devices/{device_id}": {
+      "post": {
+        "tags": [
+          "device-drafts"
+        ],
+        "summary": "Enroll",
+        "operationId": "enroll_v1_edge_devices__device_id__post",
+        "security": [
+          {
+            "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Device Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EdgeEnroll"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EdgeDeviceOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/edge/devices/{device_id}/revoke": {
+      "post": {
+        "tags": [
+          "device-drafts"
+        ],
+        "summary": "Revoke",
+        "operationId": "revoke_v1_edge_devices__device_id__revoke_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Device Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EdgeRevoke"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EdgeDeviceOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/scopes/{scope_id}/edge/proposals/{proposal_id}": {
+      "post": {
+        "tags": [
+          "device-drafts"
+        ],
+        "summary": "Sync",
+        "operationId": "sync_v1_scopes__scope_id__edge_proposals__proposal_id__post",
+        "security": [
+          {
+            "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "scope_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Scope Id"
+            }
+          },
+          {
+            "name": "proposal_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Proposal Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EdgeSync"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EdgeProposalOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/edge/proposals/{proposal_id}": {
+      "get": {
+        "tags": [
+          "device-drafts"
+        ],
+        "summary": "Get",
+        "operationId": "get_v1_edge_proposals__proposal_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "proposal_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Proposal Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EdgeProposalOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/reflection/policy": {
       "get": {
         "tags": [
@@ -11548,6 +12285,367 @@
                 "schema": {
                   "$ref": "#/components/schemas/ErrorOutput"
                 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/document-uploads/{upload_id}/raw": {
+      "get": {
+        "tags": [
+          "text-pdf"
+        ],
+        "summary": "Original",
+        "operationId": "original_v1_document_uploads__upload_id__raw_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "upload_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Upload Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "429": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/scopes/{scope_id}/documents/pdf-uploads/{upload_id}": {
+      "post": {
+        "tags": [
+          "text-pdf"
+        ],
+        "summary": "Upload",
+        "operationId": "upload_v1_scopes__scope_id__documents_pdf_uploads__upload_id__post",
+        "security": [
+          {
+            "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "scope_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Scope Id"
+            }
+          },
+          {
+            "name": "upload_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Upload Id"
+            }
+          },
+          {
+            "name": "source_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Source Id"
+            }
+          },
+          {
+            "name": "filename",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120,
+              "title": "Filename"
+            }
+          },
+          {
+            "name": "available_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Available From"
+            }
+          },
+          {
+            "name": "available_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Available To"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentUploadOutput"
+                }
+              }
+            }
+          },
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentUploadOutput"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/pdf": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
               }
             }
           }
@@ -27018,6 +28116,16 @@
       },
       "CapabilitiesOutput": {
         "properties": {
+          "device_draft_sync": {
+            "type": "string",
+            "title": "Device Draft Sync",
+            "default": "disabled"
+          },
+          "pdf_ingestion": {
+            "type": "string",
+            "title": "Pdf Ingestion",
+            "default": "disabled"
+          },
           "work_protocol": {
             "type": "string",
             "title": "Work Protocol",
@@ -29283,6 +30391,16 @@
       },
       "DocumentChunkOutput": {
         "properties": {
+          "pdf": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PdfLocationOutput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -29361,6 +30479,16 @@
       },
       "DocumentCitationOutput": {
         "properties": {
+          "pdf": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PdfLocationOutput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "label": {
             "type": "string",
             "pattern": "^D[1-9][0-9]*$",
@@ -29414,7 +30542,8 @@
             "type": "string",
             "enum": [
               "text/plain",
-              "text/markdown"
+              "text/markdown",
+              "application/pdf"
             ],
             "title": "Media Type"
           },
@@ -29515,7 +30644,8 @@
             "type": "string",
             "enum": [
               "text/plain",
-              "text/markdown"
+              "text/markdown",
+              "application/pdf"
             ],
             "title": "Media Type"
           },
@@ -29665,6 +30795,16 @@
           },
           "upload": {
             "$ref": "#/components/schemas/DocumentUploadOutput"
+          },
+          "extraction": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PdfExtractionOutput"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -29680,6 +30820,333 @@
           "upload"
         ],
         "title": "DocumentVersionOutput"
+      },
+      "EdgeDeviceOutput": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "const": "ada-device-drafts-v1",
+            "title": "Version",
+            "default": "ada-device-drafts-v1"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "last_sequence": {
+            "type": "integer",
+            "title": "Last Sequence"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "public_key": {
+            "type": "string",
+            "title": "Public Key"
+          },
+          "enrollment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Enrollment Id"
+          },
+          "revocation_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revocation Id"
+          },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "format": "int64"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revoked At"
+          },
+          "created_at": {
+            "type": "integer",
+            "format": "int64",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "revision",
+          "last_sequence",
+          "label",
+          "public_key",
+          "enrollment_id",
+          "revocation_id",
+          "revoked_at",
+          "created_at"
+        ],
+        "title": "EdgeDeviceOutput"
+      },
+      "EdgeEnroll": {
+        "properties": {
+          "operation_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Operation Id"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Label"
+          },
+          "public_key": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 80,
+            "title": "Public Key"
+          },
+          "review": {
+            "type": "string",
+            "const": "confirm",
+            "title": "Review"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "operation_id",
+          "label",
+          "public_key",
+          "review"
+        ],
+        "title": "EdgeEnroll"
+      },
+      "EdgeProposalOutput": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "const": "ada-device-drafts-v1",
+            "title": "Version",
+            "default": "ada-device-drafts-v1"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "scope_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Scope Id"
+          },
+          "device_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Device Id"
+          },
+          "sequence": {
+            "type": "integer",
+            "title": "Sequence"
+          },
+          "task": {
+            "type": "string",
+            "const": "offline_reply",
+            "title": "Task",
+            "default": "offline_reply"
+          },
+          "model_id": {
+            "type": "string",
+            "title": "Model Id"
+          },
+          "model_digest": {
+            "type": "string",
+            "title": "Model Digest"
+          },
+          "runtime": {
+            "type": "string",
+            "title": "Runtime"
+          },
+          "output": {
+            "type": "string",
+            "title": "Output"
+          },
+          "prompt_hash": {
+            "type": "string",
+            "title": "Prompt Hash"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourcePin"
+            },
+            "type": "array",
+            "title": "Sources"
+          },
+          "trust_class": {
+            "type": "string",
+            "const": "model_generated",
+            "title": "Trust Class",
+            "default": "model_generated"
+          },
+          "state": {
+            "type": "string",
+            "const": "draft",
+            "title": "State",
+            "default": "draft"
+          },
+          "created_at": {
+            "type": "integer",
+            "format": "int64",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "scope_id",
+          "device_id",
+          "sequence",
+          "model_id",
+          "model_digest",
+          "runtime",
+          "output",
+          "prompt_hash",
+          "sources",
+          "created_at"
+        ],
+        "title": "EdgeProposalOutput"
+      },
+      "EdgeRevoke": {
+        "properties": {
+          "operation_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Operation Id"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          },
+          "review": {
+            "type": "string",
+            "const": "confirm",
+            "title": "Review"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "operation_id",
+          "expected_revision",
+          "review"
+        ],
+        "title": "EdgeRevoke"
+      },
+      "EdgeSync": {
+        "properties": {
+          "proposal_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Proposal Id"
+          },
+          "device_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Device Id"
+          },
+          "device_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Device Revision"
+          },
+          "sequence": {
+            "type": "integer",
+            "maximum": 10000.0,
+            "minimum": 1.0,
+            "title": "Sequence"
+          },
+          "task": {
+            "type": "string",
+            "const": "offline_reply",
+            "title": "Task"
+          },
+          "model_id": {
+            "type": "string",
+            "const": "Qwen/Qwen3-0.6B-GGUF",
+            "title": "Model Id"
+          },
+          "model_digest": {
+            "type": "string",
+            "const": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+            "title": "Model Digest"
+          },
+          "runtime": {
+            "type": "string",
+            "const": "llama.cpp-620d2225cc436ab0b001e3200e590e3b286ef9ab",
+            "title": "Runtime"
+          },
+          "prompt": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Prompt"
+          },
+          "prompt_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Prompt Hash"
+          },
+          "output": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Output"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourcePin"
+            },
+            "type": "array",
+            "maxItems": 4,
+            "title": "Sources"
+          },
+          "signature": {
+            "type": "string",
+            "maxLength": 192,
+            "minLength": 80,
+            "title": "Signature"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "proposal_id",
+          "device_id",
+          "device_revision",
+          "sequence",
+          "task",
+          "model_id",
+          "model_digest",
+          "runtime",
+          "prompt",
+          "prompt_hash",
+          "output",
+          "signature"
+        ],
+        "title": "EdgeSync"
       },
       "EditInput": {
         "properties": {
@@ -30819,6 +32286,19 @@
         ],
         "title": "ExtractionOutput"
       },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
       "InteractionObservationOutput": {
         "properties": {
           "id": {
@@ -31652,6 +33132,134 @@
           "new_password"
         ],
         "title": "PasswordChangeInput"
+      },
+      "PdfExtractionOutput": {
+        "properties": {
+          "parser": {
+            "type": "string",
+            "const": "pypdf-6.21.2-text-v1",
+            "title": "Parser"
+          },
+          "normalization": {
+            "type": "string",
+            "const": "lf-page-newline-v1",
+            "title": "Normalization"
+          },
+          "raw_hash": {
+            "type": "string",
+            "title": "Raw Hash"
+          },
+          "text_hash": {
+            "type": "string",
+            "title": "Text Hash"
+          },
+          "image_id": {
+            "type": "string",
+            "title": "Image Id"
+          },
+          "pages": {
+            "items": {
+              "$ref": "#/components/schemas/PdfPageOutput"
+            },
+            "type": "array",
+            "maxItems": 16,
+            "minItems": 1,
+            "title": "Pages"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "parser",
+          "normalization",
+          "raw_hash",
+          "text_hash",
+          "image_id",
+          "pages",
+          "warnings"
+        ],
+        "title": "PdfExtractionOutput"
+      },
+      "PdfLocationOutput": {
+        "properties": {
+          "page": {
+            "type": "integer",
+            "maximum": 16.0,
+            "minimum": 1.0,
+            "title": "Page"
+          },
+          "page_span_start": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Page Span Start"
+          },
+          "page_span_end": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Page Span End"
+          },
+          "parser": {
+            "type": "string",
+            "const": "pypdf-6.21.2-text-v1",
+            "title": "Parser"
+          },
+          "text_hash": {
+            "type": "string",
+            "title": "Text Hash"
+          },
+          "raw_hash": {
+            "type": "string",
+            "title": "Raw Hash"
+          }
+        },
+        "type": "object",
+        "required": [
+          "page",
+          "page_span_start",
+          "page_span_end",
+          "parser",
+          "text_hash",
+          "raw_hash"
+        ],
+        "title": "PdfLocationOutput"
+      },
+      "PdfPageOutput": {
+        "properties": {
+          "page": {
+            "type": "integer",
+            "maximum": 16.0,
+            "minimum": 1.0,
+            "title": "Page"
+          },
+          "span_start": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Span Start"
+          },
+          "span_end": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Span End"
+          },
+          "text_hash": {
+            "type": "string",
+            "title": "Text Hash"
+          }
+        },
+        "type": "object",
+        "required": [
+          "page",
+          "span_start",
+          "span_end",
+          "text_hash"
+        ],
+        "title": "PdfPageOutput"
       },
       "PersonalityInput": {
         "properties": {
@@ -36806,6 +38414,46 @@
           "name"
         ],
         "title": "UserOutput"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
       },
       "ValidationErrorOutput": {
         "properties": {

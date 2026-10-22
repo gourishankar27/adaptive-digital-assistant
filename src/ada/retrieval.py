@@ -18,9 +18,11 @@ from sqlalchemy import case, func, literal, literal_column, or_, select, text
 from sqlalchemy.orm import aliased
 
 from ada.contracts import RetrievalBudgetOutput, RetrievalCandidateOutput
+from ada.document_contracts import PdfLocationOutput
 from ada.entities import IdentityView, entity_query_keys
 from ada.entity_contracts import EntityChoice, EntityResolutionOutput
 from ada.entity_models import ClaimEntityLink
+from ada.errors import ServiceError
 from ada.evidence import content_hash
 from ada.memory import EvidenceOutput, MemoryInput, ReviewProvenance, Timestamp, time_ms
 from ada.models import (
@@ -98,9 +100,6 @@ class CitationOutput(BaseModel):
     conflict: bool
     subject_entity_id: UUID | None = None
     entity: EntityChoice | None = None
-
-
-from ada.document_contracts import PdfLocationOutput
 
 
 class DocumentCitationOutput(BaseModel):
@@ -271,6 +270,9 @@ def memory_message(selected, plan, document_selected=()):
             item["provenance"] = original["provenance"]
         if original.get("entity"):
             item["entity"] = original["entity"]
+    for item, original in zip(items[len(selected) :], document_selected):
+        if original.get("pdf"):
+            item["pdf"] = original["pdf"]
     payload = {"type": "ada_memory_evidence", "as_of": iso_time(plan["as_of"]), "items": items}
     if ambiguities:
         ambiguous = ambiguities[0]
@@ -481,7 +483,11 @@ def _document_citation(chunk, source, upload):
     from ada.pdfs import page_location
 
     return {
-        **({"pdf": page_location(upload, chunk.span_start, chunk.span_end)} if upload.media_type == "application/pdf" else {}),
+        **(
+            {"pdf": page_location(upload, chunk.span_start, chunk.span_end)}
+            if upload.media_type == "application/pdf"
+            else {}
+        ),
         "origin": "imported_document",
         "trust_class": "imported_untrusted",
         "scope_id": chunk.scope_id,

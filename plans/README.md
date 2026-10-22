@@ -1,5 +1,13 @@
 # ADA implementation plans
 
+Selected19A/31 source now adds a measured on-device draft study/signed receipt
+protocol and bounded text-PDF ingestion. Both mobile candidates failed quality;
+19A activation/exit remains open, local generation disabled. Phase31 OCR is disabled.
+Current head0021/76 tables/63 owner-content/backup-v7, Android25/journal18.
+See [PDF](../docs/PDF-INGESTION.md), [study](../docs/ON-DEVICE-DRAFTS.md) and dated
+STATUS/WORKLOG. Earlier phase rows retain their planning/history context; no19B,
+later milestone or deployment was implemented.
+
 Current source includes Phase28 bounded idle reports and catalogue question drafts
 with exact owner review, encrypted Android recovery and aggregate admin monitoring.
 Head0019 adds five tables; global reflection and separate owner consent default

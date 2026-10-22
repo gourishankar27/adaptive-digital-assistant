@@ -30,6 +30,7 @@ def run(
     physical_model=None,
     instrumentation_arguments=None,
     fixture_bearer=False,
+    before_stage=None,
 ):
     if not os.environ.get("ADA_TEST_DATABASE_URL"):
         raise SystemExit("Select a dedicated ADA_TEST_DATABASE_URL")
@@ -151,6 +152,8 @@ def run(
             "passwordLoginAndRenewBeforeProcessStop",
             "passwordRestoreAfterActualProcessStopThenRevoke",
         ):
+            if before_stage is not None:
+                before_stage(command)
             result = command(
                 "shell",
                 "am",

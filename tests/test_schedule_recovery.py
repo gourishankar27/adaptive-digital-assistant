@@ -49,8 +49,8 @@ def test_native_encrypted_recovery_quarantines_running_and_future_schedules(
         phrase = "Public synthetic scheduling recovery phrase"
         saved = backup(url, binary, tmp_path, phrase, settings)
         manifest, _ = unpack(read_artifact(saved["artifact"], phrase))
-        assert manifest["head"] == "0020" and manifest["format"] == "ada-postgres-backup-v6"
-        assert len(manifest["tables"]) == 74
+        assert manifest["head"] == "0021" and manifest["format"] == "ada-postgres-backup-v7"
+        assert len(manifest["tables"]) == 76
         assert set(
             (
                 "schedule_consents",

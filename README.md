@@ -1,5 +1,16 @@
 # ADA
 
+Phase31 adds selected text PDFs: isolated parsing, immutable original bytes and
+extracted text/page maps, Android review and D source cards. Selected Phase19A
+adds a device-draft study and signed proposal protocol. Both mobile candidates
+failed reply quality: local drafting is disabled, `edge_inference=false`.
+Current source: **0021 /76 tables /63 owner-content**, backup-v7;
+Android25 /0.31.0-documents-drafts, encrypted journal18 (older versions readable).
+PDF and device sync default off. Read [PDF setup/use](docs/PDF-INGESTION.md),
+[the device study](docs/ON-DEVICE-DRAFTS.md) and [actual checks](plans/STATUS.md).
+No OCR, Phase19B integration, live migration or deployment. Earlier sections retain
+their own milestone boundaries.
+
 Phase30 adds **Projects & next actions**: explicit owner/scoped goals and tasks,
 exact Save review from chat, immutable revisions, balanced selected-work briefs,
 and separately consented questions/reminders. A due date never implies completion

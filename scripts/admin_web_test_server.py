@@ -228,6 +228,19 @@ def main():
                 )
                 provider = AndroidChatProvider()
             app = create_app(settings, provider, sessions)
+            if os.environ.get("ADA_WEB_TEST_PDF_EDGE_FIXTURE") == "1":
+                from pdf_edge_test_fixture import enable_counts
+
+                from ada.pdf_sandbox import DockerPdfParser
+
+                manifest = os.environ.get("ADA_TEST_PDF_MANIFEST")
+                if not manifest:
+                    raise SystemExit("Explicit PDF test image manifest required")
+                app.state.pdfs.parser = DockerPdfParser(Path(manifest))
+                if not app.state.pdfs.parser.available:
+                    raise SystemExit("Isolated PDF fixture boundary unavailable")
+                settings.edge_draft_sync_enabled = True
+                enable_counts(app)
             if os.environ.get("ADA_WEB_TEST_WORK_FIXTURE") == "1":
                 from work_test_fixture import enable_work_fixture
 

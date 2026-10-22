@@ -1,5 +1,25 @@
 # ADA architecture decisions
 
+## Phase31 PDF projection and selected19A drafts
+
+Head0021 adds nullable extraction metadata and two owner-content device tables:
+76 installed tables,63 owner-content, backup-v7. Old migrations and v1–v6 recovery
+are retained. PDF original/extracted hashes, page/code-point maps and parser/image
+identity are frozen at atomic publication. One secret-free, network-disabled,
+resource-limited Docker worker parses outside transactions. Owner/principal is
+rechecked before reservation/publication. Failed/processing text is not retrieved.
+Old text/Markdown requests, prompt snapshots and completed replay are preserved.
+
+The optional Android isolated UID receives only a model FD and explicit prompt.
+Owner/device P-256 signatures bind exact scoped generated proposals, source pins
+and monotonic sequence. Reads revalidate sources, privacy epoch and revocation.
+Android journal18 encrypts before HTTP and restores with GET only. Restore retains
+content and revokes device registrations. Drafts cannot create factual memory,
+chat events, tool approvals or server replies. No private admin reader is added.
+Both measured models failed quality: UI activation stays disabled, normal builds
+omit JNI/weights and edge_inference=false. See [PDF](PDF-INGESTION.md),
+[runtime limits](ON-DEVICE-DRAFTS.md) and dated STATUS/WORKLOG for actual checks.
+
 ## Phase30 explicit work and selected briefs
 
 The current source adds four owner-content tables after0019: WorkItem,

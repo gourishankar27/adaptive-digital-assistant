@@ -4,6 +4,7 @@ from ada import (  # noqa: F401
     agent_models,
     consolidation_models,
     curiosity_models,
+    edge_models,
     embedding_models,
     entity_models,
     expression_models,
@@ -21,6 +22,8 @@ from ada.errors import ServiceError
 from ada.models import Base
 
 CONTENT_TABLES = (
+    "edge_devices",
+    "edge_proposals",
     "agent_approvals",
     "agent_receipts",
     "agent_runs",

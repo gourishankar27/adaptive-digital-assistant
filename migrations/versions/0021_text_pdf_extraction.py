@@ -1,20 +1,88 @@
 """Versioned text-PDF extraction on existing immutable upload records."""
+
 import sqlalchemy as sa
 from alembic import context, op
 from alembic.script import ScriptDirectory
-revision="0021"
-down_revision="0020"
-branch_labels=None
-depends_on=None
+
+revision = "0021"
+down_revision = "0020"
+branch_labels = None
+depends_on = None
+
 
 def upgrade():
-    op.add_column("document_uploads",sa.Column("extraction",sa.JSON(),nullable=True))
+    op.create_table(
+        "edge_devices",
+        sa.Column("owner_id", sa.String(length=36), nullable=False),
+        sa.Column("id", sa.String(length=36), nullable=False),
+        sa.Column("epoch", sa.BigInteger(), nullable=False),
+        sa.Column("revision", sa.Integer(), nullable=False),
+        sa.Column("last_sequence", sa.Integer(), nullable=False),
+        sa.Column("label", sa.String(length=80), nullable=False),
+        sa.Column("public_key", sa.String(length=256), nullable=False),
+        sa.Column("enrollment_id", sa.String(length=36), nullable=False),
+        sa.Column("input_hash", sa.String(length=64), nullable=False),
+        sa.Column("revoked_at", sa.BigInteger(), nullable=True),
+        sa.Column("revocation_id", sa.String(length=36), nullable=True),
+        sa.Column("revocation_hash", sa.String(length=64), nullable=True),
+        sa.Column("created_at", sa.BigInteger(), nullable=False),
+        sa.CheckConstraint(
+            "revision>=1 AND last_sequence>=0 AND epoch>=0", name="edge_device_counters"
+        ),
+        sa.ForeignKeyConstraint(["owner_id"], ["users.id"]),
+        sa.PrimaryKeyConstraint("owner_id", "id"),
+    )
+    op.create_table(
+        "edge_proposals",
+        sa.Column("owner_id", sa.String(length=36), nullable=False),
+        sa.Column("id", sa.String(length=36), nullable=False),
+        sa.Column("scope_id", sa.String(length=36), nullable=False),
+        sa.Column("device_id", sa.String(length=36), nullable=False),
+        sa.Column("epoch", sa.BigInteger(), nullable=False),
+        sa.Column("sequence", sa.Integer(), nullable=False),
+        sa.Column("input_hash", sa.String(length=64), nullable=False),
+        sa.Column("payload", sa.JSON(), nullable=False),
+        sa.Column("output", sa.Text(), nullable=False),
+        sa.Column("created_at", sa.BigInteger(), nullable=False),
+        sa.CheckConstraint("sequence>=1 AND epoch>=0", name="edge_proposal_counters"),
+        sa.ForeignKeyConstraint(
+            ["owner_id", "device_id"], ["edge_devices.owner_id", "edge_devices.id"]
+        ),
+        sa.ForeignKeyConstraint(["owner_id", "scope_id"], ["scopes.owner_id", "scopes.id"]),
+        sa.PrimaryKeyConstraint("owner_id", "id"),
+        sa.UniqueConstraint("owner_id", "device_id", "sequence", name="edge_proposal_sequence"),
+    )
+    op.add_column("document_uploads", sa.Column("extraction", sa.JSON(), nullable=True))
+
 
 def downgrade():
-    if op.get_bind().execute(sa.text("SELECT 1 FROM document_uploads WHERE media_type='application/pdf' OR extraction IS NOT NULL LIMIT 1")).first():
+    for table in ("edge_proposals", "edge_devices"):
+        if op.get_bind().execute(sa.text("SELECT 1 FROM " + table + " LIMIT 1")).first():
+            raise RuntimeError(
+                "Device draft history cannot be downgraded; restore a verified backup"
+            )
+    if (
+        op.get_bind()
+        .execute(
+            sa.text(
+                "SELECT 1 FROM document_uploads WHERE media_type='application/pdf' OR extraction IS NOT NULL LIMIT 1"
+            )
+        )
+        .first()
+    ):
         raise RuntimeError("PDF history cannot be downgraded; restore a verified backup")
-    _preflight_previous()
-    op.drop_column("document_uploads","extraction")
+    crossed = {
+        step.revision.revision
+        for step in ScriptDirectory.from_config(context.config)._downgrade_revs(
+            context.get_context().opts["destination_rev"], revision
+        )
+    }
+    if "0020" in crossed:
+        _preflight_previous()
+    op.drop_column("document_uploads", "extraction")
+    op.drop_table("edge_proposals")
+    op.drop_table("edge_devices")
+
 
 def _preflight_previous():
     if context.is_offline_mode():
@@ -84,7 +152,6 @@ def _preflight_previous():
                 for table in ("curiosity_questions", "curiosity_receipts", "curiosity_policies"):
                     if op.get_bind().scalar(sa.text(f"SELECT COUNT(*) FROM {table}")):
                         raise RuntimeError("Curiosity history cannot be downgraded automatically")
-                # Preserve released lower guards before SQLite can commit any destructive DDL.
                 crossed = {
                     step.revision.revision
                     for step in ScriptDirectory.from_config(context.config)._downgrade_revs(
@@ -199,7 +266,6 @@ def _preflight_previous():
                             "Document evidence exists; refusing a lossy downgrade",
                         ),
                     }
-                    # Preserve every lower history guard before any SQLite/nontransactional DDL.
                     for step, (tables, message) in guards.items():
                         if step in crossed:
                             for table in tables:

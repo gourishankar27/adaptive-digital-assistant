@@ -21,6 +21,7 @@ class ChatViewModel(
     private val api: AdaApi, private val store: SessionStore, private val allowDebugHttp: Boolean,
     private val pollDelaysMs: List<Long> = listOf(0, 1000, 2000, 4000, 8000, 16000),
     private val voiceClock: () -> Long = System::currentTimeMillis,
+    edgePlatform: dev.ada.assistant.edge.DraftPlatform? = null,
 ) : ViewModel() {
     private val mutableState = MutableStateFlow(ChatState())
     val state = mutableState.asStateFlow()
@@ -31,6 +32,7 @@ class ChatViewModel(
     val research = ResearchController(api, store, viewModelScope) { expire() }
     val curiosity = CuriosityController(api, store, viewModelScope) { expire() }
     val work = WorkController(api, store, viewModelScope) { expire() }
+    val edge = EdgeController(api, store, viewModelScope, edgePlatform) { expire() }
     val reflection = ReflectionController(api, store, viewModelScope) { expire() }
     val scheduling = ScheduleController(api, store, viewModelScope) { expire() }
     private val curiosityTurns = mutableSetOf<UUID>()
@@ -69,6 +71,7 @@ class ChatViewModel(
         mutableState.value = block(mutableState.value)
         val next = mutableState.value
         work.observeVisible(next.destination == ChatDestination.Work)
+        edge.observeVisible(next.destination == ChatDestination.Edge)
         voice.context(next.conversation, next.destination == ChatDestination.Chat, next.pending != null)
         val conversationChanged = previousConversation != next.conversation?.id
         if (previous == ChatDestination.Chat && (next.destination != ChatDestination.Chat || conversationChanged)) {
@@ -84,6 +87,7 @@ class ChatViewModel(
         foreground = visible
         voice.observeForeground(visible)
         scheduling.observeForeground(visible); reflection.observeForeground(visible); work.observeForeground(visible)
+        edge.observeForeground(visible)
         if (!visible) { renewalJob?.cancel(); renewalJob = null; streamJob?.cancel(); update { it.copy(streamConnected = false) } }
         else if (state.value.destination == ChatDestination.Chat && state.value.pending != null) reconcile()
         if (visible && accessExpiresAt?.let { it - System.currentTimeMillis() < 60_000 } == true) { renewSession(); return }
@@ -117,7 +121,7 @@ class ChatViewModel(
         proposals.reset()
         agents.reset()
         research.reset()
-        curiosity.reset(); curiosityTurns.clear(); scheduling.reset(); reflection.reset(); work.reset()
+        curiosity.reset(); curiosityTurns.clear(); scheduling.reset(); reflection.reset(); work.reset(); edge.reset()
         episodes.reset()
         expression.reset()
         learning.reset()
@@ -285,6 +289,7 @@ class ChatViewModel(
         research.setVerifiedSession(connection, verified, features)
         curiosity.setVerifiedSession(connection, verified, features)
         scheduling.setVerifiedSession(connection, verified, features); reflection.setVerifiedSession(connection, verified, features); work.setVerifiedSession(connection, verified, features)
+        edge.setVerifiedSession(connection, verified, features)
         episodes.setVerifiedSession(connection, verified, features)
         expression.setVerifiedSession(connection, verified, features)
         learning.setVerifiedSession(connection, verified, features)
@@ -325,6 +330,7 @@ class ChatViewModel(
         work.fromReply(event, selected)
     }
     fun navigate(destination: ChatDestination) {
+        if (destination == ChatDestination.Edge && mutableState.value.capabilities?.device_draft_sync != EDGE_PROTOCOL) return
         if (destination == ChatDestination.Work && mutableState.value.capabilities?.work_protocol != WORK_PROTOCOL) return
         if (destination == ChatDestination.Reflection && mutableState.value.capabilities?.reflection_protocol != "ada-reflection-v1") return
         if (destination == ChatDestination.Reflection) reflection.refresh()
@@ -367,7 +373,7 @@ class ChatViewModel(
         ChatDestination.Proposals -> ChatDestination.Memory
         ChatDestination.Research -> if (mutableState.value.conversation == null) ChatDestination.Conversations else ChatDestination.Chat
         ChatDestination.Curiosity -> if (mutableState.value.conversation == null) ChatDestination.Conversations else ChatDestination.Chat
-        ChatDestination.Work, ChatDestination.Reflection, ChatDestination.Schedules -> if (mutableState.value.conversation == null) ChatDestination.Conversations else ChatDestination.Chat
+        ChatDestination.Edge, ChatDestination.Work, ChatDestination.Reflection, ChatDestination.Schedules -> if (mutableState.value.conversation == null) ChatDestination.Conversations else ChatDestination.Chat
         ChatDestination.Tools -> if (mutableState.value.conversation == null) ChatDestination.Conversations else ChatDestination.Chat
         ChatDestination.Episodes -> if (mutableState.value.conversation == null) ChatDestination.Conversations else ChatDestination.Chat
         ChatDestination.Sources -> if (mutableState.value.conversation == null) ChatDestination.Conversations else ChatDestination.Chat

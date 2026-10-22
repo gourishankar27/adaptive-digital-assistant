@@ -3,7 +3,7 @@ package dev.ada.assistant.ui
 import dev.ada.assistant.data.*
 import java.util.UUID
 
-enum class ChatDestination { Connect, Conversations, NewConversation, Chat, Sources, Retrieval, Memory, Documents, Entities, Proposals, Tools, Research, Curiosity, Schedules, Reflection, Work, Episodes, Settings }
+enum class ChatDestination { Connect, Conversations, NewConversation, Chat, Sources, Retrieval, Memory, Documents, Entities, Proposals, Tools, Research, Curiosity, Schedules, Reflection, Work, Edge, Episodes, Settings }
 enum class PendingPhase { Journaling, Submitting, Unknown, Running, Failed, Missing, Conflict, Blocked }
 data class ChatPage<T>(
     val items: List<T> = emptyList(), val loading: Boolean = false,

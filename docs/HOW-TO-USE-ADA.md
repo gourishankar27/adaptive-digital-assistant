@@ -1,6 +1,13 @@
 # How to use ADA — developer setup and everyday operation
 
-Current Phase27 source requires **0018 / 65 tables**. Follow
+Current selected19A/31 source requires **0021 /76 tables**, backup-v7 and
+Android25/journal18. Existing deployments are unchanged. See
+[selected PDF setup and limits](PDF-INGESTION.md) before enabling the separate
+parser capability. [The on-device draft study](ON-DEVICE-DRAFTS.md) records failed
+model quality; local generation remains disabled. No new19B integration or OCR.
+The dated instructions below retain their earlier installation context.
+
+The earlier Phase27 source requires **0018 / 65 tables**. Follow
 [durable scheduling and reminders](DURABLE-SCHEDULING-AND-REMINDERS.md) for the
 current upgrade/consent/timezone/restore requirements and
 [always-on operations](ALWAYS-ON-OPERATIONS.md) for host startup. These source

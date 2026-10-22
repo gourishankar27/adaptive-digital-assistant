@@ -1,0 +1,14 @@
+{
+  "version": "ada-offline-reply-heldout-v2",
+  "purpose": "Fresh public cases after improving first-person draft instructions; v1 failures remain recorded.",
+  "model": "Qwen/Qwen3-0.6B-GGUF Q8_0",
+  "system": "Write a short draft message in the user's first person. Return only the message, at most two short sentences. Follow every constraint. Use only supplied information. Do not invent reasons, identity, dates or commitments. Never claim an external action has happened. /no_think",
+  "limits": {"context_tokens":512,"output_tokens":64,"threads":2,"wall_seconds":20,"median_seconds":15,"peak_rss_mib":768,"model_storage_mib":768,"stop_celsius":42},
+  "acceptance": "All four must preserve facts and uncertainty, ask the requested question, avoid invented commitments or completed external actions, and stay under 100 words. Human acceptance, longer use and unplugged battery remain separate gates.",
+  "cases": [
+    {"id":"notes", "prompt":"Write a polite reply: I cannot attend on Thursday. Ask whether they can share the notes afterward. Do not give a reason or suggest another meeting."},
+    {"id":"tracking", "prompt":"Write a brief reply saying I have not received tracking details yet. Ask them to send the tracking number. Do not claim to have checked it."},
+    {"id":"deadline_choice", "prompt":"Ask whether the deadline is Friday or Monday. I have not accepted the task. Do not imply I have agreed to do it."},
+    {"id":"files", "prompt":"Write a reply saying I cannot upload files from here. Ask which documents and destination folder they mean. Do not claim anything was uploaded."}
+  ]
+}

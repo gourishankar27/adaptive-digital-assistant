@@ -75,19 +75,29 @@ class ProposalService:
             quote = source.content[p.span_start : p.span_end]
             if not quote.strip() or len(quote.encode("utf-8")) > MAX_SOURCE_BYTES:
                 raise ServiceError(422, "proposal_invalid_span")
-            if (
-                kind == "imported_document"
-                and db.scalar(
-                    select(DocumentUpload.id).where(
+            if kind == "imported_document":
+                upload = db.scalar(
+                    select(DocumentUpload).where(
                         DocumentUpload.owner_id == owner,
                         DocumentUpload.scope_id == scope,
                         DocumentUpload.source_version_id == source.id,
                         DocumentUpload.state == "ready",
                     )
                 )
-                is None
-            ):
-                raise ServiceError(409, "proposal_source_unpublished")
+                if upload is None:
+                    raise ServiceError(409, "proposal_source_unpublished")
+                if upload.media_type == "application/pdf":
+                    from ada.pdfs import projection_hash
+
+                    instant = now_ms()
+                    if (
+                        upload.published_at is None
+                        or upload.published_at > instant
+                        or upload.available_from > instant
+                        or (upload.available_to is not None and upload.available_to <= instant)
+                        or projection_hash(upload, source.content) != p.content_hash
+                    ):
+                        raise ServiceError(409, "proposal_source_changed")
             result.append(
                 {
                     "source_id": source.source_id,

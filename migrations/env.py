@@ -5,6 +5,7 @@ from ada import (  # noqa: F401
     agent_models,
     consolidation_models,  # noqa: F401
     curiosity_models,
+    edge_models,
     embedding_models,
     entity_models,
     expression_models,

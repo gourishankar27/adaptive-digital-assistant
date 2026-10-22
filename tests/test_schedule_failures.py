@@ -194,12 +194,12 @@ def test_schedule_inventory_erasure_and_old_replay_populated_upgrade(harness):
         names = inspect(db.connection()).get_table_names()
         assert (
             len([name for name in names if not name.startswith(("claim_fts", "document_fts"))])
-            == 74
+            == 76
         )
     with pytest.raises(RuntimeError, match="Schedule history"):
         command.downgrade(h["config"], "0017")
     with h["sessions"]() as db:
-        assert db.scalar(text("SELECT version_num FROM alembic_version")) == "0020"
+        assert db.scalar(text("SELECT version_num FROM alembic_version")) == "0021"
     h["settings"].deletion_worker_enabled = True
     deletion = h["app"].state.deletion
     preview = deletion.preview(h["a_id"])

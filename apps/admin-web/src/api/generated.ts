@@ -1040,6 +1040,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/edge/devices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Devices */
+        get: operations["devices_v1_edge_devices_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/edge/devices/{device_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Enroll */
+        post: operations["enroll_v1_edge_devices__device_id__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/edge/devices/{device_id}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revoke */
+        post: operations["revoke_v1_edge_devices__device_id__revoke_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/scopes/{scope_id}/edge/proposals/{proposal_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sync */
+        post: operations["sync_v1_scopes__scope_id__edge_proposals__proposal_id__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/edge/proposals/{proposal_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get */
+        get: operations["get_v1_edge_proposals__proposal_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/reflection/policy": {
         parameters: {
             query?: never;
@@ -1256,6 +1341,40 @@ export interface paths {
         get: operations["raw_v1_document_versions__source_version_id__raw_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/document-uploads/{upload_id}/raw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Original */
+        get: operations["original_v1_document_uploads__upload_id__raw_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/scopes/{scope_id}/documents/pdf-uploads/{upload_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload */
+        post: operations["upload_v1_scopes__scope_id__documents_pdf_uploads__upload_id__post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3291,6 +3410,16 @@ export interface components {
         /** CapabilitiesOutput */
         CapabilitiesOutput: {
             /**
+             * Device Draft Sync
+             * @default disabled
+             */
+            device_draft_sync: string;
+            /**
+             * Pdf Ingestion
+             * @default disabled
+             */
+            pdf_ingestion: string;
+            /**
              * Work Protocol
              * @default unsupported
              */
@@ -4402,6 +4531,7 @@ export interface components {
         };
         /** DocumentChunkOutput */
         DocumentChunkOutput: {
+            pdf?: components["schemas"]["PdfLocationOutput"] | null;
             /**
              * Id
              * Format: uuid
@@ -4446,6 +4576,7 @@ export interface components {
         };
         /** DocumentCitationOutput */
         DocumentCitationOutput: {
+            pdf?: components["schemas"]["PdfLocationOutput"] | null;
             /** Label */
             label: string;
             /**
@@ -4491,7 +4622,7 @@ export interface components {
              * Media Type
              * @enum {string}
              */
-            media_type: "text/plain" | "text/markdown";
+            media_type: "text/plain" | "text/markdown" | "application/pdf";
             /** Raw Hash */
             raw_hash: string;
             /**
@@ -4542,7 +4673,7 @@ export interface components {
              * Media Type
              * @enum {string}
              */
-            media_type: "text/plain" | "text/markdown";
+            media_type: "text/plain" | "text/markdown" | "application/pdf";
             /** Input Hash */
             input_hash: string;
             /** Raw Hash */
@@ -4617,6 +4748,183 @@ export interface components {
              */
             created_at: bigint;
             upload: components["schemas"]["DocumentUploadOutput"];
+            extraction?: components["schemas"]["PdfExtractionOutput"] | null;
+        };
+        /** EdgeDeviceOutput */
+        EdgeDeviceOutput: {
+            /**
+             * Version
+             * @default ada-device-drafts-v1
+             * @constant
+             */
+            version: "ada-device-drafts-v1";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Revision */
+            revision: number;
+            /** Last Sequence */
+            last_sequence: number;
+            /** Label */
+            label: string;
+            /** Public Key */
+            public_key: string;
+            /**
+             * Enrollment Id
+             * Format: uuid
+             */
+            enrollment_id: string;
+            /** Revocation Id */
+            revocation_id: string | null;
+            /** Revoked At */
+            revoked_at: bigint | null;
+            /**
+             * Created At
+             * Format: int64
+             */
+            created_at: bigint;
+        };
+        /** EdgeEnroll */
+        EdgeEnroll: {
+            /**
+             * Operation Id
+             * Format: uuid
+             */
+            operation_id: string;
+            /** Label */
+            label: string;
+            /** Public Key */
+            public_key: string;
+            /**
+             * Review
+             * @constant
+             */
+            review: "confirm";
+        };
+        /** EdgeProposalOutput */
+        EdgeProposalOutput: {
+            /**
+             * Version
+             * @default ada-device-drafts-v1
+             * @constant
+             */
+            version: "ada-device-drafts-v1";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Scope Id
+             * Format: uuid
+             */
+            scope_id: string;
+            /**
+             * Device Id
+             * Format: uuid
+             */
+            device_id: string;
+            /** Sequence */
+            sequence: number;
+            /**
+             * Task
+             * @default offline_reply
+             * @constant
+             */
+            task: "offline_reply";
+            /** Model Id */
+            model_id: string;
+            /** Model Digest */
+            model_digest: string;
+            /** Runtime */
+            runtime: string;
+            /** Output */
+            output: string;
+            /** Prompt Hash */
+            prompt_hash: string;
+            /** Sources */
+            sources: components["schemas"]["SourcePin"][];
+            /**
+             * Trust Class
+             * @default model_generated
+             * @constant
+             */
+            trust_class: "model_generated";
+            /**
+             * State
+             * @default draft
+             * @constant
+             */
+            state: "draft";
+            /**
+             * Created At
+             * Format: int64
+             */
+            created_at: bigint;
+        };
+        /** EdgeRevoke */
+        EdgeRevoke: {
+            /**
+             * Operation Id
+             * Format: uuid
+             */
+            operation_id: string;
+            /** Expected Revision */
+            expected_revision: number;
+            /**
+             * Review
+             * @constant
+             */
+            review: "confirm";
+        };
+        /** EdgeSync */
+        EdgeSync: {
+            /**
+             * Proposal Id
+             * Format: uuid
+             */
+            proposal_id: string;
+            /**
+             * Device Id
+             * Format: uuid
+             */
+            device_id: string;
+            /** Device Revision */
+            device_revision: number;
+            /** Sequence */
+            sequence: number;
+            /**
+             * Task
+             * @constant
+             */
+            task: "offline_reply";
+            /**
+             * Model Id
+             * @constant
+             */
+            model_id: "Qwen/Qwen3-0.6B-GGUF";
+            /**
+             * Model Digest
+             * @constant
+             */
+            model_digest: "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031";
+            /**
+             * Runtime
+             * @constant
+             */
+            runtime: "llama.cpp-620d2225cc436ab0b001e3200e590e3b286ef9ab";
+            /** Prompt */
+            prompt: string;
+            /** Prompt Hash */
+            prompt_hash: string;
+            /** Output */
+            output: string;
+            /** Sources */
+            sources?: components["schemas"]["SourcePin"][];
+            /** Signature */
+            signature: string;
         };
         /** EditInput */
         EditInput: {
@@ -5125,6 +5433,11 @@ export interface components {
              */
             created_at: bigint;
         };
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
+        };
         /** InteractionObservationOutput */
         InteractionObservationOutput: {
             /**
@@ -5500,6 +5813,58 @@ export interface components {
             current_password: string;
             /** New Password */
             new_password: string;
+        };
+        /** PdfExtractionOutput */
+        PdfExtractionOutput: {
+            /**
+             * Parser
+             * @constant
+             */
+            parser: "pypdf-6.21.2-text-v1";
+            /**
+             * Normalization
+             * @constant
+             */
+            normalization: "lf-page-newline-v1";
+            /** Raw Hash */
+            raw_hash: string;
+            /** Text Hash */
+            text_hash: string;
+            /** Image Id */
+            image_id: string;
+            /** Pages */
+            pages: components["schemas"]["PdfPageOutput"][];
+            /** Warnings */
+            warnings: string[];
+        };
+        /** PdfLocationOutput */
+        PdfLocationOutput: {
+            /** Page */
+            page: number;
+            /** Page Span Start */
+            page_span_start: number;
+            /** Page Span End */
+            page_span_end: number;
+            /**
+             * Parser
+             * @constant
+             */
+            parser: "pypdf-6.21.2-text-v1";
+            /** Text Hash */
+            text_hash: string;
+            /** Raw Hash */
+            raw_hash: string;
+        };
+        /** PdfPageOutput */
+        PdfPageOutput: {
+            /** Page */
+            page: number;
+            /** Span Start */
+            span_start: number;
+            /** Span End */
+            span_end: number;
+            /** Text Hash */
+            text_hash: string;
         };
         /** PersonalityInput */
         PersonalityInput: {
@@ -7709,6 +8074,19 @@ export interface components {
              * @default 0
              */
             data_epoch: number;
+        };
+        /** ValidationError */
+        ValidationError: {
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
+            /** Input */
+            input?: unknown;
+            /** Context */
+            ctx?: Record<string, never>;
         };
         /** ValidationErrorOutput */
         ValidationErrorOutput: {
@@ -15563,6 +15941,577 @@ export interface operations {
             };
         };
     };
+    devices_v1_edge_devices_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EdgeDeviceOutput"][];
+                };
+            };
+            /** @description Sanitized error code */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized validation issues or error code; input is omitted */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+        };
+    };
+    enroll_v1_edge_devices__device_id__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                device_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EdgeEnroll"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EdgeDeviceOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized validation issues or error code; input is omitted */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+        };
+    };
+    revoke_v1_edge_devices__device_id__revoke_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                device_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EdgeRevoke"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EdgeDeviceOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized validation issues or error code; input is omitted */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+        };
+    };
+    sync_v1_scopes__scope_id__edge_proposals__proposal_id__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                scope_id: string;
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EdgeSync"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EdgeProposalOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized validation issues or error code; input is omitted */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+        };
+    };
+    get_v1_edge_proposals__proposal_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EdgeProposalOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized validation issues or error code; input is omitted */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+        };
+    };
     policy_v1_reflection_policy_get: {
         parameters: {
             query?: never;
@@ -17037,6 +17986,247 @@ export interface operations {
                 };
                 content: {
                     "application/octet-stream": string;
+                };
+            };
+            /** @description Sanitized error code */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized validation issues or error code; input is omitted */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+        };
+    };
+    original_v1_document_uploads__upload_id__raw_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                upload_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Sanitized error code */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Sanitized error code */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+        };
+    };
+    upload_v1_scopes__scope_id__documents_pdf_uploads__upload_id__post: {
+        parameters: {
+            query: {
+                source_id: string;
+                filename: string;
+                available_from?: string | null;
+                available_to?: string | null;
+            };
+            header?: never;
+            path: {
+                scope_id: string;
+                upload_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/pdf": string;
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentUploadOutput"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentUploadOutput"];
                 };
             };
             /** @description Sanitized error code */

@@ -1,6 +1,13 @@
 # Phase 31 — PDF ingestion and document expansion
 
-Status: **Optional proposal; planning only.** Inputs: 08 text/Markdown ingestion,
+Status: **Selected; implemented source, actual checks/remaining gates in
+STATUS/WORKLOG.** Text-PDF isolation, immutable original/extracted page mapping,
+atomic publication and Android review/source display. OCR remains disabled: scans
+are visible failures and no OCR need/quality evidence was measured. Archives,
+Office, URL/directory ingestion stay outside scope. See
+[setup and limits](../docs/PDF-INGESTION.md). No deployment.
+
+Inputs: 08 text/Markdown ingestion,
 20 recovery/inventory rules, 23 quality scorecard, G-14. Follow
 [shared rules](FUTURE-ROADMAP.md). Start with one needed format, not every file type.
 

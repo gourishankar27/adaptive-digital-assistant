@@ -1,5 +1,14 @@
 # ADA Android chat, memory, tools, episodes and interaction learning (Phase 17)
 
+App25 /0.31.0-documents-drafts adds selected text PDFs, exact binary review,
+extracted page chunks/source cards and journal18 recovery (v1–v17 readable).
+Server schema0021 and a verified PDF capability are required; Android retains64KiB
+upload limit. Device drafts · study appears only with the separately enabled
+signed-receipt protocol. Both measured local models failed quality, so no model
+activation is exposed and normal builds contain no JNI/weights. See
+[PDF setup](../../docs/PDF-INGESTION.md), [native study/build](../../docs/ON-DEVICE-DRAFTS.md)
+and root STATUS/WORKLOG for actual tests and unresolved physical gates.
+
 Phase30 app24 /0.30.0-work adds **Projects & next actions** from the chat menu and
 Settings, plus requested **Save next action** on completed replies. Goals/tasks,
 source review, revision history, project/day briefs and separately consented
