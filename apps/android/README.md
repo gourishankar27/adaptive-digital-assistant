@@ -8,6 +8,9 @@ signed-receipt protocol. Both measured local models failed quality, so no model
 activation is exposed and normal builds contain no JNI/weights. See
 [PDF setup](../../docs/PDF-INGESTION.md), [native study/build](../../docs/ON-DEVICE-DRAFTS.md)
 and root STATUS/WORKLOG for actual tests and unresolved physical gates.
+Phase31's separate S24 FE/API36 validation passed actual binary HTTP upload,
+page/source display and real process-stop recovery; the public sample's readability
+was confirmed. TalkBack/personal-file acceptance and19A native gates remain open.
 
 Phase30 app24 /0.30.0-work adds **Projects & next actions** from the chat menu and
 Settings, plus requested **Save next action** on completed replies. Goals/tasks,

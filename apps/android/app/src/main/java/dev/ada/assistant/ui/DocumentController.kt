@@ -152,7 +152,7 @@ class DocumentController(
             val text = documentText(bytes)
             val media = if (filename.substringAfterLast('.', "").lowercase() in setOf("md", "markdown")) "text/markdown" else "text/plain"
             updateDraft(state.value.draft.copy(filename = filename, mediaType = media, text = text))
-        } catch (_: Exception) { invalid("Choose a UTF-8 text or Markdown file no larger than ${state.value.uploadLimit / 1024} KiB.") }
+        } catch (_: Exception) { invalid("Choose ${if (state.value.pdfEnabled) "a text PDF or " else ""}a UTF-8 text or Markdown file no larger than ${state.value.uploadLimit / 1024} KiB.") }
     }
     fun beginFileSelection(): DocumentFileSelection? {
         val verified = identity ?: return null; val s = state.value; val scope = s.scopeId ?: return null
@@ -168,7 +168,7 @@ class DocumentController(
     }
     fun fileFailed(selection: DocumentFileSelection) {
         if (!isFileSelectionCurrent(selection)) return
-        fileSelection++; invalid("The file could not be read safely. Choose UTF-8 text or Markdown within the upload limit.")
+        fileSelection++; invalid("The file could not be read safely. Choose ${if (state.value.pdfEnabled) "a text PDF, " else ""}UTF-8 text or Markdown within the upload limit.")
     }
     fun preview() {
         val s = state.value; val verified = identity ?: return; val scope = s.scopeId ?: return
@@ -185,7 +185,7 @@ class DocumentController(
                 normalizeUtcMillis(s.draft.availableFrom), normalizeUtcMillis(s.draft.availableTo))
             validateDocument(pending)
             update { it.copy(screen = DocumentScreen.Preview, preview = pending, validation = null, fault = null) }
-        } catch (_: Exception) { invalid("Use a safe .txt/.md/.markdown filename, exact UTF-8 text within ${s.uploadLimit / 1024} KiB and timezone-bearing availability bounds.") }
+        } catch (_: Exception) { invalid("Use a safe .txt/.md/.markdown${if (s.pdfEnabled) "/.pdf" else ""} filename, ${if (s.pdfEnabled) "a selected text PDF or " else ""}exact UTF-8 text within ${s.uploadLimit / 1024} KiB and timezone-bearing availability bounds.") }
     }
     fun editPreview() { if (!state.value.saving && state.value.pending == null) { fileSelection++; update { it.copy(screen = DocumentScreen.Edit, preview = null) } } }
     fun savePreview() {

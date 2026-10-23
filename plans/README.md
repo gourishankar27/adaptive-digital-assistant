@@ -4,6 +4,10 @@ Selected19A/31 source now adds a measured on-device draft study/signed receipt
 protocol and bounded text-PDF ingestion. Both mobile candidates failed quality;
 19A activation/exit remains open, local generation disabled. Phase31 OCR is disabled.
 Current head0021/76 tables/63 owner-content/backup-v7, Android25/journal18.
+Phase31's bounded text-PDF implementation/automated exit is verified, including
+the S24 FE real HTTP/Keystore/restart flow and confirmed public-sample readability.
+TalkBack/personal-file acceptance remains pending. The conditional OCR checkpoint
+is closed with OCR off.
 See [PDF](../docs/PDF-INGESTION.md), [study](../docs/ON-DEVICE-DRAFTS.md) and dated
 STATUS/WORKLOG. Earlier phase rows retain their planning/history context; no19B,
 later milestone or deployment was implemented.

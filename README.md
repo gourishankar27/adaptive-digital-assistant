@@ -8,6 +8,10 @@ Current source: **0021 /76 tables /63 owner-content**, backup-v7;
 Android25 /0.31.0-documents-drafts, encrypted journal18 (older versions readable).
 PDF and device sync default off. Read [PDF setup/use](docs/PDF-INGESTION.md),
 [the device study](docs/ON-DEVICE-DRAFTS.md) and [actual checks](plans/STATUS.md).
+The bounded PDF implementation/automated exit is verified on SQLite/PostgreSQL,
+actual Docker and the S24 FE/API36, including real HTTP/Keystore/restart recovery.
+Public-sample readability is confirmed on the S24 FE. TalkBack and representative
+personal-file acceptance remain pending.
 No OCR, Phase19B integration, live migration or deployment. Earlier sections retain
 their own milestone boundaries.
 

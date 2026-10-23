@@ -13,5 +13,7 @@ try {
     if ($null -ne $adaPortProbe) { $adaPortProbe.Stop() }
 }
 # Exactly one worker: GPU capacity control is process-local.
-& .\.venv\Scripts\python.exe -m ada.host_ops foreground --listen $ListenAddress --port $Port
+Write-Host 'Starting ADA. Loading Python and checking the protected runtime/database gate...'
+Write-Host 'Startup progress will appear below. Leave this window open; Ctrl+C stops ADA.'
+& .\.venv\Scripts\python.exe -u -m ada.host_ops foreground --listen $ListenAddress --port $Port
 if ($LASTEXITCODE -ne 0) { throw "ADA exited with code $LASTEXITCODE" }

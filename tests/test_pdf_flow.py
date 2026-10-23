@@ -116,6 +116,59 @@ def test_unicode_codepoints_repeated_headers_and_explicit_new_version_preserve_o
     )
 
 
+def test_completed_pdf_answer_keeps_original_page_snapshot_after_explicit_new_extraction(
+    harness, pdf_parser
+):
+    from ada.providers import Completion
+
+    h = harness
+    conversation, scope = prepare(h, pdf_parser)
+    source = str(uuid4())
+    first = post_pdf(
+        h,
+        scope,
+        text_pdf(("Public orbit launch is Monday.", "Public table: Mars 3; Venus 5.")),
+        source=source,
+    ).json()
+    calls = []
+
+    def complete(messages):
+        # PDF parsing and model completion must both be outside a DB transaction.
+        assert h["sessions"].kw["bind"].pool.checkedout() == 0
+        calls.append(messages)
+        return Completion("The imported launch schedule says Monday [D1].", "public-fixture")
+
+    h["provider"].complete = complete
+    request_id = str(uuid4())
+    payload = {
+        "request_id": request_id,
+        "content": "When is the public orbit launch?",
+        "use_documents": True,
+    }
+    path = f"/v1/conversations/{conversation}/messages"
+    answer = h["client"].post(path, headers=h["a"], json=payload)
+    assert answer.status_code == 200
+    original = answer.json()
+    card = original["document_citations"][0]
+    assert card["source_version_id"] == first["source_version_id"]
+    assert card["pdf"]["page"] == 1 and card["pdf"]["raw_hash"] == first["raw_hash"]
+    assert card["trust_class"] == "imported_untrusted" and original["citations"] == []
+    context = "\n".join(message["content"] for message in calls[0])
+    assert '"pdf":' in context and '"page":1' in context
+    assert '"trust_class":"imported_untrusted"' in context
+    second = post_pdf(
+        h, scope, text_pdf(("Public orbit launch is Tuesday.",)), source=source
+    ).json()
+    assert second["state"] == "ready" and second["version"] == 2
+    assert second["source_version_id"] != first["source_version_id"]
+    replay = h["client"].post(path, headers=h["a"], json=payload)
+    assert replay.status_code == 200 and replay.json() == original
+    assert len(calls) == 1
+    assert h["client"].get(
+        "/v1/document-uploads/" + first["id"] + "/raw", headers=h["a"]
+    ).content == text_pdf(("Public orbit launch is Monday.", "Public table: Mars 3; Venus 5."))
+
+
 @pytest.mark.parametrize(
     ("raw", "code"),
     [

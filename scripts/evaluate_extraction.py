@@ -25,8 +25,12 @@ def run_benchmark(sessions, mode="fixture", limit=None):
     # A standalone synchronous corpus must not race unrelated background DB work
     # with its assertion that the provider holds no checked-out transaction.
     settings = Settings(
-        provider="fake", consolidation_worker_enabled=False, scheduler_enabled=False,
-        web_research_enabled=False, pdf_ingestion_enabled=False, edge_draft_sync_enabled=False,
+        provider="fake",
+        consolidation_worker_enabled=False,
+        scheduler_enabled=False,
+        web_research_enabled=False,
+        pdf_ingestion_enabled=False,
+        edge_draft_sync_enabled=False,
     )
     app = create_app(settings, FakeProvider(), sessions)
     owner, token = create_user(sessions, "Extraction-" + uuid4().hex[:12])

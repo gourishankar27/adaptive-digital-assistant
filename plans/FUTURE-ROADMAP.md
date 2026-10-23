@@ -6,6 +6,10 @@ Both measured mobile candidates failed reply quality, so local drafting remains
 disabled;19A exit is open. OCR and19B integrations remain conditional. Current
 0021/backup-v7 and Android25/journal18 are source requirements, not deployment.
 See [PDF](../docs/PDF-INGESTION.md) and [draft study](../docs/ON-DEVICE-DRAFTS.md).
+Phase31's bounded text-PDF implementation/automated exit is now verified on native
+PostgreSQL, real Docker and the S24 FE, with public-sample readability confirmed.
+TalkBack/personal-file acceptance remains pending. No subsequent phase was selected
+or implemented by this closeout.
 
 Planning proposal, 2026-10-16 America/Phoenix, against source `fa2cbba`.
 The user subsequently selected Phase 20; its tooling/non-device baseline is now

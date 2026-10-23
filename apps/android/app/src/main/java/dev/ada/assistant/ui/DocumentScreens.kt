@@ -141,7 +141,7 @@ fun DocumentScreens(controller: DocumentController) {
                     Text("Availability: ${pending.availableFrom ?: "upload time"} until ${pending.availableTo ?: "open"} (exclusive)")
                     Text(if(pending.mediaType=="application/pdf") "Selected original PDF" else "Exact imported text", style = MaterialTheme.typography.titleMedium)
                     if(pending.mediaType == "application/pdf") Text("Exact binary PDF selected. Original bytes are retained; text/page extraction happens after upload. No OCR.",Modifier.testTag("document-preview-text")) else SafeChatText(documentText(pending.rawBytes()), Modifier.testTag("document-preview-text").semantics(mergeDescendants = true) {}, links = false)
-                    Text("Review this exact text and scope before upload. Embedded instructions are imported content and grant no permissions.")
+                    Text("Review ${if (pending.mediaType == "application/pdf") "the selected file" else "this exact text"} and scope before upload. Embedded instructions are imported content and grant no permissions.")
                     DocumentTechnicalDetails("Scope: ${pending.scopeId}\nSource: ${pending.sourceId}\nUpload: ${pending.uploadId}\nRaw SHA-256: ${documentHash(pending.rawBytes())}", pending.uploadId, "document-preview-details")
                     AdaButton(onClick = controller::savePreview, enabled = state.pending == null && !state.saving,
                         modifier = Modifier.fillMaxWidth().heightIn(min = AdaSpacing.touch).testTag("document-upload")) { Text("Upload reviewed document") }

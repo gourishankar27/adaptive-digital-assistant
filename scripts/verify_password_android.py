@@ -31,6 +31,7 @@ def run(
     instrumentation_arguments=None,
     fixture_bearer=False,
     before_stage=None,
+    stage_timeout=120,
 ):
     if not os.environ.get("ADA_TEST_DATABASE_URL"):
         raise SystemExit("Select a dedicated ADA_TEST_DATABASE_URL")
@@ -171,7 +172,7 @@ def run(
                     for part in ("-e", key, value)
                 ],
                 package + ".test/androidx.test.runner.AndroidJUnitRunner",
-                timeout=120,
+                timeout=stage_timeout,
             )
             safe_output = result.stdout
             for key in (

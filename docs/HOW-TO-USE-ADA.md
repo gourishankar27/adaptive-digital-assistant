@@ -1,57 +1,32 @@
 # How to use ADA — developer setup and everyday operation
 
-Current selected19A/31 source requires **0021 /76 tables**, backup-v7 and
-Android25/journal18. Existing deployments are unchanged. See
-[selected PDF setup and limits](PDF-INGESTION.md) before enabling the separate
-parser capability. [The on-device draft study](ON-DEVICE-DRAFTS.md) records failed
-model quality; local generation remains disabled. No new19B integration or OCR.
-The dated instructions below retain their earlier installation context.
+Updated **22 October 2026** for current source head **0021 / 76 tables**,
+backup-v7 and Android25/journal18. Earlier phase documents retain their historical
+schema requirements; compare `alembic current` with `alembic heads` for this checkout.
 
-The earlier Phase27 source requires **0018 / 65 tables**. Follow
-[durable scheduling and reminders](DURABLE-SCHEDULING-AND-REMINDERS.md) for the
-current upgrade/consent/timezone/restore requirements and
-[always-on operations](ALWAYS-ON-OPERATIONS.md) for host startup. These source
-changes have not migrated or deployed your private installation.
+**Already set up on your laptop? Start at [section 11](#11-start-and-stop-ada-on-an-ordinary-day).**
+You need Docker/PostgreSQL, Ollama, the API window and the private-proxy window.
+The API and proxy stay in the foreground: no returned PowerShell prompt is normal.
+The startup banner identifies the listening API; `/health/ready` confirms database
+readiness. A quiet window alone proves neither success nor failure.
 
-The earlier Phase25 source milestone requires **0017 / 60 tables**. Curiosity is owner opt-in;
-see [the current guide](CONVERSATIONAL-CURIOSITY.md) for migration/controls/recovery.
-Earlier dated phase/install counts below remain historical. No live upgrade is implied.
+The normal phone/browser workflow uses **username/password over Tailscale HTTPS**:
+Android server `https://windows-asus.tail110867.ts.net`, dashboard
+`https://windows-asus.tail110867.ts.net/admin/`. These are this laptop's configured
+addresses; use your own `tailscale serve status` origin on another installation.
+The advanced token/Vite/USB instructions below are optional developer workflows.
 
+For first-time private routing and managed TLS, use
+[Windows + Tailscale setup](PRIVATE-SETUP-WINDOWS-TAILSCALE.md). Its original setup
+observations are dated; use the current head above for an upgrade. For account
+enrollment and sessions, see [password login](PASSWORD-LOGIN-AND-SESSIONS.md).
+For database access, supported changes and recovery, see
+[Windows database administration](DATABASE-ADMINISTRATION-WINDOWS.md).
 
-For your current laptop, start with
-[Windows + Tailscale private setup](PRIVATE-SETUP-WINDOWS-TAILSCALE.md): corrected
-`.env`, managed TLS, exact HTTPS/password login, manual startup and device steps.
-It records the separately authorized setup after the earlier implementation runs.
-
-## Current Phase22 sign-in update
-
-Current source requires0016. Follow the [password/session installation guide](PASSWORD-LOGIN-AND-SESSIONS.md)
-for pinned installation, backup/migration, `ada login-accounts`, hidden-prompt
-`ada set-password ACCOUNT_UUID login`, exact HTTPS browser origin, ordinary
-username/password use and troubleshooting. This is now the normal client sign-in;
-older token instructions below remain the explicit legacy/development path.
-No password is derived from an existing token/name and no live password was set
-by implementation. Preserve owner UUIDs and separate admin grants.
-
-Updated **16 October 2026**, for Phase 20 readiness tooling and database head **0015**.
-Phase21 now adds saved Android HTTPS addresses, pre-login readiness and separately
-installed private routes; see [PRIVATE-NETWORK-CONNECTIVITY](PRIVATE-NETWORK-CONNECTIVITY.md).
-No remote route was deployed by implementing that phase.
-This guide covers the implemented server, Android app and admin dashboard through
-Phase18. Phase17-A hardening is implemented with remaining physical audio gates;
-Phase19 remains conditional and unimplemented. See [security and operations](SECURITY-AND-OPERATIONS.md)
-for device credentials, explicit deletion, encrypted backups and isolated restoration.
-
-Use this guide for the current end-to-end setup. Older phase documents describe
-their own historical migration requirements; they are not instructions to stop a
-current installation at 0004, 0005 or 0007. Check the actual head whenever you change
-source versions. Writing this guide did not install, migrate or deploy anything.
-
-For the separately authorized 2026-10-16 local startup and the actual Docker
-database port5433, see [Windows database administration](DATABASE-ADMINISTRATION-WINDOWS.md).
-That single guide covers database access, supported edits, migrations, encrypted
-recovery, optional reset and daily service startup. The fresh database check found
-head0015 already installed; earlier0005 observations remain historical.
+Text PDFs require the separately enabled [bounded parser](PDF-INGESTION.md).
+[On-device draft generation](ON-DEVICE-DRAFTS.md) remains disabled after failed
+model-quality trials; OCR remains off. This guide does not enable optional
+features, migrate data or install a deployment.
 
 ## Contents
 
@@ -78,7 +53,7 @@ account, model, device or path values.
 
 Your computer runs the Python API, PostgreSQL and Ollama. Android sends
 authenticated HTTP requests to the Python API. The admin browser sends requests
-through the web development proxy to that same API. Neither client connects
+through the private HTTPS proxy to that same API. Neither client connects
 directly to PostgreSQL or Ollama.
 
 For the local Windows workflow, only PostgreSQL is in Docker. Python and Ollama
@@ -90,16 +65,19 @@ run natively. There is no command here to start a Docker container for the API.
 | API explorer | `http://127.0.0.1:8000/docs` | Inspect and try the implemented API |
 | API liveness | `http://127.0.0.1:8000/health/live` | Is the API process responding? |
 | API readiness | `http://127.0.0.1:8000/health/ready` | Is the database reachable at the required schema? |
-| PostgreSQL host port | `127.0.0.1:5432` | Server/operator access; configurable with `POSTGRES_PORT` |
+| Private internal proxy | `http://127.0.0.1:18764` | Caddy forwards API requests and serves built admin assets |
+| Tailscale HTTPS origin | `https://windows-asus.tail110867.ts.net` | Normal Android server URL; also the browser server origin |
+| Admin dashboard | `https://windows-asus.tail110867.ts.net/admin/` | Normal browser/password login |
+| PostgreSQL host port | `127.0.0.1:5433` on this laptop | Fresh default is5432; use the matching `POSTGRES_PORT`/database URL |
 | Ollama | `http://127.0.0.1:11434` | Server-side model provider |
-| Admin web development page | `http://127.0.0.1:5173/admin/` | Browser dashboard |
-| Admin **Browser server origin** field | `http://127.0.0.1:5173` | The browser's origin; omit `/admin/` |
+| Optional admin development page | `http://127.0.0.1:5173/admin/` | Vite with advanced bearer login; not password login |
 | Android emulator API URL | `http://10.0.2.2:8000` | Emulator access to the computer's API |
 | USB phone API URL, after ADB reverse | `http://127.0.0.1:8000` | Phone-to-computer forwarding over USB |
 
-**8000 is the backend. 5173 is the web frontend.** The correct address depends on
-the client and input field. On a phone, `127.0.0.1` refers to the phone unless
-the documented USB reverse mapping is active.
+The normal route is **phone/browser → Tailscale HTTPS → Caddy18764 → API8000**.
+Docker runs only the database. Tailscale Serve supplies TLS; this arrangement
+does not need manual certificate/key files, Vite or USB forwarding. On a phone,
+`127.0.0.1` refers to the phone unless the optional USB reverse mapping is active.
 
 ## 2. Install the developer tools
 
@@ -200,8 +178,8 @@ one terminal do not automatically appear in another.
 | Terminal | Use |
 |---|---|
 | A — backend | Initial setup, then the foreground Python API |
-| B — operator/client | Health checks, token/account operations and optional CLI chat |
-| C — web | Foreground Vite admin development server |
+| B — private proxy | Foreground `scripts/start-private-proxy.ps1` |
+| C — operator/client | Health checks, local account operations and optional CLI chat |
 | D — Android | JDK/SDK setup, Gradle and ADB commands |
 
 You do not have to activate `.venv`: commands use its executable paths explicitly.
@@ -291,14 +269,14 @@ From the repository root:
 .\.venv\Scripts\python.exe -m alembic check
 ```
 
-For this source version, both head/current should report **0016**. `alembic check`
+For this source version, both head/current should report **0021**. `alembic check`
 should find no new upgrade operations. Run the chain to the actual head; do not
 edit released migration files or use `stamp head` to bypass missing schema changes.
 
 ### Step 5 — start Ollama and install/select the model
 
 Open the installed Ollama Windows application. Its normal Windows installation
-runs in the background and serves port 11434. Check it from terminal A or B:
+runs in the background and serves port11434. Check it from an operator terminal:
 
 ```powershell
 ollama list
@@ -330,7 +308,7 @@ The [Ollama CLI reference](https://docs.ollama.com/cli) documents pull/list comm
 .\.venv\Scripts\ada.exe doctor
 ```
 
-Expected: database schema 0015, the configured model tag, and that model in the
+Expected: database schema 0021, the configured model tag, and that model in the
 installed list. `doctor` checks schema/model metadata; it does not prove that a
 model can successfully complete every chat, tool or summary request.
 
@@ -345,30 +323,33 @@ In terminal A, from the root:
 .\scripts\start.ps1
 ```
 
-Leave terminal A running. The script binds `127.0.0.1:8000`, uses **one Uvicorn
-worker**, and disables access logging. A backend terminal that exits is not a
-running backend. Configuration changes require an API restart.
+Leave terminal A running. Progress messages cover loading, ownership checks,
+application recovery and listener startup. After the socket opens, expect
+`ADA API is running at http://127.0.0.1:8000 (one worker).` It also prints the
+readiness URL and, when configured, the conditional HTTPS connection addresses.
+Access logging stays disabled. This is a foreground server, so the PowerShell
+prompt does not return until it stops. Configuration changes require a restart.
 
-In terminal B:
+In a separate operator terminal:
 
 ```powershell
 Invoke-RestMethod 'http://127.0.0.1:8000/health/live'
 Invoke-RestMethod 'http://127.0.0.1:8000/health/ready'
 ```
 
-Expected: `status: ok`, then `status: ready` and `schema: 0015`.
+Expected: `status: ok`, then `status: ready` and `schema: 0021`.
 Readiness checks the database/schema, not model-generation success. A running
 process with a failing readiness endpoint is not ready for client use.
 
-### Step 8 — create your account and verify the token
+### Step 8 — enroll password login and configure private HTTPS
 
-Keep terminal A running and follow section 6 in terminal B. Account creation is a
-local operator command using the configured database; subsequent token checks use
-the running API. There is no public signup page.
+Keep terminal A running and follow section 6 in an operator terminal. Then follow
+section 8 and the private setup guide to build/serve the dashboard over HTTPS.
+There is no public signup page. Existing enrolled users can simply sign in.
 
 ## 5. Upgrade an existing installation
 
-Skip account creation if you already have the account and its token. Keep existing
+Skip account creation if you already have an account. Keep existing
 database credentials, volumes, accounts, grants, prompts and saved history.
 
 1. Stop the ADA API with **Ctrl+C** in its own terminal. Stop Vite before updating
@@ -393,9 +374,10 @@ Use PostgreSQL client binaries matching the intended server major version. A raw
 `pg_dump` file or `pg_restore --list` result alone is not the selected recovery procedure.
 For an installation at0005, Phase 20 now provides a separate encrypted pre-upgrade
 tool and isolated restore/upgrade rehearsal in [RELEASE-READINESS](RELEASE-READINESS.md).
-The normal recovery tool supports reviewed0015/v1 and0016/v2. Other older heads need their own
-previously verified protected recovery procedure before migration; no tool upgrades
-the source merely to make a backup possible. Verify the actual head privately.
+Current recovery supports versioned v1–v7 artifacts and reviewed heads0015–0021;
+use the current schema's format. See [PDF recovery](PDF-INGESTION.md) and
+[always-on operations](ALWAYS-ON-OPERATIONS.md). Older heads need their previously
+verified protected recovery procedure; no tool upgrades the source just to back up.
 Do not overwrite live databases or delete the existing Docker volume during a drill.
 
 ### Refresh dependencies and migrate
@@ -414,12 +396,37 @@ After the backup and intended source update, from the root:
 ```
 
 For this guide's source, an old 0005 installation must advance through the complete
-chain to 0015. Adding code to the checkout never performs this upgrade automatically.
+chain to 0021. Adding code to the checkout never performs this upgrade automatically.
 Do not downgrade populated history as a routine troubleshooting step.
 
 ## 6. Create an account and verify authentication
 
-### New account
+### Normal sign-in — username and password
+
+If you already enrolled a password, **reuse that account and password**. On this
+laptop the previously verified admin login is `gourishankar-admin`; a display name
+and a login identifier may differ. Do not recreate the account to resolve a proxy
+or startup failure.
+
+For an existing account that has not enrolled, use a local interactive terminal:
+
+```powershell
+.\.venv\Scripts\ada.exe login-accounts
+.\.venv\Scripts\ada.exe set-password ACCOUNT_UUID login-identifier
+```
+
+Replace both placeholders with the intended owner UUID from the listing and a
+distinct chosen login identifier. Enter a **15–1024 character** password twice at
+the hidden prompts. Expected: `Password set; password sessions revoked.` Keep the
+password out of commands, `.env`, chat and logs. Resetting it revokes password
+sessions; it does not change the owner or grant admin access.
+
+For a genuinely new account, create it with the advanced command below, capture
+the issued output privately, then enroll using its `user_id`. A dashboard account
+also needs an explicit `grant-admin ACCOUNT_UUID`. See
+[the session guide](PASSWORD-LOGIN-AND-SESSIONS.md) for recovery/revocation.
+
+### Advanced developer path — create a new account/token
 
 In an operator terminal at the root, replace `developer` with your chosen account
 name. Capture the output in memory so the bearer secret is not echoed by default:
@@ -443,7 +450,7 @@ the clipboard after pasting (`Set-Clipboard -Value ''`) and avoid clipboard-hist
 retention of secrets. The server stores only a hash and cannot show the old token
 again. Do not write this output into a transcript, log, tracked file or issue.
 
-### Existing account/token
+### Advanced developer path — existing account/token
 
 Do not run `create-user` again for an existing account. In a new client/operator
 terminal, load your saved token without entering it as a literal shell command:
@@ -485,7 +492,8 @@ In the local operator terminal using the intended database:
 .\.venv\Scripts\ada.exe grant-admin $adaMe.id
 ```
 
-Alternatively, use the actual UUID returned in `$adaIssued.user_id` for a newly
+For password-only enrollment, use the exact UUID from `login-accounts` in place
+of `$adaMe.id`. Alternatively, use `$adaIssued.user_id` for a newly
 created account. **Do not pass an account name to `grant-admin`.** The account
 keeps its existing token. An explicit grant enables monitoring; it does not give
 access to another owner's chats/documents or turn the dashboard into a control panel.
@@ -572,7 +580,7 @@ The debug package is `dev.ada.assistant.debug`. Use it for local HTTP developmen
 An unsigned release build is not a signed/distributed app and does not enable
 debug cleartext exceptions.
 
-### Step 3A — connect the Samsung S24 FE over USB
+### Step 3A — install on the Samsung S24 FE over USB
 
 1. On the phone, enable Developer options. On Samsung, find **Build number** under
    About phone → Software information and tap it seven times if needed.
@@ -595,14 +603,14 @@ an emulator. With multiple phones, replace `-d` with `-s YOUR_DEVICE_SERIAL`.
 Create the forwarding rule, install the APK without clearing its data, and open it:
 
 ```powershell
-adb -d reverse tcp:8000 tcp:8000
 adb -d install -r "$adaRepo/apps/android/app/build/outputs/apk/debug/app-debug.apk"
 adb -d shell am start -n dev.ada.assistant.debug/dev.ada.assistant.MainActivity
 ```
 
-Keep USB connected and terminal A's API running. Recreate the reverse mapping
-after reconnecting/restarting the phone or ADB if it is no longer present.
-Use `adb reverse --list` for diagnosis; it does not start the backend.
+USB is needed for this install, not normal Tailscale connectivity. For the optional
+HTTP/bearer developer route only, also run `adb -d reverse tcp:8000 tcp:8000` and
+keep USB connected. Recreate that mapping after reconnect/restart if needed.
+`adb reverse --list` diagnoses forwarding; it does not start the backend.
 
 ### Step 3B — use an emulator instead
 
@@ -620,16 +628,20 @@ an arbitrary emulator image may not provide one.
 On **Welcome back.**:
 
 1. In **ADA server URL**, enter:
-   - USB phone: `http://127.0.0.1:8000`, after the reverse mapping.
-   - Emulator: `http://10.0.2.2:8000`.
-   - Separately configured trusted HTTPS server: its HTTPS origin.
-2. Enter your issued token in **Bearer token**, without a `Bearer ` prefix.
-3. Tap **Connect**.
+   - Normal S24 FE/Tailscale use: `https://windows-asus.tail110867.ts.net`.
+   - Another installation: its verified private HTTPS origin.
+2. Connect Tailscale on the phone to the same tailnet as the laptop. Tap
+   **Check server without signing in** and confirm readiness.
+3. Enter **Username** and **Password**, then tap **Connect**.
 4. Wait for the verified account and conversation list.
 
 Enter an origin only: do not append `/docs`, `/v1`, `/admin` or a query string.
 Do not enter database credentials, an Ollama URL or the web frontend's port 5173.
 
+For the optional developer bearer path, expand **Advanced: legacy bearer token**
+and enter only the issued token. A USB debug phone can use
+`http://127.0.0.1:8000` after the reverse mapping; an emulator uses
+`http://10.0.2.2:8000`. Password sign-in requires HTTPS.
 Debug HTTP exceptions cover only the documented loopback/emulator hosts. An
 ordinary `http://192.168...` LAN URL is not the supported debug setup. For remote
 use, configure authenticated trusted HTTPS separately; this guide does not deploy
@@ -644,47 +656,78 @@ before clearing app storage or uninstalling.
 ### Step 1 — check backend readiness and your explicit grant
 
 Before starting the web UI, verify section 4's readiness check and section 6's
-token/account UUID. The current backend must be at head **0016**. Admin access
+password enrollment/account UUID. The current backend must be at head **0021**. Admin access
 requires an explicit monitoring grant; migration alone never grants a role.
 
-### Step 2 — install locked web dependencies and start Vite
+### Step 2 — build once, then start the private proxy
 
-In terminal C, initialized at the root:
+After a fresh checkout or web-source/dependency update, use the pinned
+Node24.12.0/npm11.6.2 toolchain in an operator terminal:
 
 ```powershell
 node --version
 npm --version
 Push-Location apps/admin-web
 npm ci
-npm run dev
+npm run build
+Pop-Location
+.\scripts\install-private-proxy.ps1
+.\scripts\start-private-proxy.ps1 -CheckOnly
 ```
 
-Leave this terminal open. The npm engine check expects Node 24.12.0/npm 11.6.2.
-Run `npm ci` after relevant lockfile updates, not on every daily launch. It replaces
-the dependency installation; stop the running web server first.
+Set these nonsecret values in `.env` using a literal path; PowerShell expressions
+such as `(Resolve-Path ...).Path` are not evaluated inside dotenv files:
 
-Expected: Vite serves **`http://127.0.0.1:5173/admin/`**. The configured port is
-strict; if another process owns 5173, Vite fails rather than silently choosing 5174.
+```dotenv
+ADA_BROWSER_ORIGIN=https://windows-asus.tail110867.ts.net
+ADA_ADMIN_DIST=G:/Project/AgenticAIProject/Ada_Adaptive_Digital_Assistant/adaptive-digital-assistant/apps/admin-web/dist
+```
 
-### Step 3 — enter the two login fields
+Substitute your actual origin/checkout on another computer. Restart the API after
+changing its origin. The proxy installer pins and verifies Caddy; no Windows
+service is installed by these commands. Follow
+[private setup](PRIVATE-SETUP-WINDOWS-TAILSCALE.md) if Caddy/Serve is not installed.
 
-Open **http://127.0.0.1:5173/admin/** in the browser.
+For daily use, leave the API running in window A and run this in window B:
+
+```powershell
+.\scripts\start-private-proxy.ps1
+```
+
+Leave both windows open. Caddy listens on loopback18764; Tailscale Serve forwards
+the tailnet HTTPS origin to it. Section11 verifies each layer. No manual TLS
+certificate/key, public Funnel or Vite server is needed for this route.
+
+### Step 3 — sign in over private HTTPS
+
+Open **https://windows-asus.tail110867.ts.net/admin/** with Tailscale connected.
 
 | Field | Enter |
 |---|---|
-| Browser server origin | `http://127.0.0.1:5173` |
-| Bearer token | Your current token for the explicitly granted account; no `Bearer ` prefix |
+| Browser server origin | `https://windows-asus.tail110867.ts.net` (no path/trailing slash) |
+| Username | Your enrolled login identifier, such as this laptop's `gourishankar-admin` |
+| Password | Your enrolled private passphrase |
 
-The browser origin **5173 is correct**. Relative `/v1` calls go through Vite's
-fixed proxy to **`http://127.0.0.1:8000`**. Do not replace the browser-origin field
-with the backend's 8000 address to fix a database or proxy failure.
+The origin must match the address bar and `ADA_BROWSER_ORIGIN` exactly.
+Sign in using the normal password form. Do not enter port8000,18764,5173 or
+`/admin/` in that field for this HTTPS setup.
 
 After sign-in, verify the displayed operator/server and open Overview, Requests,
 request detail, Providers/limits or Audit. The dashboard is read-only monitoring;
 it does not approve tools, grant roles, edit prompts or reveal another user's chat.
 
-The token lives in browser memory. Reload/closing the page can require sign-in
-again. Appearance settings persist separately; a saved theme is not a saved login.
+Password sessions use Secure/HttpOnly cookies; the browser renews a valid session
+on reload. Appearance settings persist separately; a saved theme is not a login.
+
+### Optional — Vite with advanced bearer login for web development
+
+This is a separate local workflow for editing the web UI. From `apps/admin-web`,
+run `npm run dev` and leave that terminal open. Open
+`http://127.0.0.1:5173/admin/`, keep **Browser server origin** equal to
+`http://127.0.0.1:5173`, expand the advanced bearer form and enter the token for
+an explicitly granted account. Loopback HTTP does not support password-cookie
+login. Vite proxies `/v1` to8000 by default and refuses an occupied5173.
+The advanced token stays in browser memory, so reloading may require sign-in.
 
 ### Optional — point Vite at a different supported backend
 
@@ -793,8 +836,10 @@ exactly what the server had stored at that historical date.
    before document retrieval.
 8. Open returned `[D...]` source cards to inspect the matching immutable version.
 
-Android's import limit is **64 KiB**; the server route accepts up to **256 KiB**.
-PDF/OCR, archives and URL crawling are not implemented. Imported documents remain
+Text/Markdown imports retain their **64 KiB** Android / **256 KiB** server bounds.
+Selected text PDFs have a separate capability, parser and limits; follow
+[PDF ingestion](PDF-INGESTION.md) before enabling them. OCR, archives and arbitrary
+URL crawling remain unavailable. Imported documents remain
 untrusted; importing a file does not assert that every sentence is true. Use
 **Upload a new version** to preserve a stable document identity with immutable
 versions. Original saved replies keep their original source mappings.
@@ -921,7 +966,7 @@ emulator results alone do not close the physical interruption gate.
 
 ## 10. Use the command-line client
 
-Initialize terminal B at the root, load your token as in section 6, and keep the
+Initialize an operator terminal at the root, load your token as in section6, and keep the
 API running in terminal A:
 
 ```powershell
@@ -982,40 +1027,133 @@ use Android or the documented HTTP contract for document opt-in and later UI flo
 
 ### Startup after the one-time setup
 
-1. Start Docker Desktop and wait for its engine.
-2. Start Ollama if it is not already running in the background.
-3. At the repository root:
+Use **three PowerShell windows**: A for the API, B for the proxy, C for checks.
+In each, first enter the actual checkout:
 
-   ```powershell
-   docker compose up -d --wait db
-   .\.venv\Scripts\ada.exe doctor
-   .\scripts\start.ps1
-   ```
+```powershell
+Set-Location 'G:/Project/AgenticAIProject/Ada_Adaptive_Digital_Assistant/adaptive-digital-assistant'
+```
 
-4. In another terminal, verify `/health/ready`.
-5. For the USB phone, reconnect/unlock it. In an Android terminal, use your actual
-   SDK path (the example is the default Windows location) and recreate forwarding:
+#### 1. Window C — check prerequisites
 
-   ```powershell
-   $adbPath = Join-Path $env:LOCALAPPDATA 'Android/Sdk/platform-tools/adb.exe'
-   adb -d reverse tcp:8000 tcp:8000
-   ```
-6. Open the installed Android app. A saved session is re-verified; enter a current
-   token if reconnect is required.
-7. If monitoring is needed, start `npm run dev` from `apps/admin-web`, open the
-   `/admin/` page, and sign in with your explicitly granted account.
+Start Docker Desktop and wait for its engine. Start the Ollama Windows app if
+it is not already running. Connect Tailscale on the laptop, then run:
 
-You do **not** clone again, recreate users, rotate tokens, reinstall dependencies,
-re-pull an installed model or run migrations on every launch. Migrate when the
-intended source/schema version changes, using section 5.
+```powershell
+docker compose up -d --wait db
+docker compose ps db
+ollama list
+.\.venv\Scripts\ada.exe doctor
+tailscale status
+tailscale serve status
+```
+
+Expect `db` running/healthy, schema0021, and the **exact** `ADA_OLLAMA_MODEL` tag
+installed. This laptop was observed using `qwen3.8-27b-uncensored:latest`; preserve
+your deliberate model choice. Do not pull the older example tag merely to start
+ADA. If11434 already responds, do not start a second `ollama serve`.
+
+Serve should show your HTTPS hostname, **tailnet only**, proxying to
+`http://127.0.0.1:18764`. If it says `No serve config`, enable the route once:
+
+```powershell
+tailscale serve --bg --https=443 http://127.0.0.1:18764
+tailscale serve status
+```
+
+Complete the Tailscale approval link if requested. The background Serve setting
+normally persists; this is not a command to repeat on every launch. Do not enable
+Funnel. If `tailscale funnel status` repeats the same **tailnet only** route, that
+wording does not indicate a public route.
+
+If an API/proxy is already healthy, reuse it instead of starting a duplicate.
+An optional reviewed supervisor may already own it; use its
+[operations procedure](ALWAYS-ON-OPERATIONS.md), rather than competing with it.
+
+#### 2. Window A — start the API
+
+```powershell
+.\scripts\start.ps1
+```
+
+Expect progress followed by:
+
+```text
+ADA API is running at http://127.0.0.1:8000 (one worker).
+  Readiness: http://127.0.0.1:8000/health/ready (expect status: ready)
+  Local API explorer: http://127.0.0.1:8000/docs
+  With the private proxy and HTTPS route running:
+    Admin: https://windows-asus.tail110867.ts.net/admin/
+    Android server: https://windows-asus.tail110867.ts.net
+Leave this window open. Press Ctrl+C to stop ADA.
+```
+
+The script stays in the foreground. **The absent PowerShell prompt means it has
+not returned; it does not mean startup is stuck.** Earlier versions could remain
+entirely blank because console/access logging was disabled. The new banner means
+the listener opened; it does not prove the database or model is ready. In window C:
+
+```powershell
+Invoke-RestMethod 'http://127.0.0.1:8000/health/live' -TimeoutSec 10
+Invoke-RestMethod 'http://127.0.0.1:8000/health/ready' -TimeoutSec 10
+```
+
+Expect `ok`, then `ready` with schema0021. Resolve failure here before testing
+the phone. A cold startup may take time; progress identifies its last stage.
+If no progress appears at all or it stops responding, use section12's checks.
+
+#### 3. Window B — start the private proxy
+
+```powershell
+.\scripts\start-private-proxy.ps1 -CheckOnly
+.\scripts\start-private-proxy.ps1
+```
+
+Expect `Valid configuration`, then Caddy running on127.0.0.1:18764. Leave this
+window open too. `-CheckOnly` validates and exits; it does not start a proxy.
+Warnings about disabled automatic HTTPS or an unformatted Caddyfile are nonfatal
+with this template: Tailscale supplies external HTTPS. A bind/checksum/validation
+error is a failure. If Caddy is already running, do not launch another copy.
+
+#### 4. Window C — verify the complete route
+
+```powershell
+Invoke-RestMethod 'http://127.0.0.1:18764/health/ready' -TimeoutSec 10
+Invoke-RestMethod 'https://windows-asus.tail110867.ts.net/health/ready' -TimeoutSec 10
+Start-Process 'https://windows-asus.tail110867.ts.net/admin/'
+```
+
+Both checks should report `ready`/0021. Opening the dashboard HTML alone does not
+prove its API works: Caddy can serve `/admin/` while8000 is unavailable and API
+calls return502. `/` may return404; use `/admin/` for the dashboard.
+
+#### 5. Connect the clients
+
+- **Laptop browser:** use the opened HTTPS `/admin/` page. Browser server origin
+  is `https://windows-asus.tail110867.ts.net`. Sign in with your enrolled username
+  and password; this laptop's previously verified admin identifier is
+  `gourishankar-admin`.
+- **S24 FE:** connect Tailscale to the same tailnet. In ADA use server
+  `https://windows-asus.tail110867.ts.net` without `/admin/`, check the server,
+  then sign in with username/password. A valid saved session can renew itself.
+
+Tailscale needs to be connected on both devices. USB debugging, ADB reverse,
+Vite5173 and manual TLS files are unnecessary for this route. Keep the laptop
+awake and connected; a sleeping/powered-off laptop cannot serve ADA. The startup
+script does not change Windows power settings or install automatic startup.
+
+You do **not** clone again, recreate accounts, reset passwords, reinstall
+dependencies, rebuild unchanged clients, re-pull an installed model or run
+migrations on every launch. Use section5 when source/schema requirements change.
 
 ### Shutdown
 
 1. Finish or deliberately stop the operations you want stopped. Merely closing
    Android does not cancel server generation or a queued job.
-2. Stop your Vite terminal with **Ctrl+C**.
+2. Stop your private-proxy terminal with **Ctrl+C**.
 3. Stop your ADA API terminal with **Ctrl+C**.
-4. Remove only the USB mapping you created when you no longer need it:
+4. If you used the optional Vite/USB developer workflow, stop Vite and remove only
+   the USB mapping you created:
 
    ```powershell
    adb -d reverse --remove tcp:8000
@@ -1054,10 +1192,13 @@ ollama list
 .\.venv\Scripts\ada.exe doctor
 Invoke-RestMethod 'http://127.0.0.1:8000/health/live'
 Invoke-RestMethod 'http://127.0.0.1:8000/health/ready'
+Invoke-RestMethod 'http://127.0.0.1:18764/health/ready'
+tailscale serve status
+Invoke-RestMethod 'https://windows-asus.tail110867.ts.net/health/ready' -TimeoutSec 10
 ```
 
-Then verify your token via `/v1/me`, your admin grant if relevant, and finally the
-client's URL/USB mapping/proxy. Keep secrets/private response bodies out of shared
+Then check password sign-in, your admin grant if relevant, and the client origin.
+For the optional bearer path, verify `/v1/me`. Keep secrets/private bodies out of shared
 diagnostics. Environment `ADA_...` values override `.env`; a stale shell override
 can point an otherwise correct checkout at a different database/provider.
 
@@ -1070,14 +1211,22 @@ can point an otherwise correct checkout at a different database/provider.
 | Docker daemon/engine cannot be reached | Open Docker Desktop, wait for the engine, and check `docker info`. Resolve its WSL/virtualization setup before retrying Compose. |
 | PostgreSQL remains unhealthy | Check `docker compose ps db` and `docker compose logs --tail 50 db` locally. Verify disk/service initialization and intended credentials. Do not delete the volume as a first fix. |
 | Database authentication fails after editing `.env` | Existing PostgreSQL volumes retain the initialized role password; changing `.env` does not rotate it. Restore matching credentials or perform an explicit operator-controlled password change. Check the connection URL's port and URL encoding. |
-| Port5432/8000/5173 is occupied | Inspect with `Get-NetTCPConnection -State Listen -LocalPort 5432,8000,5173`. Identify the owner before stopping anything. Existing native PostgreSQL may be intentional. Vite uses strict port 5173. |
-| API address8000 needs to change | Start with `scripts/start.ps1 -Port 8001`; update Android URL/USB reverse and Vite `ADA_API_TARGET` together. Changing only one client setting leaves other paths pointing at 8000. |
+| `start.ps1` stays running with no prompt | Normal for a foreground server. Look for startup progress and the running banner, then check8000 `/health/ready` from another terminal. Older code can remain blank while healthy. Leave the window open. |
+| Startup stays on one progress line and8000 never responds | Check Docker health and `doctor` in a separate terminal; note the last stage. `Get-NetTCPConnection -State Listen -LocalPort 8000 -ErrorAction SilentlyContinue` shows listeners. If it remains unresponsive, Ctrl+C in that window and retry once, retaining the fixed error/status code. Do not run duplicates or reset the database. |
+| The API window stops or returns to a prompt by itself | It is no longer serving. Preserve the last fixed status/exit code and time, then check8000. A proxy window or installed Docker container does not keep the API alive. A recurring unexplained exit requires investigation; no crash cause was confirmed in this startup session. |
+| Port5433/8000/18764/5173 is occupied | Inspect with `Get-NetTCPConnection -State Listen -LocalPort 5433,8000,18764,5173 -ErrorAction SilentlyContinue`. Identify the owner before stopping anything. Reuse a healthy existing instance. Vite uses strict5173. |
+| `inference_owner_already_running` or `already_running` | Another foreground/supervised runtime holds the ownership gate. Identify it and use its normal stop procedure before starting another. Never delete a lock to bypass a live owner. |
+| API address8000 needs to change | Start with `scripts/start.ps1 -Port 8001`; also change the upstream8000 in the selected Caddyfile and restart Caddy. Update optional direct Android/USB/Vite paths too. Keep the external HTTPS origin unchanged when only the internal port changes. |
 | `/health/live` refuses the connection | The API is not listening there. Check terminal A, its startup error, working directory and configured port. Docker PostgreSQL alone does not start ADA. |
-| Liveness works, but `/health/ready` returns503 `database_not_ready` | Check database connectivity and `alembic current` versus `heads`. Back up/stop API/migrate the intended database using section 5; current source expects0016. Never stamp over missing tables. |
-| Admin login says “The server is unavailable or busy” | First check readiness on 8000, not 5173. Then check Vite's proxy target and the API's capacity/Retry-After. A running backend with old schema is still not ready. Keep browser origin 5173; do not substitute 8000. |
+| Liveness works, but `/health/ready` returns503 `database_not_ready` | Check database connectivity and `alembic current` versus `heads`. Back up/stop API/migrate the intended database using section5; current source expects0021. Never stamp over missing tables. |
+| Admin opens, but sign-in says unavailable; proxy readiness is502 | Test8000 first, then18764, then HTTPS. Caddy can serve HTML with its API upstream down. Restore the missing layer; keep browser origin equal to the HTTPS address bar. For the optional Vite workflow, check its target instead. |
+| Local18764 works but tailnet HTTPS fails | Check Tailscale connected on both devices, `tailscale serve status`, exact hostname and target18764. A certificate failure is not fixed by disabling TLS verification. |
+| Caddy warns automatic HTTPS is disabled | Expected for `Caddyfile.tailnet.example`: it is loopback HTTP behind Tailscale Serve. Confirm the outer HTTPS readiness check. Do not replace it with a LAN/public bind. |
+| `Cannot read the built-admin directory` | Set `ADA_ADMIN_DIST` to a literal absolute forward-slash path in `.env`; build with `npm ci`/`npm run build` from `apps/admin-web`. Current proxy code passes Python through stdin to preserve quotes in PowerShell5.1. Check that your script includes that correction. |
+| Password sign-in fails over HTTP or origin mismatch | Use the private HTTPS origin for password login. Match `ADA_BROWSER_ORIGIN`, browser address and origin field exactly, omitting `/admin/`. Restart the API after environment changes. HTTP5173 is the advanced bearer workflow only. |
 | Admin says monitoring is unavailable | Confirm supported current schema/source and proxy reachability. Apply intended migrations after backup, restart the backend, and retry; older monitoring-readiness problems are not fixed by repeated login. |
 | Token rejected/HTTP401 | Use the current secret for an existing account, without `Bearer ` in client fields. Rotation revokes the old token. A username/account UUID/password is not a bearer token. |
-| Admin Access denied/HTTP403 | The token may be valid but its account lacks a current explicit monitoring grant. Obtain its authenticated `/v1/me.id`, then the local operator grants that exact UUID. User/style names do not grant roles. |
+| Admin Access denied/HTTP403 | A valid login still needs an explicit monitoring grant. Inspect `login-accounts` locally and grant the intended exact UUID. User/style names do not grant roles. |
 | `create-user` reports an existing name | Reuse its saved token, or deliberately rotate for that exact existing name if lost. Do not create a different account to recover its data. |
 | `grant-admin` rejects the argument | It accepts an account UUID, not the name. Use `create-user.user_id` or authenticated `/v1/me.id` from the intended server. |
 | `doctor` reports configured model missing | Start Ollama, inspect `ollama list`, and match `ADA_OLLAMA_MODEL` exactly. Pull an available intended tag if needed; restart ADA after configuration changes. |
@@ -1098,7 +1247,7 @@ can point an otherwise correct checkout at a different database/provider.
 | Memory/document not used in a reply | Check owner/scope, ready/availability/valid time, memory/document toggles, saved prompt version and retrieval/source details. Saving in another scope does not enable cross-scope retrieval. |
 | Tool/proposal/episode unavailable or fails | Check advertised native capabilities, selected sources, structured model support, prompt/size bounds and shared capacity. A normal text reply does not prove every structured feature works. |
 | Consolidation job stays queued | Check `ADA_CONSOLIDATION_WORKER_ENABLED=true`, API lifespan still running and admission capacity. Restart after changing settings; inspect the exact saved job. |
-| First microphone Allow/Deny returns Interrupted | Known 17A-01. Confirm actual phone permission; if granted, tap Record again from the same owned foreground conversation. Denial/text/settings handling remains a planned fix. |
+| Microphone Allow/Deny returns Interrupted | Permission-intent hardening is implemented; confirm you installed the intended app version and check OS microphone permission. Retry from the same owned foreground conversation or use text. Active revocation/settings-return target checks remain open in17A. |
 | Missing language/recognition engine or no transcript | Check Android 12+, installed on-device engine and selected installed language. Install language through the speech service's own settings if available; ADA has no network fallback. Wait for Recording before speaking, or use text. |
 | No offline playback voice/audio | Check an installed eligible TTS voice, media volume and current output route. Native focus behavior remains under 17A-02 investigation; use explicit Stop playback. |
 | A pending reply seems lost after restart | Reconnect the same verified account/server, open its conversation and Check request. GET recovery retains the ID; an uncertain transport result is not a license to send a duplicate. |
@@ -1182,8 +1331,10 @@ Pop-Location
 
 The script uses a disposable fake-model HTTP server and synthetic audio adapters;
 it may reset/uninstall the normal debug package on its selected emulator. It does
-not prove real microphone/speaker accuracy. A non-destructive physical runner is
-planned in 17A-03; do not pass a personal phone into an emulator-only helper.
+not prove real microphone/speaker accuracy. Bounded separate-package physical
+verification exists; use its explicit procedure in the
+[17A plan](../plans/phase-17-a-s24-fe-validation-and-hardening.md) and Android README.
+Do not pass a personal phone into an emulator-only helper.
 
 ### Admin web checks
 
@@ -1217,6 +1368,11 @@ application. See [admin web details](../apps/admin-web/README.md).
 | Admin web/proxy/monitoring | [Web README](../apps/admin-web/README.md), [monitoring policy](ADMIN-MONITORING.md) |
 | Memory/evidence/history | [Memory policy](PHASE1-MEMORY.md), [retrieval policy](PHASE2-RETRIEVAL.md) |
 | Document constraints/versioning | [Document ingestion](DOCUMENT-INGESTION.md) |
+| Selected text PDFs and parser setup | [PDF ingestion](PDF-INGESTION.md) |
+| Projects, tasks and reviewed briefs | [Projects and follow-through](PROJECTS-AND-FOLLOW-THROUGH.md) |
+| Optional questions, reminders and idle review | [Curiosity](CONVERSATIONAL-CURIOSITY.md), [reminders](DURABLE-SCHEDULING-AND-REMINDERS.md), [idle review](IDLE-REFLECTION-AND-DREAM-REVIEW.md) |
+| Private routing and password sessions | [Windows/Tailscale setup](PRIVATE-SETUP-WINDOWS-TAILSCALE.md), [password login](PASSWORD-LOGIN-AND-SESSIONS.md) |
+| Reviewed host supervision and recovery | [Always-on operations](ALWAYS-ON-OPERATIONS.md) |
 | Optional hybrid retrieval, disabled by default | [Embedding policy and evaluation requirements](EMBEDDINGS-AND-HYBRID-RETRIEVAL.md) |
 | Entities/reviewed suggestions | [Entities](ENTITIES-AND-ALIASES.md), [memory review](MEMORY-PROPOSALS-AND-REVIEW.md) |
 | Tool approval/receipts | [Tools and agent loop](TOOLS-AND-AGENT-LOOP.md) |
@@ -1227,21 +1383,28 @@ application. See [admin web details](../apps/admin-web/README.md).
 | Checks actually run/skips/remaining targets | [STATUS](../plans/STATUS.md), [WORKLOG](../plans/WORKLOG.md) |
 
 Basic S24 FE/Android16 recognition/offline speaker/recovery/font checks are recorded.
-Permission lifecycle and native focus hardening are still planned. Representative
+Permission-intent/lifecycle hardening is implemented; active revocation/settings
+and audible native focus-stop gates remain open. Representative
 speech, accessory/call routing, speech-service resource/battery, older Android,
 release HTTPS/manual accessibility and intended installation checks remain distinct
 from the successful local tests. This guide does not claim those gates passed.
 
-Automatic background listening, arbitrary external/shell actions, public signup,
-mobile LLM inference, PDF/OCR and later operations/integration features are not
-implemented by the instructions above. Keep one Uvicorn worker, authenticated
-owned API access and deliberate reviewed writes.
+Automatic background listening, arbitrary external/shell actions, public signup
+and OCR remain unavailable. Local mobile draft generation remains disabled.
+PDFs, public web research, reminders and idle work require their explicit
+capability/setup/consent; a running server does not enable them all. Keep one
+Uvicorn worker, authenticated owned API access and deliberate reviewed writes.
 
 ### How this guide was checked
 
 Commands/paths/options were checked against setup/start/configuration scripts,
 CLI help, actual Alembic head, OpenAPI, client source/pins and current test/status
-records. Official tool installation/device pages were checked on 13 October 2026.
-Documentation checks and focused tests are recorded in STATUS/WORKLOG. A fresh
+records. The22October startup check observed database readiness at0021 through
+API8000, Caddy18764 and Tailscale HTTPS, plus the admin page and installed model
+metadata. A temporary upstream interruption was observed; its cause was not
+confirmed. Native PowerShell5.1/7 failure paths and isolated real IPv4/IPv6
+listener/bind-failure checks cover the new banner. Official installation/device
+pages retain their13October review date. Exact results/skips are in
+STATUS/WORKLOG. A fresh
 installation, production migration, model download/inference or deployment was
 not performed while writing this document.

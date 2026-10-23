@@ -174,18 +174,30 @@ class DockerPdfParser:
             raise ServiceError(422, "pdf_parser_failed") from None
         finally:
             # Only the unpredictable name reserved by this call is removed.
+            removed = False
             try:
-                subprocess.run(
+                cleanup = subprocess.run(
                     ["docker", "rm", "-f", name],
                     env=docker_environment(),
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
                     timeout=5,
                 )
+                removed = cleanup.returncode == 0
             except (OSError, subprocess.SubprocessError):
                 pass
             try:
                 if process:
+                    # A successful blocking docker-run exit proves the worker
+                    # finished. Otherwise failed removal leaves it unconfirmed;
+                    # quarantine this adapter before releasing host capacity.
+                    if not removed:
+                        try:
+                            finished = process.poll() == 0
+                        except (OSError, subprocess.SubprocessError):
+                            finished = False
+                        if not finished:
+                            self.available = False
                     try:
                         if process.poll() is None:
                             process.kill()

@@ -6,6 +6,7 @@ def text_pdf(
     catalog_extra=b"",
     compressed=False,
     unicode_map=False,
+    content_streams=None,
 ):
     objects = [b"<< /Type /Catalog /Pages 2 0 R " + catalog_extra + b" >>", b""]
     objects.append(b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>")
@@ -20,6 +21,8 @@ def text_pdf(
         )
         escaped = text.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
         stream = f"BT /F1 12 Tf 72 720 Td ({escaped}) Tj ET".encode("latin1")
+        if content_streams is not None:
+            stream = content_streams[len(children) - 1]
         if compressed:
             import zlib
 
@@ -48,3 +51,88 @@ def text_pdf(
     raw += b"".join(f"{x:010} 00000 n \n".encode() for x in offsets[1:])
     raw += f"trailer\n<< /Size {len(offsets)} /Root 1 0 R >>\nstartxref\n{start}\n%%EOF\n".encode()
     return raw
+
+
+def public_pdf_profiles():
+    """Reproducible developer-generated layouts; no private/third-party files."""
+
+    def positioned(pages, compressed=False):
+        streams = []
+        for page in pages:
+            parts = []
+            for x, y, text in page:
+                escaped = text.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+                parts.append(f"BT /F1 10 Tf 1 0 0 1 {x} {y} Tm ({escaped}) Tj ET\n")
+            streams.append("".join(parts).encode("ascii"))
+        return text_pdf(tuple("" for _ in pages), compressed=compressed, content_streams=streams)
+
+    dense = [
+        [(72, 760, "Public planning report")]
+        + [
+            (
+                72,
+                740 - row * 12,
+                f"Line {row:02}: selected facts remain imported and need owner review.",
+            )
+            for row in range(50)
+        ]
+        for _ in range(16)
+    ]
+    table = [
+        [
+            (72, 760, "Public inventory"),
+            (72, 730, "Item"),
+            (300, 730, "Count"),
+            (72, 710, name),
+            (300, 710, count),
+        ]
+        for name, count in (("Mars", "3"), ("Venus", "5"))
+    ]
+    return [
+        {
+            "key": "single-page",
+            "raw": text_pdf(),
+            "pages": 1,
+            "fragments": ["Public orbit launch is Monday."],
+        },
+        {
+            "key": "columns",
+            "raw": positioned(
+                [
+                    [
+                        (72, 740, "Public report"),
+                        (72, 710, "Left alpha"),
+                        (300, 710, "Right beta"),
+                        (72, 690, "Left gamma"),
+                        (300, 690, "Right delta"),
+                    ]
+                ]
+            ),
+            "pages": 1,
+            "fragments": ["Left alpha", "Right beta", "Left gamma", "Right delta"],
+        },
+        {
+            "key": "table-repeated-header",
+            "raw": positioned(table),
+            "pages": 2,
+            "fragments": ["Public inventory", "Mars", "Venus", "3", "5"],
+        },
+        {
+            "key": "unicode-map",
+            "raw": text_pdf(("Public \xa0 \xa1",), unicode_map=True),
+            "pages": 1,
+            "fragments": ["😀", "e\u0301"],
+        },
+        {
+            "key": "dense-16-pages",
+            "raw": positioned(dense),
+            "pages": 16,
+            "fragments": ["Line 00:", "Line 49:"],
+        },
+        {
+            "key": "compressed-16-pages",
+            "raw": positioned(dense, compressed=True),
+            "pages": 16,
+            "fragments": ["Line 00:", "Line 49:"],
+        },
+    ]

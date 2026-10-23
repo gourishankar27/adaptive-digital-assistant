@@ -4204,3 +4204,199 @@ PSS return checking is not an Android OS RSS cap. A future candidate needs fresh
 quality and packaged-runtime evidence before activation. Full final-source suite
 status, final affected checks, audits and owned infrastructure cleanup follow in
 the closeout entry; no unfinished run is claimed as a pass.
+
+### 2026-10-22 — Phase31 resumption and retained19A evidence —04c5962 plus closeout
+
+Scope: user reconnected the S24 FE and asked to finish Phase31 before future
+planning. The earlier instruction to continue without the phone had superseded
+the old reconnect question. No new model,19B integration, later phase or deployment.
+
+Changed behavior/files: added a direct PDF completed-answer/new-extraction replay
+regression; corrected PDF-capable file-error/preview wording. Added an optional
+public-data human review stage to the separate validation runner, using existing
+document/source components and an explicit Finish review button. Updated the PDF
+guide with reproduction commands, checkpoint evidence and acceptance limits; the
+draft guide distinguishes actual synthetic signed-protocol evidence from pending
+native inference. No new API, migration, prompt or dependency change on resumption.
+
+Retained checks reconciled from the interrupted run, not newly rerun: affected
+backend170pass/5skip728.83s, final guard41pass/1skip196.38s, Docker cleanup/limits
+8pass26.50s, publication/principal4pass18.04s, central PDF source-lineage/proposal/
+work/edge87pass/5skip375.73s. Red cleanup and corrupt-source tests preceded their
+fixes. Earlier broad run5fail/1248pass/33skip4549.39s had stale contract, corpus
+worker-race and operator web-opt-in fixture failures; their entire files then
+passed36/1skip66.64s after corrections. These facts do not claim a final full pass.
+Current complete regression is running; result/skip reasons follow separately.
+
+Retained Android actual API37 HTTP/Keystore protocol stages7.521s/4.433s/4.755s
+passed real signing, server verification, encryption, actual force-stop, GET-only
+receipt restoration, exact explicit retry and revocation with synthetic output.
+Optional ARM64/16KiB ELF/APK/notices checks passed. Physical native FD/isolated UID/
+no-network/cancellation and actual model-to-signed-draft evidence remain open.
+Both model quality failures remain; generation and edge_inference stay disabled.
+
+Fresh checks: PDF-specific page/context/replay test2pass/28deselected6.18s, both
+SQLite/native PostgreSQL. S24 FE SM-S721U1/API36 real HTTP/Keystore/Docker/disposable
+PG stages4.239s/2.943s passed binary review/upload, two-page source mapping, visible
+scan failure, actual force-stop, GET-only reopen and one original explicit upload.
+Manual-helper attempt first failed a scope-selection wait (automated stages had
+passed5.66s/2.741s); corrected helper stages5.321s/2.475s passed and opened the
+optional review. Human result is recorded separately, never inferred from a timer.
+
+Normal Android units/lint/debug/unsigned-release/test APK build passed1m41s:
+306units,0failures/errors/skips; lint0errors/24warnings (23retained, one dormant
+model-importer usable-space advisory). Normal APK identity/no-native/no-weights
+verified; no normal installation. Whole-tree Ruff lint/format passed372files;
+strict additive OpenAPI/whitespace checks passed. Interim audit101 changed/new
+versus736 baseline files,0missing/protected/secret matches; released0001–0020,
+locks/wrappers unchanged. Editor CMake setting preserved. Formatting the pre-existing
+extraction benchmark settings block closed an initial formatting-only check failure.
+
+Data/API/prompt changes on resumption: none. Source remains0021/76tables/63private
+inventory/backup-v7/OpenAPI164paths216schemas, Android25/journal18. PDF/sync off by
+default; OCR disabled by documented decision. Final complete-run result, visual
+review, audit and owned infrastructure cleanup follow in the closeout entry.
+Verified and removed only the prior tracked public CLI/two-model directory from
+the reconnected phone after checking its resolved path/owned entries. No normal
+app, private file, installed database/service, proxy, Tailscale or host policy change.
+
+### 2026-10-22 — Phase31 final code/shared checks —04c5962 plus closeout
+
+Changed behavior: quarantine the parser adapter when a failed worker's removal/
+exit is unconfirmed, preventing another admitted parse alongside unknown work.
+A red fault test preceded this change. Three fault modes preserve fixed timeout,
+release the host slot and reject subsequent parsing until reinitialization. No
+new API, schema, prompt, quota or production feature flag change.
+
+Checks actually run: full shared `pytest --assert=plain -q --tb=short -ra` with
+native PostgreSQL18.6/actual PDF manifest **1277pass/34skip/1warning**,2792.32s,
+exit0. It imported the parser before the final quarantine guard and profiles;
+this is not presented as a full final-source rerun.34skips:8 opt-in Ollama checks
+(2health/6native agent) and26 SQLite-only native-lock/MVCC/process cases; native
+counterparts ran. Existing Starlette/httpx deprecation remains. After the guard,
+fresh entire PDF selection **47pass/no skips**,147.64s; the earlier46pass165.30s
+and red failure remain distinct. Actual parser isolation/faults, both DBs,
+authority, version/context/replay, upgrade and encrypted restore all ran.
+
+Measurement checkpoint: added fixed developer-generated public layouts and a
+metadata-only profiling tool/report, no database/model or third-party files.
+Six layout tests passed6.88s; profiler verified expected fragments/pages and
+identical dense text hashes across compression. Original sizes607–86572bytes,
+extracted16–50768bytes,1–16pages/1–64chunks; local post-verification parse/validate/
+chunk437–531ms, excluding upload/model/cold image download. The uncompressed dense
+sample needs smaller sections on Android; byte quotas stay unchanged. Column/
+table semantics and personal-document acceptance remain unproven. Output stores
+public metadata/hashes only in evaluations/text-pdf-profile-2026-10-22.json.
+
+Static checks: whole-tree Ruff lint/format374files passed after correcting the
+new fixture suppression; strict existing path/schema compatibility passed.
+Final normal APK-output restoration, human visual evidence, audits and cleanup
+follow below. No new model activation, later phase, live migration or deployment.
+
+### 2026-10-22 — Phase31 human acceptance/cleanup and stop —04c5962 plus closeout
+
+Manual evidence: the earlier nine-minute window expired without Finish review;
+the user later explicitly confirmed readable/no layout problems and requested a
+reopened check. Separate S24 FE/API36 real HTTP/Keystore/Docker stages passed
+4.213s/2.761s/111.542s, exit0. Last stage includes human inspection/waiting; the
+phone's Finish review button completed it. Earlier helper scope error and timeout
+remain failures, not relabeled passes. Confirmed public-sample page/source
+readability does not claim TalkBack, personal-file or table semantic acceptance.
+
+Cleanup: normal APK/test outputs restored by a successful7s build, no normal
+installation. Phone validation/test packages and tcp19822 reverse removed;
+0fixture schemas/databases beyond the isolated base/system DBs. Previously owned
+public CLI/model directory removed only after path/entry verification. Verified
+Medium_Phone_API_37.0/emulator5584 before stopping it; ports closed. Verified native
+PostgreSQL18 executable/PID36032/port55421 and resolved workspace-cache data path,
+then stopped only that isolated cluster.0listeners on55421/18423/19822/5584/5585,
+no residual PDF containers. Left Docker Engine/user containers, physical phone's
+normal ADA, configured DB/API/proxy/Ollama/Tailscale, tasks and power policy alone.
+
+Final audit/static results:104 changed/new versus736 Phase19A/31 starting files;
+0missing/protected-migration/lock/wrapper changes and0configured-secret matches.
+Preserved the original editor setting. Ruff lint/format374files and whitespace
+checks passed;85 Markdown files had0missing local targets. Existing157 API paths
+and required schema properties preserved except documented additive PDF enum/fields.
+This current closeout did not change schema, API or prompt history from04c5962.
+
+Outcome: complete Phase31's bounded text-PDF implementation/automated exit with OCR
+off as explicitly permitted. Source remains0021/76tables/63owner-content/backup-v7,
+Android25/journal18; PDF defaults off and installation/enabling remains separate.
+Remaining verification: representative personal files, visual reading-order/table
+semantics, TalkBack/older targets and real-model answer usefulness.19A remains
+disabled/open after the failed candidate trials. No later phase or deployment;
+future planning can be a separately selected task.
+
+### 2026-10-22 — manual startup diagnosis, progress and usage guide — 04c5962 + existing workspace
+
+Scope: help the user run `start.ps1` and `start-private-proxy.ps1`, investigate a
+blank foreground window and update HOW-TO-USE-ADA. The user requested an explicit
+address/port/connection banner. Existing Phase31 and other local edits retained;
+no next-phase work or deployment.
+
+Changed behavior/files: `scripts/start.ps1` prints progress before invoking
+unbuffered Python. `src/ada/host_runtime.py` prints fixed loading/gate/recovery
+stages and announces the address only after Uvicorn's lifespan and bind succeed.
+It shows local readiness/explorer URLs, conditional `ADA_BROWSER_ORIGIN` admin/
+Android URLs and a stop notice. Ctrl+C matches the prior quiet Uvicorn wrapper;
+interrupted/failed startup remains nonzero. No root/access/exception logging was
+enabled. Existing worker count, kernel/PostgreSQL ownership locks, request
+recovery, concurrency limits and HTTP behavior remain. Tests use temporary
+profiles, unavailable synthetic DB endpoints or public ASGI fixtures on free
+ports, never live request recovery.
+
+`docs/HOW-TO-USE-ADA.md` now provides the normal password/Tailscale route first,
+current0021 setup/upgrade expectations, literal dotenv examples, exact client
+origins and a detailed A/API, B/proxy, C/checks daily sequence. It distinguishes
+foreground waiting from health, HTML availability from API readiness and internal
+HTTP from Tailscale TLS; advanced token/Vite/USB routes remain explicit options.
+Updated stale PDF/permission/physical-runner statements against current source.
+
+Data/API/prompt changes: none. Generated in-memory OpenAPI equals the checked-in
+export exactly:164 paths/216 schemas. Released migrations, dependencies/locks,
+request IDs, prompts/snapshots and replay were not changed by this task.
+
+Checks actually run and results:
+
+- Existing six native foreground tests passed15.42s after the initial console
+  edit; this was not a pristine pre-edit test run. Extended intermediate runs
+  passed9/15.57s and10/15.57s. Final command
+  `python -m pytest tests/test_host_foreground.py tests/test_schema_contract.py -q`
+  passed **15 / 0 skipped in19.57s**, including native PowerShell5.1/7 occupied-port
+  and unavailable-database paths, real isolated IPv4/IPv6 HTTP listeners, late
+  bind/lifespan failures and Ctrl+C before/after startup. One existing Starlette/
+  httpx deprecation warning. Earlier Phase31 full-suite results are not a new run.
+- `ruff check src tests migrations scripts` and matching `ruff format --check`
+  passed;283 Python files formatted. The first targeted format check identified
+  style-only differences; formatted and rechecked successfully. PowerShell
+  startup parsing and `git diff --check` passed.
+- In-memory OpenAPI equality passed. All63 local guide links/anchors resolve;
+  code fences balance. Proxy `-CheckOnly` passed its pinned-binary/dist/config
+  validation; automatic-HTTPS-disabled/unformatted-config messages are expected
+  with this existing Tailscale template. `pip check` found no broken requirements;
+  `alembic heads` reported0021, without migration.
+- Read-only live probes initially found readiness/0021 on8000/18764. A later
+  check found no8000 listener and502 upstream while `/admin/` still served200.
+  The user said they had not stopped it. The later user-launched foreground
+  runtime was then observed listening; final8000/18764/tailnet HTTPS readiness
+  all returned200/ready/0021. HTTPS admin HTML returned200 with normal certificate
+  validation. Docker `db` was healthy on loopback5433; Ollama tags returned200
+  and included the configured exact model. No generation or private API read.
+- Process/event metadata did not establish the interruption cause. A separate
+  unique empty-folder probe confirmed Store-Python/native LocalAppData visibility
+  differs; the probe was removed. No causal ACL failure was confirmed in the
+  subsequently running foreground instance, so runtime paths/ACLs were not changed.
+
+Checks skipped/remaining target verification: no full backend/PostgreSQL fixture
+matrix, Android/web build/device/accessibility, password enrollment/sign-in or
+real-model inference rerun; this change adds console reporting/documentation,
+not schema, ownership or client behavior. No live process was stopped/restarted
+to demonstrate the new banner. The user will see it at the next manual start.
+Recurring unexplained exits require fresh timing/fixed status evidence; no crash
+root cause or automatic restart guarantee is claimed. Existing physical/model
+acceptance gates remain as previously recorded.
+
+Outcome: current route is healthy and startup behavior is visible/reviewable.
+No database reset/migration, secret/env edit, APK install, Caddy/Serve service
+configuration, scheduled task, power-policy change or deployment was performed.

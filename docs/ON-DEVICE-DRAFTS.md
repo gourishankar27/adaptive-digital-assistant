@@ -121,6 +121,13 @@ Normal `assembleDebug` omits JNI; no deployment is implied by building.
 
 ## License review and remaining gates
 
+The separate API37 emulator passed the real Android Keystore/P-256 enrollment,
+server signature verification, encrypted pending receipts, actual force-stop,
+GET-only restoration, explicit identical retry and revocation flow. Its output
+was explicitly synthetic; no model executed in that protocol fixture. Native
+model-to-signature end-to-end verification remains open. The Phase31 S24 FE PDF
+checks are separate evidence and do not authorize model activation.
+
 The [official Qwen GGUF card](https://huggingface.co/Qwen/Qwen3-0.6B-GGUF) identifies
 Apache-2.0 and GGUF/llama.cpp support. The
 [SmolLM2 card](https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct-GGUF)
@@ -133,7 +140,7 @@ license terms; no unreviewed model/runtime substitution is allowed.
 
 Required next evidence before activation: an actually useful candidate passing a
 fresh frozen reply set, real-user acceptance, packaged runtime/process isolation
-and exact signed-recovery flow, sustained thermal/low-memory recovery, unplugged
+and native model-to-signed-recovery flow, sustained thermal/low-memory recovery, unplugged
 battery, older API/16KiB phones and accessible UI. Measured CLI success alone does
 not close these gates. Check dated [STATUS](../plans/STATUS.md) and
 [WORKLOG](../plans/WORKLOG.md) for which packaged checks actually ran.

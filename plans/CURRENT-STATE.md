@@ -9,6 +9,14 @@ journal18 (v1–v17 readable). PDF/sync default off; no OCR,19B integration, dep
 [PDF guide](../docs/PDF-INGESTION.md), [study](../docs/ON-DEVICE-DRAFTS.md).
 Actual checks and remaining gates are in STATUS/WORKLOG; historical entries follow.
 
+**Phase31 closeout:** bounded text-PDF implementation and automated exit verified:
+47 final PDF checks/no skips, actual Docker/native PostgreSQL and separate S24 FE
+Android16/API36 HTTP/Keystore/force-stop flow. Android306units/no lint errors and
+debug/unsigned-release builds passed. Unconfirmed worker cleanup now disables
+further parsing. OCR remains disabled. Public-sample layout/readability is confirmed
+on the S24 FE; TalkBack and representative personal-document acceptance remain
+pending. No installed database/app deployment.
+
 **Phase30 source/local verification, 2026-10-22 America/Phoenix:** explicit scoped
 goals/tasks/projects, exact reviewed Save from completed chat, immutable revisions,
 balanced personal/development selected-work briefs, original-source resume,

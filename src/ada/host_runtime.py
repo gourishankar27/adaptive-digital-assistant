@@ -37,19 +37,44 @@ def admission_owner(settings, root):
 
 
 def foreground(settings, address, port):
+    print("[ADA] Loading the API and runtime dependencies...", flush=True)
     import uvicorn
 
     from ada.api import create_app
     from ada.host_security import timestamp
     from ada.service import recover_stale
 
+    class ForegroundServer(uvicorn.Server):
+        async def startup(self, sockets=None):
+            await super().startup(sockets=sockets)
+            # A lifespan callback alone cannot prove that the socket was bound.
+            if self.started:
+                host = f"[{address}]" if ":" in address else address
+                origin = f"http://{host}:{port}"
+                print(f"\nADA API is running at {origin} (one worker).", flush=True)
+                print(f"  Readiness: {origin}/health/ready (expect status: ready)", flush=True)
+                print(f"  Local API explorer: {origin}/docs", flush=True)
+                if settings.browser_origin:
+                    print("  With the private proxy and HTTPS route running:", flush=True)
+                    print(f"    Admin: {settings.browser_origin}/admin/", flush=True)
+                    print(f"    Android server: {settings.browser_origin}", flush=True)
+                else:
+                    print(
+                        "  Phone/password setup: docs/PRIVATE-SETUP-WINDOWS-TAILSCALE.md",
+                        flush=True,
+                    )
+                print("Leave this window open. Press Ctrl+C to stop ADA.\n", flush=True)
+
+    print("[ADA] Checking the protected runtime directory and database ownership...", flush=True)
     root = Path(os.environ["LOCALAPPDATA"]) / "ADA/operations"
     if not root.exists():
         private_directory(root)
     with admission_owner(settings, root):
+        print("[ADA] Preparing the application and recovering interrupted requests...", flush=True)
         app = create_app(settings)
         recover_stale(app.state.sessions, timestamp() + 1)
-        uvicorn.run(
+        print("[ADA] Starting the HTTP listener...", flush=True)
+        config = uvicorn.Config(
             app,
             host=address,
             port=port,
@@ -61,3 +86,12 @@ def foreground(settings, address, port):
             h11_max_incomplete_event_size=16384,
             log_config=None,
         )
+        server = ForegroundServer(config)
+        try:
+            server.run()
+        except KeyboardInterrupt:
+            pass  # Match uvicorn.run's normal Ctrl+C exit after graceful shutdown.
+        finally:
+            print("[ADA] API stopped; this window is no longer serving requests.", flush=True)
+        if not server.started:
+            raise SystemExit(1)

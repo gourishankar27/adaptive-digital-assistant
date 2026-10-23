@@ -10,9 +10,13 @@ from pathlib import Path
 from verify_password_android import ROOT, run
 
 
-def verify(device, model, pdf_only=False, sync_fixture=False):
+def verify(device, model, pdf_only=False, sync_fixture=False, manual_review=False):
     if sync_fixture and not pdf_only:
-        raise SystemExit("Synthetic signing fixtures require explicit --pdf-only; no inference claim")
+        raise SystemExit(
+            "Synthetic signing fixtures require explicit --pdf-only; no inference claim"
+        )
+    if manual_review and (not pdf_only or sync_fixture):
+        raise SystemExit("Manual PDF review requires --pdf-only without signing fixtures")
     if not pdf_only:
         if model is None:
             raise SystemExit("The exact public model is required for native checks")
@@ -78,9 +82,14 @@ def verify(device, model, pdf_only=False, sync_fixture=False):
         fixture_bearer=True,
         physical_model=None if device.startswith("emulator-") and pdf_only else "SM-S721U1",
         test_class="dev.ada.assistant.PdfEdgeDeviceTest",
-        stages=("preparePdfAndPrivateModelDirectory", "prepareSignedReceiptFixtureWithoutInference", "restoreGetOnlyRetryOriginalAndRevoke")
+        stages=(
+            "preparePdfAndPrivateModelDirectory",
+            "prepareSignedReceiptFixtureWithoutInference",
+            "restoreGetOnlyRetryOriginalAndRevoke",
+        )
         if sync_fixture
         else ("preparePdfAndPrivateModelDirectory", "restorePdfOnlyAfterProcessStop")
+        + (("reviewPublicPdfOnPhone",) if manual_review else ())
         if pdf_only
         else (
             "preparePdfAndPrivateModelDirectory",
@@ -88,8 +97,12 @@ def verify(device, model, pdf_only=False, sync_fixture=False):
             "restoreGetOnlyRetryOriginalAndRevoke",
             "isolatedNativeCancellationTerminatesBinder",
         ),
-        instrumentation_arguments={"adaTestOrigin": "http://127.0.0.1:19822"},
+        instrumentation_arguments={
+            "adaTestOrigin": "http://127.0.0.1:19822",
+            **({"adaPdfManualReview": "1"} if manual_review else {}),
+        },
         before_stage=provision,
+        stage_timeout=600 if manual_review else 120,
     )
 
 
@@ -99,5 +112,6 @@ if __name__ == "__main__":
     parser.add_argument("--model", type=Path)
     parser.add_argument("--pdf-only", action="store_true")
     parser.add_argument("--sync-fixture", action="store_true")
+    parser.add_argument("--manual-review", action="store_true")
     args = parser.parse_args()
-    verify(args.device, args.model, args.pdf_only, args.sync_fixture)
+    verify(args.device, args.model, args.pdf_only, args.sync_fixture, args.manual_review)

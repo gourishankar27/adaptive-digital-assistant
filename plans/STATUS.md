@@ -4,6 +4,40 @@ Current overview updated 2026-10-22 America/Phoenix; historical entries retain t
 own dates and verification provenance. Update after implementation and verification.
 “Planned” means a specification exists, not that code or a working UI exists.
 
+**Manual startup clarity (2026-10-22):** `start.ps1` now prints immediate progress;
+the foreground runtime prints its actual listening address, readiness/explorer
+URLs, conditional configured HTTPS admin/Android addresses and a shutdown notice.
+Success is announced only after Uvicorn binds. One worker, ownership/recovery
+gates, disabled access logs/proxy-header trust and quiet Ctrl+C remain intact.
+The usage guide now leads with password/Tailscale setup and the three-window
+daily sequence, current head0021 and layered502 troubleshooting.
+Focused final checks: **15 passed / 0 skipped**, Ruff lint/format283 files,
+unchanged OpenAPI164 paths/216 schemas,63 guide links/anchors and balanced fences.
+Read-only live checks found API8000 → Caddy18764 → tailnet HTTPS ready/0021,
+admin HTML200, healthy PostgreSQL5433 and the configured Ollama tag installed.
+An earlier API interruption/502 was observed; its cause remains unconfirmed.
+No live API/proxy restart, migration, password/configuration change or deployment
+was performed. The banner appears on the next manual start. Full regression,
+PostgreSQL fixture matrix, client/device and inference checks were not rerun for
+this console/documentation change. Details and prior evidence remain below/in WORKLOG.
+
+**Phase31 bounded text-PDF exit verified (2026-10-22):** isolated selected uploads,
+immutable original/extracted hashes and page/code-point maps, atomic publication,
+exact Android review/source cards and restart recovery are implemented. Final
+PDF checks47passed/no skips on SQLite/native PostgreSQL/actual Docker, plus six
+public layout/profile checks; separate
+S24 FE/API36 HTTP/Keystore/force-stop stages passed. Android306units, no lint
+errors, debug/unsigned-release/test APK builds and Ruff passed. The user confirmed
+public-sample readability/no overlap or clipping; the final review stage completed
+through Finish review. TalkBack and representative personal-file acceptance remain
+pending. OCR is disabled by the phase's conditional decision.
+Current source **0021 /76 tables /63 owner-content /backup-v7**, OpenAPI164paths/
+216schemas, Android25/journal18. PDF defaults off; installation requires a later
+authorized migration/verified parser setup.19A activation/exit remains open after
+both quality failures. No normal app upgrade, live migration, later-phase work or
+deployment. Dated records below preserve broad-regression provenance and failures.
+[PDF guide and reproduction](../docs/PDF-INGESTION.md).
+
 **Phase30 source/local verification (2026-10-22):** explicit scoped projects,
 goals/tasks, requested exact Save review, immutable revisions/source resume,
 balanced personal/development selected-work briefs and encrypted GET-only recovery
@@ -4407,3 +4441,154 @@ PSS return checking is not an Android OS RSS cap. A future candidate needs fresh
 quality and packaged-runtime evidence before activation. Full final-source suite
 status, final affected checks, audits and owned infrastructure cleanup follow in
 the closeout entry; no unfinished run is claimed as a pass.
+
+### 2026-10-22 —19A/31 retained verification reconciled; Phase31 phone closeout
+
+Source boundary: `04c5962` plus the Phase31 closeout changes. This entry preserves
+the results completed before interruption, rather than claiming new runs. The
+user had explicitly chosen to continue without the phone; that earlier reconnect
+request was no longer pending. On resumption the user reconnected the S24 FE and
+asked to finish Phase31 first. No additional model was evaluated or activated.
+
+Previously completed final-source selections: affected document/retrieval/recovery/
+schema/contracts/edge/PDF **170 passed/5 skipped**,728.83s; later principal/source/
+capacity/restore guards **41 passed/1 skipped**,196.38s. A deliberately failing
+cleanup test exposed capacity leakage/masked timeout; the fix was followed by
+**8 passed**,26.50s, including actual Docker crash/hang/output/expansion/encryption/
+xref limits, and **4 passed**,18.04s for publication/principal checks. A red PDF
+support test exposed corrupt originals entering extraction context; the shared
+lineage guard was followed by **87 passed/5 skipped**,375.73s across PDF/proposals/
+work/edge. Future/expired PDF evidence is excluded before the model call.
+
+The earlier broad backend run ended **5 failed/1248 passed/33 skipped**,4549.39s.
+Two failures used the pre-regeneration contract; one extraction corpus assertion
+raced unrelated workers; two tests inherited the operator's web-feature opt-in.
+Regenerated contracts, worker isolation and explicit test-only feature-off defaults
+closed the entire affected files in a fresh **36 passed/1 skipped**,66.64s run.
+This is not relabeled as an all-green full-suite run. A fresh complete regression
+run is in progress during this closeout; its result follows separately.
+
+Previously completed actual API37 emulator HTTP/Keystore stages **7.521s/4.433s/
+4.755s** passed PDF flow, real Android P-256 signing/enrollment/server verification,
+encrypted receipt retention, actual force-stop, GET-only recovery, one explicit
+original retry and revocation. Output in the signing fixture was explicitly
+synthetic, with no native inference claim. Optional ARM64 library/APK provenance,
+notices and16KiB ELF/zip alignment checks passed; packaged physical native FD/UID/
+network/cancellation and real model-to-signed-draft verification remain open.
+Both rejected candidates stay disabled;19A activation/exit remains open.
+
+Fresh Phase31 closeout: inspected current source/OpenAPI/test baseline and
+prerequisites. Added a PDF-specific real API/model-context/completed-replay test:
+**2 passed/28 deselected**,6.18s on SQLite and native PostgreSQL. A new extraction
+version cannot replace the old answer's original page/hash/citation snapshot;
+the model is called only once and outside a transaction. Corrected Android error
+and preview wording to include supported text PDFs when the capability is enabled.
+
+Fresh S24 FE **SM-S721U1, Android16/API36** tests used only a separate synthetic
+validation app, real HTTP/Keystore, isolated PostgreSQL and actual Docker parser.
+Binary review/upload, two-page extraction/source card, visible scan rejection and
+real force-stop GET-only restoration/one explicit original upload passed
+**4.239s/2.943s**. The optional manual-review helper first failed to reselect its
+scope after restart; corrected helper reran the automated stages successfully
+**5.321s/2.475s**. Human visual evidence and final regression/cleanup follow below.
+The normal app/data were not installed over, cleared or migrated.
+
+Final normal Android build: `testDebugUnitTest lintDebug assembleDebug
+assembleRelease assembleDebugAndroidTest` passed **1m41s**; **306 units**, zero
+failures/errors/skips, lint0errors/24warnings. Warnings comprise23 retained warnings
+and one dormant importer usable-space advisory. Normal APK identity was verified
+and contains no native draft library, model weights or native attribution asset.
+Whole-tree Ruff lint/format passed372files; whitespace check passed with Git's
+existing LF/CRLF notices. Strict contract comparison preserves157 old paths,
+required fields and old properties, apart from the compatible PDF media enum
+extension. Released migrations0001–0020 and dependency locks/wrappers retain their
+starting bytes. Interim audit:101 changed/new files versus736 starting files,
+zero missing files/protected changes/configured-secret matches. The incidental
+pre-existing editor CMake setting was preserved. Final audit follows below.
+
+Cleanup already completed: verified the tracked public CLI/model directory's exact
+resolved path and its three owned entries on the reconnected phone, then removed
+only that directory. It had been left behind when the device disconnected; no
+normal ADA app content was accessed. Owned test server/schema/APK/emulator/cluster
+cleanup remains tied to the still-running validation processes. No live database
+migration, service configuration, normal app upgrade, later phase or deployment.
+
+### 2026-10-22 — Phase31 final code/shared regression evidence —04c5962 plus closeout
+
+Shared backend command: `python -m pytest --assert=plain -q --tb=short -ra`, with
+dedicated native PostgreSQL18.6 and the actual PDF image manifest. Result:
+**1277 passed/34 skipped/1 existing warning**,2792.32s (46m32s), exit0. This run
+began before the final parser-cleanup quarantine guard and additional layout
+profiles; it is a passing shared snapshot, not a claim of one full final-source
+run. Its34 skips were **8 opt-in Ollama checks** (2 generation-free health,
+6 read-only native agent probes) and **26 SQLite cases requiring native row locks,
+MVCC or abrupt-process recovery**. Native counterparts ran. The retained warning
+is Starlette's existing httpx TestClient deprecation; no dependency upgrade.
+
+The final fault review added a red test proving that an unconfirmed failed-worker
+removal could admit another parse. The adapter now disables itself before
+releasing host capacity when removal/exit cannot be confirmed. Timeout remains a
+fixed error; later uploads/capability checks fail closed. Three fault modes cover
+exception, nonzero removal and unreadable process status. The final complete PDF
+selection after this guard passed **47/0 skips**,147.64s, covering actual Docker,
+SQLite/native PostgreSQL, publication, malicious/unsupported input, authority,
+page/context/replay, populated migration and encrypted restore. The prior46-pass
+selection165.30s and red failure are retained separately, not relabeled.
+
+The measurement checkpoint adds six reproducible public synthetic layout families
+(columns, repeated-header table, Unicode and plain/compressed dense16-page text).
+**6 checks passed**,6.88s; the metadata-only profiling command also completed with
+all expected fragments/pages. Actual originals607–86572bytes, extracted16–50768
+UTF-8 bytes,1–16pages/1–64chunks,437–531ms local parse/validate/chunk wall time
+after initial verification. Plain dense text exceeds Android's64KiB quota;
+compression preserves its extracted hash while changing its original hash. No
+quota was raised. The checked [profile](../evaluations/text-pdf-profile-2026-10-22.json)
+contains no document quotes, credentials or device serial. These developer
+fixtures do not establish personal-file acceptance or visual table semantics.
+
+Whole-tree Ruff lint/format passed **374 files** after the added profile helper/
+script; a misplaced imported-fixture F811 suppression was corrected. Strict
+OpenAPI compatibility still preserves157 released paths and existing required
+properties, with only the documented additive media/page/capability fields.
+Final-source setup/limits are in [PDF-INGESTION](../docs/PDF-INGESTION.md).
+Final human review and owned infrastructure cleanup are recorded separately below.
+
+### 2026-10-22 — Phase31 phone acceptance and owned cleanup — closeout
+
+After the earlier manual window timed out waiting for Finish review, the user
+explicitly reported **readable, no layout problems** and requested another window.
+The reopened separate S24 FE validation app completed all three stages with exit0:
+**4.213s/2.761s/111.542s**. The last duration includes human inspection/waiting,
+not parsing latency. The user inspected document pages and the answer source,
+then tapped Finish review. The prior scope-helper failure and timed-out manual
+window remain recorded; neither is presented as a passing test. Public-sample
+readability is confirmed; this is not TalkBack, table semantics or personal-file
+acceptance. No further physical interaction is required for this bounded closeout.
+
+Cleanup verified **0 fixture schemas and0 fixture databases** beyond the isolated
+base/system databases; no phase19 validation/test package or tcp19822 reverse
+mapping remained on the phone. Only the reserved public CLI/model study directory
+had been removed earlier. Normal APK/test output restoration passed7s, with no
+normal installation. Verified the task-owned emulator5584's AVD/API identity before
+stopping it; its ports closed. Verified PostgreSQL18's executable, PID36032,
+loopback55421 listener and resolved workspace cache data directory before stopping
+only that cluster. Final checks found0listeners on55421/18423/19822/5584/5585 and
+no residual PDF parser containers. Docker Engine/user containers were left running.
+Normal ADA data/app, configured database/service, proxy, Ollama, Tailscale, Task
+Scheduler and power settings were not operated or deployed.
+
+Final audit: **104 changed/new files** against the original736-file Phase19A/31
+inventory, no missing files, no released0001–0020/lock/wrapper changes and0configured
+secret matches. The original editor setting was preserved. Whole-tree Ruff
+lint/format374files and whitespace checks passed;85 Markdown files had no missing
+local link targets. The existing157-path/schema compatibility audit passed.
+
+Phase31's bounded text-PDF implementation/automated exit is complete; all four
+checkpoint resolutions are recorded in its plan, with the permitted OCR-off
+decision. PDF remains off by default, source requires0021/backup-v7/Android25/
+journal18, and installation/enabling is a separate authorized operation described
+in the guide. Remaining target acceptance: representative personal files and
+reading order/table semantics, TalkBack, older API/device coverage and real-model
+answer usefulness. No OCR, archives/Office/URL/directory import, normal app upgrade,
+live migration, later-phase implementation or deployment.19A activation/exit remains
+open after both failed quality trials; PDF completion does not change that gate.

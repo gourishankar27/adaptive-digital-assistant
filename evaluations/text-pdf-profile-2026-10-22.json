@@ -1,0 +1,76 @@
+{
+  "version": "ada-public-text-pdf-profiles-v1",
+  "observed_at": "2026-10-22T20:35:55.483563+00:00",
+  "input_kind": "developer_generated_public_synthetic",
+  "human_acceptance": false,
+  "parser": "pypdf-6.21.2-text-v1",
+  "image_id": "sha256:d221886e0dc5b1b92b3eb2f26800a9aae4b36ce99dbb48c41fdaa61cc511b122",
+  "cases": [
+    {
+      "case": "single-page",
+      "raw_sha256": "0b8b24b58378b847fad3f6c19eb1603452356338d09f2504d4c502333cefefef",
+      "raw_bytes": 607,
+      "text_bytes": 31,
+      "text_sha256": "8f1761f65e10a336c7ade06d552860103d63bfa80abebfd4ea2d54940debb1b9",
+      "pages": 1,
+      "chunks": 1,
+      "fits_android_64kib": true,
+      "elapsed_ms": 516.0
+    },
+    {
+      "case": "columns",
+      "raw_sha256": "6e9aae04a0b54495da33f8a721f064186f59b0179eb4d42924316f7a2c7b32a0",
+      "raw_bytes": 803,
+      "text_bytes": 59,
+      "text_sha256": "c63db208b169fc51352443c764055b668ccb0dacf50281d2c1d9ae29851dab85",
+      "pages": 1,
+      "chunks": 1,
+      "fits_android_64kib": true,
+      "elapsed_ms": 437.0
+    },
+    {
+      "case": "table-repeated-header",
+      "raw_sha256": "ff61bbc1bd7b6c78632b5f3fd326b3a31eb69c0bc7b76c7c3de36d81e70936a8",
+      "raw_bytes": 1237,
+      "text_bytes": 71,
+      "text_sha256": "1af65fa20b42b767a9d855bb453727705d4ed72f7bdca8a6e30c03842065bab1",
+      "pages": 2,
+      "chunks": 2,
+      "fits_android_64kib": true,
+      "elapsed_ms": 469.0
+    },
+    {
+      "case": "unicode-map",
+      "raw_sha256": "1bc6fcbc46fa5053ea3a23b0b100cc5dcad145f779060c6134e23cc984fe2cab",
+      "raw_bytes": 1026,
+      "text_bytes": 16,
+      "text_sha256": "3233636b8394c03bc34e168e3a970a1028c68ce2baf6f1f894fd906571abe339",
+      "pages": 1,
+      "chunks": 1,
+      "fits_android_64kib": true,
+      "elapsed_ms": 438.0
+    },
+    {
+      "case": "dense-16-pages",
+      "raw_sha256": "b43aa7bf5729e3e57e967adb0ca03da92296d09daff7b9dc947950a426b15ec9",
+      "raw_bytes": 86572,
+      "text_bytes": 50768,
+      "text_sha256": "660f736c1bd5e874146c354644f5fad33f28025e9652ec698df52a638e8da1ac",
+      "pages": 16,
+      "chunks": 64,
+      "fits_android_64kib": false,
+      "elapsed_ms": 515.0
+    },
+    {
+      "case": "compressed-16-pages",
+      "raw_sha256": "7c0428b09d94f0a1e4c51496ada97b53e6feee1398e065093a2758516bbe4984",
+      "raw_bytes": 10796,
+      "text_bytes": 50768,
+      "text_sha256": "660f736c1bd5e874146c354644f5fad33f28025e9652ec698df52a638e8da1ac",
+      "pages": 16,
+      "chunks": 64,
+      "fits_android_64kib": true,
+      "elapsed_ms": 531.0
+    }
+  ]
+}

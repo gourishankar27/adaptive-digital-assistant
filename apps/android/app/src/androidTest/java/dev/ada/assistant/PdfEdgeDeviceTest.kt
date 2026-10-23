@@ -3,6 +3,13 @@ package dev.ada.assistant
 import android.content.*
 import android.os.*
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.lifecycle.ViewModelProvider
@@ -111,6 +118,40 @@ class PdfEdgeDeviceTest {
         compose.waitUntil(20000){vm.documents.state.value.pending==null && vm.documents.state.value.version?.extraction?.pages?.size==2}
         assertEquals(3,runBlocking{success(api.documentUploads(c,selected))}.size)
         assertTrue(runBlocking{success(api.claims(c,selected))}.isEmpty())
+    }
+    @Test fun reviewPublicPdfOnPhone() {
+        org.junit.Assume.assumeTrue(InstrumentationRegistry.getArguments().getString("adaPdfManualReview")=="1")
+        guard()
+        val c=connection();val api=HttpAdaApi();val scope=UUID.fromString(record.readLines()[0])
+        val vm=ViewModelProvider(compose.activity)[ChatViewModel::class.java]
+        compose.waitUntil(20000){vm.state.value.account!=null}
+        val receipt=runBlocking{success(api.documentUploads(c,scope))}.first{it.state=="ready"}
+        val cards=runBlocking{success(api.retrieve(c,scope,RetrieveInputDto("orbit launch",use_documents=true)))}.document_selected
+        var view by mutableStateOf("document")
+        var finished by mutableStateOf(false)
+        compose.runOnIdle {
+            vm.navigate(ChatDestination.Documents)
+        }
+        compose.waitUntil(15000){vm.documents.state.value.scopes.items.any{it.id==scope}}
+        compose.runOnIdle{vm.documents.selectScope(scope);vm.documents.openUpload(receipt)}
+        compose.waitUntil(10000){vm.documents.state.value.chunks.items.size==2}
+        compose.runOnIdle{compose.activity.setContent{AdaTheme{
+            Column(Modifier.fillMaxSize().safeDrawingPadding().padding(12.dp)) {
+                Text("Public PDF review · synthetic data only")
+                Row {
+                    AdaTextButton(onClick={view="document"}){Text("Document pages")}
+                    AdaTextButton(onClick={view="citation"}){Text("Answer source")}
+                }
+                AdaButton(onClick={finished=true}){Text("Finish review")}
+                if(view=="document") Box(Modifier.weight(1f)){DocumentScreens(vm.documents)}
+                else Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
+                    DocumentSourceCard(cards.first(),UUID.fromString(record.readLines()[1]))
+                }
+            }
+        }}}
+        println("PUBLIC_PDF_REVIEW_READY")
+        // A human ends this optional stage explicitly; elapsed time is never acceptance.
+        compose.waitUntil(540000){finished}
     }
     @Test fun restoreGetOnlyRetryOriginalAndRevoke() {
         guard();val lines=record.readLines();val c=connection();val api=HttpAdaApi();val scope=UUID.fromString(lines[0]);val id=UUID.fromString(lines[2]);val posts=lines[3].toInt()

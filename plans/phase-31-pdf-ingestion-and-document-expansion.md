@@ -1,11 +1,32 @@
 # Phase 31 — PDF ingestion and document expansion
 
-Status: **Selected; implemented source, actual checks/remaining gates in
-STATUS/WORKLOG.** Text-PDF isolation, immutable original/extracted page mapping,
+Status: **Bounded text-PDF implementation/automated exit verified, 2026-10-22.**
+SQLite, native PostgreSQL, actual Docker isolation and separate-app S24 FE/API36
+HTTP/Keystore/restart checks passed. Final PDF selection:47 passed, no skips;
+six additional public layout/profile checks passed with measured file sizes.
+Public-sample readability/no clipping is confirmed on the phone. TalkBack and
+representative personal-file acceptance remain pending; they are not claimed by
+synthetic tests. Shared regression provenance and actual
+checks/remaining gates are in STATUS/WORKLOG. Text-PDF isolation, immutable original/extracted page mapping,
 atomic publication and Android review/source display. OCR remains disabled: scans
 are visible failures and no OCR need/quality evidence was measured. Archives,
 Office, URL/directory ingestion stay outside scope. See
 [setup and limits](../docs/PDF-INGESTION.md). No deployment.
+
+Checkpoint resolution:
+
+- [x] A: pinned isolated text parser; actual resource/egress proof and failure tests.
+  Unconfirmed failed-worker cleanup disables further parsing until reinitialization.
+  Public columns/tables/Unicode/dense16-page measurements are recorded; quotas remain
+  conservative and unchanged, with personal-file acceptance still pending.
+- [x] B: immutable original/extracted hashes, page/code-point maps, atomic publication,
+  current authority checks, version/replay preservation and encrypted recovery.
+- [x] C: conditional decision recorded. OCR stays disabled; scanned/blank pages fail
+  visibly with no partial searchable source. No OCR model or quality claim.
+- [x] D: exact Android binary review, status/error/source display, explicit new
+  versions, opt-in retrieval and real process-stop GET-only/exact retry recovery.
+  The PDF-specific answer test preserves its original page snapshot after a new
+  extraction. Broader human acceptance remains separate, as stated above.
 
 Inputs: 08 text/Markdown ingestion,
 20 recovery/inventory rules, 23 quality scorecard, G-14. Follow
