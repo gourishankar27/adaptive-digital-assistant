@@ -23,6 +23,7 @@ interface SpeechCapture {
 interface CaptureListener {
     fun ready()
     fun ended()
+    fun partial(text: String) {}
     fun result(text: String)
     fun failed(code: String)
 }
@@ -36,7 +37,7 @@ interface SpeechPlayback {
 data class VoiceState(val enabled: Boolean = false, val availability: SpeechAvailability = SpeechAvailability.NoEngine,
     val captureAdapter: SpeechAdapterInfo? = null, val playbackAdapter: SpeechAdapterInfo? = null,
     val phase: VoicePhase = VoicePhase.Idle, val durationMs: Long = 0,
-    val language: String = "en-US", val draft: VoiceDraft? = null,
+    val language: String = "en-US", val draft: VoiceDraft? = null, val partialText: String? = null,
     val savedDraftConversation: UUID? = null, val savedDraftTranscript: UUID? = null,
     val saving: Boolean = false, val draftLoading: Boolean = false, val permissionPermanent: Boolean = false,
     val voices: List<SpeechVoice> = emptyList(), val voiceId: String? = null, val speed: Float = 1f,
@@ -62,6 +63,8 @@ class VoiceController(private val api: AdaApi, private val store: SessionStore,
     private var recoveryNeeded = false
     private var permissionDialog = false
     private var permissionDecision: Pair<Boolean, Boolean>? = null
+    private var heldCapture: Long? = null
+    private var recordingPrefix = ""
     private fun update(f: (VoiceState) -> VoiceState) { mutable.value = f(state.value) }
     private fun current(e: Long, s: Long) = e == epoch && s == selection && identity != null
     fun attachAudio(recorder: SpeechCapture, player: SpeechPlayback) {
@@ -134,12 +137,26 @@ class VoiceController(private val api: AdaApi, private val store: SessionStore,
     /** A stopped activity is a real departure, including Home while the prompt is open. */
     fun permissionHostStopped() { if (state.value.phase == VoicePhase.Permission) interruptCapture() }
     val captureActive get() = state.value.phase in setOf(VoicePhase.Permission, VoicePhase.Checking, VoicePhase.Recording, VoicePhase.Transcribing)
-    fun requestRecording(): Boolean {
+    fun requestRecording(prefix: String = ""): Boolean {
         if (!state.value.enabled || identity == null || conversation == null || !visible || !foreground || pending || state.value.draftLoading || state.value.fault == ApiFailure.IncompatibleContract || state.value.draft != null || state.value.savedDraftConversation != null || recoveryNeeded || captureActive) return false
         if (input?.availability != SpeechAvailability.Available) { update { it.copy(phase = VoicePhase.Unavailable, notice = "On-device speech input is unavailable. Text entry remains available.") }; return false }
         if (!voiceLanguageValid(state.value.language)) { update { it.copy(fault = ApiFailure.Validation, notice = "Choose a valid language tag, such as en-US or hi-IN.") }; return false }
+        if (prefix.isNotEmpty() && !voiceTextValid(prefix) && !(prefix.isBlank() && prefix.length <= 4000)) { update { it.copy(fault = ApiFailure.Validation, notice = "Shorten or clear the typed draft before recording.") }; return false }
         permissionDialog = false; permissionDecision = null
-        captureKey++; stopPlayback(); update { it.copy(phase = VoicePhase.Permission, fault = null, notice = null, durationMs = 0) }; return true
+        recordingPrefix = prefix; heldCapture = null
+        captureKey++; stopPlayback(); update { it.copy(phase = VoicePhase.Permission, partialText = null, fault = null, notice = null, durationMs = 0) }; return true
+    }
+    fun requestHoldRecording(prefix: String = ""): Long? {
+        if (!requestRecording(prefix)) return null
+        return captureKey.also { heldCapture = it }
+    }
+    fun releaseHoldRecording(key: Long, cancelled: Boolean = false) {
+        if (heldCapture != key || captureKey != key) return
+        heldCapture = null
+        if (cancelled || state.value.phase in setOf(VoicePhase.Permission, VoicePhase.Checking)) {
+            interruptCapture()
+            update { it.copy(notice = if (cancelled) "Voice gesture cancelled. Nothing was sent." else "Hold ended before recording was ready. Allow microphone access, then hold again or tap Record.") }
+        } else stopCapture()
     }
     fun permissionResult(granted: Boolean, permanent: Boolean = false) {
         if (state.value.phase != VoicePhase.Permission || !visible || identity == null || pending || !state.value.enabled) return
@@ -151,17 +168,20 @@ class VoiceController(private val api: AdaApi, private val store: SessionStore,
         if (!granted) { update { it.copy(phase = VoicePhase.Denied, permissionPermanent = permanent, notice = if (permanent) "Microphone access is blocked. Enable it in Android app settings or type your message." else "Microphone access was denied. You can retry or type your message.") }; return }
         val recorder = input ?: return; val verified = identity ?: return
         val cid = conversation ?: return; val sid = scopeId ?: return
-        val e = epoch; val s = selection; val key = captureKey; val language = state.value.language
+        val e = epoch; val s = selection; val key = captureKey; val language = state.value.language; val prefix = recordingPrefix
         fun allowed() = current(e,s) && key == captureKey && foreground && visible
         started = 0; stoppedAt = 0; checkingStarted = now()
         update { it.copy(phase = VoicePhase.Checking, permissionPermanent = false, notice = "Checking on-device language support") }
         recorder.start(language, object : CaptureListener {
-            override fun ready() { if (allowed()) { started = now(); update { it.copy(phase = VoicePhase.Recording, notice = "Recording on device. Stop to review; Discard abandons this recording.") } } }
+            override fun ready() { if (allowed()) { started = now(); update { it.copy(phase = VoicePhase.Recording, notice = if (heldCapture == key) "Recording on device. Release to finish, then edit and Send." else "Recording on device. Stop to review; Discard abandons this recording.") } } }
             override fun ended() { if (allowed()) { stoppedAt = now(); update { it.copy(phase = VoicePhase.Transcribing, notice = "Finishing the on-device transcript") } } }
+            override fun partial(text: String) {
+                if (allowed() && state.value.phase == VoicePhase.Recording && voiceTextValid(text)) update { it.copy(partialText = combineVoiceText(prefix, text)) }
+            }
             override fun failed(code: String) {
                 if (!allowed()) return
                 captureKey++; timer?.cancel(); recorder.cancel()
-                update { it.copy(phase = VoicePhase.Error, notice = when(code) {
+                update { it.copy(phase = VoicePhase.Error, partialText = null, notice = when(code) {
                     "language_unavailable" -> "This language is not installed for on-device recognition. Choose another language or type your message."
                     "support_unavailable" -> "Installed on-device language support could not be verified. You can type your message or try another engine configuration."
                     "permission_lost" -> "Microphone permission was removed. Recording stopped."
@@ -172,13 +192,14 @@ class VoiceController(private val api: AdaApi, private val store: SessionStore,
             }
             override fun result(text: String) {
                 if (!allowed()) return
-                captureKey++; timer?.cancel(); recorder.cancel()
+                captureKey++; heldCapture = null; timer?.cancel(); recorder.cancel()
                 val elapsed = ((if (stoppedAt > 0) stoppedAt else now()) - (if (started > 0) started else checkingStarted)).coerceIn(1,60_000)
                 val transcript = TranscriptInputDto(UUID.randomUUID(), "android_on_device", recorder.version, language, elapsed, text)
-                try { validateTranscript(transcript) } catch (_: Exception) { update { it.copy(phase = VoicePhase.Error, notice = "The transcript was empty, invalid or too long. Nothing was sent.") }; return }
-                val draft = VoiceDraft(verified,cid,sid,transcript,text)
-                update { it.copy(draft = draft, phase = VoicePhase.Review, durationMs = elapsed, notice = "Generated transcript: review and edit the wording, then approve it before Send.") }
-                persist(draft)
+                try { validateTranscript(transcript) } catch (_: Exception) { update { it.copy(phase = VoicePhase.Error, partialText = null, notice = "The transcript was empty, invalid or too long. Nothing was sent.") }; return }
+                val draft = VoiceDraft(verified,cid,sid,transcript,combineVoiceText(prefix, text))
+                update { it.copy(draft = draft, partialText = null, phase = VoicePhase.Review, durationMs = elapsed, notice = "Voice draft: edit the message field, then Send to approve this wording. Nothing was sent.") }
+                if (voiceTextValid(draft.reviewedText)) persist(draft)
+                else update { it.copy(fault = ApiFailure.Validation, notice = "Shorten the combined typed and voice draft to 4,000 characters before saving or sending.") }
             }
         })
         timer = scope.launch {
@@ -200,8 +221,9 @@ class VoiceController(private val api: AdaApi, private val store: SessionStore,
         stoppedAt = now(); update { it.copy(phase = VoicePhase.Transcribing, notice = "Recording stopped; finishing the transcript") }; input?.stop()
     }
     private fun interruptCapture() {
-        permissionDialog = false; permissionDecision = null
+        permissionDialog = false; permissionDecision = null; heldCapture = null; recordingPrefix = ""
         val active = captureActive; captureKey++; timer?.cancel(); input?.cancel()
+        update { it.copy(partialText = null) }
         if (active) update { it.copy(phase = VoicePhase.Interrupted, notice = "Recording was discarded after leaving the recording screen or an interruption.") }
     }
     fun edit(text: String) { val draft = state.value.draft ?: return; val next = draft.copy(reviewedText = text, approved = false); update { it.copy(draft = next) }; if (voiceTextValid(text)) persist(next) else update { it.copy(fault = ApiFailure.Validation, notice = "Use 1–4000 valid Unicode characters before approving.") } }
@@ -217,6 +239,8 @@ class VoiceController(private val api: AdaApi, private val store: SessionStore,
     }
     fun saveAgain() { state.value.draft?.let(::persist) }
     fun approvedDraft(): VoiceDraft? = state.value.draft?.takeIf { state.value.enabled && it.approved && !state.value.saving && !state.value.draftLoading && !captureActive && state.value.fault == null && visible && foreground && !pending && it.identity == identity && it.conversationId == conversation && it.scopeId == scopeId }
+    /** Only the explicit composer Send action may turn this reviewed snapshot into approval. */
+    fun composerDraftForSend(): VoiceDraft? = state.value.draft?.takeIf { state.value.enabled && voiceTextValid(it.reviewedText) && !state.value.saving && !state.value.draftLoading && !captureActive && state.value.fault == null && visible && foreground && !pending && it.identity == identity && it.conversationId == conversation && it.scopeId == scopeId }
     fun sent(transcript: UUID) { if (state.value.draft?.transcript?.transcript_id == transcript) { saver?.cancel(); update { it.copy(draft = null, saving = false, phase = VoicePhase.Idle, notice = "Reviewed voice input reserved with the original request ID") } } }
     fun rejected(message: PendingMessage) {
         val transcript = message.voiceTranscript ?: return
@@ -308,4 +332,10 @@ class VoiceController(private val api: AdaApi, private val store: SessionStore,
             } catch (_: Exception) { if (current(e,s)) update { it.copy(historyLoading = false, notice = "Voice input provenance could not be verified.") } }
         }
     }
+}
+
+private fun combineVoiceText(prefix: String, transcript: String) = when {
+    prefix.isEmpty() -> transcript
+    prefix.last().isWhitespace() -> prefix + transcript
+    else -> "$prefix $transcript"
 }

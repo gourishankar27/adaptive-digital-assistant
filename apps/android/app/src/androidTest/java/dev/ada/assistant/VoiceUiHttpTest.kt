@@ -30,12 +30,81 @@ class VoiceUiHttpTest {
         compose.waitUntil(20_000) { vm.state.value.account != null }
         assertTrue("Disposable fixture must enable reviewed streaming voice", vm.voice.state.value.enabled)
         compose.runOnIdle { vm.openConversation(conversation.id) }
-        compose.waitUntil(20_000) { vm.state.value.conversation?.id == conversation.id && !vm.state.value.events.loading }
+        compose.waitUntil(20_000) { vm.state.value.conversation?.id == conversation.id && !vm.state.value.events.loading && !vm.voice.state.value.draftLoading }
         return api to c
+    }
+    private fun waitForStableMicrophone() {
+        var previous: androidx.compose.ui.geometry.Rect? = null
+        var changedAt = android.os.SystemClock.uptimeMillis()
+        compose.waitUntil(5000) {
+            val bounds = compose.onNodeWithTag("voice-toggle").fetchSemanticsNode().boundsInRoot
+            if (bounds != previous) { previous = bounds; changedAt = android.os.SystemClock.uptimeMillis() }
+            android.os.SystemClock.uptimeMillis() - changedAt >= 300
+        }
+    }
+    private fun grantSyntheticMicrophone() {
+        InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand("pm grant ${compose.activity.packageName} android.permission.RECORD_AUDIO").close()
+    }
+    @Test fun heldMicrophonePartialEditAndComposerSendPreserveRealHttpLineage() {
+        val (api, c) = connect(); grantSyntheticMicrophone()
+        compose.runOnIdle { vm.updateDraft("Public typed prefix:") }
+        compose.onNodeWithTag("composer").performClick() // Keep the IME open under the held control.
+        waitForStableMicrophone()
+        compose.onNodeWithTag("voice-toggle").performTouchInput { down(center) }
+        compose.waitUntil(5000) { input.callback != null }
+        val partial = "Generated partial line one\nPublic partial line two\nPublic partial line three\nPublic partial line four"
+        compose.runOnIdle { input.callback!!.ready(); input.callback!!.partial(partial) }
+        compose.onNodeWithTag("composer").assertTextContains("Public typed prefix: $partial")
+        compose.onNodeWithTag("send").assertIsNotEnabled()
+        compose.onNodeWithTag("voice-controls-dialog").assertDoesNotExist()
+        compose.onNodeWithTag("voice-toggle").performTouchInput { up() }
+        compose.waitUntil(5000) { input.stops == 1 }
+        compose.runOnIdle { input.callback!!.result("Generated synthetic cattle 🫖") }
+        compose.waitUntil(5000) { vm.voice.state.value.draft != null && !vm.voice.state.value.saving }
+        compose.onNodeWithTag("composer").assertTextContains("Public typed prefix: Generated synthetic cattle 🫖")
+        assertFalse(vm.voice.state.value.draft!!.approved)
+        assertTrue(runBlocking { (api.events(c, vm.state.value.conversation!!.id) as ApiResult.Success).value }.isEmpty())
+        compose.onNodeWithTag("composer").performTextReplacement("Edited synthetic kettle 🫖 from composer")
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        compose.waitUntil(5000) { !vm.voice.state.value.saving }
+        compose.onNodeWithTag("send").assertIsEnabled().performClick()
+        compose.waitUntil(20_000) { vm.state.value.submittedMessages.isNotEmpty() && vm.state.value.pending == null }
+        val request = vm.state.value.submittedMessages.keys.single()
+        val lineage = runBlocking { (api.voiceInput(c, request) as ApiResult.Success).value }
+        assertEquals("Generated synthetic cattle 🫖", lineage.original_text)
+        assertEquals("Edited synthetic kettle 🫖 from composer", lineage.reviewed_text)
+        assertEquals("generated_interpretation", lineage.original_trust)
+        assertEquals("user_reviewed", lineage.reviewed_origin)
+        assertEquals("", vm.state.value.draft); assertNull(lineage.audio_sha256)
+    }
+    @Test fun cancelledHoldAndReleaseBeforeReadyDiscardLateResultsWithoutHttp() {
+        val (api, c) = connect(); grantSyntheticMicrophone()
+        for (cancelled in listOf(true, false)) {
+            compose.runOnIdle { input.callback = null; vm.updateDraft("Preserved typed draft") }
+            waitForStableMicrophone()
+            compose.onNodeWithTag("voice-toggle").performTouchInput { down(center) }
+            compose.waitUntil(5000) { input.callback != null }
+            val late = input.callback!!
+            if (cancelled) compose.runOnIdle { late.ready(); late.partial("Unfinished synthetic words") }
+            compose.onNodeWithTag("voice-toggle").performTouchInput { if (cancelled) cancel() else up() }
+            compose.waitUntil(5000) { !vm.voice.captureActive }
+            compose.runOnIdle { late.ready(); late.partial("Late partial"); late.result("Late result") }
+            assertNull(vm.voice.state.value.partialText); assertNull(vm.voice.state.value.draft)
+            compose.onNodeWithTag("composer").assertTextContains("Preserved typed draft")
+        }
+        assertNull(vm.state.value.pending)
+        assertTrue(runBlocking { (api.events(c, vm.state.value.conversation!!.id) as ApiResult.Success).value }.isEmpty())
     }
     @Test fun publicVoicePreviewAndEngineStatusNeverCaptureOrSubmit() {
         val (api, c) = connect()
-        compose.onNodeWithTag("voice-toggle").performScrollTo().performClick()
+        waitForStableMicrophone()
+        compose.onNodeWithTag("voice-toggle").performTouchInput { click() }
+        compose.onNodeWithTag("voice-controls-dialog").assertIsDisplayed()
+        assertNull(input.callback)
+        compose.onNodeWithTag("voice-controls-close").performClick()
+        compose.onNodeWithTag("voice-toggle").performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.OnLongClick) { it() }
+        compose.onNodeWithTag("voice-controls-dialog").assertIsDisplayed()
+        assertNull(input.callback) // Accessibility has no held finger/Up event.
         compose.onNodeWithTag("voice-engine-details-toggle").performScrollTo().performClick()
         compose.onNodeWithTag("voice-engine-status").performScrollTo().assertTextContains("Android on-device service", substring = true)
         compose.onNodeWithTag("voice-preview").performScrollTo().performClick()
@@ -64,6 +133,8 @@ class VoiceUiHttpTest {
         assertEquals(1, input.stops)
         compose.runOnIdle { input.callback!!.result("Generated synthetic cattle 🫖 wording") }
         compose.waitUntil(5000) { vm.voice.state.value.draft != null && !vm.voice.state.value.saving }
+        compose.onNodeWithTag("composer").assertTextContains("Generated synthetic cattle 🫖 wording", substring = true)
+        compose.onNodeWithTag("voice-toggle").performScrollTo().performClick()
         compose.onNodeWithTag("voice-send").performScrollTo().assertIsNotEnabled()
         compose.onNodeWithTag("voice-review").performScrollTo().performTextReplacement("Reviewed synthetic kettle 🫖 wording")
         // Finish the IME/edit journal before interacting with a relocated approval control.
@@ -120,6 +191,7 @@ class VoiceUiHttpTest {
         compose.waitUntil(5000) { vm.voice.state.value.draft != null && !vm.voice.state.value.saving }
         val identity = SessionIdentity(c.server.toString(), vm.state.value.account!!.owner)
         val store = AndroidSessionStore(compose.activity.applicationContext)
+        compose.onNodeWithTag("voice-toggle").performScrollTo().performClick()
         compose.onNodeWithTag("voice-discard").performScrollTo().performClick()
         compose.onNodeWithTag("voice-discard-cancel").assertIsFocused().performClick()
         assertNotNull(vm.voice.state.value.draft)

@@ -693,15 +693,17 @@ private fun Composer(state: ChatState, vm: ChatViewModel, maximumHeight: Dp) {
     var advanced by remember { mutableStateOf(false) }
     var addMenu by remember { mutableStateOf(false) }
     val focus = LocalFocusManager.current
-    val count = state.draft.codePointCount(0, state.draft.length)
     val reserved = state.pending != null
     val voiceState by vm.voice.state.collectAsStateWithLifecycle()
-    val canSend = voiceState.phase !in setOf(VoicePhase.Permission, VoicePhase.Checking, VoicePhase.Recording, VoicePhase.Transcribing) && !reserved && state.draft.isNotBlank() && count <= 4000 && state.capabilities?.chat == true
+    val composerText = voiceState.draft?.reviewedText ?: voiceState.partialText ?: state.draft
+    val count = composerText.codePointCount(0, composerText.length)
+    val canSend = !vm.voice.captureActive && !voiceState.draftLoading && !reserved && composerText.isNotBlank() && count <= 4000 && state.capabilities?.chat == true &&
+        (voiceState.draft == null || vm.voice.composerDraftForSend() != null)
     val progress = state.stream?.takeIf { it.request_id == state.pending?.message?.body?.request_id }
     val canStop = progress?.stream_state in setOf("running", "cancel_requested") && progress?.available == true
     AdaGlassSurface(Modifier.padding(horizontal = AdaSpacing.small, vertical = AdaSpacing.tiny).testTag("chat-composer-surface"), boundary = true) {
         Column(Modifier.fillMaxWidth().heightIn(max = maximumHeight).verticalScroll(rememberScrollState()).padding(AdaSpacing.tiny)) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
                 Box {
                     AdaIconButton(AdaIcon.Attach, "Add or message options", { addMenu = true }, Modifier.testTag("composer-menu").semantics { stateDescription = if (addMenu) "Expanded" else "Collapsed" })
                     DropdownMenu(addMenu, { addMenu = false }) {
@@ -713,16 +715,18 @@ private fun Composer(state: ChatState, vm: ChatViewModel, maximumHeight: Dp) {
                     }
                 }
                 BasicTextField(
-                    state.draft, vm::updateDraft, minLines = 1, maxLines = if (shortWindow) 1 else 4,
+                    composerText, vm::updateComposerDraft, minLines = 1, maxLines = if (shortWindow) 1 else 4,
+                    enabled = voiceState.draft == null || !reserved,
                     textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Default),
                     modifier = Modifier.weight(1f).heightIn(min = AdaSpacing.touch).testTag("composer").semantics {
                         contentDescription = "Message ADA"
+                        if (vm.voice.captureActive) stateDescription = "Transcript in progress; editing is available after recording"
                         if (count > 4000) error("Shorten this draft to 4,000 Unicode characters.")
                     },
                     decorationBox = { field -> Box(Modifier.padding(vertical = if (shortWindow) AdaSpacing.small else AdaLayout.fieldInset, horizontal = AdaSpacing.tiny)) {
-                        if (state.draft.isEmpty()) Text("Message ADA", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        if (composerText.isEmpty()) Text("Message ADA", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         field()
                     } },
                 )
@@ -731,7 +735,19 @@ private fun Composer(state: ChatState, vm: ChatViewModel, maximumHeight: Dp) {
                     vm::stopGeneration, Modifier.testTag("stop-generation"), enabled = !state.stopping && progress?.stream_state == "running")
                 else AdaIconButton(AdaIcon.Send, "Send message", { focus.clearFocus(); vm.send() }, Modifier.testTag("send"), enabled = canSend)
             }
-            if (count >= 3600) Text(if (count > 4000) "Shorten this draft to 4,000 Unicode characters. Emoji count once." else "$count / 4,000 characters",
+            if (voiceState.enabled || vm.voice.captureActive || voiceState.draft != null) {
+                Text(when {
+                    voiceState.fault != null -> "Voice draft needs attention · tap mic for details or retry"
+                    voiceState.draftLoading -> "Checking encrypted voice draft…"
+                    voiceState.phase == VoicePhase.Recording -> "Recording · ${voiceState.durationMs / 1000}s / 60s · release or tap mic to finish"
+                    voiceState.draft != null -> if (voiceState.saving) "Saving encrypted voice draft…" else "Voice draft · edit above; Send approves · tap mic for options"
+                    vm.voice.captureActive || voiceState.phase in setOf(VoicePhase.Denied, VoicePhase.Interrupted, VoicePhase.Error, VoicePhase.Unavailable) -> voiceState.notice ?: voicePhaseLabel(voiceState.phase)
+                    else -> "Tap mic for controls · hold to talk"
+                }, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(horizontal = AdaSpacing.small).testTag("voice-composer-status"))
+            }
+            if (count >= 3600 && !vm.voice.captureActive) Text(if (count > 4000) "Shorten this draft to 4,000 Unicode characters. Emoji count once." else "$count / 4,000 characters",
                 modifier = Modifier.padding(horizontal = AdaSpacing.medium).testTag("composer-count"),
                 color = if (count > 4000) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall)

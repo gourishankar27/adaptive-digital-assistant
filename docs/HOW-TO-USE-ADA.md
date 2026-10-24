@@ -1,7 +1,7 @@
 # How to use ADA — developer setup and everyday operation
 
 Updated **22 October 2026** for current source head **0021 / 76 tables**,
-backup-v7 and Android25/journal18. Earlier phase documents retain their historical
+backup-v7 and Android26/journal18. Earlier phase documents retain their historical
 schema requirements; compare `alembic current` with `alembic heads` for this checkout.
 
 **Already set up on your laptop? Start at [section 11](#11-start-and-stop-ada-on-an-ordinary-day).**
@@ -916,15 +916,31 @@ derived learning; original sources/audit/historical replay can remain.
 
 ### 9.9 Record, review and send voice
 
-1. Open an owned conversation and expand **Voice controls**.
-2. Use **Recognition language: `en-US`**, or another installed on-device language.
-3. Tap **Record voice** and choose microphone permission if prompted.
-4. Wait until **Recording** appears before speaking. Choose **Stop recording**
-   to finish or **Discard recording** to abandon it.
-5. Review **Reviewed wording**. Use **Original ASR words (generated)** to inspect
-   what recognition originally produced; edit any misheard words.
-6. Select **I approve this wording for this conversation**.
-7. Wait for encrypted storage to finish, then tap **Send reviewed voice**.
+1. Open an owned conversation. The microphone sits beside the message field.
+2. **Tap** the microphone to open voice controls. Choose the installed recognition
+   language (`en-US` by default), then tap **Record voice**. Allow microphone
+   permission if asked. Wait for **Recording** before speaking; tap **Stop recording**
+   to finish. The controls close when the final transcript reaches the composer.
+3. For quick **push-to-talk**, **press and hold** that same microphone. Wait for
+   **Recording**, speak, then **release** to finish. Partial words appear in the
+   message field if the installed engine provides them. Releasing before setup
+   finishes cancels the attempt; after allowing permission, hold again or use
+   the tap/Record route. A recognizer may finish early on silence.
+4. The final words appear in the ordinary **Message ADA** field. Existing typed
+   text is included before the transcript. Correct, add or remove wording there.
+   Partial recognition is provisional; editing becomes available after capture.
+5. Wait for encrypted draft saving, then press the ordinary **Send** button.
+   **This explicit Send approves exactly the displayed wording.** Recording,
+   release, silence and editing do not send a message or approve a transcript.
+6. Tap the microphone again for options: inspect **Original ASR words (generated)**,
+   change language/voice, or **Discard voice draft**. Discarding restores the
+   pre-recording typed text. The advanced review/approval controls remain available.
+
+If a held gesture is cancelled or you leave the screen, incomplete recognition
+is discarded. The final draft uses encrypted recovery and returns to the composer
+after reconnecting to the same account/conversation; it never submits itself.
+The original generated recognition remains separate from your final wording in
+the reviewed-voice request, even though both text and voice now share an editor.
 
 Input needs Android12/API31+ and an installed on-device recognition engine.
 API 33+ also preflights the installed language. ADA does not download a model,

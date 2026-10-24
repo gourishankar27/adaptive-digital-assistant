@@ -1,5 +1,14 @@
 # Current ADA baseline
 
+**Android voice-composer follow-up, 2026-10-22:** app versionCode26 /
+0.31.1-voice-composer adds tap controls and physical hold/release on the same
+microphone. Available partial words appear in the editor; final words are an
+editable encrypted voice draft. Ordinary Send explicitly approves and submits
+through the existing reviewed-voice API, preserving original ASR and exact
+pending recovery. Recording/release/edit/reconnect never sends. Schema0021,
+OpenAPI164/216 and journal18 remain unchanged. See STATUS/WORKLOG for actual
+emulator/native-speech verification boundaries. No normal-phone installation.
+
 **Phase31 source and selected19A study, 2026-10-22 America/Phoenix:** selected text
 PDFs, immutable originals/extracted page maps and signed generated-device-draft
 protocol. Both measured S24 FE models failed reply quality: local generation is

@@ -159,6 +159,60 @@ private fun journal(identity: SessionIdentity) = PendingMessage(identity, conver
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ChatViewModelTest {
+    @Test fun heldComposerAppendsTypedPrefixDiscardRestoresItAndSendClearsOnlyIncludedText() = runTest {
+        val (vm, api, _) = ready(streaming = true)
+        var callback: CaptureListener? = null
+        val recorder = object : SpeechCapture {
+            override val availability = SpeechAvailability.Available
+            override val version = "Synthetic held composer capture"
+            override fun start(language: String, listener: CaptureListener) { callback = listener }
+            override fun stop() {}
+            override fun cancel() {}
+            override fun close() {}
+        }
+        val player = object : SpeechPlayback {
+            override fun initialize(ready: (List<SpeechVoice>) -> Unit) = ready(emptyList())
+            override fun play(text: String, voice: String, speed: Float, finished: (String?) -> Unit) {}
+            override fun stop() {}
+            override fun close() {}
+        }
+        vm.voice.attachAudio(recorder, player); vm.updateDraft("Typed introduction:")
+        var key = vm.requestHeldVoiceRecording()!!; vm.voice.permissionResult(true); callback!!.ready()
+        vm.updateComposerDraft("Ignored during capture")
+        vm.voice.releaseHoldRecording(key); callback!!.result("Generated first attempt"); runCurrent()
+        assertEquals("Typed introduction: Generated first attempt", vm.voice.state.value.draft!!.reviewedText)
+        vm.voice.discard(); runCurrent(); assertEquals("Typed introduction:", vm.state.value.draft)
+        key = vm.requestHeldVoiceRecording()!!; vm.voice.permissionResult(true); callback!!.ready()
+        vm.voice.releaseHoldRecording(key); callback!!.result("Generated final words"); runCurrent()
+        vm.updateMemory(false); vm.send(); runCurrent()
+        assertEquals("Typed introduction: Generated final words", api.voicePosts.single().content)
+        assertFalse(api.voicePosts.single().use_memory); assertEquals("", vm.state.value.draft)
+        vm.observeForeground(false)
+    }
+    @Test fun composerSendApprovesEditedVoicePersistsBeforeHttpAndNeverUsesPlainFallback() = runTest {
+        val (vm, api, store) = voiceReady()
+        vm.voice.approve(false); runCurrent()
+        vm.updateComposerDraft("Edited in the ordinary composer 🫖"); runCurrent()
+        assertFalse(store.voice!!.approved); assertTrue(api.voicePosts.isEmpty())
+        vm.send(); vm.send(); runCurrent()
+        assertEquals(1, api.voicePosts.size); assertTrue(api.sent.isEmpty()); assertEquals(0, api.streamPosts)
+        assertEquals("Edited in the ordinary composer 🫖", api.voicePosts.single().content)
+        assertEquals("Original generated cattle", api.voicePosts.single().transcript.original_text)
+        assertEquals("approve", api.voicePosts.single().review)
+        vm.observeForeground(false)
+    }
+    @Test fun composerVoiceSaveFailureAndInFlightEditNeverLoseOrSubmitTheDraft() = runTest {
+        val (vm, api, store) = voiceReady()
+        vm.voice.approve(false); runCurrent()
+        vm.updateComposerDraft("Exact composer review"); vm.send()
+        assertNull(vm.state.value.pending) // Edit must finish encrypting first.
+        runCurrent(); store.failJournal = true; vm.send(); runCurrent()
+        assertNull(vm.state.value.pending); assertNotNull(vm.voice.state.value.draft)
+        assertTrue(api.voicePosts.isEmpty()); assertEquals(0, api.streamPosts); assertTrue(api.sent.isEmpty())
+        store.failJournal = false; vm.send(); runCurrent()
+        assertEquals(1, api.voicePosts.size); assertEquals("Exact composer review", api.voicePosts.single().content)
+        vm.observeForeground(false)
+    }
     @Before fun setup() { Dispatchers.setMain(StandardTestDispatcher()) }
     @After fun cleanup() { Dispatchers.resetMain() }
     private suspend fun TestScope.voiceReady(): Triple<ChatViewModel, ChatApiMock, MemorySessionStore> {

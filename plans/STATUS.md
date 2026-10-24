@@ -4,6 +4,24 @@ Current overview updated 2026-10-22 America/Phoenix; historical entries retain t
 own dates and verification provenance. Update after implementation and verification.
 “Planned” means a specification exists, not that code or a working UI exists.
 
+**Android shared voice composer (2026-10-22):** app26/0.31.1-voice-composer adds
+tap controls and hold/release on the same microphone. Available partial ASR appears
+in the editor; final recognition becomes an editable encrypted draft. Ordinary
+Send explicitly approves exactly that wording through the existing reviewed-voice
+route, preserving the original generated transcript, typed prefix and exact
+journal-before-HTTP order. Release/edit/recovery never submits. Cancellation,
+permission/setup release, stale callbacks, storage failures and duplicate Send
+remain fenced. Keyboard/accessibility have the tap/Record route.
+Schema0021, OpenAPI164/216, journal18 and dependency locks remain unchanged.
+Final normal debug/test APK builds, Android313 unit checks, lint0 errors/24 warnings,
+Ruff and SQLite/PostgreSQL voice56 checks passed. The separate
+API37 emulator passed actual touch/Compose/HTTP/Keystore flows: five stages, then
+affected multiline-IME/cancellation reruns and physical-tap/semantic-long-click
+verification. Earlier cancellation and setup-timing failures and their fixes are
+retained in WORKLOG. No normal phone app installation or native S24 FE speech/
+partial-result/TalkBack acceptance is claimed; these remain target verification.
+See [usage](../docs/VOICE-INTERFACE.md) and dated WORKLOG for commands/results.
+
 **Manual startup clarity (2026-10-22):** `start.ps1` now prints immediate progress;
 the foreground runtime prints its actual listening address, readiness/explorer
 URLs, conditional configured HTTPS admin/Android addresses and a shutdown notice.

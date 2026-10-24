@@ -38,7 +38,20 @@ import java.util.UUID
         val permanent = !granted && (context as? Activity)?.shouldShowRequestPermissionRationale(Manifest.permission.RECORD_AUDIO) == false
         vm.voice.permissionResult(granted, permanent)
     }
-    AdaIconButton(AdaIcon.Microphone, "Voice controls", onClick = { expanded = true },
+    fun permission() {
+        if (context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) vm.voice.permissionResult(true)
+        else {
+            vm.voice.permissionDialogLaunched()
+            try { permissions.launch(Manifest.permission.RECORD_AUDIO) }
+            catch (_: Exception) { vm.voice.discard() }
+        }
+    }
+    PushToTalkButton(onClick = {
+        if (state.phase == VoicePhase.Recording) vm.voice.stopCapture() else expanded = true
+    }, onHold = {
+        // Keep the IME/layout stable under the held finger.
+        vm.requestHeldVoiceRecording()?.also { permission() }
+    }, onRelease = vm.voice::releaseHoldRecording, recording = state.phase == VoicePhase.Recording,
         modifier = Modifier.testTag("voice-toggle").semantics {
             stateDescription = when {
                 vm.voice.captureActive -> "Recording or processing on device"
@@ -47,10 +60,10 @@ import java.util.UUID
                 else -> if (expanded) "Open" else "Closed"
             }
         })
-    // A newly recovered/generated transcript remains visible for explicit review.
-    // Closing this dialog never approves, discards or submits that draft.
-    LaunchedEffect(state.draft?.transcript?.transcript_id, state.savedDraftConversation) {
-        if (state.draft != null || state.savedDraftConversation != null) expanded = true
+    // Final/recovered transcripts are reviewed in the ordinary composer. Controls
+    // remain an explicit tap, including original-ASR inspection and discard.
+    LaunchedEffect(state.draft?.transcript?.transcript_id) {
+        if (state.draft != null) expanded = false
     }
     if (!expanded) return
     val canDismiss = !vm.voice.captureActive
@@ -71,14 +84,7 @@ import java.util.UUID
                         verticalArrangement = Arrangement.spacedBy(AdaSpacing.small)) {
                         if (!canDismiss) Text("Stop or discard the recording before closing.", style = MaterialTheme.typography.bodySmall)
                         VoiceControlsContent(vm, state, chat) {
-                            if (vm.voice.requestRecording()) {
-                                if (context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) vm.voice.permissionResult(true)
-                                else {
-                                    vm.voice.permissionDialogLaunched()
-                                    try { permissions.launch(Manifest.permission.RECORD_AUDIO) }
-                                    catch (_: Exception) { vm.voice.discard() }
-                                }
-                            }
+                            if (vm.requestVoiceRecording()) permission()
                         }
                     }
                 }
@@ -94,7 +100,7 @@ import java.util.UUID
     val focus = LocalFocusManager.current
     val keyboard = LocalSoftwareKeyboardController.current
     AdaPresenceHeading("On-device voice", adaPresenceState(chat, state).label, adaPresenceState(chat, state), compact = true)
-    Text("Tap Record to use the microphone. Review and approve generated words before sending. ADA uploads no audio.", style = MaterialTheme.typography.bodySmall)
+    Text("Tap Record here, or hold the microphone in chat and release to finish. Edit the transcript in the message field; Send approves your wording. ADA uploads no audio.", style = MaterialTheme.typography.bodySmall)
     var engineDetails by remember { mutableStateOf(false) }
     AdaTextButton(onClick = { engineDetails = !engineDetails }, modifier = Modifier.testTag("voice-engine-details-toggle")) {
         Text(if (engineDetails) "Hide engine & model details" else "Engine & model details")

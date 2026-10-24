@@ -52,6 +52,57 @@ private class Player : SpeechPlayback {
 }
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class VoiceControllerTest {
+    @Test fun holdReleaseShowsPartialThenEncryptedEditableDraftWithoutApproval() = runTest {
+        val (c, _, store, input) = ready()
+        val key = c.requestHoldRecording("Typed introduction:")!!
+        c.permissionResult(true); input.callback!!.ready()
+        input.callback!!.partial("Generated partial")
+        assertEquals("Typed introduction: Generated partial", c.state.value.partialText)
+        assertNull(store.draft); assertNull(c.composerDraftForSend())
+        c.releaseHoldRecording(key); assertEquals(1, input.stops)
+        input.callback!!.result("Generated cattle 🫖"); runCurrent()
+        assertNull(c.state.value.partialText)
+        assertEquals("Typed introduction: Generated cattle 🫖", store.draft!!.reviewedText)
+        assertFalse(store.draft!!.approved); assertNull(c.approvedDraft())
+        c.edit("Typed introduction: Reviewed kettle 🫖"); runCurrent()
+        assertEquals("Reviewed kettle 🫖", c.composerDraftForSend()!!.reviewedText.substringAfter(": "))
+        assertEquals("Generated cattle 🫖", store.draft!!.transcript.original_text)
+        c.reset()
+    }
+    @Test fun holdReleasedBeforePermissionOrReadyCannotStartLateCapture() = runTest {
+        for (permission in listOf(false, true)) {
+            val (c, _, store, input) = ready()
+            val key = c.requestHoldRecording()!!
+            if (permission) c.permissionResult(true)
+            val late = input.callback
+            c.releaseHoldRecording(key)
+            c.permissionResult(true); late?.ready(); late?.result("Late generated words"); runCurrent()
+            assertFalse(c.captureActive); assertNull(store.draft); assertNull(c.state.value.draft)
+            assertEquals(if (permission) 1 else 0, input.starts)
+            c.reset()
+        }
+    }
+    @Test fun cancelledHoldAndOldReleaseCannotAffectNewCaptureOrKeepPartialWords() = runTest {
+        val (c, _, store, input) = ready()
+        val old = c.requestHoldRecording()!!; c.permissionResult(true); input.callback!!.ready()
+        val late = input.callback!!; late.partial("Private synthetic partial")
+        c.releaseHoldRecording(old, cancelled = true)
+        assertNull(c.state.value.partialText)
+        val next = c.requestHoldRecording()!!; c.permissionResult(true); input.callback!!.ready()
+        c.releaseHoldRecording(old); late.result("Old generated result")
+        assertEquals(VoicePhase.Recording, c.state.value.phase); assertEquals(0, input.stops)
+        c.releaseHoldRecording(next); input.callback!!.result("Current generated result"); runCurrent()
+        assertEquals("Current generated result", store.draft!!.reviewedText)
+        c.reset()
+    }
+    @Test fun combinedOverLimitDraftIsEditableButCannotBeSentOrSavedUntilShortened() = runTest {
+        val (c, _, store, input) = ready()
+        c.requestHoldRecording("a".repeat(3999)); c.permissionResult(true); input.callback!!.result("word"); runCurrent()
+        assertNotNull(c.state.value.draft); assertNull(store.draft); assertNull(c.composerDraftForSend())
+        c.edit("Short reviewed wording"); runCurrent()
+        assertNotNull(c.composerDraftForSend()); assertNotNull(store.draft)
+        c.reset()
+    }
     private data class Rig(val c: VoiceController, val api: VoiceReviewApi, val store: VoiceReviewStore, val input: Recorder, val output: Player)
     private fun TestScope.ready(): Rig {
         val store = VoiceReviewStore(); val api = VoiceReviewApi(); val recorder = Recorder(); val player = Player()

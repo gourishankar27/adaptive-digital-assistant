@@ -4400,3 +4400,107 @@ acceptance gates remain as previously recorded.
 Outcome: current route is healthy and startup behavior is visible/reviewable.
 No database reset/migration, secret/env edit, APK install, Caddy/Serve service
 configuration, scheduled task, power-policy change or deployment was performed.
+
+### 2026-10-22 — Android tap/hold voice and shared composer — 48728a1 + workspace
+
+Scope: implement the user's same-button tap controls / hold-to-record request,
+show recognized words in the ordinary editable message field, and send only on
+explicit Send. Initial inspection used04c5962; HEAD advanced to48728a1 containing
+the earlier startup/PDF work during this task. No commits/resets were performed
+by this task; existing work was retained. No future phase or deployment.
+
+Changed behavior/files: Android versionCode26/versionName0.31.1-voice-composer.
+`PushToTalkButton` retains native button/keyboard/accessibility actions and owns
+the physical tap/hold/up/cancel sequence with a stable gesture callback. A tap
+opens controls; a held press starts foreground recognition; release finishes it.
+Cancellation and disposal cancel only that capture lease. A late grant/readiness
+after release cannot start recording, and an old release cannot stop a new one.
+The existing60-second capture and15-second setup/final limits remain.
+
+`AndroidSpeechCapture` requests and forwards optional on-device partial results.
+`VoiceController` bounds/fences these memory-only provisional words; final words
+retain the original transcript while including the typed prefix in reviewed text.
+Over-limit combined wording must be edited before encrypted saving/Send. Partial
+and stale/interrupted results never become plain authored input. Existing owner,
+conversation/scope, lifecycle, audio focus, language and storage checks remain.
+
+The composer displays partial/final voice wording, routes edits to the voice draft
+and treats ordinary Send as explicit review approval. It first saves the exact
+approved encrypted draft, then reserves the original voice payload/request ID,
+then uses the reviewed-voice HTTP route. Duplicate taps cannot reserve twice; a
+storage error blocks HTTP. Included typed text clears only after successful local
+reservation and only if it still matches; discard preserves it. Existing advanced
+original-word inspection, approval, discard, playback and GET-only recovery stay.
+Final transcripts close controls to expose the editor. Controls stay anchored at
+the row bottom as partial text grows; a one-line status slot avoids shifting the
+held target. README/architecture/voice/HOW-TO guides and CURRENT-STATE updated.
+
+Data/API/prompt changes: none. In-memory OpenAPI still exactly equals the exported
+164 paths/216 schemas. Server0021, encrypted journal18, released migrations,
+dependencies/locks, original ASR provenance, prompt snapshots and replay unchanged.
+
+Checks actually run/results:
+
+- Existing `VoiceControllerTest`/`ChatViewModelTest` baseline passed before edits.
+  Full Android unit run after implementation passed **313 /0 failures /0 skips**
+  (306 existing +7 new), including prefix/discard, explicit composer approval,
+  exact journal-before-HTTP, duplicate Send, in-flight edit/save failure, early
+  release, stale release/result and over-limit editing checks. No inference mock
+  was introduced into production code.
+- `testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest` passed in
+  the initial implementation build. Lint XML: **0 errors /24 warnings**, matching
+  the earlier baseline count. Separate validation app/test APK builds passed with
+  `-PadaValidationApplicationId=dev.ada.validation.voicecomposer`. Final normal
+  build/results and cleanup are appended below after completion.
+- Without PostgreSQL configured, `pytest tests/test_voice.py -q` passed28/skipped28
+  in34.21s. A subsequent isolated PostgreSQL17 Docker instance on loopback55422
+  ran **56 passed /0 skipped in87.10s**, including both database variants. One
+  existing Starlette/httpx deprecation warning in each run. The database/provider
+  were disposable/synthetic; no application DB or native model was used.
+- Separate headless Medium_Phone_API_37.0/emulator5584 and validation APK exercised
+  actual touch, real authenticated HTTP, Compose and Android Keystore against the
+  disposable server. The initial successful held-flow stage took6.945s; its next
+  cancellation stage failed9.325s because a cancelled long gesture was treated as
+  release. Replaced reliance on combined-click press completion with explicit
+  physical Up/cancel handling. The subsequent five-stage run passed:
+  hold/edit/Send8.986s, cancelled/early release6.442s, tap Record/advanced review/
+  lineage/playback12.856s, confirmed discard7.115s, public preview6.509s.
+- A later expanded multiline/IME attempt timed out11.284s before the recorder
+  callback. Added explicit draft-recovery completion and stable microphone bounds
+  before test presses, so the fixture does not press during keyboard movement.
+  Final four-line partial/IME/Send stage passed9.600s; cancel/early release passed
+  6.975s. Final physical short tap plus semantic long-click/public preview passed
+  7.890s. Semantic long-click opens controls without a physical capture/Up lease.
+  These earlier failures remain failures, not relabeled native-device passes.
+- Ruff lint/format of `src tests migrations scripts` passed283 files; whitespace
+  check and exact in-memory OpenAPI equality passed.157 local links across the
+  five changed product/developer guides resolved in the intermediate link audit.
+
+Skips/remaining target verification: no S24 FE install/native recognition/audio,
+actual on-device partial-result availability, permission-dialog hold behavior,
+human TalkBack, large-font/landscape acceptance or real-model inference this task.
+The on-device engine may finalize on silence and is not guaranteed to provide
+partial results. No full backend suite/admin-web regression beyond the scoped
+voice checks; server schemas/auth/provider/contracts were unchanged. Prior
+physical evidence remains historical and does not verify this new interaction.
+
+Operations: all device actions targeted the separate emulator APK; the connected
+physical phone and its normal ADA data/permissions were untouched. Every runner
+attempt removed its owned PostgreSQL container and validation app/reverse/schema
+in finally cleanup. No .env/secret/account, live database/API/proxy/Tailscale,
+startup tasks or power-policy changes. Final normal output restoration and owned
+emulator cleanup are recorded below.
+
+Final completion: normal `testDebugUnitTest lintDebug assembleDebug
+assembleDebugAndroidTest` passed again after the final gesture/layout changes.
+Final XML:313 tests/0 failures/0 errors/0 skips; lint0 errors/24 warnings. AAPT
+verified the normal artifact is `dev.ada.assistant.debug`, versionCode26,
+versionName0.31.1-voice-composer, target/compile36, rather than the validation ID.
+No installation was performed on the physical phone. Confirmed the owned
+emulator5584's Medium_Phone_API_37.0 identity before stopping it. Validation
+package/reverse listings were empty; no owned PostgreSQL containers or listeners
+remained on55422/18423/19822/5584/5585. The normal API/proxy/database and phone
+were not stopped. Updated usage and local implementation are complete; native
+S24 FE recognition/partial words/permission/TalkBack acceptance remains pending.
+Final Ruff lint/format283 files and `git diff --check` passed;225 local links
+across the eight changed documentation/status files resolved.

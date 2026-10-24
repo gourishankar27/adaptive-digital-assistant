@@ -1,5 +1,18 @@
 # ADA architecture decisions
 
+## Shared Android voice composer
+
+Android app26/0.31.1 shares the message editor with reviewed voice drafts. Tap controls
+and physical hold/release both retain the on-device ASR boundary. Provisional
+partial text stays in memory and is never submitted. Final recognition retains
+its original transcript ID/content, while typed-prefix and subsequent edits form
+the reviewed wording. Explicit composer Send saves an approved encrypted draft,
+then consumes it into the exact pending journal before HTTP on the existing
+reviewed-voice route. It never falls back to a plain authored-text request.
+Capture/release/edit/recovery do not approve or send. Gesture leases fence late
+release/cancel, and existing identity/scope/lifecycle/storage fences remain.
+Schema0021, OpenAPI and journal18 are unchanged.
+
 ## Phase31 PDF projection and selected19A drafts
 
 Head0021 adds nullable extraction metadata and two owner-content device tables:

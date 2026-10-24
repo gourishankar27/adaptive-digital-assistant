@@ -59,6 +59,7 @@ class ChatViewModel(
     private var cleanupJob: Job? = null
     private var cleanupFailed = false
     private val drafts = mutableMapOf<UUID, Draft>()
+    private var voiceComposerBase: Pair<UUID, String>? = null
     private var selection = 0L
     private var sourceSelection = 0L
     private var retryNotBefore = 0L
@@ -111,6 +112,7 @@ class ChatViewModel(
     }
     private fun current(epoch: Long) = epoch == generation
     private fun resetMemory() {
+        voiceComposerBase = null
         mutablePasswordSessions.value = emptyList()
         renewalJob?.cancel(); renewalJob = null; accessExpiresAt = null
         security.reset()
@@ -569,6 +571,22 @@ class ChatViewModel(
         mutableState.value.conversation?.id?.let { drafts[it] = Draft(mutableState.value.draft, mutableState.value.useMemory, mutableState.value.asOf, mutableState.value.useDocuments) }
     }
     fun updateDraft(text: String) { update { it.copy(draft = text, fault = null) }; saveDraft() }
+    fun updateComposerDraft(text: String) {
+        if (voice.captureActive || (voice.state.value.draft != null && state.value.pending != null)) return
+        if (voice.state.value.draft != null) voice.edit(text) else updateDraft(text)
+    }
+    fun requestVoiceRecording(): Boolean {
+        val current = state.value; val row = current.conversation ?: return false
+        if (!voice.requestRecording(current.draft)) return false
+        voiceComposerBase = row.id to current.draft
+        return true
+    }
+    fun requestHeldVoiceRecording(): Long? {
+        val current = state.value; val row = current.conversation ?: return null
+        val key = voice.requestHoldRecording(current.draft) ?: return null
+        voiceComposerBase = row.id to current.draft
+        return key
+    }
     fun updateMemory(enabled: Boolean) { update { it.copy(useMemory = enabled && it.capabilities?.memory_in_chat == true,
         useDocuments = it.useDocuments && enabled) }; saveDraft() }
     fun updateDocuments(enabled: Boolean) {
@@ -584,9 +602,14 @@ class ChatViewModel(
         require(utc.atOffset(java.time.ZoneOffset.UTC).year in 1..9999)
         return utc.toString()
     }
-    fun send() { if (!voice.captureActive) sendInput() }
+    fun send() {
+        if (voice.captureActive || voice.state.value.draftLoading) return
+        if (voice.state.value.draft != null) {
+            voice.composerDraftForSend()?.let { sendInput(it.copy(approved = true), approveVoice = true) }
+        } else sendInput()
+    }
     fun sendReviewedVoice() { voice.approvedDraft()?.let { sendInput(it) } }
-    private fun sendInput(voiceDraft: VoiceDraft? = null) {
+    private fun sendInput(voiceDraft: VoiceDraft? = null, approveVoice: Boolean = false) {
         val current = mutableState.value
         val verified = identity ?: return
         val row = current.conversation ?: return
@@ -606,13 +629,25 @@ class ChatViewModel(
         val epoch = generation
         launchWork {
             try {
-                storage.withLock { if (!current(epoch)) return@launchWork; store.savePending(message) }
+                storage.withLock {
+                    if (!current(epoch)) return@launchWork
+                    // Composer Send explicitly approves the displayed wording. Preserve
+                    // the existing encrypted approval -> exact pending journal -> HTTP order.
+                    if (approveVoice) store.saveVoiceDraft(requireNotNull(voiceDraft))
+                    if (!current(epoch)) return@launchWork
+                    store.savePending(message)
+                }
             } catch (_: Exception) {
                 if (current(epoch)) update { it.copy(pending = null, notice = "The request was not sent because secure recovery storage could not be saved.") }
                 return@launchWork
             }
             if (!current(epoch)) return@launchWork
             voiceDraft?.let { voice.sent(it.transcript.transcript_id) }
+            if (approveVoice && voiceComposerBase == (row.id to current.draft) && drafts[row.id]?.text == current.draft) {
+                drafts[row.id] = Draft("", current.useMemory, current.asOf, current.useDocuments)
+                if (mutableState.value.conversation?.id == row.id && mutableState.value.draft == current.draft) update { it.copy(draft = "") }
+                voiceComposerBase = null
+            }
             if (voiceDraft == null && drafts[row.id] == Draft(current.draft, current.useMemory, current.asOf, current.useDocuments)) {
                 drafts[row.id] = Draft("", current.useMemory, current.asOf, current.useDocuments)
                 if (mutableState.value.conversation?.id == row.id && mutableState.value.draft == content) update { it.copy(draft = "") }

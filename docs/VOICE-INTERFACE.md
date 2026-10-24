@@ -37,25 +37,45 @@ Primary sources used for the implementation decision:
 
 ## Record, review and send
 
-Open an owned conversation and expand **Voice controls**. Recognition language
-accepts a language tag such as `en-US`; the service checks installed support.
-**Record voice** requests microphone permission at that action. Denial leaves
-text available; a permanent-denial state offers Android app settings. No
-microphone permission is requested at startup or connection.
+Android app26/0.31.1 adds a shared composer: tap the microphone for **Voice controls**
+and **Record voice**, or physically hold the same button to start, then release
+to finish. Recognition language accepts a tag such as `en-US`; installed support
+is checked. Microphone permission is requested only at an explicit recording
+action. Denial leaves text available; permanent denial offers Android settings.
+If the hold ends during permission/setup, late grants/readiness cannot start
+capture; hold again after permission or use tap/Record. No permission is requested
+at startup/connection. The tap route remains available to keyboard/TalkBack users;
+a semantic long-click opens controls instead of starting an unbounded held capture.
 
-Recording displays duration, **Stop recording** and **Discard recording**.
+Partial results, when provided by the installed on-device engine, appear in the
+ordinary message field. They are bounded, provisional, memory-only and cannot
+send. The final result becomes an encrypted voice draft in that same editor.
+Existing typed text is prepended without changing the original ASR record;
+discard preserves the typed draft. An over-limit combined draft must be shortened.
+The recognizer may finalize on silence even before the finger is released.
+
+Recording displays duration and supports **Stop recording**/**Discard recording**
+in controls; tapping the recording microphone also stops it. A cancelled held
+gesture discards the active capture. Release stops only that gesture's capture;
+an old release cannot stop a later attempt.
 Capture stops at 60 seconds; setup and final recognition each have a 15-second
 deadline. Leaving the conversation, pausing the activity, changing identity,
 losing audio focus or changing an audio device cancels capture. Late callbacks
 cannot repopulate an old conversation/account. Nothing records in the background.
 
-Final words become a separate **generated transcript**. The original is preserved
-and displayed on demand. Edit **Reviewed wording**, then explicitly select
-**I approve this wording for this conversation**. Any edit removes approval.
-**Send reviewed voice** requires valid wording and confirmed encrypted storage.
-It sends through the reviewed-voice route, with current normal chat options,
-and never falls back to plain authored text. Invalid/rejected input returns to
-unapproved voice review. A separately typed composer draft is preserved.
+Final words retain their separate **generated transcript** identity, with the
+original displayed on demand. Edit in the normal message field; **Send** is the
+explicit approval of exactly those words. It saves the approved voice draft,
+then the exact pending payload before HTTP, without a plain-text-route fallback.
+The advanced controls still offer **Reviewed wording**, an approval checkbox and
+**Send reviewed voice**. Editing invalidates earlier approval. Invalid/rejected
+input returns to an unapproved editable voice draft. Typed text included by this
+recording is cleared only after its exact pending input is saved; discarding or
+storage failure preserves the typed draft.
+
+Physical gesture handling explicitly distinguishes Up from cancellation while
+retaining native keyboard/accessibility actions; see
+[Android gesture guidance](https://developer.android.com/develop/ui/compose/touch-input/pointer-input/understand-gestures).
 
 The Keystore-backed, no-backup journal v10 binds draft, original text, edited text
 and approval to normalized server, verified owner, conversation and scope. A

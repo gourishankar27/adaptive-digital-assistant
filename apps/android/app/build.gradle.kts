@@ -22,8 +22,8 @@ android {
         manifestPlaceholders["adaAppLabel"] = if (validationId == null) "ADA" else "ADA validation"
         minSdk = 26
         targetSdk = 36
-        versionCode = 25
-        versionName = "0.31.0-documents-drafts"
+        versionCode = 26
+        versionName = "0.31.1-voice-composer"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     val edgeNativeDir = providers.gradleProperty("adaEdgeNativeDir").orNull

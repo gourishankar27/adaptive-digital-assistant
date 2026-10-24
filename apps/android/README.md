@@ -1,5 +1,15 @@
 # ADA Android chat, memory, tools, episodes and interaction learning (Phase 17)
 
+App26 /0.31.1-voice-composer adds tap controls and hold/release recording on the
+same microphone. Available partial recognition appears in the composer; final
+words become an editable encrypted voice draft alongside any existing typed text.
+Ordinary Send explicitly approves that wording and uses the existing reviewed
+voice API, retaining original ASR lineage and encrypting approval/pending input
+before HTTP. No release/recognition/edit/recovery automatically sends. Tap controls
+retain language, original-word inspection, discard and playback. Server0021 and
+journal18 are unchanged. See [voice usage](../../docs/VOICE-INTERFACE.md) and the
+dated STATUS/WORKLOG for actual checks and remaining native-device acceptance.
+
 App25 /0.31.0-documents-drafts adds selected text PDFs, exact binary review,
 extracted page chunks/source cards and journal18 recovery (v1–v17 readable).
 Server schema0021 and a verified PDF capability are required; Android retains64KiB

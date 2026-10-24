@@ -1,5 +1,11 @@
 # ADA
 
+Android app26/0.31.1 adds a shared text/voice composer: tap the microphone for controls,
+or hold to talk and release to finish. Review/edit the final words in the message
+field, then Send explicitly approves them through the existing reviewed-voice
+API. Partial results never send; original ASR lineage and encrypted recovery stay
+intact. See [voice usage](docs/VOICE-INTERFACE.md) and actual checks in STATUS.
+
 Phase31 adds selected text PDFs: isolated parsing, immutable original bytes and
 extracted text/page maps, Android review and D source cards. Selected Phase19A
 adds a device-draft study and signed proposal protocol. Both mobile candidates
