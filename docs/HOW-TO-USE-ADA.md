@@ -1,7 +1,10 @@
 # How to use ADA — developer setup and everyday operation
 
-Updated **22 October 2026** for current source head **0021 / 76 tables**,
-backup-v7 and Android26/journal18. Earlier phase documents retain their historical
+Updated **24 October 2026** for source head **0022 / 77 tables**,
+backup-v8 and Android27/journal19. This source update has not migrated the installed
+database or upgraded the normal phone. Phase32 native speech is optional private
+evaluation; follow [its preparation/use guide](PRIVATE-VOICE-CONVERSATIONS.md)
+and acceptance gates before selecting that build. Ordinary builds keep platform speech. Earlier phase documents retain their historical
 schema requirements; compare `alembic current` with `alembic heads` for this checkout.
 
 **Already set up on your laptop? Start at [section 11](#11-start-and-stop-ada-on-an-ordinary-day).**

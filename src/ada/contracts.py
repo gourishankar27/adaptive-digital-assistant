@@ -40,6 +40,7 @@ class CapabilitiesOutput(BaseModel):
     device_credentials: str = "unsupported"
     private_deletion: str = "unsupported"
     voice_input: str = "unsupported"
+    long_voice_input: str = "unsupported"
     voice_audio_uploads: bool = False
     stream_protocol: str = "unsupported"
     generation_cancellation: bool = False

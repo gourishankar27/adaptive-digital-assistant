@@ -1,5 +1,18 @@
 # ADA
 
+Phase32 source adds owner-controlled long recording, editable reviewed narratives,
+optional pinned local ASR/neural voices and explicitly armed Hello Ada with shared
+password-session renewal. Ordinary builds retain platform speech; the native bundle
+is a private evaluation build with distribution/device acceptance still open.
+Source is **0022 /77 tables /64 owner-content /backup-v8**, OpenAPI166 paths/220
+schemas, Android27 /0.32.0-private-voice and encrypted journal19 (old readers retained).
+Read [private voice setup/use](docs/PRIVATE-VOICE-CONVERSATIONS.md),
+[checkpoints](plans/phase-32-private-voice-conversations.md) and
+[actual results](plans/STATUS.md). The owner preferred Bella and confirmed Stop;
+the public microphone pause test passed, but the human wake phrase missed in both
+locked/unlocked trials and is under investigation. No live migration, normal app
+upgrade or deployment. Earlier milestone descriptions below retain their dates.
+
 Android app26/0.31.1 adds a shared text/voice composer: tap the microphone for controls,
 or hold to talk and release to finish. Review/edit the final words in the message
 field, then Send explicitly approves them through the existing reviewed-voice

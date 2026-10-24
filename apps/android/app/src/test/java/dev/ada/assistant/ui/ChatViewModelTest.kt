@@ -65,7 +65,8 @@ private class ChatApiMock(val store: MemorySessionStore) : AdaApi by unsupported
     var passwordLifetimeMs = 900000L
     var passwordRenewals = 0
     var passwordLogouts = 0
-    override suspend fun passwordLogin(server: String, username: String, password: String, allowDebugHttp: Boolean) = ApiResult.Success(PasswordSessionDto("synthetic-password-access", "synthetic-password-refresh", UUID.randomUUID(), System.currentTimeMillis() + passwordLifetimeMs, System.currentTimeMillis() + 1000000))
+    private val passwordFamily=UUID.randomUUID()
+    override suspend fun passwordLogin(server: String, username: String, password: String, allowDebugHttp: Boolean) = ApiResult.Success(PasswordSessionDto("synthetic-password-access", "synthetic-password-refresh"+(if(passwordRenewals==0) "" else "-$passwordRenewals"), passwordFamily, System.currentTimeMillis() + passwordLifetimeMs, System.currentTimeMillis() + 1000000))
     override suspend fun refreshLogin(server: String, refresh: String, allowDebugHttp: Boolean): ApiResult<PasswordSessionDto> {
         passwordRenewals++
         return passwordLogin(server, "", "", allowDebugHttp)
@@ -241,6 +242,8 @@ class ChatViewModelTest {
         assertEquals("synthetic-password-refresh", store.credential!!.token)
         assertTrue(api.sent.isEmpty())
         vm.restore(); runCurrent()
+        assertNotNull(vm.state.value.account); assertEquals(0, api.passwordRenewals)
+        vm.renewSession(); runCurrent()
         assertNotNull(vm.state.value.account); assertEquals(1, api.passwordRenewals)
         assertTrue(api.sent.isEmpty())
         vm.logout(); runCurrent()

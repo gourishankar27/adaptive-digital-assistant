@@ -2,6 +2,8 @@ package dev.ada.assistant.ui
 
 import dev.ada.assistant.data.WORK_PROTOCOL
 import dev.ada.assistant.data.EDGE_PROTOCOL
+import dev.ada.assistant.data.LONG_VOICE_TEXT
+import dev.ada.assistant.data.isLong
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
@@ -697,7 +699,7 @@ private fun Composer(state: ChatState, vm: ChatViewModel, maximumHeight: Dp) {
     val voiceState by vm.voice.state.collectAsStateWithLifecycle()
     val composerText = voiceState.draft?.reviewedText ?: voiceState.partialText ?: state.draft
     val count = composerText.codePointCount(0, composerText.length)
-    val canSend = !vm.voice.captureActive && !voiceState.draftLoading && !reserved && composerText.isNotBlank() && count <= 4000 && state.capabilities?.chat == true &&
+    val canSend = !vm.voice.captureActive && !voiceState.draftLoading && !reserved && composerText.isNotBlank() && (count <= 4000 || voiceState.draft?.transcript?.isLong()==true) && state.capabilities?.chat == true &&
         (voiceState.draft == null || vm.voice.composerDraftForSend() != null)
     val progress = state.stream?.takeIf { it.request_id == state.pending?.message?.body?.request_id }
     val canStop = progress?.stream_state in setOf("running", "cancel_requested") && progress?.available == true
@@ -723,7 +725,7 @@ private fun Composer(state: ChatState, vm: ChatViewModel, maximumHeight: Dp) {
                     modifier = Modifier.weight(1f).heightIn(min = AdaSpacing.touch).testTag("composer").semantics {
                         contentDescription = "Message ADA"
                         if (vm.voice.captureActive) stateDescription = "Transcript in progress; editing is available after recording"
-                        if (count > 4000) error("Shorten this draft to 4,000 Unicode characters.")
+                        if (count > (if(voiceState.draft?.transcript?.isLong()==true) LONG_VOICE_TEXT else 4000)) error("This draft exceeds the recording mode text limit.")
                     },
                     decorationBox = { field -> Box(Modifier.padding(vertical = if (shortWindow) AdaSpacing.small else AdaLayout.fieldInset, horizontal = AdaSpacing.tiny)) {
                         if (composerText.isEmpty()) Text("Message ADA", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -739,7 +741,7 @@ private fun Composer(state: ChatState, vm: ChatViewModel, maximumHeight: Dp) {
                 Text(when {
                     voiceState.fault != null -> "Voice draft needs attention · tap mic for details or retry"
                     voiceState.draftLoading -> "Checking encrypted voice draft…"
-                    voiceState.phase == VoicePhase.Recording -> "Recording · ${voiceState.durationMs / 1000}s / 60s · release or tap mic to finish"
+                    voiceState.phase == VoicePhase.Recording -> "Recording · ${voiceState.durationMs / 1000}s / ${if(voiceState.longFormEnabled) "2h" else "60s"} · release or tap mic to finish"
                     voiceState.draft != null -> if (voiceState.saving) "Saving encrypted voice draft…" else "Voice draft · edit above; Send approves · tap mic for options"
                     vm.voice.captureActive || voiceState.phase in setOf(VoicePhase.Denied, VoicePhase.Interrupted, VoicePhase.Error, VoicePhase.Unavailable) -> voiceState.notice ?: voicePhaseLabel(voiceState.phase)
                     else -> "Tap mic for controls · hold to talk"
@@ -747,7 +749,7 @@ private fun Composer(state: ChatState, vm: ChatViewModel, maximumHeight: Dp) {
                     maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                     modifier = Modifier.padding(horizontal = AdaSpacing.small).testTag("voice-composer-status"))
             }
-            if (count >= 3600 && !vm.voice.captureActive) Text(if (count > 4000) "Shorten this draft to 4,000 Unicode characters. Emoji count once." else "$count / 4,000 characters",
+            if (count >= 3600 && !vm.voice.captureActive) Text(if(voiceState.draft?.transcript?.isLong()==true) "$count / 32,768 · select reply context in voice controls" else if (count > 4000) "Shorten this draft to 4,000 Unicode characters. Emoji count once." else "$count / 4,000 characters",
                 modifier = Modifier.padding(horizontal = AdaSpacing.medium).testTag("composer-count"),
                 color = if (count > 4000) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall)
@@ -789,6 +791,7 @@ private fun SourcesScreen(state: ChatState, vm: ChatViewModel) {
     LazyColumn(Modifier.fillMaxSize().testTag("sources-list"), contentPadding = androidx.compose.foundation.layout.PaddingValues(AdaSpacing.medium), verticalArrangement = Arrangement.spacedBy(AdaSpacing.medium)) {
         item { BackButton(vm::back); ScreenHeading("Sources", "These cards belong to this saved reply, with the original quotes and source versions."); StateFeedback(state) }
         voice.lineage?.takeIf { it.request_id == id }?.let { row -> item { VoiceLineageCard(row) } }
+        voice.longLineage?.takeIf { it.request_id == id }?.let { row -> item { LongVoiceLineageCard(row) } }
         if (state.sourceLoading) item { BusyIndicator("Loading sources for this reply") }
         if (!state.sourceLoading && request != null && cards.isEmpty() && documents.isEmpty() && continuity.isEmpty()) item {
             StatusCard("Source unavailable", if (state.sourceLabel != null) "This label has no source card for the saved reply. It may refer to an older request without a recorded trace or an unknown label." else "No source cards are attached to this saved reply. Older requests may have no retrieval trace.")

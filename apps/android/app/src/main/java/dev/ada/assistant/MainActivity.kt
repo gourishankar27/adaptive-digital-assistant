@@ -47,7 +47,9 @@ class MainActivity : ComponentActivity() {
                     .also { it.restore() } as T
         })[ChatViewModel::class.java]
         chatModel = viewModel
-        viewModel.voice.attachAudio(dev.ada.assistant.audio.AndroidSpeechCapture(this), dev.ada.assistant.audio.AndroidSpeechPlayback(this))
+        val speech=dev.ada.assistant.audio.PrivateSpeechStack(this)
+        viewModel.voice.attachRuntime(speech.runtime)
+        viewModel.voice.attachAudio(speech.capture,speech.playback)
         setContent {
             val preferences = remember { AppearancePreferences(applicationContext) }
             var appearance by remember { mutableStateOf(preferences.load()) }

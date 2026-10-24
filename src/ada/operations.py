@@ -215,7 +215,7 @@ def backup(url, pg_bin, destination, password, settings):
                 conn.execute(text("SET LOCAL statement_timeout=30000"))
                 snapshot_at = now_ms()
                 head = conn.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
-                if head not in ("0015", "0016", "0017", "0018", "0019", "0020", "0021"):
+                if head not in ("0015", "0016", "0017", "0018", "0019", "0020", "0021", "0022"):
                     raise RecoveryError(
                         "Backup requires reviewed schema head 0015, 0016, 0017, 0018, 0019 or 0020"
                     )
@@ -245,6 +245,7 @@ def backup(url, pg_bin, destination, password, settings):
                         "0019": "ada-postgres-backup-v5",
                         "0020": "ada-postgres-backup-v6",
                         "0021": "ada-postgres-backup-v7",
+                        "0022": "ada-postgres-backup-v8",
                     }[head],
                     "head": head,
                     "snapshot_at": snapshot_at,
@@ -316,6 +317,7 @@ def unpack(payload):
                 ("ada-postgres-backup-v5", "0019"),
                 ("ada-postgres-backup-v6", "0020"),
                 ("ada-postgres-backup-v7", "0021"),
+                ("ada-postgres-backup-v8", "0022"),
             )
             or not isinstance(manifest.get("tables"), dict)
             or type(manifest.get("snapshot_at")) is not int
@@ -392,12 +394,12 @@ def restore(url, pg_bin, target_database, artifact, ledger_path, password):
                 text("UPDATE device_credentials SET revoked_at=COALESCE(revoked_at, :now)"),
                 {"now": now_ms()},
             )
-            if manifest["head"] == "0021":
+            if manifest["head"] in ("0021", "0022"):
                 conn.execute(
                     text("UPDATE edge_devices SET revoked_at=:now, revision=revision+1"),
                     {"now": now_ms()},
                 )
-            if manifest["head"] in ("0016", "0017", "0018", "0019", "0020", "0021"):
+            if manifest["head"] in ("0016", "0017", "0018", "0019", "0020", "0021", "0022"):
                 conn.execute(text("UPDATE password_credentials SET verifier=NULL"))
                 conn.execute(
                     text("UPDATE login_sessions SET revoked_at=COALESCE(revoked_at, :now)"),
@@ -406,7 +408,7 @@ def restore(url, pg_bin, target_database, artifact, ledger_path, password):
         if restored_inventory != manifest["tables"]:
             raise RecoveryError("Restored row hashes/counts differ; credentials quarantined")
         with engine.begin() as conn:
-            if manifest["head"] in ("0017", "0018", "0019", "0020", "0021"):
+            if manifest["head"] in ("0017", "0018", "0019", "0020", "0021", "0022"):
                 # Restored consent is not authority to resume offering questions.
                 # Verify original hashes first, then require fresh owner opt-in.
                 conn.execute(
@@ -415,7 +417,7 @@ def restore(url, pg_bin, target_database, artifact, ledger_path, password):
                     ),
                     {"now": now_ms()},
                 )
-            if manifest["head"] in ("0018", "0019", "0020", "0021"):
+            if manifest["head"] in ("0018", "0019", "0020", "0021", "0022"):
                 conn.execute(
                     text(
                         "UPDATE schedule_consents SET enabled=false, revision=revision+1, updated_at=:now"
@@ -433,7 +435,7 @@ def restore(url, pg_bin, target_database, artifact, ledger_path, password):
                         "UPDATE schedule_occurrences SET status='suppressed', reason='restored_quarantine', lease_until=NULL, lease_token=NULL WHERE status IN ('queued','running')"
                     )
                 )
-            if manifest["head"] in ("0019", "0020", "0021"):
+            if manifest["head"] in ("0019", "0020", "0021", "0022"):
                 conn.execute(
                     text(
                         "UPDATE reflection_policies SET enabled=false, settings=jsonb_set(settings::jsonb, '{enabled}', 'false')::json, revision=revision+1, last_decision='restored_quarantine', updated_at=:now"

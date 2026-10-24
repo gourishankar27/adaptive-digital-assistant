@@ -76,8 +76,8 @@ def test_native_v7_pdf_original_and_device_draft_restore_quarantine(
         phrase = "Public synthetic PDF edge recovery phrase"
         artifact = backup(url, binary, tmp_path, phrase, settings)["artifact"]
         manifest, _ = unpack(read_artifact(artifact, phrase))
-        assert manifest["head"] == "0021" and manifest["format"] == "ada-postgres-backup-v7"
-        assert len(manifest["tables"]) == 76
+        assert manifest["head"] == "0022" and manifest["format"] == "ada-postgres-backup-v8"
+        assert len(manifest["tables"]) == 77
         with sessions() as db:
             ledger = deletion_ledger(db.connection())
         ledger_path = write_artifact(

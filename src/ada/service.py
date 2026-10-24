@@ -117,10 +117,15 @@ class ChatService:
         prepared=None,
         expression=None,
         learning=None,
+        voice_style=None,
     ):
         system = {"role": "system", "content": conversation.system_prompt}
         system["content"] += prompt_expression(expression)
         system["content"] += prompt_learning(learning)
+        if voice_style is not None:
+            from ada.voice_style import voice_style_prompt
+
+            system["content"] += voice_style_prompt(voice_style)
         newest = {"role": "user", "content": content}
         compatible = conversation.prompt_version in RETRIEVAL_PROMPT_VERSIONS
         document_compatible = conversation.prompt_version in DOCUMENT_PROMPT_VERSIONS
@@ -334,6 +339,7 @@ class ChatService:
         use_documents=False,
         register=None,
         input_binding=None,
+        voice_style=None,
     ):
         """Reserve a frozen attempt under already-acquired process admission."""
         fingerprint = request_fingerprint(content, as_of, use_memory, use_documents, input_binding)
@@ -415,6 +421,7 @@ class ChatService:
                         prepared,
                         expression,
                         learning,
+                        voice_style,
                     )
                     old = Request(
                         owner_id=owner,

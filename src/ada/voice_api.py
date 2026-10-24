@@ -4,6 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query
 from pydantic import create_model
 
+from ada.long_voice import LongVoiceFields, LongVoiceOutput, LongVoiceService
 from ada.stream_contracts import StreamStatus
 from ada.voice_contracts import TranscriptInput, VoiceLineageOutput
 
@@ -18,6 +19,25 @@ def voice_router(service, current_user, error_responses, chat_input):
     router = APIRouter(prefix="/v1", tags=["voice"])
     private = Depends(current_user)
     errors = error_responses(401, 404, 409, 413, 422, 503)
+    long_service = LongVoiceService(service.streaming)
+    long_input = create_model("LongReviewedVoiceInput", __base__=(chat_input, LongVoiceFields))
+
+    def submit_long(conversation_id: UUID, body, owner: str = private):
+        return long_service.submit(owner, str(conversation_id), body)
+
+    submit_long.__annotations__["body"] = long_input
+    router.post(
+        "/conversations/{conversation_id}/long-voice-requests",
+        status_code=202,
+        response_model=StreamStatus,
+        responses=errors,
+    )(submit_long)
+
+    @router.get(
+        "/requests/{request_id}/long-voice-input", response_model=LongVoiceOutput, responses=errors
+    )
+    def get_long(request_id: UUID, owner: str = private):
+        return long_service.get(owner, str(request_id))
 
     def submit(conversation_id: UUID, body, owner: str = private):
         return service.submit(owner, str(conversation_id), body)

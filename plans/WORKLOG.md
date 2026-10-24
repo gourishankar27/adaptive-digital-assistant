@@ -4504,3 +4504,83 @@ were not stopped. Updated usage and local implementation are complete; native
 S24 FE recognition/partial words/permission/TalkBack acceptance remains pending.
 Final Ruff lint/format283 files and `git diff --check` passed;225 local links
 across the eight changed documentation/status files resolved.
+
+### 2026-10-24 — Phase32 private voice-conversation proposal — 20cde93
+
+Scope: assess the user's natural speech, recording-across-pauses and Hello Ada
+requests. The user confirmed **warm/calm feminine speech** and wake detection
+**also in background/screen-locked use**. This turn records a concrete proposed
+milestone; it does not implement or activate those new capabilities.
+
+Inspected current Android capture/playback/voice controller/manifest, local speech
+study/manifest verification, released voice DTOs/server service, OpenAPI state,
+current README/architecture/instructions/roadmap and historical test evidence.
+Confirmed current one-minute4000-character protocol and controller cap, system
+recognizer-owned endpointing, platform offline TTS and absence of a microphone
+foreground service/wake implementation. Existing local speech models are study
+candidates, not approved/activated packages. Existing source was clean at20cde93.
+
+Added `phase-32-private-voice-conversations.md` with explicit checkpoints for
+app-owned streaming capture, additive long-form reviewed provenance/recovery,
+natural local voice auditions, foreground-service/session coordination and
+opt-in background/locked keyword spotting. Silence is not a turn boundary;
+explicit Send remains endorsement. Wake is not authentication. The plan retains
+actual OS interruption limits, lock-screen privacy, private-data policies and
+device/license/performance acceptance. No promise of vendor low-power wake,
+automatic post-boot/force-stop microphone restart or unbounded hardware uptime.
+Updated planning index/roadmap, README link and STATUS to distinguish proposed
+behavior from the implemented voice composer. No application source changed.
+
+Primary technical research checked2026-10-24: official Android SpeechRecognizer,
+microphone foreground-service/start restrictions/notification overview and
+VoiceInteractionService, sherpa-onnx Android/custom keyword spotting, Kokoro model
+and feminine-voice inventory/conversion. Sources are linked in the plan. Initial
+canonical SpeechRecognizer fetches timed out; the same official page with an
+authuser query and its continuous-recognition passage were retrieved successfully.
+Inaccessible alternative ASR documentation URL was not used as evidence. No model
+binaries, private audio, external speech requests or provider inference used.
+
+Checks actually run: `pytest tests/test_schema_contract.py -q` **3 passed /0
+skipped in2.17s**, one existing Starlette/httpx warning. Ruff lint/format283 Python
+files and `git diff --check` passed.162 local link targets resolved across the
+first five changed planning/README documents. Existing313 Android/56 voice test
+results remain earlier evidence, not reruns. No Gradle/device/PostgreSQL migration,
+battery/audio or native-model tests: this update changes planning documents only.
+
+Data/API/prompt/dependency changes: none. No .env/account/database, app install,
+permission/service/assistant-role/power-policy change, background microphone or
+deployment. Current Android26 still has its released duration/endpoint behavior.
+Next eligible work is separately selecting Phase32 implementation and closing its
+runtime/contract/native-device checkpoints; this proposal is not a completed phase.
+Final whitespace check passed;169 local link targets across all six changed
+documents resolved. Only planning/README/status files changed.
+
+
+### 2026-10-24 — Phase32 implementation, initial checkpoints — 20cde93 + workspace
+
+Scope: only Phase32. Preserve the existing uncommitted voice proposal documents.
+User confirms connected S24 FE and availability for public voice listening.
+Read rules/architecture/current plans, voice/auth contracts, schema/OpenAPI and
+source/test baseline. Connected SM-S721U1 reports API36. Docker Desktop initially
+stopped; started it without changing application configuration, then created
+owned disposable PostgreSQL17 container `ada-phase32-postgres` on loopback55432.
+No application database migration or normal phone installation.
+
+Baseline: existing scoped Android VoiceController/ChatViewModel tests passed.
+Backend voice/schema baseline31 passed/28 PostgreSQL skips in41.81s. Added long
+narrative invariants first: initial404 failure confirmed missing route. Early
+implementation exposed whitespace normalization and unsupported-provider-before-
+epoch-validation issues; corrected both. Long narrative SQLite9 passed/9 PG
+skips in12.40s. Subsequent scoped SQLite/PG voice/long/schema run77 passed/0 skips
+in116.63s, one existing Starlette/httpx warning. A broader suite is still running;
+intermediate failures are not a passing baseline.
+
+Pinned sherpa1.13.8 AAR and ASR/KWS/Kokoro public artifacts downloaded only for
+isolated evaluation under ignored build/. SHA/size validation and all four
+arm64 ELF16KiB load alignments checked. Optional bundle preparation caught a
+CRLF keyword digest difference; normalized the authored keyword and catalogue
+with explicit LF, pinned again and verified. Additional models remain absent
+from normal builds; native release distribution is blocked pending full bundle
+license/voice/phonemizer and target acceptance. No cloud speech or private audio.
+
+Implementation/checkpoint work continues; do not treat this entry as phase exit.

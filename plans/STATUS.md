@@ -1,8 +1,27 @@
 # Phase status
 
-Current overview updated 2026-10-22 America/Phoenix; historical entries retain their
+Current overview updated 2026-10-24 America/Phoenix; historical entries retain their
 own dates and verification provenance. Update after implementation and verification.
 “Planned” means a specification exists, not that code or a working UI exists.
+
+**Phase32 implementation in progress (2026-10-24):** additive long-form
+review/immutable narrative storage and migration0022, bounded app-owned streaming
+capture, optional pinned native speech evaluation build, neural playback and
+explicit local wake-service source are under validation. Source is not deployed;
+no normal ADA installation, live migration or microphone activation occurred.
+Exit/device/license/performance checks remain open until the dated verification
+entry is complete. Earlier proposal evidence below remains historical.
+
+**Phase32 voice direction planned (2026-10-24):** the user chose warm/calm feminine
+speech and Hello Ada while backgrounded/screen locked. The new plan specifies
+app-owned capture across silence, an additive long-form/provenance/recovery design,
+local neural-voice audition, explicitly armed microphone foreground service and
+native acceptance. Current system recognizer endpointing,60-second controller/API
+limits and lack of a wake service are confirmed source gaps. No new model/runtime,
+service/permission, API, migration, background listening or automatic Send is
+implemented/enabled by this planning update. Existing physical gates stay open.
+See [Phase32](phase-32-private-voice-conversations.md) and WORKLOG for source review,
+primary references and actual documentation/baseline checks.
 
 **Android shared voice composer (2026-10-22):** app26/0.31.1-voice-composer adds
 tap controls and hold/release on the same microphone. Available partial ASR appears

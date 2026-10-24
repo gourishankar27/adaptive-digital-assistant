@@ -1,3 +1,4 @@
+@file:OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
 @file:kotlinx.serialization.UseSerializers(UuidSerializer::class)
 package dev.ada.assistant.data
 
@@ -8,7 +9,9 @@ import kotlinx.serialization.Serializable
 const val VOICE_PROTOCOL = "ada-reviewed-voice-v1"
 
 @Serializable data class TranscriptInputDto(val transcript_id: UUID, val engine_id: String,
-    val engine_version: String, val language: String, val duration_ms: Long, val original_text: String) {
+    val engine_version: String, val language: String, val duration_ms: Long, val original_text: String,
+    @kotlinx.serialization.EncodeDefault(kotlinx.serialization.EncodeDefault.Mode.NEVER) val modelSha256: String? = null,
+    @kotlinx.serialization.EncodeDefault(kotlinx.serialization.EncodeDefault.Mode.NEVER) val segments: List<TranscriptSegmentDto> = emptyList()) {
     override fun toString() = "TranscriptInput(redacted)"
 }
 @Serializable data class ReviewedVoiceInputDto(val request_id: UUID, val content: String,
@@ -23,7 +26,7 @@ const val VOICE_PROTOCOL = "ada-reviewed-voice-v1"
 }
 @Serializable data class VoiceDraft(val identity: SessionIdentity, val conversationId: UUID,
     val scopeId: UUID, val transcript: TranscriptInputDto, val reviewedText: String,
-    val approved: Boolean = false) {
+    val approved: Boolean = false, val contextStart: Int? = null, val contextEnd: Int? = null, val conversationStyle: String = "listen") {
     override fun toString() = "VoiceDraft(redacted)"
 }
 @Serializable data class VoiceLineageDto(val request_id: UUID, val conversation_id: UUID, val scope_id: UUID,
@@ -43,8 +46,8 @@ const val VOICE_PROTOCOL = "ada-reviewed-voice-v1"
     }
 }
 fun CapabilitiesDto.hasVoiceInput() = voice_input == VOICE_PROTOCOL && !voice_audio_uploads && hasStreaming()
-fun voiceTextValid(text: String): Boolean {
-    if (text.isBlank() || text.contains('\u0000') || text.codePointCount(0, text.length) > 4000) return false
+fun voiceTextValid(text: String, maximum: Int = 4000): Boolean {
+    if (text.isBlank() || text.contains('\u0000') || text.codePointCount(0, text.length) > maximum) return false
     var index = 0
     while (index < text.length) {
         val c = text[index++]
@@ -55,13 +58,25 @@ fun voiceTextValid(text: String): Boolean {
 }
 fun voiceLanguageValid(language: String) = language.length <= 35 && Regex("[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8}){0,4}").matches(language)
 fun validateTranscript(transcript: TranscriptInputDto) {
+    if (transcript.isLong()) {
+        require(transcript.engine_version == "sherpa-onnx-1.13.8" && transcript.language == "en-US" &&
+            transcript.modelSha256?.matches(Regex("[0-9a-f]{64}")) == true && transcript.duration_ms in 1..LONG_VOICE_DURATION)
+        val rows = transcript.segments
+        require(rows.size in 1..512 && rows.map { it.id }.distinct().size == rows.size)
+        require(rows.withIndex().all { (i,s) -> s.sequence == i && s.end_ms in 1..transcript.duration_ms && voiceTextValid(s.text,LONG_VOICE_TEXT) && voiceHash(s.text) == s.sha256 })
+        require(rows.zipWithNext().all { (a,b) -> a.end_ms <= b.end_ms })
+        require(rows.joinToString(" ") { it.text } == transcript.original_text && voiceTextValid(transcript.original_text,LONG_VOICE_TEXT))
+        return
+    }
+    require(transcript.modelSha256 == null && transcript.segments.isEmpty())
     require(transcript.engine_id == "android_on_device" && transcript.engine_version.length in 1..120 &&
         transcript.engine_version.all { it.code in 32..126 } && voiceLanguageValid(transcript.language) &&
         transcript.duration_ms in 1..60_000 && voiceTextValid(transcript.original_text))
 }
 fun validateVoiceDraft(draft: VoiceDraft) {
     validateTranscript(draft.transcript)
-    require(voiceTextValid(draft.reviewedText))
+    require(draft.conversationStyle in setOf("listen","questions","suggestions"))
+    require(voiceTextValid(draft.reviewedText, if(draft.transcript.isLong()) LONG_VOICE_TEXT else 4000))
 }
 fun voiceHash(text: String) = MessageDigest.getInstance("SHA-256").digest(text.toByteArray(Charsets.UTF_8))
     .joinToString("") { (it.toInt() and 255).toString(16).padStart(2, '0') }

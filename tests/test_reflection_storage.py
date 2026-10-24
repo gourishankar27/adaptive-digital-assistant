@@ -27,7 +27,7 @@ def test_populated_0018_upgrade_preserves_completed_replay_and_has_no_schema_dri
     command.check(h["config"])
     assert send(h, conversation, "Public migration replay fixture.", key).json() == saved
     with h["sessions"]() as db:
-        assert db.scalar(text("SELECT version_num FROM alembic_version")) == "0021"
+        assert db.scalar(text("SELECT version_num FROM alembic_version")) == "0022"
         assert (
             len(
                 [
@@ -36,7 +36,7 @@ def test_populated_0018_upgrade_preserves_completed_replay_and_has_no_schema_dri
                     if not n.startswith(("claim_fts", "document_fts"))
                 ]
             )
-            == 76
+            == 77
         )
 
 
@@ -47,7 +47,7 @@ def test_reflection_history_blocks_downgrade_before_any_ddl_and_erases_explicitl
     with pytest.raises(RuntimeError, match="Reflection consent/artifact/safety history"):
         command.downgrade(h["config"], "0018")
     with h["sessions"]() as db:
-        assert db.scalar(text("SELECT version_num FROM alembic_version")) == "0021"
+        assert db.scalar(text("SELECT version_num FROM alembic_version")) == "0022"
         assert db.scalar(select(func.count()).select_from(ReflectionArtifact)) == 1
     h["settings"].deletion_worker_enabled = True
     deletion = h["app"].state.deletion

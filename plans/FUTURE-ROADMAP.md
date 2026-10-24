@@ -1,5 +1,14 @@
 # ADA development roadmap — Phase 20 onward
 
+2026-10-24 Phase32 implementation: [Phase32 — private voice conversations](phase-32-private-voice-conversations.md)
+records the user's warm/calm feminine voice and background/locked wake preferences.
+It now implements app-owned continuous capture, additive long-form review/recovery,
+optional pinned local speech evaluation and explicitly armed Hello Ada with shared
+session renewal. Human wake trials missed; target reliability/resource/license
+acceptance and phase exit remain open. Source0022/backup-v8, Android27/journal19;
+normal builds remain platform speech. See STATUS/WORKLOG and
+[usage](../docs/PRIVATE-VOICE-CONVERSATIONS.md). No installed upgrade or deployment.
+
 Subsequent selection, 2026-10-22: Phase31 text-PDF source and19A offline-draft
 study/protocol are implemented with actual checks/limits in STATUS/WORKLOG.
 Both measured mobile candidates failed reply quality, so local drafting remains

@@ -513,6 +513,9 @@ def create_app(settings=None, provider=None, sessions=None):
             "voice_input": "ada-reviewed-voice-v1"
             if app.state.streaming.available
             else "unsupported",
+            "long_voice_input": "ada-long-reviewed-voice-v1"
+            if app.state.streaming.available
+            else "unsupported",
             "voice_audio_uploads": False,
             "interaction_learning": LEARNING_VERSION,
             "interaction_preferences": "explicit_settings_v1",

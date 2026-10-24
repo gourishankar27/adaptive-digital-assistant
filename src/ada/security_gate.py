@@ -225,7 +225,9 @@ class SecurityMiddleware:
                             raise ServiceError(400, "json_nesting_limit")
                     elif value in (93, 125):
                         depth -= 1
-            if write and path.endswith(("/messages", "/stream-requests", "/voice-requests")):
+            if write and path.endswith(
+                ("/messages", "/stream-requests", "/voice-requests", "/long-voice-requests")
+            ):
                 try:
                     rid = str(UUID(json.loads(body).get("request_id", "")))
                 except (ValueError, UnicodeError, TypeError, AttributeError, RecursionError):

@@ -78,8 +78,8 @@ def test_native_encrypted_reflection_restore_is_paused_and_requires_new_probe(
         phrase = "Public synthetic reflection recovery phrase"
         artifact = backup(url, binary, tmp_path, phrase, settings)["artifact"]
         manifest, _ = unpack(read_artifact(artifact, phrase))
-        assert manifest["head"] == "0021" and manifest["format"] == "ada-postgres-backup-v7"
-        assert len(manifest["tables"]) == 76 and manifest["tables"]["reflection_runs"]["rows"] == 2
+        assert manifest["head"] == "0022" and manifest["format"] == "ada-postgres-backup-v8"
+        assert len(manifest["tables"]) == 77 and manifest["tables"]["reflection_runs"]["rows"] == 2
         assert manifest["tables"]["reflection_artifacts"]["rows"] == 1
         with sessions() as db:
             ledger = deletion_ledger(db.connection())

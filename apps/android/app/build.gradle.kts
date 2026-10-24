@@ -22,11 +22,27 @@ android {
         manifestPlaceholders["adaAppLabel"] = if (validationId == null) "ADA" else "ADA validation"
         minSdk = 26
         targetSdk = 36
-        versionCode = 26
-        versionName = "0.31.1-voice-composer"
+        versionCode = 27
+        versionName = "0.32.0-private-voice"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     val edgeNativeDir = providers.gradleProperty("adaEdgeNativeDir").orNull
+    val speechDir = providers.gradleProperty("adaSpeechRuntimeDir").orNull
+    defaultConfig.buildConfigField("String", "SPEECH_CATALOGUE_SHA", "\"403b9e4b16a87eedaec87bcd5219c02f7f2bc44e274092fc2a237cc0a9036038\"")
+    if(speechDir == null) sourceSets["main"].java.srcDir("src/speechPlatform/java")
+    else {
+        val root = file(speechDir)
+        val aar = root.resolve("sherpa-onnx-1.13.8.aar")
+        require(aar.isFile && MessageDigest.getInstance("SHA-256").digest(aar.readBytes()).joinToString("") { "%02x".format(it) } == "633c24321e06b1fe79feafa03ea16cbc0f8a286641e2da3559bac91bdb13bd96") { "Prepare the exact pinned speech runtime first" }
+        require(root.resolve("assets/speech-models/catalogue.json").readBytes().let { MessageDigest.getInstance("SHA-256").digest(it).joinToString("") { b -> "%02x".format(b) } } == "403b9e4b16a87eedaec87bcd5219c02f7f2bc44e274092fc2a237cc0a9036038")
+        sourceSets["main"].java.srcDir("src/speechNative/java")
+        sourceSets["main"].assets.srcDir(root.resolve("assets"))
+        sourceSets["androidTest"].assets.srcDir(root.resolve("test-assets"))
+        defaultConfig.ndk.abiFilters.add("arm64-v8a")
+        gradle.taskGraph.whenReady {
+            require(allTasks.none { it.name.contains("Release",ignoreCase=true) }) { "Native speech is evaluation-only pending complete redistribution/license and device acceptance" }
+        }
+    }
     defaultConfig.buildConfigField("boolean", "EDGE_RUNTIME", if(edgeNativeDir == null) "false" else "true")
     if(edgeNativeDir != null) {
         val nativeRoot = file(edgeNativeDir)
@@ -87,6 +103,7 @@ tasks.register("resolveAndLockAll") {
 }
 
 dependencies {
+    providers.gradleProperty("adaSpeechRuntimeDir").orNull?.let { implementation(files(file(it).resolve("sherpa-onnx-1.13.8.aar"))) }
     implementation(libs.androidx.core)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.viewmodel)

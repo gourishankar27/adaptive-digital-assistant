@@ -1,5 +1,11 @@
 # Explicit Android voice input and reply playback
 
+2026-10-24 follow-up: [Phase32 private voice conversations](PRIVATE-VOICE-CONVERSATIONS.md)
+adds optional pinned native capture/voices/wake evaluation, long reviewed lineage
+and shared session renewal. Ordinary builds retain platform speech. Its actual
+checks and open wake/license/resource gates are recorded in STATUS/WORKLOG;
+earlier descriptions below retain their original milestone boundaries.
+
 Phase 17 adds optional push-to-talk and reply playback. Text chat, source access,
 ownership, prompts, factual memory and tool approvals keep their existing rules.
 The default recognition language is **English (en-US)**. The S24 FE/Android 16

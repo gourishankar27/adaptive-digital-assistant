@@ -1,5 +1,43 @@
 # ADA architecture decisions
 
+## Phase32 long reviewed voice and persistent local wake
+
+Migration0022 adds `long_voice_inputs`, bringing the inventory to77 tables and64
+owner-content tables. Backup-v8 adds its full narrative/lineage; v1–v7 readers and
+released migration history remain. New capability `ada-long-reviewed-voice-v1`
+gates additive POST long-voice-requests/GET long-voice-input. Existing paths and
+DTO schemas are unchanged except the additive capability field. Actual duration,
+ordered immutable generated segment IDs/hashes/model metadata, separately reviewed
+words, exact Unicode context span, style and epoch bind the atomic request.
+Only the chosen <=4,000-character excerpt enters model context and ordinary event
+evidence; the retained <=32,768-character story is not auto-indexed as fact.
+Fixed conversation style is budgeted before model inference outside transactions.
+Original prompts, source trust and completed replay remain frozen.
+
+Android27/journal19 retains v1–v18 readers. App-owned AudioRecord feeds a bounded
+2s queue and pinned streaming native decoder; endpoints commit internal text,
+never finish capture. Checkpoints are Keystore-encrypted before acknowledgement.
+Explicit release/Stop drains queued frames; explicit Send reserves exact approved
+input before HTTP. Limits/failure are visible; no raw-audio file/upload/default
+cloud processing. Optional asset-only installation verifies every pinned byte;
+ordinary builds have no added native/model payload. Native release builds remain
+blocked on redistribution/target acceptance. Neural playback uses bounded chunks,
+explicit voice choice and the existing independent audio/generation Stop boundary.
+
+An unexported microphone foreground service is armed only from a visible verified
+conversation. A process-local grant carries no login secret. A shared coordinator
+serializes UI/service renewal through atomic encrypted compare/replace, marks an
+unknown outcome before HTTP, verifies owner/epoch and never replays a consumed
+refresh. Access remains in memory; visible UI owns rotation and resume joins any
+background rotation before restoring private views. Logout joins renewal before
+revocation/cleanup. Every30s, the service verifies authentication and owned
+conversation metadata; failure, expiry, logout, scope/epoch/family change and audio
+loss stop/revoke listening. Wakes only cue/Open ADA; unlock/current auth precedes
+private access. No boot restart, default-assistant role or private locked speech.
+Native wake reliability remains under investigation, not an accepted capability.
+See [usage and validation](PRIVATE-VOICE-CONVERSATIONS.md).
+
+
 ## Shared Android voice composer
 
 Android app26/0.31.1 shares the message editor with reviewed voice drafts. Tap controls

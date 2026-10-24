@@ -48,6 +48,7 @@ class ChatViewModel(
     val passwordSessions = mutablePasswordSessions.asStateFlow()
     private var renewalJob: Job? = null
     private var accessExpiresAt: Long? = null
+    private var loginFamily:UUID?=null
     private var credential: ConnectionCredential? = null
     private var identity: SessionIdentity? = null
     private var generation = 0L
@@ -56,6 +57,7 @@ class ChatViewModel(
     private var streamJob: Job? = null
     private var foreground = true
     private val storage = Mutex()
+    private val sessionRefresh=PasswordRefreshCoordinator.forStore(store)
     private var cleanupJob: Job? = null
     private var cleanupFailed = false
     private val drafts = mutableMapOf<UUID, Draft>()
@@ -65,7 +67,8 @@ class ChatViewModel(
     private var retryNotBefore = 0L
     private data class Draft(val text: String = "", val memory: Boolean = true, val at: String = "", val documents: Boolean = false)
 
-    init { require(pollDelaysMs.isNotEmpty() && pollDelaysMs.size <= 12 && pollDelaysMs.all { it in 0..60_000 }) }
+    init { require(pollDelaysMs.isNotEmpty() && pollDelaysMs.size <= 12 && pollDelaysMs.all { it in 0..60_000 }); sessionRefresh.foreground(this,true) }
+    override fun onCleared() { sessionRefresh.foreground(this,false); super.onCleared() }
     private fun update(block: (ChatState) -> ChatState) {
         val previous = mutableState.value.destination
         val previousConversation = mutableState.value.conversation?.id
@@ -85,10 +88,15 @@ class ChatViewModel(
         }
     }
     fun observeForeground(visible: Boolean) {
+        val resumed=visible && !foreground
+        sessionRefresh.foreground(this,visible)
         foreground = visible
         voice.observeForeground(visible)
         scheduling.observeForeground(visible); reflection.observeForeground(visible); work.observeForeground(visible)
         edge.observeForeground(visible)
+        // Join any in-flight service rotation before exposing private views or sending
+        // a request with the access token that was current before backgrounding.
+        if(resumed && accessExpiresAt!=null && credential!=null) { restore(); return }
         if (!visible) { renewalJob?.cancel(); renewalJob = null; streamJob?.cancel(); update { it.copy(streamConnected = false) } }
         else if (state.value.destination == ChatDestination.Chat && state.value.pending != null) reconcile()
         if (visible && accessExpiresAt?.let { it - System.currentTimeMillis() < 60_000 } == true) { renewSession(); return }
@@ -111,12 +119,12 @@ class ChatViewModel(
         }.also { job -> jobs += job; job.invokeOnCompletion { jobs -= job } }
     }
     private fun current(epoch: Long) = epoch == generation
-    private fun resetMemory() {
+    private fun resetMemory(preserveWake:Boolean=false) {
         voiceComposerBase = null
         mutablePasswordSessions.value = emptyList()
-        renewalJob?.cancel(); renewalJob = null; accessExpiresAt = null
+        renewalJob?.cancel(); renewalJob = null; accessExpiresAt = null; loginFamily=null
         security.reset()
-        voice.reset()
+        voice.reset(preserveWake)
         memory.reset()
         documents.reset()
         entities.reset()
@@ -163,18 +171,31 @@ class ChatViewModel(
     }
     fun logout(all: Boolean = false) {
         val previous = credential
+        val owner=identity; val family=loginFamily
         val revoke = accessExpiresAt != null || all
-        expire(reason = null, notice = "Signing out. Private local data is being cleared.")
+        if(previous==null || owner==null || !revoke) {expire(reason=null); return}
+        // Hide/revoke local audio immediately, then join an in-flight rotation
+        // before server sign-out and durable cleanup. Never revoke with an old
+        // access token while the service is consuming its refresh replacement.
+        resetMemory(); mutableState.value=ChatState(notice="Signing out. Private local data is being cleared.")
         val epoch = generation
-        if (previous != null && revoke) viewModelScope.launch(NonCancellable) {
-            val result = api.logoutSession(previous, all)
-            if (current(epoch) && result is ApiResult.Failure) update { it.copy(notice = "Local data cleared. Server sign-out was not confirmed. Reconnect and revoke the session or ask the local operator to reset your password.") }
+        val before=cleanupJob
+        cleanupJob=viewModelScope.launch(NonCancellable) {
+            before?.join()
+            val result=if(family!=null) sessionRefresh.logout(api,store,owner,family,previous,all,allowDebugHttp) else api.logoutSession(previous,all)
+            try {
+                storage.withLock {store.clear()}; cleanupFailed=false
+                if(current(epoch)) update {it.copy(notice=if(result is ApiResult.Failure) "Local data cleared. Server sign-out was not confirmed. Reconnect and revoke the session or ask the local operator to reset your password." else "Signed out. Private local data cleared.")}
+            } catch (_:Exception) {
+                cleanupFailed=true
+                if(current(epoch)) update {it.copy(fault=ApiFailure.IncompatibleContract,notice="Private data is hidden, but encrypted recovery data could not be removed. Resolve device storage before reconnecting.")}
+            }
         }
     }
     fun disconnect() = expire(reason = null)
 
-    fun restore() {
-        resetMemory(); mutableState.value = ChatState(connecting = true)
+    fun restore(forceRotation:Boolean=false) {
+        resetMemory(preserveWake=true); mutableState.value = ChatState(connecting = true)
         val epoch = generation
         launchWork {
             if (!awaitCleanup()) { if (current(epoch)) expire(ApiFailure.IncompatibleContract, "Private recovery storage could not be cleared safely. Resolve device storage before reconnecting."); return@launchWork }
@@ -186,9 +207,9 @@ class ChatViewModel(
                 return@launchWork
             }
             if (saved.passwordSession) {
-                val result = value(api.refreshLogin(saved.identity.server, saved.token, allowDebugHttp), epoch) ?: return@launchWork
+                val result = value(sessionRefresh.refresh(api,store,saved,allowDebugHttp,force=forceRotation), epoch) ?: return@launchWork
                 establish(saved.identity.server, result.access_token, epoch, expectedOwner = saved.identity.owner,
-                    refreshToken = result.refresh_token, expiresAt = result.access_expires_at)
+                    refreshToken = result.refresh_token, expiresAt = result.access_expires_at, loginSessionId=result.session_id, passwordResult=result)
             } else establish(saved.identity.server, saved.token, epoch, expectedOwner = saved.identity.owner)
         }
     }
@@ -199,7 +220,7 @@ class ChatViewModel(
         launchWork {
             if (!awaitCleanup() || !current(epoch)) return@launchWork
             val result = value(api.passwordLogin(server, username, password, allowDebugHttp), epoch) ?: return@launchWork
-            establish(server, result.access_token, epoch, refreshToken = result.refresh_token, expiresAt = result.access_expires_at)
+            establish(server, result.access_token, epoch, refreshToken = result.refresh_token, expiresAt = result.access_expires_at, loginSessionId=result.session_id, passwordResult=result)
         }
     }
     fun loadPasswordSessions() = sessionWork { connection, epoch ->
@@ -219,7 +240,20 @@ class ChatViewModel(
             if (current(epoch) && foreground) renewSession()
         }
     }
-    fun renewSession() = restore()
+    fun armHelloAda(ready: (Boolean) -> Unit) {
+        val c=credential; val owner=identity; val row=state.value.conversation
+        if(c==null || owner==null || row==null || !foreground || voice.captureActive || state.value.pending!=null) { ready(false); return }
+        val epoch=generation
+        launchWork {
+            val user=value(api.me(c),epoch)
+            if(!current(epoch) || !foreground || state.value.conversation?.id!=row.id || user==null || user.id!=owner.owner || user.data_epoch!=c.dataEpoch) { ready(false); return@launchWork }
+            val until=accessExpiresAt ?: (System.currentTimeMillis()+120000)
+            if(until<=System.currentTimeMillis()) { ready(false); return@launchWork }
+            dev.ada.assistant.audio.WakeAuthority.arm(dev.ada.assistant.audio.WakeAuthority.Grant(owner,row.id,row.scope_id,user.data_epoch,until,persistent=true,sessionId=store.readCredential()?.loginSessionId))
+            ready(true)
+        }
+    }
+    fun renewSession() = restore(forceRotation=true)
 
     fun connect(server: String, token: String) {
         resetMemory(); mutableState.value = ChatState(connecting = true)
@@ -238,7 +272,7 @@ class ChatViewModel(
         launchWork { establish(server, token, epoch, expectedOwner = previous.owner) }
     }
 
-    private suspend fun establish(server: String, token: String, epoch: Long, expectedOwner: UUID? = null, refreshToken: String? = null, expiresAt: Long? = null) {
+    private suspend fun establish(server: String, token: String, epoch: Long, expectedOwner: UUID? = null, refreshToken: String? = null, expiresAt: Long? = null, loginSessionId: UUID?=null, passwordResult:PasswordSessionDto?=null) {
         if (!awaitCleanup()) {
             if (current(epoch)) expire(ApiFailure.IncompatibleContract, "Secure cleanup could not be confirmed. Resolve device storage before connecting.")
             return
@@ -272,7 +306,10 @@ class ChatViewModel(
         val savedPending = try {
             storage.withLock {
                 if (!current(epoch)) return
-                store.saveCredential(StoredCredential(verified, refreshToken ?: token, user.data_epoch, passwordSession = refreshToken != null))
+                val existing=store.readCredential()
+                // A service renewal may have advanced the rotating family while /me was in flight.
+                if(refreshToken!=null && existing?.identity==verified && existing.passwordSession && existing.token!=refreshToken) throw SessionStorageException(SessionStoreFailure.PendingConflict)
+                store.saveCredential(StoredCredential(verified,refreshToken ?: token,user.data_epoch,passwordSession=refreshToken!=null,loginSessionId=loginSessionId))
                 store.pending(verified)
             }
         } catch (_: Exception) {
@@ -280,8 +317,12 @@ class ChatViewModel(
             return
         }
         if (!current(epoch)) return
-        credential = connection; identity = verified; accessExpiresAt = expiresAt
+        credential = connection; identity = verified; accessExpiresAt = expiresAt; loginFamily=loginSessionId
+        if(passwordResult!=null) sessionRefresh.remember(store,StoredCredential(verified,refreshToken!!,user.data_epoch,true,false,loginSessionId),passwordResult)
         if (expiresAt != null && foreground) scheduleRenewal(expiresAt, epoch)
+        dev.ada.assistant.audio.WakeAuthority.current()?.takeIf { it.identity==verified && it.dataEpoch==user.data_epoch }?.let { active ->
+            dev.ada.assistant.audio.WakeAuthority.extend(active,active.copy(expiresAt=expiresAt ?: System.currentTimeMillis()+120000,sessionId=loginSessionId))
+        }
         voice.setVerifiedSession(connection, verified, features)
         memory.setVerifiedSession(connection, verified, features)
         documents.setVerifiedSession(connection, verified, features)
@@ -615,7 +656,7 @@ class ChatViewModel(
         val row = current.conversation ?: return
         if (current.pending != null || current.capabilities?.chat != true) return
         if (voiceDraft != null && (current.capabilities?.hasVoiceInput() != true || voiceDraft.identity != verified || voiceDraft.conversationId != row.id || voiceDraft.scopeId != row.scope_id)) return
-        val content = voiceDraft?.reviewedText ?: current.draft
+        val content = if(voiceDraft != null) voiceDraft.contextText() ?: return else current.draft
         if ((current.useMemory && current.capabilities?.memory_in_chat != true) ||
             (current.useDocuments && (!current.useMemory || current.capabilities?.document_retrieval != true || !current.capabilities.document_citations || row.prompt_version !in setOf("ada-baseline-v4", "ada-baseline-v5"))) ||
             (current.asOf.isNotBlank() && current.capabilities?.historical_memory_queries != true)) { invalidDraft(); return }
@@ -623,7 +664,11 @@ class ChatViewModel(
             catch (_: IllegalArgumentException) { invalidDraft(); return }
         if (content.isBlank() || content.codePointCount(0, content.length) > 4000 || content.contains('\u0000') ||
             !validUnicode(content)) { invalidDraft(); return }
-        val message = PendingMessage(verified, row.id, ChatInputDto(UUID.randomUUID(), content, at, current.useMemory, current.useDocuments), voiceDraft?.transcript, voiceDraft?.scopeId)
+        val longVoice = voiceDraft?.transcript?.isLong() == true
+        if (longVoice && current.capabilities?.hasLongVoice() != true) return
+        val message = PendingMessage(verified,row.id,ChatInputDto(UUID.randomUUID(),content,at,current.useMemory,current.useDocuments),voiceDraft?.transcript,voiceDraft?.scopeId,
+            if(longVoice) voiceDraft?.reviewedText else null,if(longVoice && voiceDraft!!.reviewedText.codePointCount(0,voiceDraft.reviewedText.length)>4000) voiceDraft.contextStart ?: return else 0,
+            if(longVoice) credential?.dataEpoch ?: return else null,voiceDraft?.conversationStyle ?: "listen")
         // Reserve synchronously before starting a coroutine so a second tap cannot race persistence.
         update { it.copy(pending = PendingState(message, PendingPhase.Journaling), fault = null, notice = null) }
         val epoch = generation
@@ -671,11 +716,11 @@ class ChatViewModel(
         val connection = credential ?: return
         if (!current(epoch) || identity != message.identity) return
         update { it.copy(pending = PendingState(message, PendingPhase.Submitting), fault = null) }
-        if (message.voiceTranscript != null && state.value.capabilities?.hasVoiceInput() != true) {
+        if ((message.voiceTranscript?.isLong() == true && state.value.capabilities?.hasLongVoice() != true) || (message.voiceTranscript != null && state.value.capabilities?.hasVoiceInput() != true)) {
             update { it.copy(pending = PendingState(message, PendingPhase.Blocked), fault = ApiFailure.IncompatibleContract, notice = "This server does not support reviewed voice input. Keep the original request for recovery.") }; return
         }
         if (state.value.capabilities?.hasStreaming() == true) {
-            val submission = if (message.voiceTranscript != null) api.submitVoice(connection, message.conversationId, ReviewedVoiceInputDto.from(message)) else api.submitStream(connection, message.conversationId, message.body)
+            val submission = if (message.voiceTranscript?.isLong() == true) api.submitLongVoice(connection,message.conversationId,longVoiceRequest(message)) else if (message.voiceTranscript != null) api.submitVoice(connection, message.conversationId, ReviewedVoiceInputDto.from(message)) else api.submitStream(connection, message.conversationId, message.body)
             when (val streamed = submission) {
                 is ApiResult.Success -> {
                     if (!current(epoch) || identity != message.identity) return
@@ -758,9 +803,10 @@ class ChatViewModel(
                 if (!current(epoch)) return
                 update { it.copy(pending = null, stream = null, streamConnected = false, stopping = false, fault = null, notice = null) }
                 if (message.voiceTranscript != null) voice.refreshHistory()
+                if (message.voiceTranscript != null && voice.state.value.conversationPlayback) voice.play(response.request_id)
                 if (mutableState.value.conversation?.id == message.conversationId) refreshEvents()
                 refreshConversations()
-                if (curiosityTurns.remove(response.request_id)) {
+                if (curiosityTurns.remove(response.request_id) && message.voiceTranscript?.isLong()!=true) {
                     mutableState.value.conversation?.takeIf { it.id == message.conversationId }?.let { curiosity.afterReply(it, response.request_id) }
                 }
             }

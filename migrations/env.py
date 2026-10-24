@@ -11,6 +11,7 @@ from ada import (  # noqa: F401
     expression_models,
     learning_models,
     login_models,
+    long_voice,
     proposal_models,
     reflection_models,
     schedule_models,

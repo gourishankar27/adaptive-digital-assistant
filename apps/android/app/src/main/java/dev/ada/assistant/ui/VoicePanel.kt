@@ -28,6 +28,12 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.ada.assistant.data.*
 import java.util.UUID
+import android.os.Build
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import dev.ada.assistant.audio.HelloAdaService
+import dev.ada.assistant.audio.WakeAuthority
 
 @Composable fun VoicePanel(vm: ChatViewModel) {
     val state by vm.voice.state.collectAsStateWithLifecycle()
@@ -99,6 +105,20 @@ import java.util.UUID
     var discardDraft by remember { mutableStateOf(false) }
     val focus = LocalFocusManager.current
     val keyboard = LocalSoftwareKeyboardController.current
+    val host=LocalLifecycleOwner.current
+    val wakeStatus by HelloAdaService.status.collectAsStateWithLifecycle()
+    fun armWake() {
+        if(!host.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return
+        vm.armHelloAda { allowed ->
+            if(allowed && host.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                try { ContextCompat.startForegroundService(context,Intent(context,HelloAdaService::class.java)) }
+                catch (_: Exception) { WakeAuthority.revoke() }
+            } else WakeAuthority.revoke()
+        }
+    }
+    val wakePermission=rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
+        if(grants.values.all { it }) armWake()
+    }
     AdaPresenceHeading("On-device voice", adaPresenceState(chat, state).label, adaPresenceState(chat, state), compact = true)
     Text("Tap Record here, or hold the microphone in chat and release to finish. Edit the transcript in the message field; Send approves your wording. ADA uploads no audio.", style = MaterialTheme.typography.bodySmall)
     var engineDetails by remember { mutableStateOf(false) }
@@ -109,7 +129,7 @@ import java.util.UUID
         Text("Recognition: Android on-device service · ${speechAvailabilityLabel(state.availability)}", modifier = Modifier.testTag("voice-engine-status"))
         Text("Playback: installed offline Android voices. Android manages their model files; ADA does not verify their model digests.")
         Text("Additional local models: none installed or enabled. Candidate engines await license, compatibility and physical-device checks.")
-        Text("Voice names describe playback only, not recognition accuracy. Changing engines, importing or downloading models is unavailable in this build. Text entry remains available.")
+        Text("Voice names describe playback only, not recognition accuracy. Optional native speech is available only in explicitly prepared evaluation builds. Text entry remains available.")
         Text("Style: normal. This adapter offers voice and rate selection; no separate style or generated shorter reply is applied.")
         state.captureAdapter?.let { Text(it.id, style = MaterialTheme.typography.bodySmall) }
         state.playbackAdapter?.let { Text(it.id, style = MaterialTheme.typography.bodySmall) }
@@ -130,7 +150,7 @@ import java.util.UUID
         AdaButton(onClick = { focus.clearFocus(); keyboard?.hide(); record() }, enabled = chat.pending == null && !state.saving && !state.draftLoading && state.savedDraftConversation == null, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("voice-record")) { Text("Record voice") }
     }
     if (vm.voice.captureActive) {
-        Text("${voicePhaseLabel(state.phase)} · ${state.durationMs / 1000}s · limit 60s", modifier = Modifier.testTag("voice-recording-state"))
+        Text("${voicePhaseLabel(state.phase)} · ${state.durationMs / 1000}s · limit ${if(state.longFormEnabled) "2h / 32,768 characters" else "60s"}", modifier = Modifier.testTag("voice-recording-state"))
         if (state.phase == VoicePhase.Recording) AdaButton(onClick = vm.voice::stopCapture, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("voice-stop-recording")) { Text("Stop recording") }
         AdaOutlinedButton(onClick = vm.voice::discard, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("voice-discard-recording")) { Text("Discard recording") }
     }
@@ -139,6 +159,16 @@ import java.util.UUID
         context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, "package:${context.packageName}".toUri()))
     }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Open microphone settings") }
     state.draft?.let { draft ->
+        if(draft.transcript.isLong() && draft.reviewedText.codePointCount(0,draft.reviewedText.length)>4000) {
+            var start by remember(draft.transcript.transcript_id) { mutableStateOf("0") }
+            var end by remember(draft.transcript.transcript_id) { mutableStateOf("4000") }
+            Text("Choose an exact excerpt for this reply. Send retains the full reviewed story; only the selected excerpt enters model context. Positions count Unicode characters from zero.")
+            OutlinedTextField(start,{start=it},label={Text("Context start")},modifier=Modifier.testTag("voice-context-start"))
+            OutlinedTextField(end,{end=it},label={Text("Context end (exclusive)")},modifier=Modifier.testTag("voice-context-end"))
+            AdaOutlinedButton(onClick={ val a=start.toIntOrNull(); val b=end.toIntOrNull(); if(a!=null && b!=null) vm.voice.chooseContext(a,b) },modifier=Modifier.testTag("voice-context-select")) { Text("Review this excerpt") }
+            draft.contextText()?.let { Text("Exact reply context:"); SafeChatText(it,links=false) }
+        }
+
         Text("Review generated transcript", style = MaterialTheme.typography.titleMedium)
         Text("Speech recognition may mishear words. Only your approved wording becomes the conversational input.")
         var showOriginal by remember(draft.transcript.transcript_id) { mutableStateOf(false) }
@@ -151,9 +181,36 @@ import java.util.UUID
         AdaButton(onClick = vm::sendReviewedVoice, enabled = vm.voice.approvedDraft() != null, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("voice-send")) { Text("Send reviewed voice") }
         AdaOutlinedButton(onClick = { discardDraft = true }, enabled = !state.saving && chat.pending == null, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("voice-discard")) { Text("Discard voice draft") }
     }
+    if(state.longFormEnabled && !vm.voice.captureActive && state.draft==null) {
+        Text("For this voice story")
+        FlowRow { listOf("listen" to "Just listen","questions" to "Gentle questions","suggestions" to "Practical suggestions").forEach { (key,label) -> AdaChoiceChip(state.conversationStyle==key,label,{vm.voice.conversationStyle(key)}) } }
+        Text("Expression choices apply to the next long-form voice turn. They do not save memories or change curiosity consent.",style=MaterialTheme.typography.bodySmall)
+    }
     Text("Reply playback", style = MaterialTheme.typography.titleMedium)
+    AdaToggle(state.conversationPlayback,"Conversation mode · read completed replies aloud",vm.voice::conversationPlayback,Modifier.testTag("voice-conversation-mode"))
+    Text("Reply playback stops on leaving ADA or locking the screen. Sources and the full saved reply remain on screen.",style=MaterialTheme.typography.bodySmall)
+    if(state.localModelsIncluded) {
+        Text("Private speech models",style=MaterialTheme.typography.titleMedium)
+        Text("Local evaluation: about 400 MiB plus runtime. Installation copies verified data from this APK; it makes no network request. Native quality, battery and redistribution gates are recorded separately.",style=MaterialTheme.typography.bodySmall)
+        AdaOutlinedButton(onClick={ vm.voice.installModels() },enabled=!state.modelWork && !vm.voice.captureActive,modifier=Modifier.testTag("voice-install-local")) { Text(if(state.localModelsInstalled) "Verify local speech files" else "Install bundled local speech files") }
+        if(state.localModelsInstalled) {
+            AdaOutlinedButton(onClick={ vm.voice.installModels(true) },enabled=!state.modelWork && !vm.voice.captureActive,modifier=Modifier.testTag("voice-remove-local")) { Text("Remove local speech files") }
+            if(state.longFormSupported) AdaToggle(state.longFormEnabled,"Long-form local recording · silence keeps recording",vm.voice::longForm,Modifier.testTag("voice-long-form"),enabled=!vm.voice.captureActive && state.draft==null)
+            Text("Long-form limit: 2 hours or 32,768 characters; up to 512 internal segments. Full reviewed wording is retained. Choose a context excerpt of up to 4,000 characters when needed before Send. The server prompt byte budget can require a shorter excerpt; a rejection keeps the draft editable.",style=MaterialTheme.typography.bodySmall)
+            Text(wakeStatus,modifier=Modifier.testTag("voice-wake-status"))
+            Text("Hello Ada: opt-in background/locked local detection. Stays armed through shared session renewal while authorized and connected. Sign-in failure or interruption requires re-arming. It vibrates and offers Open ADA; unlock before recording or private access. No automatic restart after reboot, force-stop, audio interruption or logout.",style=MaterialTheme.typography.bodySmall)
+            AdaOutlinedButton(onClick={
+                val required=mutableListOf(Manifest.permission.RECORD_AUDIO)
+                if(Build.VERSION.SDK_INT>=33) required+=Manifest.permission.POST_NOTIFICATIONS
+                if(required.all { context.checkSelfPermission(it)==PackageManager.PERMISSION_GRANTED }) armWake()
+                else wakePermission.launch(required.toTypedArray())
+            },enabled=!vm.voice.captureActive && !state.playing && !state.modelWork,modifier=Modifier.testTag("voice-arm-wake")) { Text("Arm Hello Ada") }
+            AdaOutlinedButton(onClick={ WakeAuthority.revoke(); context.stopService(Intent(context,HelloAdaService::class.java)) },modifier=Modifier.testTag("voice-stop-wake")) { Text("Stop wake listening") }
+        }
+    } else Text("Additional local speech models are not included in this build. Platform speech stays available.",style=MaterialTheme.typography.bodySmall)
     if (state.voices.isEmpty()) Text("No installed offline playback voice is available. Replies remain readable.")
     else {
+        if(state.voices.any { it.id=="neural/1" }) AdaOutlinedButton(onClick={vm.voice.selectVoice("neural/1")},modifier=Modifier.testTag("voice-choose-bella")) { Text("Choose Bella · calm feminine voice") }
         var menu by remember { mutableStateOf(false) }
         Box {
             AdaOutlinedButton(onClick = { menu = true }, modifier = Modifier.heightIn(min = AdaSpacing.touch).testTag("voice-choice")) { Text(state.voices.firstOrNull { it.id == state.voiceId }?.label ?: "Choose playback voice") }
@@ -198,5 +255,17 @@ private fun speechAvailabilityLabel(value: SpeechAvailability) = when (value) {
         SafeChatText(row.reviewed_text, links = false)
         Text("${row.language} · ${row.duration_ms}ms · ${row.engine_version} (client reported)", style = MaterialTheme.typography.bodySmall)
         Text("Audio was not received by the server. No server audio hash exists.", style = MaterialTheme.typography.bodySmall)
+    } }
+}
+
+@Composable fun LongVoiceLineageCard(row: LongVoiceLineageDto) {
+    Card(Modifier.fillMaxWidth().testTag("long-voice-lineage-${row.request_id}")) { Column(Modifier.padding(AdaSpacing.medium),verticalArrangement=Arrangement.spacedBy(AdaSpacing.small)) {
+        Text("Reviewed voice story",style=MaterialTheme.typography.titleMedium)
+        Text("Original recognition · generated interpretation")
+        SafeChatText(row.transcript.segments.joinToString(" ") { it.text },links=false)
+        Text("Full reviewed wording · explicit endorsement")
+        SafeChatText(row.reviewed_text,links=false)
+        Text("Only the explicitly selected excerpt entered this reply's model context. The full story is retained without automatic factual-memory promotion.")
+        Text("${row.transcript.language} · ${row.transcript.duration_ms}ms · engine/model client reported. Server received no audio.",style=MaterialTheme.typography.bodySmall)
     } }
 }

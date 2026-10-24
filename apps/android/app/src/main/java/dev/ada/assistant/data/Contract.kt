@@ -53,6 +53,7 @@ val adaJson = Json { ignoreUnknownKeys = true; explicitNulls = false; encodeDefa
     val interaction_preferences: String = "unsupported", val session_expression: String = "unsupported", val automatic_affect_inference: Boolean = false,
     val interaction_learning: String = "unsupported",
     val stream_protocol: String = "unsupported", val generation_cancellation: Boolean = false,
+    val long_voice_input: String = "unsupported",
     val voice_input: String = "unsupported", val voice_audio_uploads: Boolean = false,
     val device_credentials: String = "unsupported", val private_deletion: String = "unsupported",
     val answer_quality: String = "unsupported", val calendar_windows: String = "unsupported",

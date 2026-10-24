@@ -718,3 +718,36 @@ and reminder; generic schedule reauthorization cannot revive completed work.
 Admin remains monitoring only. New head0020 and backup-v6 preserve earlier released
 migrations/formats. Human usefulness/physical accessibility remain verification
 items, not fabricated acceptance results. Phase31 is outside this implementation.
+
+
+## 2026-10-24 — Phase32 reviewed narratives and shared wake renewal
+
+Keep the released one-minute voice contract unchanged. A capability-gated additive
+protocol stores the immutable generated segments and separately reviewed full story,
+while an explicit exact <=4,000-code-point excerpt enters the existing bounded
+request context. No hidden summarizer, automatic turn splitting, duration clamping
+or relabeling of generated ASR as authored text. The retained full narrative is
+private lineage, not an automatically indexed factual source. Fixed conversation
+style is versioned/budgeted on the new route; old prompt/replay paths stay frozen.
+
+App-owned AudioRecord and a two-second bounded PCM queue separate recognizer
+endpoints from owner-controlled recording lifetime. Durable encrypted segment
+acknowledgements precede checkpoints; no raw-audio file or cloud speech. Optional
+pinned native files/arm64 runtime are isolated from ordinary builds. Native Release
+is blocked until the combined runtime/phonemizer/voice redistribution review and
+device acceptance close; a preferred Bella audition does not close those gates.
+
+The user explicitly selected persistent Hello Ada with shared session renewal.
+One process-wide credential coordinator serializes UI/service consumers and saves
+an unknown-outcome marker before refresh/logout HTTP. Visible UI owns rotation;
+resume joins background renewal before private recovery. Logout joins a pending
+rotation, revokes the current family and fences queued consumers before clearing
+local storage. Unknown outcomes require sign-in rather than replaying a consumed
+refresh. The microphone grant has no secret and extends only after owner/epoch/
+conversation/session checks. Wake grants no private access or write authority.
+
+Use an explicitly armed microphone foreground service and nonprivate locked cue,
+not default-assistant/boot/OS-power-policy changes. Interruptions require re-arming.
+Human wake phrase trials currently miss despite an active service; acceptance
+remains open while controlled acoustic and false-wake tests investigate it. No
+narrower successful phase exit is inferred and no normal app/deployment is changed.

@@ -1,5 +1,18 @@
 # Current ADA baseline
 
+**Phase32 source, 2026-10-24 America/Phoenix:** additive long reviewed narratives,
+immutable generated segment lineage, bounded model excerpt, encrypted journal19,
+app-owned continuous capture and optional pinned sherpa/Zipformer/Kokoro/KWS native
+evaluation. Persistent foreground wake uses shared serialized password renewal,
+owner/scope/epoch/session fences and nonprivate locked cues; no automatic Send,
+background story transcription or private lock-screen speech. Current source:
+**0022 /77 tables /64 owner-content /backup-v8**, OpenAPI166/220,
+Android27 /0.32.0-private-voice. Ordinary builds remain platform speech. Bella/Stop
+and a public two-phrase microphone pause check are owner-confirmed. Human wake
+trials missed; reliability/resource/license acceptance and phase exit remain open.
+See [guide](../docs/PRIVATE-VOICE-CONVERSATIONS.md) and dated STATUS/WORKLOG.
+No installed database/normal app upgrade or deployment. Earlier dated baselines follow.
+
 **Android voice-composer follow-up, 2026-10-22:** app versionCode26 /
 0.31.1-voice-composer adds tap controls and physical hold/release on the same
 microphone. Available partial words appear in the editor; final words are an

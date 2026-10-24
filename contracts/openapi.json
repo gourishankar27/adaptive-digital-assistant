@@ -22742,6 +22742,298 @@
         }
       }
     },
+    "/v1/conversations/{conversation_id}/long-voice-requests": {
+      "post": {
+        "tags": [
+          "voice"
+        ],
+        "summary": "Submit Long",
+        "operationId": "submit_long_v1_conversations__conversation_id__long_voice_requests_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Conversation Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LongReviewedVoiceInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StreamStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/requests/{request_id}/long-voice-input": {
+      "get": {
+        "tags": [
+          "voice"
+        ],
+        "summary": "Get Long",
+        "operationId": "get_long_v1_requests__request_id__long_voice_input_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          },
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LongVoiceOutput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized validation issues or error code; input is omitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorOutput"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized error code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/conversations/{conversation_id}/voice-requests": {
       "post": {
         "tags": [
@@ -28202,6 +28494,11 @@
             "title": "Voice Input",
             "default": "unsupported"
           },
+          "long_voice_input": {
+            "type": "string",
+            "title": "Long Voice Input",
+            "default": "unsupported"
+          },
           "voice_audio_uploads": {
             "type": "boolean",
             "title": "Voice Audio Uploads",
@@ -32977,6 +33274,243 @@
         ],
         "title": "LoginInput"
       },
+      "LongReviewedVoiceInput": {
+        "properties": {
+          "conversation_style": {
+            "type": "string",
+            "enum": [
+              "listen",
+              "questions",
+              "suggestions"
+            ],
+            "title": "Conversation Style",
+            "default": "listen"
+          },
+          "transcript": {
+            "$ref": "#/components/schemas/LongTranscriptInput"
+          },
+          "reviewed_text": {
+            "type": "string",
+            "maxLength": 32768,
+            "minLength": 1,
+            "title": "Reviewed Text"
+          },
+          "data_epoch": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Data Epoch"
+          },
+          "context_start": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Context Start"
+          },
+          "context_end": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Context End"
+          },
+          "review": {
+            "type": "string",
+            "const": "approve",
+            "title": "Review"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Request Id"
+          },
+          "content": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Content"
+          },
+          "as_of": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "use_memory": {
+            "type": "boolean",
+            "title": "Use Memory",
+            "default": true
+          },
+          "use_documents": {
+            "type": "boolean",
+            "title": "Use Documents",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "transcript",
+          "reviewed_text",
+          "data_epoch",
+          "context_start",
+          "context_end",
+          "review",
+          "request_id",
+          "content"
+        ],
+        "title": "LongReviewedVoiceInput"
+      },
+      "LongTranscriptInput": {
+        "properties": {
+          "transcript_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Transcript Id"
+          },
+          "engine_id": {
+            "type": "string",
+            "const": "sherpa_zipformer_en_v1",
+            "title": "Engine Id"
+          },
+          "engine_version": {
+            "type": "string",
+            "const": "sherpa-onnx-1.13.8",
+            "title": "Engine Version"
+          },
+          "model_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Model Sha256"
+          },
+          "language": {
+            "type": "string",
+            "const": "en-US",
+            "title": "Language"
+          },
+          "duration_ms": {
+            "type": "integer",
+            "maximum": 7200000.0,
+            "minimum": 1.0,
+            "title": "Duration Ms"
+          },
+          "segments": {
+            "items": {
+              "$ref": "#/components/schemas/SegmentInput"
+            },
+            "type": "array",
+            "maxItems": 512,
+            "minItems": 1,
+            "title": "Segments"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "transcript_id",
+          "engine_id",
+          "engine_version",
+          "model_sha256",
+          "language",
+          "duration_ms",
+          "segments"
+        ],
+        "title": "LongTranscriptInput"
+      },
+      "LongVoiceOutput": {
+        "properties": {
+          "protocol": {
+            "type": "string",
+            "const": "ada-long-reviewed-voice-v1",
+            "title": "Protocol",
+            "default": "ada-long-reviewed-voice-v1"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Request Id"
+          },
+          "conversation_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Conversation Id"
+          },
+          "scope_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Scope Id"
+          },
+          "transcript": {
+            "$ref": "#/components/schemas/LongTranscriptInput"
+          },
+          "reviewed_text": {
+            "type": "string",
+            "title": "Reviewed Text"
+          },
+          "reviewed_hash": {
+            "type": "string",
+            "title": "Reviewed Hash"
+          },
+          "context_start": {
+            "type": "integer",
+            "title": "Context Start"
+          },
+          "context_end": {
+            "type": "integer",
+            "title": "Context End"
+          },
+          "endorsement_source_version_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Endorsement Source Version Id"
+          },
+          "original_trust": {
+            "type": "string",
+            "const": "generated_interpretation",
+            "title": "Original Trust",
+            "default": "generated_interpretation"
+          },
+          "reviewed_origin": {
+            "type": "string",
+            "const": "user_reviewed",
+            "title": "Reviewed Origin",
+            "default": "user_reviewed"
+          },
+          "engine_metadata": {
+            "type": "string",
+            "const": "client_reported",
+            "title": "Engine Metadata",
+            "default": "client_reported"
+          },
+          "audio_storage": {
+            "type": "string",
+            "const": "not_received_by_server",
+            "title": "Audio Storage",
+            "default": "not_received_by_server"
+          },
+          "approved_at": {
+            "type": "integer",
+            "format": "int64",
+            "title": "Approved At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "request_id",
+          "conversation_id",
+          "scope_id",
+          "transcript",
+          "reviewed_text",
+          "reviewed_hash",
+          "context_start",
+          "context_end",
+          "endorsement_source_version_id",
+          "approved_at"
+        ],
+        "title": "LongVoiceOutput"
+      },
       "MergeInput": {
         "properties": {
           "operation_id": {
@@ -37133,6 +37667,48 @@
           "telemetry"
         ],
         "title": "SecurityStatusOutput"
+      },
+      "SegmentInput": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "sequence": {
+            "type": "integer",
+            "maximum": 511.0,
+            "minimum": 0.0,
+            "title": "Sequence"
+          },
+          "end_ms": {
+            "type": "integer",
+            "maximum": 7200000.0,
+            "minimum": 1.0,
+            "title": "End Ms"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 32768,
+            "minLength": 1,
+            "title": "Text"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Sha256"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "sequence",
+          "end_ms",
+          "text",
+          "sha256"
+        ],
+        "title": "SegmentInput"
       },
       "SelfInput": {
         "properties": {

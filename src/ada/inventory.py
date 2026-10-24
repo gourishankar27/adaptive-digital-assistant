@@ -10,6 +10,7 @@ from ada import (  # noqa: F401
     expression_models,
     learning_models,
     login_models,
+    long_voice,
     proposal_models,
     reflection_models,
     schedule_models,
@@ -22,6 +23,7 @@ from ada.errors import ServiceError
 from ada.models import Base
 
 CONTENT_TABLES = (
+    "long_voice_inputs",
     "edge_devices",
     "edge_proposals",
     "agent_approvals",

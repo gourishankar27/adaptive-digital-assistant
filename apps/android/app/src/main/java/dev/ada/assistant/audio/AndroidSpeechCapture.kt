@@ -33,7 +33,7 @@ class AndroidSpeechCapture(private val context: Context) : SpeechCapture {
         val run = key
         if (availability != SpeechAvailability.Available) { fail("unavailable"); return }
         try {
-            if (!audio.acquire()) { fail("interrupted"); return }
+            if (!VoiceAudioCoordinator.acquire(this,VoiceAudioCoordinator.Use.Capture) { fail("interrupted") } || !audio.acquire()) { fail("interrupted"); return }
             if (Build.VERSION.SDK_INT < 31) { fail("unavailable"); return }
             val engine = SpeechRecognizer.createOnDeviceSpeechRecognizer(context)
             recognizer = engine
@@ -85,7 +85,7 @@ class AndroidSpeechCapture(private val context: Context) : SpeechCapture {
     override fun cancel() {
         key++; listener = null
         recognizer?.let { try { it.cancel(); it.destroy() } catch (_: Exception) { /* Text remains available. */ } }
-        recognizer = null; audio.release()
+        recognizer = null; audio.release(); VoiceAudioCoordinator.release(this)
     }
     override fun close() { cancel(); handler.removeCallbacksAndMessages(null) }
 }

@@ -20,6 +20,7 @@ class AndroidSpeechPlayback(context: Context, private val diagnostic: ((String) 
     private var closed = false
     private val audio = AudioSession(context, diagnostic) { finish("Playback was interrupted. Tap Read reply to start again.") }
     override fun initialize(ready: (List<SpeechVoice>) -> Unit) {
+        engine?.shutdown(); engine=null; closed=false
         engine = TextToSpeech(app) { result -> handler.post {
             if (closed) return@post
             val tts = engine
@@ -43,7 +44,7 @@ class AndroidSpeechPlayback(context: Context, private val diagnostic: ((String) 
             if (current == null || current.isNetworkConnectionRequired || TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED in current.features.orEmpty()) {
                 finish("The selected offline voice is no longer installed. Text remains available."); return
             }
-            if (!audio.acquire() || tts.setVoice(current) != TextToSpeech.SUCCESS || tts.setSpeechRate(speed) != TextToSpeech.SUCCESS) { finish("Playback could not acquire audio. Text remains available."); return }
+            if (!VoiceAudioCoordinator.acquire(this,VoiceAudioCoordinator.Use.Playback) { finish("Playback interrupted") } || !audio.acquire() || tts.setVoice(current) != TextToSpeech.SUCCESS || tts.setSpeechRate(speed) != TextToSpeech.SUCCESS) { finish("Playback could not acquire audio. Text remains available."); return }
             val run = key; val id = UUID.randomUUID().toString()
             val chunks = speechChunks(text, TextToSpeech.getMaxSpeechInputLength().coerceAtMost(4000))
             tts.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
@@ -56,7 +57,7 @@ class AndroidSpeechPlayback(context: Context, private val diagnostic: ((String) 
         } catch (_: Exception) { finish("Playback failed. Text remains available.") }
     }
     private fun finish(message: String?) { val done = callback; stop(); done?.invoke(message) }
-    override fun stop() { key++; callback = null; try { engine?.stop() } catch (_: Exception) { }; audio.release() }
+    override fun stop() { key++; callback = null; try { engine?.stop() } catch (_: Exception) { }; audio.release(); VoiceAudioCoordinator.release(this) }
     override fun close() { closed = true; stop(); engine?.shutdown(); engine = null; voices = emptyMap(); handler.removeCallbacksAndMessages(null) }
 }
 

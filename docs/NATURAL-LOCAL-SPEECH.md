@@ -1,5 +1,11 @@
 # Natural local speech — Phase29 study and contract
 
+2026-10-24 follow-up: [Phase32 private voice conversations](PRIVATE-VOICE-CONVERSATIONS.md)
+adds optional pinned native capture/voices/wake evaluation, long reviewed lineage
+and shared session renewal. Ordinary builds retain platform speech. Its actual
+checks and open wake/license/resource gates are recorded in STATUS/WORKLOG;
+earlier descriptions below retain their original milestone boundaries.
+
 Study date: 2026-10-21, America/Phoenix. This release retains Android on-device
 recognition and installed offline playback. No additional runtime, model, voice or
 phonemizer was downloaded, bundled, installed or activated. The S24 FE/Android16

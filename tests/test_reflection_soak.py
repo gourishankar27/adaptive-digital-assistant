@@ -61,7 +61,7 @@ def test_one_minute_idle_report_foreground_and_encrypted_backup_interference(
             manifest, _ = unpack(
                 read_artifact(receipt["artifact"], "Public synthetic isolated host passphrase")
             )
-            result["backup_verified"] = manifest["head"] == "0021" and len(manifest["tables"]) == 76
+            result["backup_verified"] = manifest["head"] == "0022" and len(manifest["tables"]) == 77
         except Exception as exc:
             failures.append(type(exc).__name__)
 

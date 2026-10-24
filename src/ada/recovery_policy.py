@@ -123,11 +123,12 @@ SUPPORTED_TABLES = {
     "0019": CURRENT_0019_TABLES,
     "0020": CURRENT_0020_TABLES,
     "0021": CURRENT_0020_TABLES | {"edge_devices", "edge_proposals"},
+    "0022": CURRENT_0020_TABLES | {"edge_devices", "edge_proposals", "long_voice_inputs"},
 }
 
 
 def validate_inventory(head, names):
     if head not in SUPPORTED_TABLES or set(names) != SUPPORTED_TABLES[head]:
         raise RecoveryError("Schema inventory is not covered by a reviewed recovery policy")
-    if head in ("0015", "0016", "0017", "0018", "0019", "0020", "0021"):
+    if head in ("0015", "0016", "0017", "0018", "0019", "0020", "0021", "0022"):
         content_tables()  # An unclassified new owner model must also fail closed.

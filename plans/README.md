@@ -1,5 +1,14 @@
 # ADA implementation plans
 
+2026-10-24 Phase32 source/checkpoints: [Phase32 — private voice conversations](phase-32-private-voice-conversations.md)
+records warm/calm feminine local speech, capture that continues across pauses,
+and explicitly armed background/locked **Hello Ada** with shared session renewal.
+Source is implemented for private evaluation; human wake trials missed and phase
+exit/device/resource/license gates remain open. Current0022/77 tables/64 owner-content,
+backup-v8, Android27/journal19 and additive OpenAPI166/220. Ordinary builds retain
+platform speech. See STATUS/WORKLOG and the [guide](../docs/PRIVATE-VOICE-CONVERSATIONS.md).
+No installed database/normal-phone upgrade or deployment.
+
 Selected19A/31 source now adds a measured on-device draft study/signed receipt
 protocol and bounded text-PDF ingestion. Both mobile candidates failed quality;
 19A activation/exit remains open, local generation disabled. Phase31 OCR is disabled.
@@ -98,6 +107,7 @@ are designs until implemented and exported in OpenAPI. The existing
 | 29 | [phase-29-natural-local-speech.md](phase-29-natural-local-speech.md) | Study/interface and platform preview implemented; no new runtime/model; physical activation pending | 17/17-A source; later device/license evidence |
 | 30 | [phase-30-projects-and-personal-follow-through.md](phase-30-projects-and-personal-follow-through.md) | Optional proposal: reviewed goals, next actions and useful briefs | 23; 27 only for reminders |
 | 31 | [phase-31-pdf-ingestion-and-document-expansion.md](phase-31-pdf-ingestion-and-document-expansion.md) | Optional proposal: bounded text-PDF extraction; OCR separately gated | 08, 20; 23 evaluation |
+| 32 | [phase-32-private-voice-conversations.md](phase-32-private-voice-conversations.md) | Proposed: owner-controlled long-form capture, natural feminine local voice and background/locked Hello Ada | 17/17-A, 22, 29; measured native activation |
 
 For the 2026-10-16 planning proposal, start with
 [FUTURE-ROADMAP](FUTURE-ROADMAP.md). It reviews the original

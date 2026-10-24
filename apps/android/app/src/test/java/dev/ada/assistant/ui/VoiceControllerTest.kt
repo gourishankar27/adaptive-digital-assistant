@@ -34,9 +34,14 @@ private class VoiceReviewApi : AdaApi by noVoiceApi() {
     override suspend fun voiceInputs(connection: ConnectionCredential, conversation: UUID) = ApiResult.Success(emptyList<VoiceLineageDto>())
     override suspend fun request(connection: ConnectionCredential, id: UUID): ApiResult<RequestDto> = gate?.let { withContext(NonCancellable) { it.await() } } ?: ApiResult.Success(response.copy(request_id = id))
 }
-private class Recorder : SpeechCapture {
+private class Recorder(private val continuous: Boolean=false) : SpeechCapture {
+    override val longForm get()=continuous
+    override val longFormAvailable get()=continuous
+    override val modelSha256 get()=if(continuous) "a".repeat(64) else null
+    var rows=emptyList<TranscriptSegmentDto>()
+    override fun transcriptSegments()=rows
     override var availability = SpeechAvailability.Available
-    override val version = "Android synthetic test engine"
+    override val version get()=if(continuous) "sherpa-onnx-1.13.8" else "Android synthetic test engine"
     var callback: CaptureListener? = null; var starts = 0; var stops = 0; var cancels = 0
     override fun start(language: String, listener: CaptureListener) { starts++; callback = listener }
     override fun stop() { stops++ }
@@ -104,12 +109,36 @@ class VoiceControllerTest {
         c.reset()
     }
     private data class Rig(val c: VoiceController, val api: VoiceReviewApi, val store: VoiceReviewStore, val input: Recorder, val output: Player)
-    private fun TestScope.ready(): Rig {
-        val store = VoiceReviewStore(); val api = VoiceReviewApi(); val recorder = Recorder(); val player = Player()
+    private fun TestScope.ready(continuous:Boolean=false): Rig {
+        val store = VoiceReviewStore(); val api = VoiceReviewApi(); val recorder = Recorder(continuous); val player = Player()
         val c = VoiceController(api, store, this, {}, { testScheduler.currentTime })
-        c.attachAudio(recorder, player); c.setVerifiedSession(voiceConnection, voiceOwner, voiceFeatures)
+        c.attachAudio(recorder, player); c.setVerifiedSession(voiceConnection, voiceOwner, voiceFeatures.copy(long_voice_input=if(continuous) LONG_VOICE_PROTOCOL else "unsupported"))
         c.context(voiceConversation, true, false); runCurrent()
         return Rig(c, api, store, recorder, player)
+    }
+    @Test fun continuousInputSurvivesSixtySecondsAndRecoversCompletedCheckpointAfterPause() = runTest {
+        val(c,_,store,input)=ready(true)
+        assertTrue(c.requestRecording()); c.permissionResult(true); input.callback!!.ready()
+        advanceTimeBy(80000); runCurrent()
+        assertEquals(0,input.stops); assertEquals(VoicePhase.Recording,c.state.value.phase)
+        val row=TranscriptSegmentDto(UUID.randomUUID(),0,80000,"Public completed segment",voiceHash("Public completed segment"))
+        input.rows=listOf(row)
+        var committed=false
+        input.callback!!.checkpoint(input.rows,80000) { committed=it }; runCurrent()
+        assertTrue(committed); assertNotNull(store.draft); assertNull(c.state.value.draft)
+        c.observeForeground(false); c.observeForeground(true); runCurrent()
+        assertEquals("Public completed segment",c.state.value.draft!!.transcript.original_text)
+        assertFalse(c.state.value.draft!!.approved); assertNull(c.approvedDraft()); c.reset()
+    }
+    @Test fun explicitDiscardRemovesContinuousCheckpointsAndRejectsLateSaving() = runTest {
+        val(c,_,store,input)=ready(true)
+        c.requestRecording(); c.permissionResult(true); input.callback!!.ready()
+        val row=TranscriptSegmentDto(UUID.randomUUID(),0,5000,"Public checkpoint",voiceHash("Public checkpoint"))
+        val old=input.callback!!
+        old.checkpoint(listOf(row),5000) {}; runCurrent(); assertNotNull(store.draft)
+        c.discard(); runCurrent(); assertNull(store.draft)
+        var late=true; old.checkpoint(listOf(row),5000) {late=it}; runCurrent()
+        assertFalse(late); assertNull(store.draft); c.reset()
     }
     @Test fun publicPreviewDoesNotReadOrWriteServerDataAndLateCompletionIsFenced() = runTest {
         val (c, api, store, input, output) = ready()

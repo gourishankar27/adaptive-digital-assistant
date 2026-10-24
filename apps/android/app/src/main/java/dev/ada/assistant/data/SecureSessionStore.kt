@@ -42,10 +42,12 @@ data class SessionIdentity(val server: String, val owner: UUID) {
 }
 
 @Serializable
-class StoredCredential(val identity: SessionIdentity, val token: String, val dataEpoch: Long = 0, val passwordSession: Boolean = false) {
+class StoredCredential(val identity: SessionIdentity, val token: String, val dataEpoch: Long = 0, val passwordSession: Boolean = false,
+    val refreshPending:Boolean=false, val loginSessionId:UUID?=null) {
     init {
         require(ConnectionCredential.parse(identity.server, token, true) != null) { "Invalid stored credential" }
         require(dataEpoch >= 0)
+        require(passwordSession || (!refreshPending && loginSessionId==null))
     }
     override fun toString() = "StoredCredential(redacted)"
 }
@@ -55,11 +57,18 @@ class StoredCredential(val identity: SessionIdentity, val token: String, val dat
 /** Immutable exact reservation; changing an option/content requires a consciously new request. */
 @Serializable
 data class PendingMessage(val identity: SessionIdentity, val conversationId: UUID, val body: ChatInputDto,
-    val voiceTranscript: TranscriptInputDto? = null, val voiceScopeId: UUID? = null) {
+    val voiceTranscript: TranscriptInputDto? = null, val voiceScopeId: UUID? = null,
+    val longReviewedText: String? = null, val longContextStart: Int = 0, val longDataEpoch: Long? = null, val longConversationStyle: String = "listen") {
     override fun toString() = "PendingMessage(redacted)"
 }
 
 interface SessionStore {
+    val coordinationKey:String? get()=null
+    /** Production implementations must compare and replace atomically. Default serves in-memory test adapters. */
+    suspend fun replaceCredential(expected:StoredCredential,replacement:StoredCredential):Boolean {
+        if(readCredential()?.sameRefreshCredential(expected)!=true) return false
+        saveCredential(replacement); return true
+    }
     suspend fun scheduleJournal(identity: SessionIdentity): ScheduleJournal? = null
     suspend fun saveScheduleOperation(identity: SessionIdentity, operation: SchedulePending) { throw SessionStorageException() }
     suspend fun removeScheduleOperation(identity: SessionIdentity, operationId: UUID) { throw SessionStorageException() }
@@ -140,6 +149,7 @@ class AndroidSessionStore(context: Context) : SessionStore by EncryptedSessionSt
     AesGcmSessionCipher(AndroidSessionKeys(KEY_ALIAS)),
     BuildConfig.DEBUG,
 ) {
+    override val coordinationKey:String=File(context.applicationContext.noBackupFilesDir,FILE_NAME).canonicalPath
     companion object {
         internal const val FILE_NAME = "ada-secure-session-v1.bin"
         internal const val KEY_ALIAS = "ada.secure-session.aes-gcm.v1"
@@ -157,7 +167,7 @@ class SessionTokenStorageAdapter(private val sessions: SessionStore) : SecureTok
 
 @Serializable
 private data class PersistedSession(
-    val version: Int = 18,
+    val version: Int = 19,
     val credential: StoredCredential,
     val pending: PendingMessage? = null,
     val memoryPending: PendingMemory? = null,
@@ -201,8 +211,15 @@ internal class EncryptedSessionStore(
     private val cipher: SessionCipher,
     private val allowDebugHttp: Boolean,
 ) : SessionStore {
+    override suspend fun replaceCredential(expected:StoredCredential,replacement:StoredCredential):Boolean = transaction {
+        val previous=read() ?: return@transaction false
+        if(!previous.credential.sameRefreshCredential(expected)) return@transaction false
+        require(expected.identity==replacement.identity && expected.dataEpoch==replacement.dataEpoch)
+        validateCredential(replacement)
+        write(previous.copy(credential=replacement)); true
+    }
     companion object {
-        internal const val MAX_PLAINTEXT_BYTES = 256 * 1024
+        internal const val MAX_PLAINTEXT_BYTES = 1024 * 1024
         internal const val MAX_FILE_BYTES = MAX_PLAINTEXT_BYTES + 128
         // AtomicFile itself does not serialize callers. All instances in this app process share this lock.
         private val transactions = Mutex()
@@ -327,7 +344,12 @@ internal class EncryptedSessionStore(
         val previous = read()
         if (previous == null || previous.credential.identity != draft.identity) throw SessionStorageException(SessionStoreFailure.IdentityMismatch)
         previous.voiceDraft?.let {
-            if (it.conversationId != draft.conversationId || it.scopeId != draft.scopeId || it.transcript != draft.transcript) {
+            val extending = !it.approved && draft.transcript.isLong() && it.transcript.isLong() &&
+                it.transcript.transcript_id == draft.transcript.transcript_id &&
+                it.transcript.segments == draft.transcript.segments.take(it.transcript.segments.size) &&
+                it.transcript.duration_ms <= draft.transcript.duration_ms &&
+                it.transcript.modelSha256 == draft.transcript.modelSha256 && it.transcript.engine_version == draft.transcript.engine_version
+            if (it.conversationId != draft.conversationId || it.scopeId != draft.scopeId || (it.transcript != draft.transcript && !extending)) {
                 throw SessionStorageException(SessionStoreFailure.PendingConflict)
             }
         }
@@ -461,13 +483,16 @@ internal class EncryptedSessionStore(
             throw SessionStorageException(SessionStoreFailure.PendingConflict)
         }
         val voice = message.voiceTranscript
+        if(voice?.isLong()==true && message.longDataEpoch!=previous.credential.dataEpoch) throw SessionStorageException(SessionStoreFailure.IdentityMismatch)
         if (voice != null && previous.pending == null) {
             val draft = previous.voiceDraft
             if (draft == null || !draft.approved || draft.identity != message.identity ||
                 draft.conversationId != message.conversationId || draft.scopeId != message.voiceScopeId ||
-                draft.transcript != voice || draft.reviewedText != message.body.content) {
+                draft.transcript != voice || draft.reviewedText != (message.longReviewedText ?: message.body.content)) {
                 throw SessionStorageException(SessionStoreFailure.InvalidPayload)
             }
+            if(voice.isLong() && (draft.contextText()!=message.body.content || draft.conversationStyle!=message.longConversationStyle ||
+                (draft.reviewedText.codePointCount(0,draft.reviewedText.length)>4000 && draft.contextStart!=message.longContextStart))) throw SessionStorageException(SessionStoreFailure.InvalidPayload)
         }
         write(previous.copy(pending = message, voiceDraft = if (voice != null) null else previous.voiceDraft))
     }
@@ -555,6 +580,10 @@ internal class EncryptedSessionStore(
         }
     }
     private fun validatePending(message: PendingMessage) {
+        if (message.voiceTranscript?.isLong() == true) {
+            try { longVoiceRequest(message) } catch (_: Exception) { throw SessionStorageException(SessionStoreFailure.InvalidPayload) }
+        } else if (message.longReviewedText != null || message.longDataEpoch != null || message.longContextStart != 0) throw SessionStorageException(SessionStoreFailure.InvalidPayload)
+
         if ((message.voiceTranscript == null) != (message.voiceScopeId == null)) throw SessionStorageException(SessionStoreFailure.InvalidPayload)
         message.voiceTranscript?.let {
             try { validateTranscript(it) } catch (_: Exception) { throw SessionStorageException(SessionStoreFailure.InvalidPayload) }
@@ -594,7 +623,7 @@ internal class EncryptedSessionStore(
             if (plaintext.size > MAX_PLAINTEXT_BYTES) throw IOException("Invalid session record")
             val snapshot = json.decodeFromString<PersistedSession>(plaintext.toString(Charsets.UTF_8))
             if (snapshot.version < 10 && (snapshot.voiceDraft != null || snapshot.pending?.voiceTranscript != null || snapshot.pending?.voiceScopeId != null)) throw IOException("Unsupported session record")
-            if (snapshot.version !in 1..18 || (snapshot.version < 18 && (snapshot.edgeJournal != null || snapshot.documentPending?.mediaType == "application/pdf")) || (snapshot.version < 17 && snapshot.workJournal != null) || (snapshot.version < 16 && snapshot.reflectionJournal != null) || (snapshot.version < 15 && snapshot.scheduleJournal != null) || (snapshot.version < 14 && snapshot.curiosityJournal != null) || (snapshot.version < 13 && snapshot.researchJournal != null) || (snapshot.version < 12 && snapshot.credential.passwordSession) || (snapshot.version < 11 && snapshot.securityJournal != null) || (snapshot.version == 1 && snapshot.memoryPending != null) ||
+            if (snapshot.version !in 1..19 || (snapshot.version < 19 && (snapshot.credential.refreshPending || snapshot.credential.loginSessionId!=null || snapshot.voiceDraft?.transcript?.isLong() == true || snapshot.pending?.voiceTranscript?.isLong() == true)) || (snapshot.version < 18 && (snapshot.edgeJournal != null || snapshot.documentPending?.mediaType == "application/pdf")) || (snapshot.version < 17 && snapshot.workJournal != null) || (snapshot.version < 16 && snapshot.reflectionJournal != null) || (snapshot.version < 15 && snapshot.scheduleJournal != null) || (snapshot.version < 14 && snapshot.curiosityJournal != null) || (snapshot.version < 13 && snapshot.researchJournal != null) || (snapshot.version < 12 && snapshot.credential.passwordSession) || (snapshot.version < 11 && snapshot.securityJournal != null) || (snapshot.version == 1 && snapshot.memoryPending != null) ||
                 (snapshot.version < 3 && snapshot.documentPending != null) || (snapshot.version < 4 && snapshot.entityPending != null) ||
                 (snapshot.version < 5 && (snapshot.proposalPending != null || snapshot.proposalDraft != null)) || (snapshot.version < 6 && snapshot.agentJournal != null) || (snapshot.version < 7 && snapshot.consolidationJournal != null) || (snapshot.version < 8 && snapshot.expressionJournal != null) || (snapshot.version < 9 && snapshot.learningJournal != null)) {
                 throw IOException("Unsupported session record")
@@ -677,7 +706,7 @@ internal class EncryptedSessionStore(
     private fun write(snapshot: PersistedSession) {
         var plaintext: ByteArray? = null
         try {
-            plaintext = json.encodeToString(snapshot.copy(version = 18)).toByteArray(Charsets.UTF_8)
+            plaintext = json.encodeToString(snapshot.copy(version = 19)).toByteArray(Charsets.UTF_8)
             if (plaintext.size > MAX_PLAINTEXT_BYTES) throw SessionStorageException(SessionStoreFailure.InvalidPayload)
             val ciphertext = cipher.encrypt(plaintext)
             if (ciphertext.size > MAX_FILE_BYTES) throw SessionStorageException(SessionStoreFailure.InvalidPayload)
