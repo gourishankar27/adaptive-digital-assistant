@@ -61,14 +61,38 @@ private fun unsupportedChatApi(): AdaApi = java.lang.reflect.Proxy.newProxyInsta
     AdaApi::class.java.classLoader, arrayOf(AdaApi::class.java),
 ) { _, method, _ -> error("Unexpected test call: ${method.name}") } as AdaApi
 
+private class ContinuousChatRecorder:SpeechCapture {
+    override val availability=SpeechAvailability.Available
+    override val version="sherpa-onnx-1.13.8"
+    override val longFormAvailable=true
+    override var longForm=false
+    override val modelSha256="a".repeat(64)
+    var callback:CaptureListener?=null; var cancels=0; var stops=0
+    override fun selectLongForm(enabled:Boolean):Boolean {longForm=enabled;return true}
+    override fun start(language:String,listener:CaptureListener) {callback=listener}
+    override fun stop() {stops++}
+    override fun cancel() {cancels++}
+    override fun close() {cancel()}
+}
+private class ContinuousChatPlayer:SpeechPlayback {
+    override fun initialize(ready:(List<SpeechVoice>)->Unit)=ready(emptyList())
+    override fun play(text:String,voice:String,speed:Float,finished:(String?)->Unit)=Unit
+    override fun stop()=Unit
+    override fun close()=Unit
+}
+
 private class ChatApiMock(val store: MemorySessionStore) : AdaApi by unsupportedChatApi() {
     var passwordLifetimeMs = 900000L
     var passwordRenewals = 0
     var passwordLogouts = 0
+    var passwordRefreshGate:CompletableDeferred<Unit>?=null
+    var passwordRefreshUnavailable=false
     private val passwordFamily=UUID.randomUUID()
     override suspend fun passwordLogin(server: String, username: String, password: String, allowDebugHttp: Boolean) = ApiResult.Success(PasswordSessionDto("synthetic-password-access", "synthetic-password-refresh"+(if(passwordRenewals==0) "" else "-$passwordRenewals"), passwordFamily, System.currentTimeMillis() + passwordLifetimeMs, System.currentTimeMillis() + 1000000))
     override suspend fun refreshLogin(server: String, refresh: String, allowDebugHttp: Boolean): ApiResult<PasswordSessionDto> {
         passwordRenewals++
+        passwordRefreshGate?.await()
+        if(passwordRefreshUnavailable) return ApiResult.Failure(ApiFailure.Unreachable)
         return passwordLogin(server, "", "", allowDebugHttp)
     }
     override suspend fun logoutSession(connection: ConnectionCredential, all: Boolean): ApiResult<AuthAcknowledgementDto> { passwordLogouts++; return ApiResult.Success(AuthAcknowledgementDto("signed_out")) }
@@ -254,6 +278,81 @@ class ChatViewModelTest {
         vm.passwordLogin("http://localhost:8000", "synthetic-user", "Public synthetic passphrase"); runCurrent()
         api.user = UUID.randomUUID(); vm.restore(); runCurrent()
         assertNull(store.credential); assertNull(vm.state.value.account); assertTrue(api.sent.isEmpty())
+    }
+    private suspend fun TestScope.continuousPasswordCapture(lifetime:Long=900000):Triple<ChatViewModel,ChatApiMock,ContinuousChatRecorder> {
+        val store=MemorySessionStore(); val api=ChatApiMock(store)
+        api.passwordLifetimeMs=lifetime
+        api.features=api.features.copy(streaming=true,generation_cancellation=true,stream_protocol="ada-stream-v1",voice_input=VOICE_PROTOCOL,long_voice_input=LONG_VOICE_PROTOCOL)
+        val vm=ChatViewModel(api,store,true)
+        vm.passwordLogin("http://localhost:8000","synthetic-user","Public synthetic passphrase");runCurrent()
+        vm.openConversation(conversation.id);runCurrent()
+        val recorder=ContinuousChatRecorder()
+        vm.voice.attachAudio(recorder,ContinuousChatPlayer());vm.voice.longForm(true);runCurrent()
+        return Triple(vm,api,recorder)
+    }
+    @Test fun passwordRenewalPreservesContinuousCaptureAndItsOriginalHoldRelease()=runTest {
+        val(vm,api,recorder)=continuousPasswordCapture()
+        val lease=vm.requestHeldVoiceRecording()!!;vm.voice.permissionResult(true);runCurrent()
+        recorder.callback!!.ready();runCurrent();val cancelled=recorder.cancels
+        vm.renewSession();runCurrent()
+        assertEquals(1,api.passwordRenewals);assertNotNull(vm.state.value.account)
+        assertFalse(vm.state.value.connecting);assertEquals(VoicePhase.Recording,vm.voice.state.value.phase)
+        assertEquals(cancelled,recorder.cancels);assertTrue(vm.voice.state.value.longFormEnabled)
+        vm.voice.releaseHoldRecording(lease);assertEquals(1,recorder.stops)
+        vm.logout();runCurrent()
+    }
+    @Test fun explicitContinuousModeSurvivesIdleRenewalButLogoutClearsIt()=runTest {
+        val(vm,_,_)=continuousPasswordCapture()
+        assertTrue(vm.voice.state.value.longFormEnabled)
+        vm.renewSession();runCurrent()
+        assertNotNull(vm.state.value.account);assertTrue(vm.voice.state.value.longFormEnabled)
+        vm.logout();runCurrent();assertFalse(vm.voice.state.value.longFormEnabled)
+    }
+    @Test fun lostContinuousCapabilityRequiresExplicitShortModeInsteadOfHiddenFallback()=runTest {
+        val(vm,api,_)=continuousPasswordCapture()
+        api.features=api.features.copy(long_voice_input="unsupported")
+        vm.renewSession();runCurrent()
+        assertNotNull(vm.state.value.account);assertFalse(vm.voice.state.value.enabled)
+        assertFalse(vm.requestVoiceRecording())
+        vm.voice.longForm(false)
+        assertTrue(vm.voice.state.value.enabled);assertFalse(vm.voice.state.value.longFormEnabled)
+        vm.logout();runCurrent()
+    }
+    @Test fun wrongOwnerDuringContinuousRenewalStopsCaptureAndNeverSends()=runTest {
+        val(vm,api,recorder)=continuousPasswordCapture()
+        assertTrue(vm.requestVoiceRecording());vm.voice.permissionResult(true);runCurrent();recorder.callback!!.ready();runCurrent()
+        val cancelled=recorder.cancels;api.user=UUID.randomUUID()
+        vm.renewSession();runCurrent()
+        assertTrue(recorder.cancels>cancelled);assertNull(vm.state.value.account)
+        assertTrue(api.sent.isEmpty());assertTrue(api.voicePosts.isEmpty())
+    }
+    @Test fun releaseDuringBlockedRenewalStillStopsOnceWithoutCancellingCapture()=runTest {
+        val(vm,api,recorder)=continuousPasswordCapture()
+        val lease=vm.requestHeldVoiceRecording()!!;vm.voice.permissionResult(true);runCurrent();recorder.callback!!.ready();runCurrent()
+        val cancelled=recorder.cancels;api.passwordRefreshGate=CompletableDeferred()
+        vm.renewSession();runCurrent();assertTrue(vm.state.value.connecting)
+        vm.voice.releaseHoldRecording(lease);assertEquals(1,recorder.stops)
+        vm.send();assertTrue(api.sent.isEmpty());assertTrue(api.voicePosts.isEmpty())
+        api.passwordRefreshGate!!.complete(Unit);runCurrent()
+        assertEquals(cancelled,recorder.cancels);assertEquals(VoicePhase.Transcribing,vm.voice.state.value.phase)
+        assertFalse(vm.state.value.connecting);vm.logout();runCurrent()
+    }
+    @Test fun unavailableRenewalStopsRecordingWithoutAWriteOrConsumedRefreshRetry()=runTest {
+        val(vm,api,recorder)=continuousPasswordCapture()
+        assertTrue(vm.requestVoiceRecording());vm.voice.permissionResult(true);runCurrent();recorder.callback!!.ready();runCurrent()
+        val cancelled=recorder.cancels;api.passwordRefreshUnavailable=true
+        vm.renewSession();runCurrent()
+        assertEquals(1,api.passwordRenewals);assertTrue(recorder.cancels>cancelled);assertNull(vm.state.value.account)
+        assertTrue(api.sent.isEmpty());assertTrue(api.voicePosts.isEmpty())
+    }
+    @Test fun stalledRenewalStopsAtExpiryAndLateResponseCannotRestoreCapture()=runTest {
+        val(vm,api,recorder)=continuousPasswordCapture(2500)
+        assertTrue(vm.requestVoiceRecording());vm.voice.permissionResult(true);runCurrent();recorder.callback!!.ready();runCurrent()
+        val cancelled=recorder.cancels;api.passwordRefreshGate=CompletableDeferred()
+        vm.renewSession();runCurrent();advanceTimeBy(3000);runCurrent()
+        assertTrue(recorder.cancels>cancelled);assertNull(vm.state.value.account)
+        api.passwordRefreshGate!!.complete(Unit);runCurrent()
+        assertNull(vm.state.value.account);assertFalse(vm.voice.captureActive);assertTrue(api.sent.isEmpty())
     }
     @Test fun reviewedVoiceJournalPrecedesPostAndDuplicateSendUsesOneRequest() = runTest {
         val (vm, api, store) = voiceReady()

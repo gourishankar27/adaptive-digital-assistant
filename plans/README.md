@@ -1,5 +1,13 @@
 # ADA implementation plans
 
+**Private1.0 baseline prepared (2026-10-24):** application1.0.0, Android code28;
+APIv1/schema0022/journal19/backup-v8 unchanged. PersonalVoice stages a debug-signed
+native evaluation APK; CoreRelease is standard/unsigned. Read [current setup](../docs/HOW-TO-USE-ADA.md)
+and [release scope](../docs/RELEASE-READINESS.md). No phone install, live restart/migration or public release
+is implied. Remaining physical/native redistribution gates stay open. Earlier
+phase version labels below retain their historical context.
+
+
 2026-10-24 Phase32 source/checkpoints: [Phase32 — private voice conversations](phase-32-private-voice-conversations.md)
 records warm/calm feminine local speech, capture that continues across pauses,
 and explicitly armed background/locked **Hello Ada** with shared session renewal.

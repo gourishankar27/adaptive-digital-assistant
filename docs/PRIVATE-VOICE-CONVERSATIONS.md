@@ -1,5 +1,7 @@
 # Private voice conversations — Phase32
 
+Current private release:1.0.0/code28. Use the [build/install helper and current setup](HOW-TO-USE-ADA.md#7-build-and-connect-the-android-app); native speech remains evaluation-only.
+
 Source milestone dated 2026-10-24, America/Phoenix. Implementation and native
 acceptance are distinct. Consult the dated [status](../plans/STATUS.md) and
 [work log](../plans/WORKLOG.md) for actual results and open gates. This checkout
@@ -26,6 +28,44 @@ network request and starts no microphone. Every file and the complete catalogue
 are pinned by size/SHA-256. There is no arbitrary URL/import/archive loader in
 the app. Removal waits for native handles to close; an active handle fails
 removal visibly instead of deleting a model under inference.
+
+## Why recording may still stop in your current app
+
+The normal installed ADA app was preserved during development. An ordinary
+Android Studio/Gradle build also excludes the optional native runtime/models;
+a new version number alone does not enable continuous recording. Android's
+platform recognizer can end on silence, and its legacy route still has a60s
+limit. Increasing silence extras or restarting that recognizer cannot guarantee
+one uninterrupted recording.
+
+Open a conversation, tap the microphone and read the **Recording mode** label:
+
+- **Android short recording**: pauses can finish recognition. If the label says
+  continuous recording is not included, use the explicitly prepared native build
+  described below; copying source or rebuilding the ordinary variant is insufficient.
+- **Bundled files available/not installed**: install the verified local speech
+  files in Voice controls. This action copies packaged data; it does not download
+  a cloud speech service or start a microphone.
+- **Continuous recording unavailable on this server**: the server must run the
+  reviewed0022 source/migration and advertise `ada-long-reviewed-voice-v1`.
+  Follow the normal backup/migration procedure deliberately; this task has not
+  migrated your installed database or restarted/deployed your server.
+- **Continuous recording off**: explicitly enable **Long-form local recording**.
+  The label should then say **Continuous local recording** before a new recording.
+
+The selected continuous mode survives same-owner renewal; logout/account switching
+clears that choice. If capability/model availability is lost, choose **Android short
+recording** explicitly rather than silently changing engines. Check the mode again
+after reconnecting or restarting the app. The latest host-only fix preserves the
+native recording and original hold lease
+through a successful same-owner/epoch/scope sign-in renewal. It hides other private
+views, fences old reads, blocks submission during renewal and keeps Stop usable.
+A failed/expired/revoked/changed session still stops capture; an unknown refresh is
+never retried. Permission/privacy loss, OS/process termination, audio contention,
+backgrounding and actual resource limits can also interrupt recording. Completed
+checkpoints survive ordinary audio/process interruptions when secure storage
+succeeds; logout/invalid-authentication cleanup retains its existing privacy policy.
+The post-fix physical microphone/renewal checks are pending at the owner's request.
 
 ## Using a prepared evaluation app
 
@@ -90,8 +130,10 @@ HTTP, verifies the rotated owner/epoch, and atomically replaces the exact stored
 refresh secret before returning access. Simultaneous callers coalesce. An unknown
 outcome or process death with a pending marker requires sign-in; it never replays
 a consumed secret. Access stays in memory and passwords are never persisted.
-The visible UI owns renewal so the service cannot invalidate its active requests;
-on resume, the UI joins any background rotation and restores verified private
+The visible UI owns renewal so the service cannot invalidate its active requests.
+Successful verified renewal during continuous capture preserves its local mic and
+hold/Stop controls while other private views are hidden; failed verification or
+the old access-expiry deadline stops it. On resume, the UI joins any background rotation and restores verified private
 views. No private POST is automatically retried. Absolute session expiry,
 revocation, unavailable network/authentication, family/epoch/scope change or
 secure-storage failure stops listening and requires explicit re-arming. This
@@ -173,6 +215,24 @@ file against the pinned catalogue. It does not install an APK, enroll an account
 activate models or modify the normal app. Without the property the normal build
 uses platform speech. Native release tasks are blocked until redistribution and
 device acceptance are closed; see [runtime review](../ops/speech-runtime/README.md).
+
+To prepare the ordinary **debug app ID** with the same optional native bundle
+for a later explicitly chosen private install, build it without the validation-ID
+property (this command builds only; it does not install):
+
+```powershell
+$adaSpeechBundle = (Resolve-Path 'build/private-voice').Path.Replace('\', '/')
+.\apps\android\gradlew.bat -p apps/android "-PadaSpeechRuntimeDir=$adaSpeechBundle" :app:assembleDebug
+```
+
+Its output is `apps/android/app/build/outputs/apk/debug/app-debug.apk`. Confirm
+`output-metadata.json` identifies the intended application ID before any install.
+A build without `adaSpeechRuntimeDir` produces the platform-only variant again,
+although both variants use versionCode28. Native Release is intentionally blocked.
+The final host verification leaves ordinary platform build artifacts; it does not
+install either variant on your phone. A supporting server/migration and the
+in-app install/long-mode steps above are still required. Device acceptance remains
+open; these build instructions are not a successful installation record.
 
 The public review activity runs only in a separate `dev.ada.validation.*` debug
 package. Its microphone/wake fixtures are explicit public tests and carry no

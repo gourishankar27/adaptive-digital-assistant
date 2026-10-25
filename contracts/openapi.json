@@ -3,7 +3,7 @@
   "info": {
     "title": "ADA",
     "description": "Scoped memory retrieval, cited chat, durable evidence traces and explicitly granted admin monitoring.",
-    "version": "0.2.0"
+    "version": "1.0.0"
   },
   "paths": {
     "/v1/auth/login": {

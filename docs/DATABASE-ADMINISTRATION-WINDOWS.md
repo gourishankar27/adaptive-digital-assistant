@@ -1,12 +1,19 @@
 # ADA database administration on Windows
 
+**Current1.0 note (2026-10-24):** installed schema0022, PostgreSQL17 on loopback5433,
+77 tables/64 owner-content and backup-v8. No database reset/new migration is needed
+for the1.0 label. Current setup is [HOW-TO-USE-ADA](HOW-TO-USE-ADA.md); backup tools
+must match server major17. The phase-specific counts/installation observations
+below are historical. Use current `alembic heads/current` rather than old counts.
+
+
 Current Phase25 source adds **0017 / 60 tables** and backup-v3; old0015/v1 and
 0016/v2 recovery remain supported. See [curiosity](CONVERSATIONAL-CURIOSITY.md).
 Apply migrations only during a separately authorized installation; this phase did
 not access or change the application database. Earlier installation counts are historical.
 
 
-## Current Phase22 schema and account update
+## Historical Phase22 schema and account update
 
 Source head is0016; the earlier live0015 check below is dated historical evidence.
 Installation is pending for the application database. Backups support reviewed

@@ -1,5 +1,13 @@
 # ADA architecture decisions
 
+**Private1.0 baseline prepared (2026-10-24):** application1.0.0, Android code28;
+APIv1/schema0022/journal19/backup-v8 unchanged. PersonalVoice stages a debug-signed
+native evaluation APK; CoreRelease is standard/unsigned. Read [current setup](HOW-TO-USE-ADA.md)
+and [release scope](RELEASE-READINESS.md). No phone install, live restart/migration or public release
+is implied. Remaining physical/native redistribution gates stay open. Earlier
+phase version labels below retain their historical context.
+
+
 ## Phase32 long reviewed voice and persistent local wake
 
 Migration0022 adds `long_voice_inputs`, bringing the inventory to77 tables and64
@@ -37,6 +45,15 @@ private access. No boot restart, default-assistant role or private locked speech
 Native wake reliability remains under investigation, not an accepted capability.
 See [usage and validation](PRIVATE-VOICE-CONVERSATIONS.md).
 
+
+Successful same-owner/epoch/conversation/scope renewal during continuous capture
+keeps the local microphone, gesture key, text checkpoints and Stop control alive.
+Other private views/readers are cleared or fenced and new private operations are
+blocked until verification. Failure or the original access-expiry deadline stops
+capture; late responses cannot revive it. An explicit continuous-mode choice
+survives same-owner idle renewal, is cleared on logout/account switching and
+never silently falls back after long capability/model loss. Ordinary builds still
+use platform short recognition; the UI displays the actual selected mode.
 
 ## Shared Android voice composer
 

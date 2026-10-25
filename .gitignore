@@ -9,3 +9,8 @@ __pycache__/
 build/
 dist/
 opencode.json
+*.jks
+*.keystore
+*.p12
+*.pfx
+keystore.properties

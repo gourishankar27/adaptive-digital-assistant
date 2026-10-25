@@ -1,5 +1,13 @@
 # Current ADA baseline
 
+**Private1.0 baseline prepared (2026-10-24):** application1.0.0, Android code28;
+APIv1/schema0022/journal19/backup-v8 unchanged. PersonalVoice stages a debug-signed
+native evaluation APK; CoreRelease is standard/unsigned. Read [current setup](../docs/HOW-TO-USE-ADA.md)
+and [release scope](../docs/RELEASE-READINESS.md). No phone install, live restart/migration or public release
+is implied. Remaining physical/native redistribution gates stay open. Earlier
+phase version labels below retain their historical context.
+
+
 **Phase32 source, 2026-10-24 America/Phoenix:** additive long reviewed narratives,
 immutable generated segment lineage, bounded model excerpt, encrypted journal19,
 app-owned continuous capture and optional pinned sherpa/Zipformer/Kokoro/KWS native

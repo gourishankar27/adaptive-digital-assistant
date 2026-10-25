@@ -5,7 +5,6 @@ import android.os.SystemClock
 import androidx.core.content.ContextCompat
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
-import androidx.test.uiautomator.UiDevice
 import dev.ada.assistant.audio.*
 import dev.ada.assistant.data.*
 import kotlinx.coroutines.runBlocking
@@ -40,7 +39,7 @@ class SharedWakeSessionHttpTest {
                 val ready=SystemClock.elapsedRealtime()+10000
                 while(!HelloAdaService.status.value.startsWith("Armed") && SystemClock.elapsedRealtime()<ready) SystemClock.sleep(100)
                 assertTrue(HelloAdaService.status.value.startsWith("Armed"))
-                UiDevice.getInstance(InstrumentationRegistry.getInstrumentation()).pressHome()
+                scenario.onActivity {it.startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME))}
                 while(System.currentTimeMillis()<login.access_expires_at+5000) {assertNotNull(WakeAuthority.current()); SystemClock.sleep(500)}
                 assertTrue(WakeAuthority.current()!!.expiresAt>login.access_expires_at)
                 assertNotEquals(login.refresh_token,store.readCredential()!!.token)

@@ -33,3 +33,14 @@ Primary sources:
   and [customized keywords](https://k2-fsa.github.io/sherpa/onnx/kws/index.html).
 - [Kokoro configuration and v0.19 voice mapping](https://k2-fsa.github.io/sherpa/onnx/tts/pretrained_models/kokoro.html#kokoro-en-v0-19-english-11-speakers)
   and [eSpeak-NG license](https://github.com/espeak-ng/espeak-ng/blob/master/COPYING).
+
+The pinned [feature extractor implementation](https://github.com/k2-fsa/sherpa-onnx/blob/v1.13.8/sherpa-onnx/csrc/features.cc)
+discards processed feature frames when the decoder advances. Source inspection
+and the accelerated ASR stream measurements do not establish extended wake
+memory/thermal/battery acceptance. The wake configuration now waits8trailing
+blanks, with the original keyword threshold unchanged; the controlled microphone
+and confusable-phrase rerun passed, while human locked retry remains pending.
+
+The catalogue has an explicit LF Git attribute because verification hashes its
+exact bytes. Windows checkout with core.autocrlf=true was checked against the
+pinned digest; ordinary text line-ending conversion must not change the bundle.

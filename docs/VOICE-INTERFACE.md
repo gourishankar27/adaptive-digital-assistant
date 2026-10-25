@@ -6,6 +6,12 @@ and shared session renewal. Ordinary builds retain platform speech. Its actual
 checks and open wake/license/resource gates are recorded in STATUS/WORKLOG;
 earlier descriptions below retain their original milestone boundaries.
 
+If recording still ends on pauses, inspect **Recording mode** in Voice controls.
+Ordinary builds use Android short recognition; continuous capture requires the
+prepared native evaluation build, installed files, supporting server and enabled
+Long-form local recording. See [troubleshooting](PRIVATE-VOICE-CONVERSATIONS.md#why-recording-may-still-stop-in-your-current-app).
+The normal installed app has not been upgraded by this development work.
+
 Phase 17 adds optional push-to-talk and reply playback. Text chat, source access,
 ownership, prompts, factual memory and tool approvals keep their existing rules.
 The default recognition language is **English (en-US)**. The S24 FE/Android 16

@@ -121,14 +121,15 @@ import dev.ada.assistant.audio.WakeAuthority
     }
     AdaPresenceHeading("On-device voice", adaPresenceState(chat, state).label, adaPresenceState(chat, state), compact = true)
     Text("Tap Record here, or hold the microphone in chat and release to finish. Edit the transcript in the message field; Send approves your wording. ADA uploads no audio.", style = MaterialTheme.typography.bodySmall)
+    Text(if(state.longFormEnabled) "Continuous local recording · pauses keep the microphone open until release or Stop." else "Android short recording · Android may finish when you pause. Continuous recording is ${if(!state.localModelsIncluded) "not included in this build" else if(!state.localModelsInstalled) "available after installing the bundled local speech files" else if(!state.longFormSupported) "unavailable on this server" else "off; enable Long-form local recording below"}.",style=MaterialTheme.typography.bodySmall,modifier=Modifier.testTag("voice-recording-mode"))
     var engineDetails by remember { mutableStateOf(false) }
     AdaTextButton(onClick = { engineDetails = !engineDetails }, modifier = Modifier.testTag("voice-engine-details-toggle")) {
         Text(if (engineDetails) "Hide engine & model details" else "Engine & model details")
     }
     if (engineDetails) {
-        Text("Recognition: Android on-device service · ${speechAvailabilityLabel(state.availability)}", modifier = Modifier.testTag("voice-engine-status"))
-        Text("Playback: installed offline Android voices. Android manages their model files; ADA does not verify their model digests.")
-        Text("Additional local models: none installed or enabled. Candidate engines await license, compatibility and physical-device checks.")
+        Text("Recognition: ${if(state.longFormEnabled) "local continuous English" else "Android on-device service"} · ${speechAvailabilityLabel(state.availability)}", modifier = Modifier.testTag("voice-engine-status"))
+        Text(if(state.voiceId?.startsWith("neural/")==true) "Playback: selected local neural voice from verified bundled files." else "Playback: installed offline Android voices. Android manages their model files; ADA does not verify their model digests.")
+        Text(if(state.localModelsInstalled) "Verified bundled speech files installed. Continuous recording: ${if(state.longFormEnabled) "on" else "off"}." else if(state.localModelsIncluded) "Bundled local speech files are available to install explicitly." else "Additional local speech files are not included in this build.")
         Text("Voice names describe playback only, not recognition accuracy. Optional native speech is available only in explicitly prepared evaluation builds. Text entry remains available.")
         Text("Style: normal. This adapter offers voice and rate selection; no separate style or generated shorter reply is applied.")
         state.captureAdapter?.let { Text(it.id, style = MaterialTheme.typography.bodySmall) }
@@ -139,7 +140,10 @@ import dev.ada.assistant.audio.WakeAuthority
         AdaOutlinedButton(onClick = { vm.openConversation(saved) }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Open saved voice draft") }
         AdaOutlinedButton(onClick = { discardDraft = true }, modifier = Modifier.heightIn(min = AdaSpacing.touch)) { Text("Discard saved voice draft") }
     }
-    if (!state.enabled) Text("Reviewed voice input is unavailable on this server. You can type your message.")
+    if (!state.enabled) {
+        Text(if(chat.capabilities?.hasVoiceInput()==true) "Continuous recording is unavailable. You can type, reinstall local speech files or explicitly choose Android short recording." else "Reviewed voice input is unavailable on this server. You can type your message.")
+        if(chat.capabilities?.hasVoiceInput()==true) AdaOutlinedButton(onClick={vm.voice.longForm(false)},modifier=Modifier.testTag("voice-choose-platform")) {Text("Choose Android short recording")}
+    }
     else if (state.draft == null && !vm.voice.captureActive) {
         OutlinedTextField(state.language, vm.voice::language, label = { Text("Recognition language") }, supportingText = { Text("Installed on-device language, such as en-US") }, singleLine = true, modifier = Modifier.fillMaxWidth().testTag("voice-language"))
         if (state.availability != SpeechAvailability.Available) Text(when(state.availability) {

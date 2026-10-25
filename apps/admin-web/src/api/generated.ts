@@ -2374,6 +2374,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/conversations/{conversation_id}/long-voice-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit Long */
+        post: operations["submit_long_v1_conversations__conversation_id__long_voice_requests_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/requests/{request_id}/long-voice-input": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Long */
+        get: operations["get_long_v1_requests__request_id__long_voice_input_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/conversations/{conversation_id}/voice-requests": {
         parameters: {
             query?: never;
@@ -3486,6 +3520,11 @@ export interface components {
              * @default unsupported
              */
             voice_input: string;
+            /**
+             * Long Voice Input
+             * @default unsupported
+             */
+            long_voice_input: string;
             /**
              * Voice Audio Uploads
              * @default false
@@ -5746,6 +5785,144 @@ export interface components {
             /** Password */
             password: string;
         };
+        /** LongReviewedVoiceInput */
+        LongReviewedVoiceInput: {
+            /**
+             * Conversation Style
+             * @default listen
+             * @enum {string}
+             */
+            conversation_style: "listen" | "questions" | "suggestions";
+            transcript: components["schemas"]["LongTranscriptInput"];
+            /** Reviewed Text */
+            reviewed_text: string;
+            /** Data Epoch */
+            data_epoch: number;
+            /** Context Start */
+            context_start: number;
+            /** Context End */
+            context_end: number;
+            /**
+             * Review
+             * @constant
+             */
+            review: "approve";
+            /**
+             * Request Id
+             * Format: uuid
+             */
+            request_id: string;
+            /** Content */
+            content: string;
+            /** As Of */
+            as_of?: string | null;
+            /**
+             * Use Memory
+             * @default true
+             */
+            use_memory: boolean;
+            /**
+             * Use Documents
+             * @default false
+             */
+            use_documents: boolean;
+        };
+        /** LongTranscriptInput */
+        LongTranscriptInput: {
+            /**
+             * Transcript Id
+             * Format: uuid
+             */
+            transcript_id: string;
+            /**
+             * Engine Id
+             * @constant
+             */
+            engine_id: "sherpa_zipformer_en_v1";
+            /**
+             * Engine Version
+             * @constant
+             */
+            engine_version: "sherpa-onnx-1.13.8";
+            /** Model Sha256 */
+            model_sha256: string;
+            /**
+             * Language
+             * @constant
+             */
+            language: "en-US";
+            /** Duration Ms */
+            duration_ms: number;
+            /** Segments */
+            segments: components["schemas"]["SegmentInput"][];
+        };
+        /** LongVoiceOutput */
+        LongVoiceOutput: {
+            /**
+             * Protocol
+             * @default ada-long-reviewed-voice-v1
+             * @constant
+             */
+            protocol: "ada-long-reviewed-voice-v1";
+            /**
+             * Request Id
+             * Format: uuid
+             */
+            request_id: string;
+            /**
+             * Conversation Id
+             * Format: uuid
+             */
+            conversation_id: string;
+            /**
+             * Scope Id
+             * Format: uuid
+             */
+            scope_id: string;
+            transcript: components["schemas"]["LongTranscriptInput"];
+            /** Reviewed Text */
+            reviewed_text: string;
+            /** Reviewed Hash */
+            reviewed_hash: string;
+            /** Context Start */
+            context_start: number;
+            /** Context End */
+            context_end: number;
+            /**
+             * Endorsement Source Version Id
+             * Format: uuid
+             */
+            endorsement_source_version_id: string;
+            /**
+             * Original Trust
+             * @default generated_interpretation
+             * @constant
+             */
+            original_trust: "generated_interpretation";
+            /**
+             * Reviewed Origin
+             * @default user_reviewed
+             * @constant
+             */
+            reviewed_origin: "user_reviewed";
+            /**
+             * Engine Metadata
+             * @default client_reported
+             * @constant
+             */
+            engine_metadata: "client_reported";
+            /**
+             * Audio Storage
+             * @default not_received_by_server
+             * @constant
+             */
+            audio_storage: "not_received_by_server";
+            /**
+             * Approved At
+             * Format: int64
+             */
+            approved_at: bigint;
+        };
         /** MergeInput */
         MergeInput: {
             /**
@@ -7515,6 +7692,22 @@ export interface components {
             telemetry: {
                 [key: string]: number | string;
             };
+        };
+        /** SegmentInput */
+        SegmentInput: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Sequence */
+            sequence: number;
+            /** End Ms */
+            end_ms: number;
+            /** Text */
+            text: string;
+            /** Sha256 */
+            sha256: string;
         };
         /** SelfInput */
         SelfInput: {
@@ -25959,6 +26152,234 @@ export interface operations {
                 };
                 content: {
                     "text/event-stream": string;
+                };
+            };
+            /** @description Sanitized error code */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized validation issues or error code; input is omitted */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+        };
+    };
+    submit_long_v1_conversations__conversation_id__long_voice_requests_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LongReviewedVoiceInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StreamStatus"];
+                };
+            };
+            /** @description Sanitized error code */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized validation issues or error code; input is omitted */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Sanitized error code */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+        };
+    };
+    get_long_v1_requests__request_id__long_voice_input_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LongVoiceOutput"];
                 };
             };
             /** @description Sanitized error code */

@@ -1,205 +1,151 @@
-# Release readiness and the quality baseline
+# ADA 1.0 private personal release
 
-Phase 20 adds operator/evaluation tooling without a new server API, migration,
-prompt, authentication method or client capability. Current source head remains
-**0015**. The historically observed application head0005 was not queried again
-or upgraded during this phase. Read [STATUS](../plans/STATUS.md) for actual results,
-failures and skips; this guide is not authorization to operate on a live database.
+The owner selected a release for their own laptop/S24 FE, not public distribution.
+Version1.0.0/code 28 is prepared as a **candidate personal baseline**. Installation
+and remaining physical acceptance are distinct from a successful host build.
+Use [HOW-TO-USE-ADA](HOW-TO-USE-ADA.md) for the complete setup and daily commands.
 
-## What changed
+## Release identity and scope
 
-- `ada.legacy_recovery` protects a populated **0005** database before an upgrade.
-  It writes a separately versioned encrypted artifact and restores only into a
-  new isolated database with its old tokens invalidated.
-- Current `ada.operations` remains the **0015** backup/restore interface, with
-  an explicit schema inventory and matching PostgreSQL-major tool check. Valid
-  Phase18 artifacts remain supported; unknown heads/tables do not become supported
-  simply because a migration or model was added.
-- `scripts/evaluate_quality.py` runs the five existing evaluation programs and a
-  frozen held-out retrieval corpus, producing an aggregate scorecard. Fixtures,
-  exact provenance and semantic answer quality are reported separately.
-- `scripts/verify_private_proxy.py` validates the actual Caddy template and
-  isolated CA-verified loopback routing. `/admin` now redirects to `/admin/`.
-  This is a lab check, not VPN enrollment, system trust installation or deployment.
+`release.json` records version, candidate status, distribution and protocol/schema
+identities. Python/API, web package/lock and Android use1.0.0; tests check agreement.
+API v1, schema 0022, journal 19 and backup-v8 remain separate versions. No migration,
+permission model, prompt snapshot or completed replay is changed by the label.
 
-## Recovery formats and limits
-
-| Tool | Accepted source/artifact | Restore and authority boundary |
+| Artifact | Purpose | Signing/app identity |
 |---|---|---|
-| `python -m ada.legacy_recovery` | Schema0005; `ada-postgres-legacy-0005-v1`; `.legacy0005.adaenc` | New `ada_restore_legacy_*` target only; exact table/row hashes checked; all restored legacy token hashes replaced; no automatic upgrade or API start |
-| `python -m ada.operations` | Schema0015; existing `ada-postgres-backup-v1` | New `ada_restore_*` target only; credential quarantine plus current post-backup erasure ledger reconciliation |
+| PersonalVoice | Own-phone continuous ASR, Bella and experimental wake | Debug-signed; `dev.ada.assistant.debug` |
+| CoreDebug | Own-phone standard platform speech | Debug-signed; same debug app ID |
+| CoreRelease | Standard build for deliberate release signing | Unsigned; `dev.ada.assistant` |
 
-Both use the existing authenticated AES256-GCM/scrypt envelope, a hidden passphrase
-prompt, bounded custom-format PostgreSQL dump and in-memory plaintext handling.
-Only encrypted database artifacts reach disk.256MiB/artifact and five-minute
-subprocess bounds remain; this is not a large-dataset streaming backup solution.
-Tools conservatively require the same client/server PostgreSQL major. A mismatch
-is refused before dumping/creating a restore target. PostgreSQL supports some
-other combinations, but they have not been rehearsed by this tool policy.
-See [the PostgreSQL reference](https://www.postgresql.org/docs/18/app-pgdump.html).
+PersonalVoice does not remove the native Release gate. Device/resource acceptance
+and combined-runtime/phonemizer/voice redistribution review remain open. Do not
+publish the personal debug APK or claim those gates passed. A broader release is
+a separate decision. Failed on-device text generation remains disabled; OCR is off.
 
-The source database is never rewritten by backup or restoration. Existing artifact
-files and existing restore databases are never overwritten. Failed restores may
-leave a task-owned isolated target for inspection; do not start an API against it.
-Authenticated but inconsistent row inventories leave restored tokens quarantined.
-A failed encrypted file write is a failure, not a successful backup receipt; an
-incomplete file must never be selected as a recovery point.
+## Build a concrete candidate
 
-### Supported inventory and future changes
-
-`src/ada/recovery_policy.py` explicitly covers the frozen0005 inventory and current
-0015 inventory; `src/ada/inventory.py` classifies owner-content versus minimal
-security metadata. Unknown actual database tables or owner models fail closed.
-Future migrations must explicitly add a reviewed format/head policy and tests;
-do not merely replace the accepted head string or regenerate a list blindly.
-
-Before accepting a future head, rehearse populated upgrade and old artifact recovery,
-source/hash/citation/completed replay, erasure propagation and current authority
-quarantine. Password sessions/refresh families and automation consent, if later
-implemented, must also be disabled or reconciled after restore. Update client
-epoch/cache cleanup and all new blob/job payload copies. Retain original artifact
-readers; unsupported downgrade is not rollback. Immutable released migrations and
-prompt history remain protected. Current table counts are not timeless constants.
-
-## Pre-upgrade protection and isolated rehearsal
-
-These are operator steps for a separately selected installation window. Commands
-below were verified as existing CLI interfaces, not run against the live account.
-Keep credentials/connection URLs out of logs, command history and plan text.
-
-1. Identify the **actual** current schema/server major using the intended protected
-   installation. Do not rely on old0005 records. Stop new writes for the final
-   installation window and preserve protected configuration/key material separately.
-2. Select the matching supported recovery path. For0005:
-
-   ```powershell
-   $adaPgBin = 'C:/Program Files/PostgreSQL/18/bin' # Match the actual server major.
-   $adaBackups = Join-Path $env:LOCALAPPDATA 'ADA/backups'
-   ./.venv/Scripts/python.exe -m ada.legacy_recovery --pg-bin $adaPgBin backup --destination $adaBackups
-   ```
-
-   Enter a strong password-manager passphrase at the hidden prompt. The receipt
-   reports path/count/time, not a secret. For0015 use the existing
-   [operations runbook](SECURITY-AND-OPERATIONS.md). Other heads need their own
-   validated path; never upgrade just to make the backup command accept them.
-3. Copy the returned encrypted artifact path into a local variable and restore
-   to a **new** isolated target, never the source or an existing database:
-
-   ```powershell
-   $adaArtifact = 'path/from/the/receipt.legacy0005.adaenc'
-   $adaRestoreName = 'ada_restore_legacy_rehearsal_01'
-   ./.venv/Scripts/python.exe -m ada.legacy_recovery --pg-bin $adaPgBin restore --database $adaRestoreName --artifact $adaArtifact
-   ```
-
-   This verifies original rows and invalidates restored tokens. It does not start
-   the old application. Rehearsal in this repository used the released0005 schema
-   and original stored history; no standalone source checkout with head0005 exists
-   in the available Git history. Matching old-server HTTP is therefore **not** a
-   claimed result. Current-server replay is tested after forward upgrade.
-4. Point **only the rehearsal process** at the protected isolated connection URL.
-   Keep the real `.env` unchanged. After reviewing that target, run:
-
-   ```powershell
-   ./.venv/Scripts/python.exe -m alembic upgrade head
-   ./.venv/Scripts/python.exe -m alembic check
-   ```
-
-   These commands use `ADA_DATABASE_URL`; verify its target privately first.
-   Never copy the live URL into a plan/log. The populated drill injects a failure
-   during forward migration and verifies PostgreSQL rolls back to0005 before a
-   successful retry. This is transactional failure injection, not a power-loss test.
-5. Before serving a recovered legacy copy, reconcile erasures that happened after
-   that old snapshot. If later0015 operation/deletion history exists, the legacy
-   artifact alone is insufficient. Keep the copy isolated: upgrade it, create a
-   current-format backup of that copy, obtain a fresh current deletion ledger from
-   the authoritative installation, then use the current restore flow into another
-   new isolated target. That flow quarantines credentials and applies later erasure.
-   A missing/stale ledger or unknown history is a recovery blocker, not permission
-   to resurrect content. Do not invent empty erasure history. Independent legacy
-   and current-ledger drills are evidence of their own tested boundaries.
-6. Review restored sources/hashes, original citations/replay, counts, grants,
-   jobs and erasure receipts. Provision fresh access through separately selected
-   local operator recovery; restored credentials are intentionally unusable.
-   Never use a successful restore receipt as automatic permission to start service.
-
-## Concrete intended-installation checklist
-
-No item here was performed on the live installation during Phase20.
-
-- Select the installation window and verify the exact database, schema, binaries,
-  code/config versions and independent access/recovery material privately.
-- Produce an encrypted pre-upgrade recovery point with the applicable supported
-  tool; authenticate/read it and rehearse a new-database restore before changes.
-- Save key/config material independently; retain the original artifact. Agree
-  acceptable loss, downtime and rollback target from actual data-size measurements.
-- Rehearse populated upgrade, schema drift, original replay and erasure/authority
-  handling. A newer populated schema must not be downgraded past a lossy guard.
-- Stop new writes, take the final recovery point and required current deletion
-  ledger, then apply the already-rehearsed upgrade to the explicitly verified target.
-- Start one loopback worker. Check readiness/capabilities/authentication and an
-  owned saved-request/source smoke test without logging private data.
-- Verify the separately authorized trusted HTTPS/VPN route and current client
-  compatibility. Do not expose provider/database ports or enable later features.
-- Keep enrollment, erasure processing and embeddings at their explicitly selected
-  settings. Do not change retention or schedule backups/dreaming implicitly.
-- If a gate fails, stop serving, preserve artifacts and use the tested isolated
-  recovery procedure. Never overwrite the live database merely to test rollback.
-
-## Reproduce the quality scorecard
-
-The default uses only committed public/synthetic corpora and disposable SQLite;
-it never evaluates private account data or downloads a model:
+From root, with the pinned toolchain:
 
 ```powershell
-./.venv/Scripts/python.exe scripts/evaluate_quality.py --output .pytest_cache/quality-scorecard.json
+.\.venv\Scripts\python.exe scripts/prepare_private_voice.py --download
+.\scripts\build-android.ps1 -Profile PersonalVoice
 ```
 
-For the dedicated disposable PostgreSQL test database, set its protected
-`ADA_TEST_DATABASE_URL` (database name `ada_phase2_test`) and add `--postgres`.
-The extraction adapter remains SQLite and is labeled as such. Each component
-owns its temporary database/schema. Resource numbers cover Python allocations
-and elapsed runtime, excluding PostgreSQL/native/GPU/other processes.
+The second command runs tests/lint/build, verifies actual APK app ID/version and
+native catalogue presence/hash, and writes APK plus receipt under `dist/android`.
+The receipt records SHA256, source commit and dirty-working-tree status, not secrets.
+No installation occurs. Common Gradle output paths can be overwritten by another
+profile; use the distinctly staged artifact and its matching receipt.
 
-`evaluations/quality-baseline-v1.json` pins canonical JSON digests, portable `/`
-paths and development/heldout splits. Corpus changes fail until an explicit new
-version is reviewed. The heldout set is a public regression set frozen before
-future relevance tuning, not proof of unseen model training data. Do not tune on
-it and then keep calling the result independent validation.
-
-Five component programs are reused: claim retrieval, documents, hybrid comparison,
-reviewed extraction and episode summaries. Additional holdout checks cover current/
-historical correction, Unicode evidence, owner/scope/future isolation, no evidence
-and ambiguous dates. Exact-evidence/isolation checks are hard gates; fixture gold
-precision and marker coverage remain fixture measurements. Useful answers,
-citation entailment, justified uncertainty and follow-up helpfulness stay explicitly
-unassessed until an appropriate reviewer evaluates them. No aggregate "intelligence"
-score or private text export is produced.
-
-An explicitly installed local model can be probed with
-`--generation-provider ollama`; record model/digest and availability separately.
-No automatic model download, semantic activation, prompt upgrade or inference
-service start occurs. Do not present a fixture run as model quality. Private
-evaluation needs a separately consented corpus/sanitization/review protocol.
-
-## Reproduce the proxy laboratory check
-
-Use the exact official Caddy release and checksum recorded in
-[validation-tools.json](../ops/validation-tools.json). Verify its SHA512 before
-execution; the binary is not vendored or installed as a service.
+For the standard release artifact instead:
 
 ```powershell
-$adaCaddy = 'path/to/verified/caddy.exe'
-./.venv/Scripts/python.exe scripts/verify_private_proxy.py --caddy $adaCaddy --output .pytest_cache/private-proxy.json
+.\scripts\build-android.ps1 -Profile CoreRelease
 ```
 
-The harness validates the unchanged template, then adapts only listening/upstream
-addresses to explicit loopback ports19420/18420. It refuses occupied ports, creates
-an ephemeral test CA, trusts it only in the test client and stops its own processes.
-Checks include API authorization-header forwarding, JSON errors, `/admin` redirect,
-nested SPA routing, SSE frames, untrusted CA and wrong-host rejection. Its upstream
-is a synthetic protocol fixture; actual ADA ownership tests are separate.
-No system certificate trust, physical release client, remote private network,
-public CA renewal, live server or deployment is verified by this laboratory test.
+This stages `ada-1.0.0-corerelease.apk`, **unsigned** and excluding native speech.
+The personal voice artifact is separately named and retained.
 
-Primary Caddy references: [CLI validation](https://caddyserver.com/docs/command-line)
-and [official release](https://github.com/caddyserver/caddy/releases/tag/v2.11.7).
+## Install the personal build
+
+Use section7 of the setup guide: select the explicit ADB serial, verify the
+receipt/hash, then `adb -s SERIAL install -r APK`. Matching package/signature is
+required for a data-preserving update. Keep the existing debug key, normally
+`%USERPROFILE%/.android/debug.keystore`. Never commit or share private keys.
+
+Do not uninstall as a signature-conflict shortcut. First identify the app ID and
+original signing key. Switching from debug to production ID creates a separate
+app and requires separate sign-in; local Keystore journals cannot simply be copied.
+
+## Sign a standard release APK, if you choose that profile
+
+PersonalVoice is already debug-signed. This section is only for **CoreRelease**;
+it does not bypass the native gate. Keep your signing key outside the repository
+and back it up privately for all future updates. Use a real interactive terminal.
+Create a key only if you do not already have the correct one:
+
+```powershell
+$adaSigningDir = Join-Path $env:LOCALAPPDATA 'ADA/signing'
+New-Item -ItemType Directory -Path $adaSigningDir -Force | Out-Null
+$adaKey = Join-Path $adaSigningDir 'ada-release.p12'
+if (-not (Test-Path -LiteralPath $adaKey)) {
+    keytool -genkeypair -keystore $adaKey -storetype PKCS12 -alias ada-personal-release -keyalg RSA -keysize 3072 -validity 10000
+}
+```
+
+Enter passwords in the local hidden prompts; never use password command arguments
+or post them. Existing production installations need their original key, not a new
+one. Then align, sign and verify the standard APK:
+
+```powershell
+$adaTools = Join-Path $env:LOCALAPPDATA 'Android/Sdk/build-tools/35.0.0'
+$adaUnsigned = (Resolve-Path 'dist/android/ada-1.0.0-corerelease.apk').Path
+$adaAligned = Join-Path (Split-Path $adaUnsigned) 'ada-1.0.0-core-aligned.apk'
+$adaSigned = Join-Path (Split-Path $adaUnsigned) 'ada-1.0.0-core-signed.apk'
+& "$adaTools/zipalign.exe" -P 16 -f 4 $adaUnsigned $adaAligned
+if ($LASTEXITCODE -ne 0) { throw 'Alignment failed.' }
+& "$adaTools/apksigner.bat" sign --ks $adaKey --ks-key-alias ada-personal-release --out $adaSigned $adaAligned
+if ($LASTEXITCODE -ne 0) { throw 'Signing failed.' }
+& "$adaTools/apksigner.bat" verify --verbose --print-certs $adaSigned
+if ($LASTEXITCODE -ne 0) { throw 'Signature verification failed.' }
+Get-FileHash -LiteralPath $adaSigned -Algorithm SHA256
+```
+
+Adjust the SDK path if necessary. Sign only after alignment and do not modify the
+APK afterwards. The unsigned build receipt does not describe the newly signed APK;
+retain its new hash and certificate fingerprint with your private release record.
+These signing/key-creation instructions have not been executed for your key.
+Official references: [app signing](https://developer.android.com/studio/publish/app-signing),
+[apksigner](https://developer.android.com/tools/apksigner).
+
+## Laptop update and acceptance
+
+The read-only installation check found schema 0022/PostgreSQL 17, healthy API8000
+and proxy18764, and tailnet-only Serve. Refresh the editable Python package and
+rebuild web assets with the API/proxy deliberately stopped, then restart as the
+setup guide describes. Existing0022 needs no schema change for1.0. Verify readiness,
+HTTPS/password sign-in and an owned chat. No database reset is part of this release.
+
+Host builds/tests are recorded in STATUS/WORKLOG. Remaining owner checks:
+
+- Install/update the intended app without losing local drafts; sign in over Tailscale.
+- Verify actual Continuous local recording, editable review and explicit Send.
+- Complete deferred long microphone, post-fix human locked-wake, permissions/calls/
+  routes, accessibility and extended unplugged resource acceptance.
+
+The private baseline can be reviewed with those limitations; it is not evidence of
+a public-ready voice product. Do not silently close Phase32's physical exit gates.
+
+## Record the source baseline after review
+
+The current tree includes uncommitted implementation/release changes. Review them
+before creating a release commit/tag; no automatic Git tag/public upload is made:
+
+```powershell
+git status --short
+git diff --check
+git diff
+# Review/stage tracked changes interactively:
+git add -p
+# Add the new release files only after reviewing them:
+git add -- .gitattributes CHANGELOG.md release.json src/ada/version.py scripts/build-android.ps1 tests/test_release_identity.py docs/README.md docs/archive
+git diff --cached --stat
+git diff --cached
+git commit -m "Prepare ADA 1.0.0 private personal baseline"
+git tag -a v1.0.0 -m "ADA 1.0.0 private personal baseline"
+```
+
+In `git add -p`, select the intended1.0 hunks and exclude unrelated work. Confirm
+the cached diff includes the version changes and Phase32 fixes. After commit,
+rebuild the selected profile from a clean tree so its receipt records that commit
+with `working_tree_dirty=false`. Archive receipts and acceptance results with the
+tag. Future development starts after that baseline;
+do not relabel an unreviewed dirty checkout as a tagged release.
+
+## Historical recovery references
+
+[Phase20/legacy0005 readiness](archive/RELEASE-READINESS-PHASE20.md),
+[current database administration](DATABASE-ADMINISTRATION-WINDOWS.md),
+[security/recovery](SECURITY-AND-OPERATIONS.md),
+[actual verification](../plans/STATUS.md), [work log](../plans/WORKLOG.md).

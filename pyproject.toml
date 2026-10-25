@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ada-server"
-version = "0.2.0"
-description = "ADA Phase 2: scoped memory retrieval and cited chat on a Python/Ollama server"
+version = "1.0.0"
+description = "ADA private assistant: authenticated chat, scoped memory and local voice"
 requires-python = ">=3.12"
 dependencies = [
   "fastapi>=0.121,<1", "uvicorn[standard]>=0.30,<1",

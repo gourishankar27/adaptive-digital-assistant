@@ -4,6 +4,87 @@ Current overview updated 2026-10-24 America/Phoenix; historical entries retain t
 own dates and verification provenance. Update after implementation and verification.
 “Planned” means a specification exists, not that code or a working UI exists.
 
+**Private1.0 release preparation (2026-10-24):** owner selected personal laptop/
+S24 FE use, not public distribution. Application versions are1.0.0 (Android code28)
+with `release.json` candidate status. APIv1, schema0022, journal19 and backup-v8
+are unchanged. Build profiles stage a debug-signed PersonalVoice APK with pinned
+native speech, standard CoreDebug, or unsigned CoreRelease; actual app identity,
+version, native catalogue presence/hash and artifact SHA receipts are verified.
+PersonalVoice and CoreRelease were built/staged; no phone installation or Git tag/
+public release was made. Native Release remains gated; physical acceptance is not
+inferred from the new label. [Setup](../docs/HOW-TO-USE-ADA.md),
+[release/signing](../docs/RELEASE-READINESS.md), [notes](../CHANGELOG.md).
+
+Read-only installation check: PostgreSQL17 at0022, API8000/proxy18764 ready200,
+Tailscale Serve tailnet-only. The running API still reports application0.2.0 until
+its deliberate restart with the1.0 source; no live restart/migration, password,
+proxy configuration or active web-asset replacement was performed. Current source
+needs no new database migration. New web assets were built to an isolated build/
+directory. Instructions preserve existing app data/signing identity and use the
+native profile explicitly for continuous recording/Bella.
+
+Checks: PersonalVoice336 Android units/lint/debug build passed; CoreRelease336
+units/lint/unsigned release passed; actual personal APK signature and16KiB zip
+alignment verified; both staged receipts/hashes/payload profiles validated. Web72
+units/lint/typecheck/production build and regenerated contract check passed.
+Metadata/schema/client/legacy-installer pytest11 passed/2 PostgreSQL fixture skips
+in11.42s; prior full1268/80 is retained below as earlier evidence, not a new run.
+Ruff lint/format396 files and Windows PowerShell5.1 helper preflight passed.
+OpenAPI differs only in info.version; all166 paths/220 schemas are identical.
+
+Documentation now has one current setup/index and a short README. Superseded
+Phase1/2 upgrade, Phase2 validation, Phase20 readiness, old long walkthrough and
+private installation observations moved to docs/archive with compatibility links.
+Validation history/plans/released migrations were preserved. All102 Markdown files,
+681 local links/anchors and actual fenced blocks passed the repository-wide audit.
+Remaining: owner installation/sign-in, post-fix S24 acceptance and native bundle
+redistribution review. No future development phase was started.
+
+**Phase32 host continuation (2026-10-24;8d795ef + follow-up):** long reviewed
+narratives, optional pinned local speech, Bella audition and persistent wake with
+shared session renewal are implemented for private evaluation. The host follow-up
+preserves an active native mic/hold lease across successful same-owner/epoch/scope
+renewal, retains the selected continuous mode across same-owner renewal and stops
+on verification failure/expiry. Old private reads are fenced; Stop works while
+renewal is pending. Losing the long capability requires an explicit short-mode
+choice. Voice controls now identify the actual recording mode rather than
+implying that an ordinary build records through silence.
+
+The ordinary installed app was not upgraded. Ordinary builds retain Android's
+pause-sensitive recognizer/legacy60s limit; continuous capture requires the optional
+native build, installed files, supporting0022 server and explicit long-mode choice.
+See [setup/troubleshooting](../docs/PRIVATE-VOICE-CONVERSATIONS.md).
+Current0022/77 tables/64 owner-content/backup-v8, OpenAPI166/220,
+Android27/journal19; released migrations and old OpenAPI paths remain unchanged.
+
+Actual pre-disconnection S24 evidence: Bella preferred/Stop confirmed; both public
+microphone phrases survived a10s silent pause until Stop; six HTTP/Keystore/
+force-stop stages passed. Accelerated2/10/30min native decoder streams retained
+4/20/60 expected segments. Initial human wake trials missed and the first native
+five-case run failed2cases (microphone wake and a confusable prefix). Readiness
+reporting was corrected and trailing blanks increased to8 without lowering the
+threshold; the corrected3-case native wake set passed, including the actual
+speaker/microphone/service and four synthetic confusables. This is not a passing
+human locked-wake/battery or long real-time microphone acceptance.
+
+The owner deferred paced long microphone tests and then stopped further S24 work.
+No phone tests/install/cleanup are run in this host-only continuation. Final native
+and ordinary host builds each passed336 units/0 skips, lint0 errors/50 warnings;
+normal debug/test and unsigned Release build, and the native Release rejection
+gate passed as intended. Full SQLite/PostgreSQL18/native-tool regression:
+**1268 passed/80 skipped in2010.01s**, one existing Starlette/httpx warning.
+Skips:26 PostgreSQL-only SQLite variants (their PostgreSQL cases ran),46 PDF cases
+without `ADA_TEST_PDF_MANIFEST`,8 opt-in Ollama probes not enabled. Those optional
+integrations were not rerun. Ruff lint/format384 files, unchanged legacy contract
+checks and Windows LF-catalogue checkout verification passed. Both owned test
+containers were removed; the application database/container was not changed.
+Exact commands/failures and target verification are in WORKLOG. Persistent native service expiry/remote-
+revocation fixture is compiled but **not run**, nor are the post-fix human/long-mic,
+active permission/privacy/call/route, TalkBack/font or extended unplugged resource
+checks. Bundle redistribution/phonemizer/voice review remains open; native Release
+is deliberately blocked. **Phase32 exit remains open.** No live migration,
+normal-phone installation, later phase or deployment.
+
 **Phase32 implementation in progress (2026-10-24):** additive long-form
 review/immutable narrative storage and migration0022, bounded app-owned streaming
 capture, optional pinned native speech evaluation build, neural playback and

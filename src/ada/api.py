@@ -102,6 +102,7 @@ from ada.semantic import RebuildOutput
 from ada.service import ChatService, ServiceError, public_request
 from ada.stream_provider import StreamingOllamaProvider
 from ada.streaming import StreamingService
+from ada.version import __version__
 from ada.web_broker import DockerWebBroker, UnavailableWebBroker
 
 
@@ -250,7 +251,7 @@ def create_app(settings=None, provider=None, sessions=None):
 
     app = FastAPI(
         title="ADA",
-        version="0.2.0",
+        version=__version__,
         lifespan=lifespan,
         description="Scoped memory retrieval, cited chat, durable evidence traces and explicitly granted admin monitoring.",
     )

@@ -699,7 +699,7 @@ private fun Composer(state: ChatState, vm: ChatViewModel, maximumHeight: Dp) {
     val voiceState by vm.voice.state.collectAsStateWithLifecycle()
     val composerText = voiceState.draft?.reviewedText ?: voiceState.partialText ?: state.draft
     val count = composerText.codePointCount(0, composerText.length)
-    val canSend = !vm.voice.captureActive && !voiceState.draftLoading && !reserved && composerText.isNotBlank() && (count <= 4000 || voiceState.draft?.transcript?.isLong()==true) && state.capabilities?.chat == true &&
+    val canSend = !state.connecting && !vm.voice.captureActive && !voiceState.draftLoading && !reserved && composerText.isNotBlank() && (count <= 4000 || voiceState.draft?.transcript?.isLong()==true) && state.capabilities?.chat == true &&
         (voiceState.draft == null || vm.voice.composerDraftForSend() != null)
     val progress = state.stream?.takeIf { it.request_id == state.pending?.message?.body?.request_id }
     val canStop = progress?.stream_state in setOf("running", "cancel_requested") && progress?.available == true

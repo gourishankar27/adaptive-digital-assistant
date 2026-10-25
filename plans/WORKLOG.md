@@ -4584,3 +4584,283 @@ from normal builds; native release distribution is blocked pending full bundle
 license/voice/phonemizer and target acceptance. No cloud speech or private audio.
 
 Implementation/checkpoint work continues; do not treat this entry as phase exit.
+
+
+### 2026-10-24 — Phase32 implementation/host-only continuation —8d795ef + follow-up
+
+Scope: only Phase32. Original inspected implementation baseline20cde93; source
+checkpoint is now8d795ef. Preserve the earlier planning/baseline entries. The owner
+selected Bella and persistent listening with shared session renewal. They later
+deferred paced2/10/30min physical mic tests and explicitly stopped S24 testing;
+no further ADB, install, recording or phone cleanup is performed after that request.
+Normal installed ADA/server/database and later phases are unchanged.
+
+Implemented checkpoints: additive long reviewed narrative protocol/table0022,
+owner/epoch/idempotency/atomic lineage, exact selected model context and fixed
+versioned expression overlay; backup-v8/private erasure, journal19 old readers,
+app-owned bounded PCM/segment checkpoints, optional pinned native ASR/KWS/Kokoro,
+local neural Stop and cue-only visible wake FGS. Original text/voice routes,
+prompts/replay and source trust remain. No cloud speech/raw-audio retention,
+automatic Send/memory extraction, default-assistant/boot change or deployment.
+
+Shared renewal uses one UI/service coordinator and atomic encrypted compare/replace.
+A pending marker precedes refresh/logout HTTP; unknown outcomes/process death
+require sign-in, never replaying a consumed refresh. Cache coalescing binds owner,
+epoch and login family. Visible UI owns rotation; resume joins background renewal.
+Logout joins rotation, uses the current access and fences queued consumers before
+cleanup. Wake grants have no secret and extend only for the same lease/identity/
+conversation/scope/epoch/family after metadata checks. Expiry/revocation/audio loss
+stops it. Persistent FGS renewal across real expiry remains a target fixture, not
+an observed success.
+
+Host-only interruption fix: periodic restore previously reset the voice controller.
+During active continuous capture, hide other private views, cancel/fence old reads,
+block private operations and renew/verify before replacing the voice credential.
+Keep mic/editor/hold/Stop and immutable checkpoints intact. Failed/changed auth or
+the original expiry deadline stops capture; late replies cannot revive it. Preserve
+explicit continuous mode across same-owner renewal; logout/account switching clears
+it. Lost long support requires an explicit short-mode choice. Voice controls now
+show the actual mode and accurate installed/native engine details. This explains
+why an ordinary build still stops on pauses: it retains Android platform short
+recognition and60s legacy contract. Native continuous mode requires the prepared
+optional bundle, installed files,0022 capability and explicit toggle. No normal
+phone upgrade is implied by a source checkout or versionCode27 alone.
+
+Actual backend checks before the final host rerun:
+
+- Voice/schema baseline31 passed/28 PG skips in41.81s; long SQLite9/9 in12.40s;
+  SQLite/PG voice/long/schema77/0 in116.63s.
+- Expanded long/concurrency/populated-upgrade selection22/0 in43.93s. Fresh
+  long/reflection/schedule/work migration selection85 passed/5 skips in127.66s.
+- Intermediate affected run134 passed/6 failed/5 skipped in279.90s. SQLite
+  downgrade preflight dropped the new empty table before a lower history guard
+  refused;0022 now preflights lower guards before DDL. Schema/FK metadata changed
+  during that run; the fresh selection above passed. Released migrations were
+  not edited.
+- Initial broad run1217 passed/27 failed/99 skipped in2015.62s while implementation
+  was changing: lower SQLite preflights, metadata/schema drift, stale OpenAPI and
+  current table/head/inventory expectations. This is a failed intermediate run,
+  not final regression evidence.
+- Native recovery against PG17 with PG18 tools failed the intentional major-match
+  gate:8 passed/9 failed/3 skipped in81.48s. No safety bypass. Correct PG18 server/
+  native-tool rerun17 passed/3 skipped in97.94s.
+- Populated new narrative encrypted native backup/restore/replay/latest-deletion-
+  ledger test1 passed in12.79s. Old credentials rejected, full original/reviewed
+  lineage preserved, completed replay made no model call, erased narratives stayed
+  erased after restoring an older artifact with the latest ledger.
+- A subsequent full run reached96% but left no completion/exit summary across
+  the interrupted session/host restart; it is **not a pass**. On continuation the
+  owned test containers were exited. A newly started test process was stopped
+  before using that unavailable fixture; restarted only `ada-phase32-pg18`,
+  verified readiness with pg_isready, then started a clean full run. Results are
+  appended at closeout; no application database was migrated or reset.
+
+Actual Android/device checks **before** physical testing was stopped:
+
+- Real JNI ASR/TTS/KWS two-case corrected run passed in6.089s. Initial installer
+  failures exposed a legitimate spaced eSpeak filename and canonical /data alias
+  handling; containment/hash checks remain. First TTS crashed because Kotlin2
+  invokedynamic lacked the typed JNI callback bridge; explicit function object
+  fixed it. Native handles/leases close on construction/stream/close failures.
+- Owner public listening: Bella preferred; Stop prompt. Public latched recording
+  retained both supplied phrases across a10s silent pause until explicit Stop,
+  editable/no automatic Send. Not a long/hold/network/clinical-quality assessment.
+- Real HTTP/Compose/Keystore/actual force-stop long flow passed2stages in2.461s/
+  3.508s after correcting a test that incorrectly used Connect (which intentionally
+  clears journals) instead of Restore. Production recovery was not weakened.
+- Later6 HTTP stages passed: shared rotation/unknown-outcome restart0.576s/0.085s,
+  password reopen/renew/revoke6.346s/1.893s, long review/Send/lineage3.336s/3.343s.
+  Synthetic ASR, actual HTTP/PostgreSQL/Keystore; not one native end-to-end loop.
+- Native five-case set149.464s:3passed/2failed. Accelerated2/10/30min PCM streams
+  retained4/20/60segments in4.303s/21.169s/94.089s. Observed PSS248531→248166,
+  248170→251689 and251689→246636KiB; these points are not a battery/thermal soak
+  or paced microphone acceptance. Real foreground speaker/mic wake missed and
+  a confusable phrase falsely matched the keyword prefix. Human wake trials also
+  missed while locked/unlocked despite an active mic FGS.
+- Report Armed only after actual microphone startup; require8 trailing blanks
+  instead of2, keeping the keyword threshold unchanged. Corrected native3case
+  wake rerun **passed in29.8s**: actual foreground speaker/microphone/service cue
+  and Stop, positive neural phrase and4synthetic confusable negatives. Public
+  diagnostic105280PCM frames/peak1.0 observed; no raw audio saved. Human locked
+  retry/broad false-positive and pronunciation acceptance remain pending.
+
+Host-only verification/failures:
+
+- Initial Android full attempt was stopped after an obsolete password mock/
+  assertion left the virtual renewal loop running. Corrected the mock to rotate
+  secrets within one family and distinguish cached restore from explicit renewal.
+- Journal tests originally asserted18/current-future19; updated current19 and
+  future20 while retaining old readers. A test-only Long/Int metric compilation
+  error was corrected. A native renewal fixture referenced an absent UiAutomator
+  dependency; changed it to Android's Home intent instead of adding a dependency.
+  That fixture compiles but has **not run**. A new capability-loss test initially
+  supplied null to a nonnullable String; corrected to the unsupported value.
+- Final native host command: Gradle property for the pinned speech directory and
+  separate validation ID, `testDebugUnitTest lintDebug assembleDebug
+  assembleDebugAndroidTest`: **336 passed/0 skipped**, no lint errors. Includes
+  coalescing/marker-before-HTTP/storage failure/late owner switch/family/logout,
+  continuous renewal/hold release during pending renewal/auth failure/expiry/late
+  result/mode preservation/explicit fallback tests. Final normal builds are
+  recorded at closeout. No post-follow-up device run is implied.
+- Optional `:app:assembleRelease` was intentionally rejected by the reviewed
+  native redistribution/device gate; verified the expected message. Ordinary
+  unsigned Release remains allowed. Full combined-runtime/eSpeak/source/voice
+  redistribution review is open, not silently licensed by the model card.
+- Public bundle preparation reverified fixed size/hash catalogue and four arm64
+  ELF16KiB alignments. Preparation now also pins/reproduces the public test WAV.
+  Read pinned upstream KWS tokenizer/config documentation; isolated research-only
+  sentencepiece0.2.1 tools confirmed authored tokens, without changing project
+  dependencies. No private audio was downloaded/uploaded.
+- Ruff lint/format384 Python files passed. Compared OpenAPI with20cde93: every old
+  path unchanged; only the additive capability changes an old schema,166/220 now.
+  This host follow-up changes no API. Only0022 was added to migration history.
+
+Skipped/deferred: paced2/10/30min real microphone tests explicitly deferred by the
+owner; no subsequent S24/emulator/phone install or full native conversation loop,
+persistent FGS renewal/remote-revocation execution, post-fix human locked wake,
+noisy names/dates, real call/route/privacy/permission interruption, TalkBack/fonts,
+extended unplugged wake battery/thermal acceptance or installed-host inference.
+New framework code/compilation and accelerated PCM do not close those gates.
+Model/phonemizer/voice redistribution gate remains open; phase exit stays open.
+
+Host closeout before the final backend result: final optional native and normal
+Gradle runs each passed336 unit tests/0 skips; lint0 errors/50 warnings. Normal
+`testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest assembleRelease`
+passed; ordinary debug/test and unsigned Release artifacts are left in build outputs
+with debug application ID `dev.ada.assistant.debug`, version27/0.32.0-private-voice.
+No APK was installed. Final Send is visibly disabled during renewal as well as
+guarded in the controller. Native Release rejection remains the expected gate.
+
+Pinned the byte-hashed catalogue to LF in `.gitattributes`. An actual Windows Git
+checkout-index with `core.autocrlf=true` into a fresh owned build directory retained
+the exact pinned SHA and no CRLF bytes. No catalogue/model hash changed. Ruff
+lint/format384 files and whitespace check passed. Changed Markdown97 local links/
+anchors and balanced fences passed before these final evidence additions.
+
+Final backend closeout: `pytest -q` with dedicated PostgreSQL18 URL and matching
+`ADA_TEST_PG_BIN` passed **1268/80 skipped/0 failed in2010.01s (33m30s)**; existing
+Starlette/httpx deprecation warning only. All1348 collected node IDs matched the
+progress reports; exact skip IDs were retained under ignored build/phase32.
+Skip breakdown:26 SQLite variants requiring PostgreSQL locking/concurrency (the
+corresponding PostgreSQL cases ran),46 PDF integration/profile/recovery cases
+without `ADA_TEST_PDF_MANIFEST`,8 disabled opt-in real Ollama/health probes. No
+missing general PostgreSQL fixture was represented as passing. PDF Docker-worker
+and real-provider execution remain optional verification outside this run.
+
+Final source rebuild after the Send-state guard: optional native336 units/0 skips,
+lint0 errors/50 warnings and debug/test builds passed in36s. Normal336 units/0
+skips, lint0 errors/50 warnings, debug/test and unsigned Release builds passed in
+42s. Final output metadata identifies the ordinary debug/release IDs and version27;
+no installation. The compiled new persistent-service expiry/revocation fixture
+and post-fix native recording/human wake checks remain unrun per user steering.
+
+Verified exact owned container names/images/loopback port, then removed only
+`ada-phase32-pg18` and `ada-phase32-postgres` with their disposable volumes. The
+filtered inventory is empty. No live schema/data/configuration/provider/service,
+normal phone app, deployment or later-phase implementation was changed.
+Phase32 source/host verification is complete; physical/resource/redistribution
+acceptance and phase exit remain open.
+
+Final documentation/working-tree check:8 changed Markdown files,97 local link/
+anchor targets, balanced fences; Ruff lint/format384 files and git diff --check
+passed after closeout. Only Phase32 source, tests, documentation and the catalogue
+LF attribute changed in this continuation. No further phone testing was performed.
+
+
+### 2026-10-24 — private1.0 candidate, setup and documentation cleanup —8d795ef + working tree
+
+User requested laptop/phone setup commands, current documentation/cleanup and a
+1.0 baseline before future development; clarified **private personal release**.
+Phone remains unavailable: no ADB/device tests/install were attempted. Preserve
+the existing uncommitted Phase32 follow-up and its actual validation evidence.
+Read root/Android rules, README/architecture/current state/standards/workflow/status,
+current migration/contract/build/package state and actual setup/recovery scripts.
+
+Read-only installed state: database0022/PostgreSQL17, API8000 and Caddy18764 readiness
+200, built active admin assets and tailnet-only Serve to18764. Do not reset/migrate
+a database already at head merely to change a version label. The running process
+still exposes application0.2.0; the source and staged clients are1.0.0. No live
+process restart, data/account/password/config change or active asset deployment
+was performed. The guide gives deliberate stop/update/restart/version checks.
+
+Changed release metadata to1.0.0 in Python/API, Android(code28), web package/lock;
+added release.json candidate/private metadata and a cross-package consistency test.
+APIv1/schema0022/journal19/backup-v8 and runtime behavior stay separate. Re-exported
+OpenAPI: only info.version changed, every166 path and220 schema is identical to
+the starting export. Regenerated web types to the current existing Phase32 long
+voice contract; no new server endpoint/capability was introduced. No dependencies
+were upgraded; historical0.1→0.2 installer/migration contracts remain unchanged.
+
+Added scripts/build-android.ps1 profiles PersonalVoice(default), CoreDebug and
+CoreRelease. Verifies pinned inputs, runs unit/lint/build, checks actual aapt APK
+identity/version and packaged catalogue, stages separate named artifacts plus
+UTF8 receipts (SHA/source commit/dirty flag/signing/profile, no secrets). No
+automatic install. CoreRelease is explicitly unsigned/no native speech; native
+Release guard is retained. Personal debug appID preserves the existing debug
+update identity/key. Guide handles data-preserving adb -r, explicit serial/app
+launch/version check, local model installation/Bella/long toggle, signature errors,
+key retention and separately chosen CoreRelease signing with hidden prompts.
+No release key was created/read and no signing password was requested in chat.
+Ignored common private keystore extensions/properties as a second safeguard.
+
+Docs cleanup: concise rootREADME + docs/index, current HOW-TO-USE and Tailscale
+reference, updated database/voice/release guides,1.0 notes and release checklist.
+Moved superseded Phase1/2 upgrade, Phase2 validation, Phase20 readiness, prior root
+implementation notes, old long walkthrough and old private setup observations to
+docs/archive; rebased links and retained small compatibility pages. Plans/status/
+work-log validation and immutable migration history remain. Current setup no
+longer mixes obsolete token/Vite/manual-TLS steps into ordinary password/Tailscale
+startup. Dated feature guides remain references. No later phase implementation.
+
+Checks actually run:
+
+- Existing schema/client baseline6 passed/2 PG skips before release metadata. New
+  metadata check initially failed collection due to importing HEAD instead of
+  SCHEMA_HEAD; initial runtime import placement also caused a parse failure.
+  Corrected imports, regenerated export, then metadata/schema/client7/2 passed
+  in10.91s; final metadata/schema/client/legacy-installer **11/2 in11.42s**.
+  Existing Starlette/httpx warning retained. No write/schema/concurrency behavior
+  changed, so the prior full1268/80 evidence was not relabeled as a new full run.
+- PersonalVoice helper: **336 units passed**, lint0 errors, build successful in
+  1m25s. Staged404423435-byte APK/appID dev.ada.assistant.debug/version1.0.0/code28.
+  Actual pinned catalogue verified in ZIP; apksigner verified one signer/v2;
+  zipalign check with16KiB page alignment passed. No phone install.
+- CoreRelease helper: **336 units passed**, lint0 errors, build successful in31s.
+  Staged9695919-byte unsigned APK/appID dev.ada.assistant/version1.0.0/code28; no
+  speech catalogue. Both staged SHA receipts match the actual files/profiles.
+- Native1.0 :app:assembleRelease intentionally failed with the expected review
+  gate. It was not bypassed for a version label. Core signing instructions were
+  checked against official Android tools/docs but not run with an owner's key.
+- Windows PowerShell5.1 PersonalVoice -CheckOnly passed. The default PowerShell
+  host executed both actual build profiles successfully. SDK35 zipalign usage
+  includes -P; requesting help exited nonzero and printed usage, not a failed
+  artifact check. Actual alignment checks then passed.
+- Web generated contracts/check, lint, **72 unit tests**, typecheck and production
+  build passed. Assets staged to build/release-1.0/admin-web, leaving live dist
+  untouched. Vite correctly warned that the external outDir was not emptied.
+- Ruff lint/format396 Python files passed. Repository-wide Markdown audit passed
+  **102 files/678 local links+anchors** and balanced fences. A first naive fence
+  counter mistook an inline triple-backtick example for a fence; corrected the
+  checker, not the unaffected design-audit document. Whitespace check passed.
+- Official Android adb/signing/apksigner and Tailscale Serve references reviewed
+  for the operator instructions. Large shell-mediated doc writing was rejected;
+  direct file patches completed it safely. An invalid duplicate delete/add patch
+  was corrected using sequential file edits. No approval bypass or live command
+  from the documentation was executed.
+
+Skips/limits:2 PG variants lacked a dedicated test URL for this metadata-only
+selection. No new PostgreSQL concurrency run, full Python rerun, browser E2E, real
+model generation, phone installation/voice test, key creation/signing, installed
+1.0 restart, Git release commit/tag or public distribution. Prior validation stays
+dated. Device/native redistribution gates remain open; candidate artifacts report
+working_tree_dirty=true and must not be represented as a clean tagged build.
+Future development waits for the personal baseline/installation review.
+
+Final1.0 audit after setup/Git instructions:102 Markdown files/681 local links and
+anchors, balanced actual fences, both staged APK receipts/hashes and whitespace
+check passed. Baseline schema/client selection was6/2 in9.42s; final release
+selection11/2 is the new run. PersonalVoice and CoreRelease receipts both show
+1.0.0/code28 and their correct debug/unsigned identity. Running API readiness
+remains200/schema0022 with old application label0.2.0; use the documented manual
+restart to apply1.0. No runtime deployment, phone update, key generation, public
+upload or Git release tag was performed.

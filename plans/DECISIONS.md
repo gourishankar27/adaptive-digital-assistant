@@ -751,3 +751,23 @@ not default-assistant/boot/OS-power-policy changes. Interruptions require re-arm
 Human wake phrase trials currently miss despite an active service; acceptance
 remains open while controlled acoustic and false-wake tests investigate it. No
 narrower successful phase exit is inferred and no normal app/deployment is changed.
+
+
+### Phase32 follow-up — renewal preserves the owned recording gesture
+
+The source audit found that the ordinary session-restore path reset VoiceController,
+which would stop a long recording at periodic renewal. During an active continuous
+recording only, hide other private views, cancel/fence prior readers and block new
+private operations while the shared coordinator renews and verifies the same owner,
+data epoch, conversation and scope. Retain only the local mic/editor/hold/Stop state.
+A successful check replaces the controller's credential without changing capture
+keys, endpoints, text checkpoints or Send approval. A failed check, logout, context
+change or the original access-expiry deadline stops recording and follows existing
+private cleanup policy. A late response cannot restore that capture.
+
+Keep an explicit continuous-mode choice across same-owner renewal; clear it on
+logout/account switching. If continuous support is lost, require an explicit short
+mode choice instead of silently switching to the platform recognizer. Ordinary
+builds still exclude the new native bundle. Show the actual mode to explain their
+pause-sensitive behavior. Physical acceptance of this follow-up is deferred at the
+owner's request; no installed app, server migration or deployment is performed.

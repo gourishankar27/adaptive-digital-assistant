@@ -1,6 +1,6 @@
 # Phase 32 — private voice conversations and Hello Ada
 
-Status: **source implemented; verification/exit open**, 2026-10-24,
+Status: **source/host verified; target acceptance/exit open**, 2026-10-24,
 America/Phoenix. This was explicitly selected for implementation. Source requires
 0022/backup-v8 and Android27/journal19; it has not migrated the installed database,
 upgraded the normal phone or deployed. Optional native release distribution is
@@ -11,16 +11,16 @@ sections below describe the inspected baseline, not the new implementation.
 
 | Checkpoint | Current evidence | Remaining acceptance |
 |---|---|---|
-| A: owner-controlled capture | Bounded AudioRecord/native streaming; silence commits internal segments; encrypted checkpoints; explicit Stop/release and editable composer. Owner confirms both public phrases survived a10s pause until Stop. | Paced2/10/30min actual microphone narratives; noisy names/dates, calls/routes, privacy/permission interruptions, storage/resource pressure and accessibility. |
-| B: additive transport/recovery | New authenticated long protocol, full reviewed retention and exact selected context; atomic owner/epoch/idempotency fences; populated0021 upgrade/replay and native encrypted narrative restore/deletion passed; actual S24 HTTP/Keystore/force-stop review/Send stages passed. Old OpenAPI paths/schemas preserved except additive capability. | Final whole-suite result and any target integration failures are recorded in STATUS/WORKLOG. No live migration. |
+| A: owner-controlled capture | Bounded AudioRecord/native streaming; silence commits internal segments; encrypted checkpoints; explicit Stop/release and editable composer. Owner confirms both public phrases survived a10s pause until Stop. Accelerated native2/10/30min streams preserved4/20/60 segments; host renewal/hold/expiry tests pass. | Paced2/10/30min actual microphone narratives; noisy names/dates, calls/routes, privacy/permission interruptions, storage/resource pressure and accessibility. |
+| B: additive transport/recovery | New authenticated long protocol, full reviewed retention and exact selected context; atomic owner/epoch/idempotency fences; populated0021 upgrade/replay and native encrypted narrative restore/deletion passed; actual S24 HTTP/Keystore/force-stop review/Send stages passed. Old OpenAPI paths/schemas preserved except additive capability. | Full1268 passed/80 conditional skips; host/native336 Android units passed. Actual optional skips and native targets are in STATUS/WORKLOG. No live migration. |
 | C: local voice/controls | Pinned optional JNI/ASR/KWS/Kokoro build, bounded local synthesis and explicit choices; Bella preferred and prompt Stop owner-confirmed on S24 FE. Fixed listen/questions/suggestions overlays and explicit completed-reply playback. | Full dependency/phonemizer/voice redistribution review, conversational intelligibility/latency and extended device resource acceptance; native Release remains blocked. |
-| D: background/locked wake | Unexported visible-start FGS, local cue-only detector, Stop, scoped expiring authority and shared password renewal. Six isolated HTTP stages passed; pending marker prevents consumed refresh replay. | Human Hello Ada missed while locked and unlocked despite an active service. Investigate/calibrate before acceptance. Native acoustic, lifecycle, false-wake/miss, extended unplugged battery/thermal and persistent-service renewal tests remain explicit gates. |
+| D: background/locked wake | Unexported visible-start FGS, local cue-only detector, Stop, scoped expiring authority and shared password renewal. Six isolated HTTP stages passed; pending marker prevents consumed refresh replay. | Initial human Hello Ada missed locked/unlocked; initial native set failed on acoustic input/prefix false wake. After readiness/trailing-blank fixes, the3-case native wake rerun passed, including the real microphone/service and four synthetic negatives. Human locked retry, broad false-wake/miss, lifecycle, unplugged battery/thermal and the new persistent-service renewal fixture remain pending; owner stopped S24 testing. |
 
 **User decision:** persistent listening with shared session renewal, rather than
 a fixed15min production lease. Shared UI/service coordination is implemented;
 local wake authority remains bounded by the current verified session and is
 extended only after checks. Public no-account fixtures still have bounded grants.
-No narrower completed-phase decision is inferred. See dated STATUS/WORKLOG for
+Owner explicitly deferred paced2/10/30min microphone tests and then stopped S24 testing; continue host work only. No narrower completed-phase decision is inferred. See dated STATUS/WORKLOG for
 actual commands, failures, corrected reruns, skips and final open targets.
 
 ## Requested experience

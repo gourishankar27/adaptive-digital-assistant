@@ -1,0 +1,2 @@
+# The speech catalogue is hashed byte-for-byte on Windows and Android.
+/ops/speech-runtime/catalogue.json text eol=lf

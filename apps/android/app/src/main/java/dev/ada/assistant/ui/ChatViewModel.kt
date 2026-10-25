@@ -47,6 +47,7 @@ class ChatViewModel(
     private val mutablePasswordSessions = MutableStateFlow<List<LoginSessionDto>>(emptyList())
     val passwordSessions = mutablePasswordSessions.asStateFlow()
     private var renewalJob: Job? = null
+    private var captureRenewalDeadline:Job?=null
     private var accessExpiresAt: Long? = null
     private var loginFamily:UUID?=null
     private var credential: ConnectionCredential? = null
@@ -109,6 +110,9 @@ class ChatViewModel(
         try { block() }
         catch (cancelled: CancellationException) { throw cancelled }
         catch (_: Exception) {
+            if(current(launchedEpoch) && state.value.connecting && voice.captureActive && voice.state.value.longFormEnabled) {
+                expire(ApiFailure.IncompatibleContract,"Recording stopped because sign-in could not be verified. Reconnect before continuing."); return@launch
+            }
             if (current(launchedEpoch)) update { it.copy(connecting = false, creating = false, creatingProfile = false,
                 upgrading = false, sourceLoading = false, traceLoading = false,
                 conversations = it.conversations.copy(loading = false), profiles = it.profiles.copy(loading = false),
@@ -119,12 +123,8 @@ class ChatViewModel(
         }.also { job -> jobs += job; job.invokeOnCompletion { jobs -= job } }
     }
     private fun current(epoch: Long) = epoch == generation
-    private fun resetMemory(preserveWake:Boolean=false) {
-        voiceComposerBase = null
-        mutablePasswordSessions.value = emptyList()
-        renewalJob?.cancel(); renewalJob = null; accessExpiresAt = null; loginFamily=null
+    private fun resetControllers() {
         security.reset()
-        voice.reset(preserveWake)
         memory.reset()
         documents.reset()
         entities.reset()
@@ -135,6 +135,13 @@ class ChatViewModel(
         episodes.reset()
         expression.reset()
         learning.reset()
+    }
+    private fun resetMemory(preserveWake:Boolean=false) {
+        voiceComposerBase = null
+        mutablePasswordSessions.value = emptyList()
+        renewalJob?.cancel(); renewalJob = null; accessExpiresAt = null; loginFamily=null
+        captureRenewalDeadline?.cancel();captureRenewalDeadline=null
+        resetControllers(); voice.reset(preserveWake)
         generation++; selection++; sourceSelection++
         jobs.toList().forEach { it.cancel() }; jobs.clear(); pollJob = null
         credential = null; identity = null; drafts.clear(); retryNotBefore = 0
@@ -253,7 +260,52 @@ class ChatViewModel(
             ready(true)
         }
     }
-    fun renewSession() = restore(forceRotation=true)
+    fun renewSession() {
+        if(voice.captureActive && voice.state.value.longFormEnabled && foreground && accessExpiresAt!=null) renewDuringCapture()
+        else restore(forceRotation=true)
+    }
+    private fun renewDuringCapture() {
+        if(state.value.connecting) return
+        val owner=identity ?: return; val old=credential ?: return; val row=state.value.conversation ?: return
+        val account=state.value.account ?: return
+        renewalJob?.cancel(); renewalJob=null
+        generation++; selection++; sourceSelection++
+        jobs.toList().forEach {it.cancel()}; jobs.clear(); pollJob=null; streamJob=null
+        drafts.clear(); mutablePasswordSessions.value=emptyList()
+        resetControllers(); voice.hidePrivatePlayback()
+        // Hide saved private views; keep only the current owner-controlled mic/editor
+        // and Stop control alive. No new private request may use the old access token.
+        mutableState.value=ChatState(account=account,conversation=row,capabilities=state.value.capabilities,
+            destination=ChatDestination.Chat,connecting=true,draft=state.value.draft,
+            notice="Renewing sign-in. Recording stays local; release or Stop still works.")
+        val epoch=generation
+        captureRenewalDeadline=viewModelScope.launch {
+            delay(((accessExpiresAt ?: 0)-System.currentTimeMillis()).coerceAtLeast(1))
+            if(current(epoch) && state.value.connecting) expire(ApiFailure.Unauthorized,"Recording stopped because sign-in renewal exceeded the current session expiry.")
+        }
+        launchWork {
+            val saved=store.readCredential()
+            if(saved==null || saved.identity!=owner || saved.dataEpoch!=old.dataEpoch || !saved.passwordSession) {if(current(epoch)) expire();return@launchWork}
+            val rotated=value(sessionRefresh.refresh(api,store,saved,allowDebugHttp,force=true),epoch) ?: run {
+                if(current(epoch)) expire(ApiFailure.Unauthorized,"Recording stopped because sign-in could not be renewed. Sign in before continuing.")
+                return@launchWork
+            }
+            val next=ConnectionCredential.parse(owner.server,rotated.access_token,allowDebugHttp) ?: run {if(current(epoch)) expire(ApiFailure.IncompatibleContract);return@launchWork}
+            next.dataEpoch=saved.dataEpoch
+            val user=value(api.me(next),epoch) ?: run {if(current(epoch)) expire();return@launchWork}
+            val owned=value(api.conversation(next,row.id),epoch) ?: run {if(current(epoch)) expire();return@launchWork}
+            val features=value(api.capabilities(next),epoch) ?: run {if(current(epoch)) expire();return@launchWork}
+            if(!current(epoch)) return@launchWork
+            if(user.id!=owner.owner || user.data_epoch!=saved.dataEpoch || owned.id!=row.id || owned.scope_id!=row.scope_id) {expire();return@launchWork}
+            if(!foreground || state.value.destination!=ChatDestination.Chat || state.value.conversation?.id!=row.id) {restore();return@launchWork}
+            if(!voice.renewCaptureSession(next,owner,features,owned)) {expire(ApiFailure.IncompatibleContract);return@launchWork}
+            credential=next; accessExpiresAt=rotated.access_expires_at; loginFamily=rotated.session_id
+            captureRenewalDeadline?.cancel();captureRenewalDeadline=null
+            setControllerSessions(next,owner,features)
+            update {it.copy(connecting=false,conversation=owned,capabilities=features,notice=null,fault=null)}
+            scheduleRenewal(rotated.access_expires_at,epoch); refreshEvents()
+        }
+    }
 
     fun connect(server: String, token: String) {
         resetMemory(); mutableState.value = ChatState(connecting = true)
@@ -272,6 +324,21 @@ class ChatViewModel(
         launchWork { establish(server, token, epoch, expectedOwner = previous.owner) }
     }
 
+    private fun setControllerSessions(connection:ConnectionCredential,verified:SessionIdentity,features:CapabilitiesDto) {
+        memory.setVerifiedSession(connection, verified, features)
+        documents.setVerifiedSession(connection, verified, features)
+        entities.setVerifiedSession(connection, verified, features)
+        proposals.setVerifiedSession(connection, verified, features)
+        agents.setVerifiedSession(connection, verified, features)
+        research.setVerifiedSession(connection, verified, features)
+        curiosity.setVerifiedSession(connection, verified, features)
+        scheduling.setVerifiedSession(connection, verified, features); reflection.setVerifiedSession(connection, verified, features); work.setVerifiedSession(connection, verified, features)
+        edge.setVerifiedSession(connection, verified, features)
+        episodes.setVerifiedSession(connection, verified, features)
+        expression.setVerifiedSession(connection, verified, features)
+        learning.setVerifiedSession(connection, verified, features)
+        security.setVerifiedSession(connection, verified, features)
+    }
     private suspend fun establish(server: String, token: String, epoch: Long, expectedOwner: UUID? = null, refreshToken: String? = null, expiresAt: Long? = null, loginSessionId: UUID?=null, passwordResult:PasswordSessionDto?=null) {
         if (!awaitCleanup()) {
             if (current(epoch)) expire(ApiFailure.IncompatibleContract, "Secure cleanup could not be confirmed. Resolve device storage before connecting.")
@@ -324,19 +391,7 @@ class ChatViewModel(
             dev.ada.assistant.audio.WakeAuthority.extend(active,active.copy(expiresAt=expiresAt ?: System.currentTimeMillis()+120000,sessionId=loginSessionId))
         }
         voice.setVerifiedSession(connection, verified, features)
-        memory.setVerifiedSession(connection, verified, features)
-        documents.setVerifiedSession(connection, verified, features)
-        entities.setVerifiedSession(connection, verified, features)
-        proposals.setVerifiedSession(connection, verified, features)
-        agents.setVerifiedSession(connection, verified, features)
-        research.setVerifiedSession(connection, verified, features)
-        curiosity.setVerifiedSession(connection, verified, features)
-        scheduling.setVerifiedSession(connection, verified, features); reflection.setVerifiedSession(connection, verified, features); work.setVerifiedSession(connection, verified, features)
-        edge.setVerifiedSession(connection, verified, features)
-        episodes.setVerifiedSession(connection, verified, features)
-        expression.setVerifiedSession(connection, verified, features)
-        learning.setVerifiedSession(connection, verified, features)
-        security.setVerifiedSession(connection, verified, features)
+        setControllerSessions(connection,verified,features)
         update { it.copy(connecting = false, account = AccountSummary(normalized, user.id, user.name, features.provider, features.model),
             capabilities = features, destination = ChatDestination.Conversations,
             fault = null, notice = null,
@@ -363,6 +418,7 @@ class ChatViewModel(
         }
     }
     private fun sessionWork(block: suspend (ConnectionCredential, Long) -> Unit) {
+        if(state.value.connecting) return
         val connection = credential ?: return
         val epoch = generation
         launchWork { if (current(epoch)) block(connection, epoch) }
@@ -644,12 +700,13 @@ class ChatViewModel(
         return utc.toString()
     }
     fun send() {
+        if(state.value.connecting) return
         if (voice.captureActive || voice.state.value.draftLoading) return
         if (voice.state.value.draft != null) {
             voice.composerDraftForSend()?.let { sendInput(it.copy(approved = true), approveVoice = true) }
         } else sendInput()
     }
-    fun sendReviewedVoice() { voice.approvedDraft()?.let { sendInput(it) } }
+    fun sendReviewedVoice() { if(!state.value.connecting) voice.approvedDraft()?.let { sendInput(it) } }
     private fun sendInput(voiceDraft: VoiceDraft? = null, approveVoice: Boolean = false) {
         val current = mutableState.value
         val verified = identity ?: return

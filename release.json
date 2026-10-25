@@ -1,0 +1,10 @@
+{
+  "version": "1.0.0",
+  "status": "candidate",
+  "distribution": "private",
+  "android_version_code": 28,
+  "server_schema": "0022",
+  "api_version": "v1",
+  "android_journal": 19,
+  "native_speech": "evaluation-only"
+}

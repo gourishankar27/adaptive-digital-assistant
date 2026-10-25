@@ -79,6 +79,10 @@ class VoiceController(private val api: AdaApi, private val store: SessionStore,
     private var activeTranscript: UUID?=null
     private val captureStorage = kotlinx.coroutines.sync.Mutex()
     private var runtime: LocalSpeechRuntime?=null
+    private var sessionRenewing=false
+    private var privateReadKey=0L
+    private var restoreRecordingMode:Pair<SessionIdentity,Boolean>?=null
+    private var serverVoiceInput=false
     fun attachRuntime(value: LocalSpeechRuntime) { runtime=value; update { it.copy(localModelsIncluded=value.available,localModelsInstalled=value.installed,longFormAvailable=value.installed) } }
     fun installModels(remove: Boolean=false) {
         val engine=runtime ?: return
@@ -104,6 +108,9 @@ class VoiceController(private val api: AdaApi, private val store: SessionStore,
     }
     fun detachAudio() { audioKey++; interruptCapture(); stopPlayback(); input?.close(); output?.close(); input = null; output = null; update { it.copy(voices = emptyList(), voiceId = null, captureAdapter = null, playbackAdapter = null, availability = SpeechAvailability.NoEngine) } }
     fun reset(preserveWake:Boolean=false) {
+        serverVoiceInput=false
+        if(preserveWake) identity?.let {restoreRecordingMode=it to state.value.longFormEnabled} else restoreRecordingMode=null
+        sessionRenewing=false;privateReadKey++
         if(!preserveWake) WakeAuthority.revoke(); input?.selectLongForm(false)
         epoch++; selection++; recoveryNeeded = false; saver?.cancel(); interruptCapture(); stopPlayback(); connection = null; identity = null
         conversation = null; scopeId = null; visible = false; pending = false
@@ -113,11 +120,25 @@ class VoiceController(private val api: AdaApi, private val store: SessionStore,
             voices = state.value.voices, voiceId = state.value.voiceId)
     }
     fun setVerifiedSession(c: ConnectionCredential, verified: SessionIdentity, features: CapabilitiesDto) {
-        reset(WakeAuthority.current()?.let { it.identity==verified && it.dataEpoch==c.dataEpoch }==true); connection = c; identity = verified; update { it.copy(enabled = features.hasVoiceInput(), longFormSupported = features.hasLongVoice(), longFormAvailable = input?.longFormAvailable == true, longFormEnabled = input?.longForm == true) }
+        val selected=restoreRecordingMode?.takeIf {it.first==verified}?.second ?: (identity==verified && state.value.longFormEnabled)
+        reset(WakeAuthority.current()?.let { it.identity==verified && it.dataEpoch==c.dataEpoch }==true); connection = c; identity = verified
+        serverVoiceInput=features.hasVoiceInput()
+        val restored=!selected || (features.hasLongVoice() && input?.longFormAvailable==true && input?.selectLongForm(true)==true)
+        update { it.copy(enabled = features.hasVoiceInput() && restored, longFormSupported = features.hasLongVoice(), longFormAvailable = input?.longFormAvailable == true, longFormEnabled = input?.longForm == true,
+            notice=if(restored) null else "Continuous recording is unavailable. Reinstall local speech files or reconnect before explicitly choosing Android short recording.") }
     }
+    /** Same verified owner/epoch/scope only; renewal must not reset an owned mic gesture. */
+    fun renewCaptureSession(c:ConnectionCredential,verified:SessionIdentity,features:CapabilitiesDto,row:ConversationDto):Boolean {
+        if(identity!=verified || connection?.dataEpoch!=c.dataEpoch || conversation!=row.id || scopeId!=row.scope_id ||
+            !foreground || !visible || !state.value.longFormEnabled || !features.hasLongVoice() || !features.hasVoiceInput()) return false
+        connection=c;sessionRenewing=false;serverVoiceInput=features.hasVoiceInput()
+        update {it.copy(history=emptyList(),historyLoading=false,lineage=null,longLineage=null,lineageRequest=null)}
+        return true
+    }
+    fun hidePrivatePlayback() {sessionRenewing=true;privateReadKey++;stopPlayback();update {it.copy(history=emptyList(),historyLoading=false,lineage=null,longLineage=null,lineageRequest=null)}}
     fun longForm(enabled: Boolean) {
-        if (captureActive || state.value.draft != null || !state.value.longFormSupported) return
-        if (input?.selectLongForm(enabled) == true) update { it.copy(longFormEnabled=enabled,availability=input?.availability ?: SpeechAvailability.NoEngine,captureAdapter=input?.adapterInfo,language="en-US") }
+        if (captureActive || state.value.draft != null || (enabled && !state.value.longFormSupported)) return
+        if (input?.selectLongForm(enabled) == true) update { it.copy(enabled=serverVoiceInput,longFormEnabled=enabled,availability=input?.availability ?: SpeechAvailability.NoEngine,captureAdapter=input?.adapterInfo,language="en-US",notice=null) }
     }
     fun conversationPlayback(enabled: Boolean) { stopPlayback(); update { it.copy(conversationPlayback=enabled) } }
     fun conversationStyle(style: String) { if(style in setOf("listen", "questions", "suggestions")) update { it.copy(conversationStyle=style) } }
@@ -381,15 +402,16 @@ class VoiceController(private val api: AdaApi, private val store: SessionStore,
     }
     fun stopPlayback() { playbackKey++; playerJob?.cancel(); output?.stop(); update { it.copy(playing = false, playbackLoading = false, playbackRequest = null) } }
     fun inspectLineage(request: UUID) {
+        if(sessionRenewing) return
         val c = connection ?: return; val cid = conversation ?: return; val sid = scopeId ?: return
         if (!state.value.enabled) return
-        val e = epoch; val s = selection
+        val e = epoch; val s = selection; val read=privateReadKey
         update { it.copy(lineage = null, longLineage = null, lineageRequest = request) }
         scope.launch {
             try {
                 if(state.value.longFormSupported) {
                     val result=api.longVoiceInput(c,request)
-                    if(!current(e,s) || state.value.lineageRequest!=request) return@launch
+                    if(!current(e,s) || read!=privateReadKey || state.value.lineageRequest!=request) return@launch
                     if(result is ApiResult.Success) {
                         result.value.validate(cid,sid); require(result.value.request_id==request)
                         update { it.copy(longLineage=result.value) }; return@launch
@@ -401,26 +423,27 @@ class VoiceController(private val api: AdaApi, private val store: SessionStore,
                     }
                 }
                 val result = api.voiceInput(c,request)
-                if (!current(e,s) || state.value.lineageRequest != request) return@launch
+                if (!current(e,s) || read!=privateReadKey || state.value.lineageRequest != request) return@launch
                 when(result) {
                     is ApiResult.Success -> { result.value.validate(cid,sid); require(result.value.request_id == request); update { it.copy(lineage = result.value) } }
                     is ApiResult.Failure -> if (result.reason == ApiFailure.Unauthorized) unauthorized()
                 }
             } catch (cancelled: CancellationException) { throw cancelled }
-            catch (_: Exception) { if (current(e,s)) update { it.copy(notice = "Voice input provenance could not be verified.") } }
+            catch (_: Exception) { if (current(e,s) && read==privateReadKey) update { it.copy(notice = "Voice input provenance could not be verified.") } }
         }
     }
     fun refreshHistory() {
+        if(sessionRenewing) return
         val c = connection ?: return; val cid = conversation ?: return; val sid = scopeId ?: return
         if (!state.value.enabled || state.value.historyLoading) return
-        val e = epoch; val s = selection; update { it.copy(historyLoading = true) }
+        val e = epoch; val s = selection; val read=privateReadKey; update { it.copy(historyLoading = true) }
         scope.launch {
             try {
                 when(val result = api.voiceInputs(c,cid)) {
-                    is ApiResult.Failure -> { if (current(e,s)) { if (result.reason == ApiFailure.Unauthorized) unauthorized() else update { it.copy(historyLoading = false) } } }
-                    is ApiResult.Success -> { if (!current(e,s)) return@launch; result.value.forEach { it.validate(cid,sid) }; update { it.copy(history = result.value, historyLoading = false) } }
+                    is ApiResult.Failure -> { if (current(e,s) && read==privateReadKey) { if (result.reason == ApiFailure.Unauthorized) unauthorized() else update { it.copy(historyLoading = false) } } }
+                    is ApiResult.Success -> { if (!current(e,s) || read!=privateReadKey) return@launch; result.value.forEach { it.validate(cid,sid) }; update { it.copy(history = result.value, historyLoading = false) } }
                 }
-            } catch (_: Exception) { if (current(e,s)) update { it.copy(historyLoading = false, notice = "Voice input provenance could not be verified.") } }
+            } catch (_: Exception) { if (current(e,s) && read==privateReadKey) update { it.copy(historyLoading = false, notice = "Voice input provenance could not be verified.") } }
         }
     }
 }
